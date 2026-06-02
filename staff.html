@@ -112,6 +112,21 @@ tr:hover td{background:var(--blue-p)}
 .btn-cancel{flex:1;padding:.75rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
 .btn-cancel:hover{border-color:var(--blue);color:var(--blue)}
 
+/* 帳號管理分頁 */
+.acc-tab{padding:.6rem 1.1rem;background:none;border:none;font-size:.88rem;font-weight:600;color:var(--text-s);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}
+.acc-tab:hover{color:var(--blue-d);background:var(--blue-p)}
+.acc-tab.active{color:var(--blue-d);border-bottom-color:var(--blue);background:var(--blue-p)}
+.add-inline-btn{margin-left:.4rem;padding:.15rem .5rem;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;vertical-align:middle}
+.add-inline-btn:hover{opacity:.85}
+
+/* 詳細資料 overlay */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.detail-overlay.open{display:flex}
+.detail-box{background:#fff;border-radius:var(--r);width:520px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);border-top:4px solid var(--blue);animation:fadeUp .3s ease;margin:auto}
+.detail-row{display:flex;align-items:flex-start;gap:.5rem;padding:.55rem 0;border-bottom:1px solid var(--border-l)}
+.detail-label{font-size:.8rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.1rem}
+.detail-val{font-size:.9rem;font-weight:600;color:var(--text);flex:1;word-break:break-all}
+
 @media(max-width:768px){
   .st-layout{flex-direction:column}
   .st-sidebar{width:100%;flex-direction:row;padding:0;overflow-x:auto;position:sticky;bottom:0;z-index:50}
@@ -190,23 +205,48 @@ tr:hover td{background:var(--blue-p)}
 
     <!-- 帳號管理 -->
     <div class="page-section" id="page-accounts">
-      <div class="page-title">
-        👤 帳號管理
-        <button onclick="openCreateUser('supervisor')" style="padding:.4rem .9rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">＋ 新增督導人員</button>
-        <button onclick="openCreateUser('staff')" style="padding:.4rem .9rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">＋ 新增工作人員</button>
+      <div class="page-title" style="margin-bottom:.75rem">👤 帳號管理</div>
+
+      <!-- 三個角色分頁 -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem;overflow-x:auto">
+        <button class="acc-tab active" id="atab-partner"    onclick="switchAccTab('partner')"   >⚔️ 工作夥伴</button>
+        <button class="acc-tab"        id="atab-supervisor" onclick="switchAccTab('supervisor')" >📖 督導人員 <button onclick="openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</button></button>
+        <button class="acc-tab"        id="atab-staff"      onclick="switchAccTab('staff')"      >🧹 工作人員 <button onclick="openCreateUser('staff')"      class="add-inline-btn">＋ 新增</button></button>
       </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>帳號</th><th>姓名</th><th>角色</th><th>身份別</th><th>狀態</th><th>申請時間</th><th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="accounts-tbody">
-              <tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
-            </tbody>
-          </table>
+
+      <!-- 工作夥伴 -->
+      <div id="acc-panel-partner">
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>
+              <tbody id="tbody-partner"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 督導人員 -->
+      <div id="acc-panel-supervisor" style="display:none">
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>
+              <tbody id="tbody-supervisor"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 工作人員 -->
+      <div id="acc-panel-staff" style="display:none">
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>
+              <tbody id="tbody-staff"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -261,22 +301,55 @@ tr:hover td{background:var(--blue-p)}
   </div>
 </div>
 
+<!-- 詳細資料 overlay -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">📋 帳號詳細資料</div>
+      <button onclick="closeDetail()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+    </div>
+    <div id="detail-content"></div>
+    <div style="margin-top:1rem;display:flex;gap:.5rem" id="detail-actions"></div>
+  </div>
+</div>
+
 <!-- 新增帳號 overlay -->
-<div class="confirm-overlay" id="create-user-overlay">
-  <div class="confirm-box" style="width:420px;text-align:left;border-top-color:var(--blue)">
-    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem" id="create-user-title">新增督導人員</div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1.1rem">建立後帳號立即啟用，預設密碼 <strong>0000</strong>，首次登入需修改。</div>
+<div class="detail-overlay" id="create-user-overlay">
+  <div class="detail-box" style="border-top-color:var(--green)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700" id="create-user-title">新增督導人員</div>
+      <button onclick="closeCreateUser()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">建立後帳號立即啟用，預設密碼 <strong>0000</strong>，首次登入需修改。</div>
     <input type="hidden" id="create-user-role">
     <div id="cu-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
-    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.1rem">
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名 <span style="color:var(--red)">*</span></label><input class="form-input" id="cu-name" placeholder="請輸入真實姓名" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證 <span style="color:var(--red)">*</span></label><input class="form-input" id="cu-id" placeholder="例：A123456789" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日 <span style="color:var(--red)">*</span></label><input class="form-input" type="date" id="cu-birthday" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">*</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-name" placeholder="真實姓名" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-id" placeholder="例：A123456789" style="flex:1" oninput="this.value=this.value.toUpperCase()"></div>
+      <div style="display:flex;align-items:flex-start;gap:.75rem">
+        <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.7rem">生日 <span style="color:var(--red)">＊</span></label>
+        <div style="flex:1;display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:.35rem">
+          <select class="form-input" id="cu-bday-year" style="padding:.72rem .5rem .72rem .75rem"></select>
+          <select class="form-input" id="cu-bday-month" style="padding:.72rem .5rem .72rem .75rem"></select>
+          <select class="form-input" id="cu-bday-day" style="padding:.72rem .5rem .72rem .75rem"></select>
+        </div>
+        <input type="hidden" id="cu-birthday">
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" id="cu-email" placeholder="選填" type="email" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身份別</label>
+        <select class="form-input" id="cu-identity" style="flex:1">
+          <option value="">請選擇（選填）</option>
+          <option>身心障礙者</option><option>單親家庭</option>
+          <option>中高齡者（45歲以上）</option><option>二度就業婦女</option><option>其他弱勢族群</option>
+        </select>
+      </div>
     </div>
-    <div class="confirm-btns">
-      <button class="btn-cancel" onclick="closeCreateUser()">取消</button>
-      <button class="btn-danger" style="background:linear-gradient(135deg,#1A8AC0,#48B4E8)" onclick="submitCreateUser()">建立帳號</button>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn-cancel" onclick="closeCreateUser()" style="flex:1">取消</button>
+      <button onclick="submitCreateUser()" style="flex:2;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">建立帳號</button>
     </div>
   </div>
 </div>
@@ -304,6 +377,7 @@ async function init() {
   document.getElementById('st-user-label').textContent = me.real_name;
   document.getElementById('prof-username').textContent = me.username;
   document.getElementById('prof-realname').textContent = me.real_name;
+  initCuBday();
   await Promise.all([loadAccounts(), loadForgotRequests()]);
   updateDashboard();
 }
@@ -319,62 +393,96 @@ function switchPage(name, el) {
 }
 
 // ── 帳號管理 ──
+const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'工作人員' };
+const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
+const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用' };
+const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive' };
+
 let usersCache = [];
+let curAccTab  = 'partner';
+
+function switchAccTab(role) {
+  curAccTab = role;
+  ['partner','supervisor','staff'].forEach(r => {
+    document.getElementById('atab-'+r).classList.toggle('active', r===role);
+    document.getElementById('acc-panel-'+r).style.display = r===role ? '' : 'none';
+  });
+}
+
 async function loadAccounts() {
   try {
     usersCache = await API.get('/api/admin/users');
     renderAccounts();
     updateDashboard();
-  } catch(e) {
-    document.getElementById('accounts-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red);padding:1rem">${e.message}</td></tr>`;
-  }
+  } catch(e) { console.error(e); }
 }
-
-const roleMap = { partner:'工作夥伴', supervisor:'督導人員', staff:'工作人員' };
-const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
-const statusMap = { active:'active', pending:'pending', inactive:'inactive' };
-const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用' };
-const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive' };
 
 function renderAccounts() {
-  const tbody = document.getElementById('accounts-tbody');
-  if (!usersCache.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無帳號資料</td></tr>'; return; }
-  tbody.innerHTML = usersCache.map(u => `
-    <tr>
-      <td><code style="font-size:.82rem;background:var(--bg);padding:.1rem .4rem;border-radius:4px">${u.username}</code></td>
-      <td>${u.real_name}${u.nickname?`<br><span style="font-size:.72rem;color:var(--text-s)">${u.nickname}</span>`:''}</td>
-      <td><span class="role-tag ${roleClass[u.role]}">${roleMap[u.role]}</span></td>
-      <td style="font-size:.8rem;color:var(--text-s)">${u.identity||'—'}</td>
-      <td><span class="status-badge ${statusClass[u.status]}">${statusLabel[u.status]}</span></td>
-      <td style="font-size:.78rem;color:var(--text-s)">${u.created_at.slice(0,10)}</td>
-      <td>${accountActions(u)}</td>
-    </tr>
-  `).join('');
-
-  // badge
+  ['partner','supervisor','staff'].forEach(role => {
+    const tbody = document.getElementById('tbody-'+role);
+    const list  = usersCache.filter(u => u.role === role);
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無資料</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(u => `
+      <tr>
+        <td>
+          <div style="font-weight:600">${u.real_name}</div>
+          ${u.nickname ? `<div style="font-size:.72rem;color:var(--text-s)">${u.nickname}</div>` : ''}
+        </td>
+        <td><span class="role-tag ${roleClass[u.role]||''}">${roleMap[u.role]||u.role}</span></td>
+        <td style="font-size:.82rem;font-family:monospace">${u.id_number||'—'}</td>
+        <td style="font-size:.82rem;color:var(--text-m)">${u.birthday||'—'}</td>
+        <td><span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span></td>
+        <td style="font-size:.78rem;color:var(--text-s)">${(u.created_at||'').slice(0,10)}</td>
+        <td style="white-space:nowrap">
+          <button class="action-btn" onclick="openDetail(${u.id})">📋 詳細</button>
+          ${u.status==='pending' ? `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">✓ 核准</button>` : ''}
+          ${u.status==='active'  ? `<button class="action-btn" onclick="deactivateUser(${u.id},'${u.real_name}')">⏸ 停用</button>` : ''}
+          ${u.status==='inactive'? `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">▶ 啟用</button>` : ''}
+          ${u.id!==me.id ? `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">🗑</button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  });
   const pending = usersCache.filter(u=>u.status==='pending').length;
   const badge = document.getElementById('badge-accounts');
-  badge.textContent = pending;
-  badge.style.display = pending ? 'inline-flex' : 'none';
+  badge.textContent = pending; badge.style.display = pending ? 'inline-flex' : 'none';
 }
 
-function accountActions(u) {
-  let btns = '';
-  if (u.status === 'pending') {
-    btns += `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">✓ 核准</button>`;
-  }
-  if (u.status === 'active') {
-    btns += `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">🔑 重設密碼</button>`;
-    btns += `<button class="action-btn" onclick="deactivateUser(${u.id},'${u.real_name}')">⏸ 停用</button>`;
-  }
-  if (u.status === 'inactive') {
-    btns += `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">▶ 啟用</button>`;
-  }
-  if (u.id !== me.id) {
-    btns += `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">🗑 刪除</button>`;
-  }
-  return btns || '—';
+// ── 詳細資料 ──
+function openDetail(id) {
+  const u = usersCache.find(x => x.id === id);
+  if (!u) return;
+  const rows = [
+    ['帳號',     u.username],
+    ['姓名',     u.real_name],
+    ['暱稱',     u.nickname || '—'],
+    ['角色',     roleMap[u.role] || u.role],
+    ['身分證',   u.id_number || '—'],
+    ['生日',     u.birthday  || '—'],
+    ['電話',     u.phone     || '—'],
+    ['電子信箱', u.email     || '—'],
+    ['聯絡地址', u.address   || '—'],
+    ['身份別',   u.identity  || '—'],
+    ['銀行名稱', u.bank_name || '—'],
+    ['銀行帳號', u.bank_account || '—'],
+    ['狀態',     statusLabel[u.status] || u.status],
+    ['申請時間', u.created_at || '—'],
+  ];
+  document.getElementById('detail-content').innerHTML = rows.map(([l,v]) =>
+    `<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`
+  ).join('');
+  document.getElementById('detail-actions').innerHTML =
+    `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}');closeDetail()" style="flex:1">🔑 重設密碼</button>`;
+  document.getElementById('detail-overlay').classList.add('open');
 }
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function accountActions(u) { return ''; } // 保留相容
 
 async function approveUser(id, name) {
   await API.put(`/api/admin/users/${id}/approve`);
@@ -443,12 +551,40 @@ function updateDashboard() {
 }
 
 // ── 新增帳號 ──
+function initCuBday() {
+  const y = document.getElementById('cu-bday-year');
+  const m = document.getElementById('cu-bday-month');
+  const d = document.getElementById('cu-bday-day');
+  const thisYear = new Date().getFullYear();
+  y.innerHTML = '<option value="">年</option>';
+  m.innerHTML = '<option value="">月</option>';
+  d.innerHTML = '<option value="">日</option>';
+  for (let i = thisYear; i >= thisYear-80; i--) y.innerHTML += `<option value="${i}">${i} 年</option>`;
+  for (let i = 1; i <= 12; i++) m.innerHTML += `<option value="${i}">${i} 月</option>`;
+  function updateDays() {
+    const yv = parseInt(y.value)||2000, mv = parseInt(m.value)||1, dv = parseInt(d.value)||0;
+    const max = new Date(yv, mv, 0).getDate();
+    d.innerHTML = '<option value="">日</option>';
+    for (let i = 1; i <= max; i++) d.innerHTML += `<option value="${i}"${i===dv?' selected':''}>${i} 日</option>`;
+    syncBday();
+  }
+  function syncBday() {
+    const yv=y.value, mv=m.value, dv=d.value;
+    document.getElementById('cu-birthday').value = (yv&&mv&&dv) ? `${yv}-${String(mv).padStart(2,'0')}-${String(dv).padStart(2,'0')}` : '';
+  }
+  y.addEventListener('change', updateDays);
+  m.addEventListener('change', updateDays);
+  d.addEventListener('change', syncBday);
+}
+
 function openCreateUser(role) {
   const titles = { supervisor:'新增督導人員', staff:'新增工作人員' };
   document.getElementById('create-user-title').textContent = titles[role];
   document.getElementById('create-user-role').value = role;
-  ['cu-name','cu-id','cu-phone'].forEach(id => document.getElementById(id).value = '');
+  ['cu-name','cu-id','cu-phone','cu-email','cu-address'].forEach(id => document.getElementById(id).value = '');
+  ['cu-bday-year','cu-bday-month','cu-bday-day'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('cu-birthday').value = '';
+  document.getElementById('cu-identity').value = '';
   document.getElementById('cu-err').style.display = 'none';
   document.getElementById('create-user-overlay').classList.add('open');
 }
@@ -458,16 +594,20 @@ function closeCreateUser() {
 async function submitCreateUser() {
   const err = document.getElementById('cu-err');
   err.style.display = 'none';
-  const role     = document.getElementById('create-user-role').value;
+  const role      = document.getElementById('create-user-role').value;
   const real_name = document.getElementById('cu-name').value.trim();
   const id_number = document.getElementById('cu-id').value.trim();
   const birthday  = document.getElementById('cu-birthday').value;
   const phone     = document.getElementById('cu-phone').value.trim();
-  if (!real_name || !id_number || !birthday || !phone) {
-    err.textContent = '請填寫所有必填欄位'; err.style.display = 'block'; return;
-  }
+  const email     = document.getElementById('cu-email').value.trim();
+  const address   = document.getElementById('cu-address').value.trim();
+  const identity  = document.getElementById('cu-identity').value;
+  if (!real_name) { err.textContent='請填寫姓名'; err.style.display='block'; return; }
+  if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
+  if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
+  if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
   try {
-    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone });
+    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, identity });
     closeCreateUser();
     showToast(`帳號已建立：${res.username}`, 'success');
     loadAccounts();

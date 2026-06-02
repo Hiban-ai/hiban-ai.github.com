@@ -157,13 +157,16 @@ app.get('/api/admin/users', requireRole('staff'), async (req, res) => {
 
 app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
   try {
-    const { role, real_name, id_number, birthday, phone } = req.body;
+    const { role, real_name, id_number, birthday, phone, email, address, identity } = req.body;
     if (!['supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (!real_name || !id_number || !birthday || !phone) return res.status(400).json({ error: 'Missing required fields' });
     const prefix   = role === 'supervisor' ? 'sv' : 'st';
     const username = await generateUsername(prefix);
     const user     = await Users.create({
       username, real_name, id_number, birthday, phone,
+      email:    email    || null,
+      address:  address  || null,
+      identity: identity || null,
       role, status: 'active', is_first_login: true,
       password_hash: bcrypt.hashSync('0000', 10),
     });
@@ -213,6 +216,24 @@ app.get('/api/admin/forgot-requests', requireRole('staff'), async (req, res) => 
     }));
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 一次性：修復 admin 角色
+app.get('/api/_setup/admin', async (req, res) => {
+  const existing = await Users.byName('admin');
+  if (!existing) {
+    const user = await Users.create({
+      username:'admin', real_name:'系統管理員', nickname:null,
+      role:'staff', status:'active', is_first_login:false,
+      password_hash: bcrypt.hashSync('1234', 10),
+    });
+    return res.json({ ok: true, msg: 'admin 已建立', role: user.role });
+  }
+  if (existing.role !== 'staff') {
+    await Users.update(existing.id, { role: 'staff' });
+    return res.json({ ok: true, msg: `admin role 已從 ${existing.role} 修正為 staff` });
+  }
+  res.json({ ok: true, msg: 'admin 已正確，role: staff', id: existing.id });
 });
 
 const PORT = process.env.PORT || 3000;

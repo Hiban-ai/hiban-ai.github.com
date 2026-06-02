@@ -56,66 +56,11 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9AAF' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 1rem center}
 .form-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15)}
+.form-select.has-error{border-color:var(--red)!important;background-color:var(--red-p)!important}
 
-/* ── 日期欄位 ── */
-.date-wrap{position:relative}
-.date-row{display:flex;gap:.5rem;align-items:center}
-.date-text-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rs);
-  padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;
-  outline:none;background:var(--bg);color:var(--text);transition:all .2s}
-.date-text-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15);background:#fff}
-.date-text-input.has-error{border-color:var(--red)!important;background:var(--red-p)!important}
-.cal-open-btn{flex-shrink:0;width:44px;height:44px;border:1.5px solid var(--border);border-radius:var(--rs);
-  background:#fff;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;
-  transition:all .2s}
-.cal-open-btn:hover{border-color:var(--blue);background:var(--blue-p)}
-.date-hint{font-size:.72rem;color:var(--text-s);margin-top:.35rem}
-
-/* Calendar popup */
-.cal-popup{position:absolute;top:calc(100% + .4rem);left:0;right:0;
-  background:#fff;border-radius:var(--r);box-shadow:0 12px 40px rgba(72,180,232,.25);
-  border:1.5px solid var(--border);z-index:200;display:none;overflow:hidden}
-.cal-popup.open{display:block;animation:fadeDown .18s ease}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-
-/* Calendar header */
-.cal-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:.7rem .9rem;background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff}
-.cal-hdr-title{font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700}
-.cal-hdr-nav{display:flex;gap:.25rem}
-.cal-hdr-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
-  width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:.9rem;
-  display:flex;align-items:center;justify-content:center;transition:background .2s}
-.cal-hdr-btn:hover{background:rgba(255,255,255,.3)}
-
-/* Year grid */
-.cal-year-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.75rem}
-.cal-year-item{padding:.5rem .25rem;text-align:center;border-radius:8px;cursor:pointer;
-  font-size:.82rem;transition:all .2s;border:1.5px solid transparent}
-.cal-year-item:hover{background:var(--blue-p);border-color:var(--blue-pp)}
-.cal-year-item.selected{background:var(--blue);color:#fff;font-weight:700}
-.cal-year-item.future{opacity:.3;pointer-events:none}
-
-/* Month grid */
-.cal-month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.75rem}
-.cal-month-item{padding:.55rem .25rem;text-align:center;border-radius:8px;cursor:pointer;
-  font-size:.85rem;transition:all .2s;border:1.5px solid transparent}
-.cal-month-item:hover{background:var(--blue-p);border-color:var(--blue-pp)}
-.cal-month-item.selected{background:var(--blue);color:#fff;font-weight:700}
-
-/* Day grid */
-.cal-day-grid{padding:.5rem .75rem .75rem}
-.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:.25rem}
-.cal-wd{font-size:.68rem;color:var(--text-s);font-weight:600;padding:.25rem 0;text-align:center}
-.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:.2rem}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
-  border-radius:50%;font-size:.8rem;cursor:pointer;transition:all .15s;
-  border:1.5px solid transparent}
-.cal-day:hover:not(.empty):not(.future){background:var(--blue-p);border-color:var(--blue-pp);color:var(--blue-d)}
-.cal-day.selected{background:var(--blue);color:#fff;font-weight:700;border-color:var(--blue)}
-.cal-day.today{border-color:var(--blue);color:var(--blue-d);font-weight:700}
-.cal-day.empty,.cal-day.future{cursor:default;opacity:.3}
-.cal-day.future{opacity:.2}
+/* 生日三欄 */
+.birthday-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:.5rem}
+.birthday-row .form-select{padding:.75rem .5rem .75rem .75rem}
 
 /* Upload */
 .upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:1.1rem;
@@ -127,11 +72,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .uz-text{font-size:.78rem;color:var(--text-s);line-height:1.6}
 .uz-name{font-size:.78rem;color:var(--green);font-weight:600;margin-top:.2rem}
 
-/* Error */
 .error-msg{background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);
   padding:.6rem .9rem;font-size:.82rem;color:var(--red);margin-bottom:.9rem;display:none;line-height:1.5}
 
-/* Buttons */
 .btn-primary{width:100%;padding:.88rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
   color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;
   cursor:pointer;font-family:'Noto Sans TC',sans-serif;
@@ -143,7 +86,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:.4rem;transition:all .2s}
 .btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
 
-/* Success */
 .success-box{text-align:center;padding:1.5rem 1rem 2rem}
 .success-icon{font-size:4rem;margin-bottom:.75rem;animation:pulse 2s ease infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
@@ -194,37 +136,28 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 
     <div class="form-group">
       <label class="form-label">生日<span class="req-mark">＊</span></label>
-      <div class="date-wrap" id="date-wrap">
-        <div class="date-row">
-          <input class="date-text-input" id="date-text" type="text"
-            placeholder="例：1990-01-15（可直接輸入或點📅選擇）"
-            maxlength="10"
-            oninput="onDateTextInput(this)"
-            onblur="onDateTextBlur(this)">
-          <button class="cal-open-btn" type="button" onclick="toggleCal()" title="開啟日曆">📅</button>
-        </div>
-        <div class="date-hint">格式：西元年－月－日，例如 1990-01-15</div>
-        <input type="hidden" id="reg-birthday">
-
-        <!-- 日曆 popup -->
-        <div class="cal-popup" id="cal-popup">
-          <div class="cal-hdr">
-            <div class="cal-hdr-nav" id="cal-prev-wrap">
-              <button class="cal-hdr-btn" onclick="calShift(-1)">‹</button>
-            </div>
-            <div class="cal-hdr-title" id="cal-hdr-title">1990年 1月</div>
-            <div class="cal-hdr-nav" id="cal-next-wrap">
-              <button class="cal-hdr-btn" onclick="calShift(1)">›</button>
-            </div>
-          </div>
-          <div id="cal-body"></div>
-        </div>
+      <div class="birthday-row">
+        <select class="form-select" id="bday-year">
+          <option value="">年</option>
+        </select>
+        <select class="form-select" id="bday-month">
+          <option value="">月</option>
+        </select>
+        <select class="form-select" id="bday-day">
+          <option value="">日</option>
+        </select>
       </div>
+      <input type="hidden" id="reg-birthday">
     </div>
 
     <div class="form-group">
       <label class="form-label">聯絡電話<span class="req-mark">＊</span></label>
       <input class="form-input" id="reg-phone" type="tel" placeholder="例：0912345678" maxlength="10">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">電子信箱<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-email" type="email" placeholder="例：example@gmail.com">
     </div>
 
     <div class="form-group">
@@ -362,7 +295,7 @@ const uploads = {};
 function goStep(n) {
   if (n > curStep) {
     const errMsg = validate(curStep);
-    const errEl = document.getElementById('err' + curStep);
+    const errEl  = document.getElementById('err' + curStep);
     if (errMsg) { errEl.textContent = errMsg; errEl.style.display = 'block'; return; }
     errEl.style.display = 'none';
   }
@@ -380,19 +313,75 @@ function updateSteps() {
   }
 }
 
+// ── 生日下拉 ─────────────────────────────────────────────────
+function initBirthdaySelects() {
+  const yearSel  = document.getElementById('bday-year');
+  const monthSel = document.getElementById('bday-month');
+  const daySel   = document.getElementById('bday-day');
+
+  // 年：當年往前 80 年
+  const thisYear = new Date().getFullYear();
+  for (let y = thisYear; y >= thisYear - 80; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + ' 年';
+    yearSel.appendChild(opt);
+  }
+
+  // 月：1–12
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m + ' 月';
+    monthSel.appendChild(opt);
+  }
+
+  // 日：1–31（預設），年月變動時更新
+  function updateDays() {
+    const y = parseInt(yearSel.value)  || 2000;
+    const m = parseInt(monthSel.value) || 1;
+    const cur = parseInt(daySel.value) || 0;
+    const maxDay = new Date(y, m, 0).getDate();
+    daySel.innerHTML = '<option value="">日</option>';
+    for (let d = 1; d <= maxDay; d++) {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d + ' 日';
+      if (d === cur) opt.selected = true;
+      daySel.appendChild(opt);
+    }
+    syncBirthday();
+  }
+
+  function syncBirthday() {
+    const y = yearSel.value;
+    const m = monthSel.value;
+    const d = daySel.value;
+    if (y && m && d) {
+      const val = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      document.getElementById('reg-birthday').value = val;
+    } else {
+      document.getElementById('reg-birthday').value = '';
+    }
+  }
+
+  yearSel.addEventListener('change', updateDays);
+  monthSel.addEventListener('change', updateDays);
+  daySel.addEventListener('change', syncBirthday);
+  updateDays();
+}
+
 // ── 驗證 ─────────────────────────────────────────────────────
 function v(id) { return (document.getElementById(id).value || '').trim(); }
 
 function validate(step) {
   if (step === 1) {
-    if (!v('reg-realname')) return '請填寫真實姓名';
-    if (!v('reg-idnum'))    return '請填寫身分證字號';
+    if (!v('reg-realname'))  return '請填寫真實姓名';
+    if (!v('reg-idnum'))     return '請填寫身分證字號';
     if (!/^[A-Z][12]\d{8}$/.test(v('reg-idnum'))) return '身分證字號格式不正確（例：A123456789）';
-    if (!v('reg-birthday')) return '請填寫或選擇生日';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(v('reg-birthday'))) return '生日格式不正確，請輸入 YYYY-MM-DD（例：1990-01-15）';
-    if (!v('reg-phone'))    return '請填寫聯絡電話';
+    if (!v('reg-birthday'))  return '請選擇生日（年、月、日都要選）';
+    if (!v('reg-phone'))     return '請填寫聯絡電話';
     if (!/^09\d{8}$/.test(v('reg-phone'))) return '電話格式不正確（需為09開頭共10碼）';
-    if (!v('reg-address'))  return '請填寫聯絡地址';
+    if (!v('reg-email'))     return '請填寫電子信箱';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('reg-email'))) return '電子信箱格式不正確';
+    if (!v('reg-address'))   return '請填寫聯絡地址';
   }
   if (step === 2) {
     if (!uploads.id_front) return '請上傳身份證正面';
@@ -435,6 +424,7 @@ async function submitRegister() {
       id_number:    v('reg-idnum'),
       birthday:     v('reg-birthday'),
       phone:        v('reg-phone'),
+      email:        v('reg-email'),
       address:      v('reg-address'),
       identity:     v('reg-identity') || null,
       bank_name:    v('reg-bank'),
@@ -450,189 +440,8 @@ async function submitRegister() {
   }
 }
 
-// ────────────────────────────────────────────────────────────
-// ── 日曆元件 ─────────────────────────────────────────────────
-// ────────────────────────────────────────────────────────────
-const TODAY = new Date();
-let calOpen  = false;
-let calMode  = 'day';   // 'year' | 'month' | 'day'
-let calYear  = TODAY.getFullYear() - 25;
-let calMonth = 0;       // 0-indexed
-let yearPage = 0;       // year grid page (0 = current block)
-const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-
-function getYearBase() {
-  // 每頁12年，從整除12開始
-  return Math.floor((calYear + yearPage * 12) / 12) * 12;
-}
-
-// 手動輸入同步到 hidden + 日曆
-function onDateTextInput(el) {
-  let val = el.value.replace(/[^0-9\-]/g, '');
-  // 自動補連字號
-  if (val.length === 4 && !val.includes('-')) val += '-';
-  if (val.length === 7 && val.split('-').length === 2) val += '-';
-  el.value = val;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-    const d = new Date(val);
-    if (!isNaN(d) && d <= TODAY) {
-      document.getElementById('reg-birthday').value = val;
-      calYear  = d.getFullYear();
-      calMonth = d.getMonth();
-      el.classList.remove('has-error');
-    }
-  } else {
-    document.getElementById('reg-birthday').value = '';
-  }
-}
-function onDateTextBlur(el) {
-  const val = el.value.trim();
-  if (val && !/^\d{4}-\d{2}-\d{2}$/.test(val)) el.classList.add('has-error');
-  else el.classList.remove('has-error');
-}
-
-function toggleCal() {
-  calOpen = !calOpen;
-  if (calOpen) {
-    // 若已有日期，顯示該日期的月份；否則從年選起
-    const bday = document.getElementById('reg-birthday').value;
-    if (bday) {
-      const d = new Date(bday);
-      calYear = d.getFullYear(); calMonth = d.getMonth();
-      calMode = 'day';
-    } else {
-      calMode = 'year';
-    }
-    yearPage = 0;
-    renderCal();
-    document.getElementById('cal-popup').classList.add('open');
-  } else {
-    document.getElementById('cal-popup').classList.remove('open');
-  }
-}
-
-function closeCal() {
-  calOpen = false;
-  document.getElementById('cal-popup').classList.remove('open');
-}
-
-// 點外側關閉
-document.addEventListener('click', e => {
-  if (!document.getElementById('date-wrap').contains(e.target)) closeCal();
-});
-
-// ← → 按鈕
-function calShift(dir) {
-  if (calMode === 'year') {
-    yearPage += dir;
-    renderCal();
-  } else if (calMode === 'month') {
-    calYear += dir;
-    renderCal();
-  } else {
-    calMonth += dir;
-    if (calMonth < 0) { calMonth = 11; calYear--; }
-    if (calMonth > 11) { calMonth = 0; calYear++; }
-    renderCal();
-  }
-}
-
-function renderCal() {
-  const popup = document.getElementById('cal-popup');
-  const body  = document.getElementById('cal-body');
-  const title = document.getElementById('cal-hdr-title');
-
-  if (calMode === 'year') {
-    const yb = getYearBase();
-    title.textContent = yb + ' – ' + (yb + 11);
-    body.innerHTML = '';
-    const grid = document.createElement('div');
-    grid.className = 'cal-year-grid';
-    for (let y = yb; y < yb + 12; y++) {
-      const el = document.createElement('div');
-      el.className = 'cal-year-item' + (y === calYear ? ' selected' : '') + (y > TODAY.getFullYear() ? ' future' : '');
-      el.textContent = y;
-      if (y <= TODAY.getFullYear()) {
-        el.onclick = () => { calYear = y; calMode = 'month'; yearPage = 0; renderCal(); };
-      }
-      grid.appendChild(el);
-    }
-    body.appendChild(grid);
-
-  } else if (calMode === 'month') {
-    title.textContent = calYear + ' 年，選擇月份';
-    body.innerHTML = '';
-    const grid = document.createElement('div');
-    grid.className = 'cal-month-grid';
-    MONTHS.forEach((m, i) => {
-      const el = document.createElement('div');
-      el.className = 'cal-month-item' + (i === calMonth ? ' selected' : '');
-      el.textContent = m;
-      el.onclick = () => { calMonth = i; calMode = 'day'; renderCal(); };
-      grid.appendChild(el);
-    });
-    body.appendChild(grid);
-
-  } else {
-    // day
-    title.textContent = calYear + ' 年 ' + (calMonth + 1) + ' 月';
-    body.innerHTML = '';
-    const wrap = document.createElement('div');
-    wrap.className = 'cal-day-grid';
-
-    // weekday headers
-    const wds = document.createElement('div');
-    wds.className = 'cal-weekdays';
-    ['日','一','二','三','四','五','六'].forEach(d => {
-      const wd = document.createElement('div'); wd.className = 'cal-wd'; wd.textContent = d;
-      wds.appendChild(wd);
-    });
-    wrap.appendChild(wds);
-
-    const days = document.createElement('div');
-    days.className = 'cal-days';
-    const firstDay = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-    const selVal = document.getElementById('reg-birthday').value;
-    const todayStr = TODAY.toISOString().slice(0, 10);
-
-    for (let i = 0; i < firstDay; i++) {
-      const empty = document.createElement('div'); empty.className = 'cal-day empty'; days.appendChild(empty);
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-      const isFuture = new Date(calYear, calMonth, d) > TODAY;
-      const el = document.createElement('div');
-      el.className = 'cal-day'
-        + (dateStr === selVal  ? ' selected' : '')
-        + (dateStr === todayStr ? ' today'    : '')
-        + (isFuture            ? ' future'   : '');
-      el.textContent = d;
-      if (!isFuture) el.onclick = () => selectDate(dateStr);
-      days.appendChild(el);
-    }
-    wrap.appendChild(days);
-    body.appendChild(wrap);
-  }
-
-  // 標題點擊：day → month，month → year（不做 toggle，只往上）
-  const titleEl = document.getElementById('cal-hdr-title');
-  titleEl.onclick = () => {
-    if (calMode === 'day')   { calMode = 'month'; renderCal(); }
-    else if (calMode === 'month') { calMode = 'year'; renderCal(); }
-  };
-  titleEl.style.cursor = calMode === 'year' ? 'default' : 'pointer';
-}
-
-function selectDate(dateStr) {
-  document.getElementById('reg-birthday').value = dateStr;
-  document.getElementById('date-text').value = dateStr;
-  document.getElementById('date-text').classList.remove('has-error');
-  closeCal();
-}
-
 // 初始化
-renderCal();
+initBirthdaySelects();
 </script>
 </body>
 </html>

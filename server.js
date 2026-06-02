@@ -124,11 +124,13 @@ app.post('/api/register', async (req, res) => {
     if (!birthday)  return res.status(400).json({ error: 'Missing birthday' });
     if (!phone)     return res.status(400).json({ error: 'Missing phone' });
     if (!address)   return res.status(400).json({ error: 'Missing address' });
-    const { nickname, identity, bank_name, bank_branch, bank_account, bank_holder } = req.body;
+    const { email, nickname, identity, bank_name, bank_branch, bank_account, bank_holder } = req.body;
+    if (!email) return res.status(400).json({ error: 'Missing email' });
     const base     = real_name.charCodeAt(0).toString(36);
     const username = await generateUsername('user_' + base);
     await Users.create({
       username, real_name, id_number, birthday, phone, address,
+      email: email || null,
       nickname: nickname || null, identity: identity || null,
       bank_name: bank_name || null, bank_branch: bank_branch || null,
       bank_account: bank_account || null, bank_holder: bank_holder || null,

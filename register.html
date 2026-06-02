@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>申請加入 — 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#48B4E8;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
+  --green:#2EAA7A;--green-p:#E8F8F2;
+  --red:#E05555;--red-p:#FEF0F0;
+  --yellow:#FFB830;--yellow-p:#FFF7E6;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#7A9AAF;
+  --border:#C8E8F6;--bg:#F0F8FE;
+  --r:16px;--rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem}
+.container{max-width:500px;margin:0 auto}
+
+.top-bar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.back-btn{background:none;border:1.5px solid var(--border);border-radius:20px;padding:.35rem .9rem;font-size:.82rem;color:var(--blue-d);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s;white-space:nowrap}
+.back-btn:hover{background:var(--blue-p);border-color:var(--blue)}
+.page-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700}
+
+.steps{display:flex;align-items:center;margin-bottom:1.5rem}
+.si{display:flex;align-items:center;gap:.4rem;flex:1}
+.si-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--text-s);flex-shrink:0;transition:all .3s}
+.si.active .si-num{border-color:var(--blue);background:var(--blue);color:#fff}
+.si.done .si-num{border-color:var(--green);background:var(--green);color:#fff}
+.si-label{font-size:.72rem;color:var(--text-s)}
+.si.active .si-label{color:var(--blue-d);font-weight:600}
+.si-line{flex:1;height:1px;background:var(--border);margin:0 .3rem;transition:background .3s}
+.si-line.done{background:var(--green)}
+
+.card{background:#fff;border-radius:var(--r);padding:1.5rem;box-shadow:0 8px 28px rgba(72,180,232,.10);margin-bottom:1rem;border-top:4px solid var(--blue)}
+.card-title{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.2rem}
+.card-desc{font-size:.82rem;color:var(--text-s);margin-bottom:1.25rem;line-height:1.6}
+.req-hint{font-size:.72rem;color:var(--text-s);margin-bottom:1rem;padding:.5rem .75rem;background:var(--blue-p);border-radius:8px;border-left:3px solid var(--blue)}
+
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:var(--text-m);margin-bottom:.4rem}
+.req-mark{color:var(--red);font-size:.7rem;margin-left:.2rem}
+.opt-mark{color:var(--text-s);font-size:.7rem;margin-left:.2rem;font-weight:400}
+
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;
+  outline:none;transition:all .2s;background:var(--bg);color:var(--text)}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15);background:#fff}
+.form-input.has-error{border-color:var(--red)!important;background:var(--red-p)!important}
+
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;
+  outline:none;background:var(--bg);color:var(--text);cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9AAF' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center}
+.form-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15)}
+
+/* ── 日期欄位 ── */
+.date-wrap{position:relative}
+.date-row{display:flex;gap:.5rem;align-items:center}
+.date-text-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;
+  outline:none;background:var(--bg);color:var(--text);transition:all .2s}
+.date-text-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15);background:#fff}
+.date-text-input.has-error{border-color:var(--red)!important;background:var(--red-p)!important}
+.cal-open-btn{flex-shrink:0;width:44px;height:44px;border:1.5px solid var(--border);border-radius:var(--rs);
+  background:#fff;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;
+  transition:all .2s}
+.cal-open-btn:hover{border-color:var(--blue);background:var(--blue-p)}
+.date-hint{font-size:.72rem;color:var(--text-s);margin-top:.35rem}
+
+/* Calendar popup */
+.cal-popup{position:absolute;top:calc(100% + .4rem);left:0;right:0;
+  background:#fff;border-radius:var(--r);box-shadow:0 12px 40px rgba(72,180,232,.25);
+  border:1.5px solid var(--border);z-index:200;display:none;overflow:hidden}
+.cal-popup.open{display:block;animation:fadeDown .18s ease}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Calendar header */
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem .9rem;background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff}
+.cal-hdr-title{font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700}
+.cal-hdr-nav{display:flex;gap:.25rem}
+.cal-hdr-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
+  width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;transition:background .2s}
+.cal-hdr-btn:hover{background:rgba(255,255,255,.3)}
+
+/* Year grid */
+.cal-year-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.75rem}
+.cal-year-item{padding:.5rem .25rem;text-align:center;border-radius:8px;cursor:pointer;
+  font-size:.82rem;transition:all .2s;border:1.5px solid transparent}
+.cal-year-item:hover{background:var(--blue-p);border-color:var(--blue-pp)}
+.cal-year-item.selected{background:var(--blue);color:#fff;font-weight:700}
+.cal-year-item.future{opacity:.3;pointer-events:none}
+
+/* Month grid */
+.cal-month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.75rem}
+.cal-month-item{padding:.55rem .25rem;text-align:center;border-radius:8px;cursor:pointer;
+  font-size:.85rem;transition:all .2s;border:1.5px solid transparent}
+.cal-month-item:hover{background:var(--blue-p);border-color:var(--blue-pp)}
+.cal-month-item.selected{background:var(--blue);color:#fff;font-weight:700}
+
+/* Day grid */
+.cal-day-grid{padding:.5rem .75rem .75rem}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:.25rem}
+.cal-wd{font-size:.68rem;color:var(--text-s);font-weight:600;padding:.25rem 0;text-align:center}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:.2rem}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;font-size:.8rem;cursor:pointer;transition:all .15s;
+  border:1.5px solid transparent}
+.cal-day:hover:not(.empty):not(.future){background:var(--blue-p);border-color:var(--blue-pp);color:var(--blue-d)}
+.cal-day.selected{background:var(--blue);color:#fff;font-weight:700;border-color:var(--blue)}
+.cal-day.today{border-color:var(--blue);color:var(--blue-d);font-weight:700}
+.cal-day.empty,.cal-day.future{cursor:default;opacity:.3}
+.cal-day.future{opacity:.2}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:1.1rem;
+  text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-p)}
+.upload-zone.has-file{border-color:var(--green);background:var(--green-p);border-style:solid}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{font-size:1.4rem;margin-bottom:.3rem}
+.uz-text{font-size:.78rem;color:var(--text-s);line-height:1.6}
+.uz-name{font-size:.78rem;color:var(--green);font-weight:600;margin-top:.2rem}
+
+/* Error */
+.error-msg{background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);
+  padding:.6rem .9rem;font-size:.82rem;color:var(--red);margin-bottom:.9rem;display:none;line-height:1.5}
+
+/* Buttons */
+.btn-primary{width:100%;padding:.88rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
+  color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+  box-shadow:0 6px 20px rgba(72,180,232,.3);transition:all .3s;margin-top:.25rem}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(72,180,232,.5)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{width:100%;padding:.72rem;background:transparent;color:var(--text-s);
+  border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:.4rem;transition:all .2s}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Success */
+.success-box{text-align:center;padding:1.5rem 1rem 2rem}
+.success-icon{font-size:4rem;margin-bottom:.75rem;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.success-title{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:var(--blue-d);margin-bottom:.5rem}
+.success-desc{font-size:.85rem;color:var(--text-s);line-height:1.8}
+.account-box{background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);
+  padding:.9rem 1.1rem;margin:.75rem 0 1.25rem;text-align:left}
+.account-label{font-size:.75rem;color:var(--text-s);margin-bottom:.3rem}
+.account-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d);letter-spacing:.05em}
+.account-hint{font-size:.72rem;color:var(--text-s);margin-top:.25rem}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-bar">
+    <button class="back-btn" onclick="location.href='index.html'">← 返回登入</button>
+    <div class="page-title">✨ 申請加入希絆</div>
+  </div>
+
+  <div class="steps" id="steps">
+    <div class="si active" id="si1"><div class="si-num">1</div><span class="si-label">基本資料</span></div>
+    <div class="si-line" id="sl1"></div>
+    <div class="si" id="si2"><div class="si-num">2</div><span class="si-label">身份文件</span></div>
+    <div class="si-line" id="sl2"></div>
+    <div class="si" id="si3"><div class="si-num">3</div><span class="si-label">匯款資料</span></div>
+    <div class="si-line" id="sl3"></div>
+    <div class="si" id="si4"><div class="si-num">4</div><span class="si-label">等待審核</span></div>
+  </div>
+
+  <!-- Step 1 基本資料 -->
+  <div class="card" id="step1">
+    <div class="card-title">基本資料</div>
+    <div class="card-desc">請填寫真實資訊，用於身份核實與聯絡</div>
+    <div class="req-hint">＊ 標示為必填欄位</div>
+    <div class="error-msg" id="err1"></div>
+
+    <div class="form-group">
+      <label class="form-label">真實姓名<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-realname" type="text" placeholder="請輸入身份證上的姓名">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">身分證字號<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-idnum" type="text" placeholder="例：A123456789" maxlength="10"
+        oninput="this.value=this.value.toUpperCase()">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">生日<span class="req-mark">＊</span></label>
+      <div class="date-wrap" id="date-wrap">
+        <div class="date-row">
+          <input class="date-text-input" id="date-text" type="text"
+            placeholder="例：1990-01-15（可直接輸入或點📅選擇）"
+            maxlength="10"
+            oninput="onDateTextInput(this)"
+            onblur="onDateTextBlur(this)">
+          <button class="cal-open-btn" type="button" onclick="toggleCal()" title="開啟日曆">📅</button>
+        </div>
+        <div class="date-hint">格式：西元年－月－日，例如 1990-01-15</div>
+        <input type="hidden" id="reg-birthday">
+
+        <!-- 日曆 popup -->
+        <div class="cal-popup" id="cal-popup">
+          <div class="cal-hdr">
+            <div class="cal-hdr-nav" id="cal-prev-wrap">
+              <button class="cal-hdr-btn" onclick="calShift(-1)">‹</button>
+            </div>
+            <div class="cal-hdr-title" id="cal-hdr-title">1990年 1月</div>
+            <div class="cal-hdr-nav" id="cal-next-wrap">
+              <button class="cal-hdr-btn" onclick="calShift(1)">›</button>
+            </div>
+          </div>
+          <div id="cal-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">聯絡電話<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-phone" type="tel" placeholder="例：0912345678" maxlength="10">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">聯絡地址<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">身份別<span class="opt-mark">（選填）</span></label>
+      <select class="form-select" id="reg-identity">
+        <option value="">請選擇</option>
+        <option>身心障礙者</option>
+        <option>單親家庭</option>
+        <option>中高齡者（45歲以上）</option>
+        <option>二度就業婦女</option>
+        <option>其他弱勢族群</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="goStep(2)">繼續 →</button>
+  </div>
+
+  <!-- Step 2 身份文件 -->
+  <div class="card" id="step2" style="display:none">
+    <div class="card-title">📋 上傳身份文件</div>
+    <div class="card-desc">確認身份，保護每一位夥伴的權益</div>
+    <div class="error-msg" id="err2"></div>
+
+    <div class="form-group">
+      <label class="form-label">身份證正面<span class="req-mark">＊</span></label>
+      <div class="upload-zone" id="uz-id-front">
+        <input type="file" accept="image/*" onchange="handleUpload(this,'uz-id-front','id_front')">
+        <div class="uz-icon">🪪</div>
+        <div class="uz-text">點擊上傳身份證正面</div>
+        <div class="uz-name"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">身份證反面<span class="req-mark">＊</span></label>
+      <div class="upload-zone" id="uz-id-back">
+        <input type="file" accept="image/*" onchange="handleUpload(this,'uz-id-back','id_back')">
+        <div class="uz-icon">🪪</div>
+        <div class="uz-text">點擊上傳身份證反面</div>
+        <div class="uz-name"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">相關證明文件<span class="opt-mark">（選填）</span></label>
+      <div class="upload-zone" id="uz-cert">
+        <input type="file" accept="image/*,.pdf" onchange="handleUpload(this,'uz-cert','cert')">
+        <div class="uz-icon">📄</div>
+        <div class="uz-text">手冊、證書等，支援圖片或 PDF</div>
+        <div class="uz-name"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="goStep(3)">繼續 →</button>
+    <button class="btn-secondary" onclick="goStep(1)">← 上一步</button>
+  </div>
+
+  <!-- Step 3 匯款資料 -->
+  <div class="card" id="step3" style="display:none">
+    <div class="card-title">🏦 收款資料</div>
+    <div class="card-desc">你賺到的款項將匯入此帳戶，請確認資料正確</div>
+    <div class="req-hint">＊ 匯款資料為必填，請確實填寫以利後續撥款</div>
+    <div class="error-msg" id="err3"></div>
+
+    <div class="form-group">
+      <label class="form-label">銀行名稱<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-bank" placeholder="例：台灣銀行">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分行名稱<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-branch" placeholder="例：板橋分行">
+    </div>
+    <div class="form-group">
+      <label class="form-label">帳號<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-account" placeholder="請輸入完整帳號">
+    </div>
+    <div class="form-group">
+      <label class="form-label">戶名<span class="req-mark">＊</span>
+        <span class="opt-mark">（須與身份證姓名相同）</span>
+      </label>
+      <input class="form-input" id="reg-holder" placeholder="戶名">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">存摺封面<span class="req-mark">＊</span></label>
+      <div class="upload-zone" id="uz-passbook">
+        <input type="file" accept="image/*" onchange="handleUpload(this,'uz-passbook','passbook')">
+        <div class="uz-icon">📒</div>
+        <div class="uz-text">
+          點擊上傳存摺封面照片<br>
+          <span style="font-size:.7rem">需清楚顯示：銀行名稱、完整帳號、戶名</span>
+        </div>
+        <div class="uz-name"></div>
+      </div>
+      <div style="margin-top:.55rem;padding:.55rem .8rem;background:var(--yellow-p);border-radius:8px;border-left:3px solid var(--yellow);font-size:.72rem;color:#7A5010;line-height:1.6">
+        💡 拍攝存摺封面時，請確保帳號數字清晰可辨，光線充足無反光
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="submitRegister()" id="submit-btn">送出申請 ✓</button>
+    <button class="btn-secondary" onclick="goStep(2)">← 上一步</button>
+  </div>
+
+  <!-- Step 4 完成 -->
+  <div class="card" id="step4" style="display:none">
+    <div class="success-box">
+      <div class="success-icon">⏳</div>
+      <div class="success-title">申請已送出！</div>
+      <div class="success-desc">
+        工作人員將在 1–3 個工作天內審核<br>
+        通過後請使用以下帳號登入，<br>預設密碼為 <strong>0000</strong>，首次登入需修改
+      </div>
+      <div class="account-box">
+        <div class="account-label">你的系統帳號</div>
+        <div class="account-val" id="result-username">—</div>
+        <div class="account-hint">⚠️ 請記下此帳號，審核通過後憑此登入</div>
+      </div>
+      <button class="btn-primary" onclick="location.href='index.html'">返回登入頁</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="shared.js"></script>
+<script>
+// ── 步驟切換 ─────────────────────────────────────────────────
+let curStep = 1;
+const uploads = {};
+
+function goStep(n) {
+  if (n > curStep) {
+    const errMsg = validate(curStep);
+    const errEl = document.getElementById('err' + curStep);
+    if (errMsg) { errEl.textContent = errMsg; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+  }
+  document.getElementById('step' + curStep).style.display = 'none';
+  curStep = n;
+  document.getElementById('step' + curStep).style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateSteps();
+}
+
+function updateSteps() {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('si' + i).className = 'si' + (i < curStep ? ' done' : i === curStep ? ' active' : '');
+    if (i < 4) document.getElementById('sl' + i).className = 'si-line' + (i < curStep ? ' done' : '');
+  }
+}
+
+// ── 驗證 ─────────────────────────────────────────────────────
+function v(id) { return (document.getElementById(id).value || '').trim(); }
+
+function validate(step) {
+  if (step === 1) {
+    if (!v('reg-realname')) return '請填寫真實姓名';
+    if (!v('reg-idnum'))    return '請填寫身分證字號';
+    if (!/^[A-Z][12]\d{8}$/.test(v('reg-idnum'))) return '身分證字號格式不正確（例：A123456789）';
+    if (!v('reg-birthday')) return '請填寫或選擇生日';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v('reg-birthday'))) return '生日格式不正確，請輸入 YYYY-MM-DD（例：1990-01-15）';
+    if (!v('reg-phone'))    return '請填寫聯絡電話';
+    if (!/^09\d{8}$/.test(v('reg-phone'))) return '電話格式不正確（需為09開頭共10碼）';
+    if (!v('reg-address'))  return '請填寫聯絡地址';
+  }
+  if (step === 2) {
+    if (!uploads.id_front) return '請上傳身份證正面';
+    if (!uploads.id_back)  return '請上傳身份證反面';
+  }
+  if (step === 3) {
+    if (!v('reg-bank'))    return '請填寫銀行名稱';
+    if (!v('reg-branch'))  return '請填寫分行名稱';
+    if (!v('reg-account')) return '請填寫帳號';
+    if (!v('reg-holder'))  return '請填寫戶名';
+    if (!uploads.passbook) return '請上傳存摺封面';
+  }
+  return null;
+}
+
+// ── 上傳 ─────────────────────────────────────────────────────
+function handleUpload(input, zoneId, key) {
+  const file = input.files[0];
+  if (!file) return;
+  uploads[key] = file.name;
+  const zone = document.getElementById(zoneId);
+  zone.classList.add('has-file');
+  zone.querySelector('.uz-icon').textContent = '✅';
+  zone.querySelector('.uz-name').textContent = '✓ ' + file.name;
+}
+
+// ── 送出 ─────────────────────────────────────────────────────
+async function submitRegister() {
+  const err = document.getElementById('err3');
+  err.style.display = 'none';
+  const errMsg = validate(3);
+  if (errMsg) { err.textContent = errMsg; err.style.display = 'block'; return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '送出中...';
+
+  try {
+    const res = await API.post('/api/register', {
+      real_name:    v('reg-realname'),
+      id_number:    v('reg-idnum'),
+      birthday:     v('reg-birthday'),
+      phone:        v('reg-phone'),
+      address:      v('reg-address'),
+      identity:     v('reg-identity') || null,
+      bank_name:    v('reg-bank'),
+      bank_branch:  v('reg-branch'),
+      bank_account: v('reg-account'),
+      bank_holder:  v('reg-holder'),
+    });
+    document.getElementById('result-username').textContent = res.username;
+    goStep(4);
+  } catch(e) {
+    err.textContent = e.message; err.style.display = 'block';
+    btn.disabled = false; btn.textContent = '送出申請 ✓';
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// ── 日曆元件 ─────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────
+const TODAY = new Date();
+let calOpen  = false;
+let calMode  = 'day';   // 'year' | 'month' | 'day'
+let calYear  = TODAY.getFullYear() - 25;
+let calMonth = 0;       // 0-indexed
+let yearPage = 0;       // year grid page (0 = current block)
+const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+function getYearBase() {
+  // 每頁12年，從整除12開始
+  return Math.floor((calYear + yearPage * 12) / 12) * 12;
+}
+
+// 手動輸入同步到 hidden + 日曆
+function onDateTextInput(el) {
+  let val = el.value.replace(/[^0-9\-]/g, '');
+  // 自動補連字號
+  if (val.length === 4 && !val.includes('-')) val += '-';
+  if (val.length === 7 && val.split('-').length === 2) val += '-';
+  el.value = val;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    const d = new Date(val);
+    if (!isNaN(d) && d <= TODAY) {
+      document.getElementById('reg-birthday').value = val;
+      calYear  = d.getFullYear();
+      calMonth = d.getMonth();
+      el.classList.remove('has-error');
+    }
+  } else {
+    document.getElementById('reg-birthday').value = '';
+  }
+}
+function onDateTextBlur(el) {
+  const val = el.value.trim();
+  if (val && !/^\d{4}-\d{2}-\d{2}$/.test(val)) el.classList.add('has-error');
+  else el.classList.remove('has-error');
+}
+
+function toggleCal() {
+  calOpen = !calOpen;
+  if (calOpen) {
+    // 若已有日期，顯示該日期的月份；否則從年選起
+    const bday = document.getElementById('reg-birthday').value;
+    if (bday) {
+      const d = new Date(bday);
+      calYear = d.getFullYear(); calMonth = d.getMonth();
+      calMode = 'day';
+    } else {
+      calMode = 'year';
+    }
+    yearPage = 0;
+    renderCal();
+    document.getElementById('cal-popup').classList.add('open');
+  } else {
+    document.getElementById('cal-popup').classList.remove('open');
+  }
+}
+
+function closeCal() {
+  calOpen = false;
+  document.getElementById('cal-popup').classList.remove('open');
+}
+
+// 點外側關閉
+document.addEventListener('click', e => {
+  if (!document.getElementById('date-wrap').contains(e.target)) closeCal();
+});
+
+// ← → 按鈕
+function calShift(dir) {
+  if (calMode === 'year') {
+    yearPage += dir;
+    renderCal();
+  } else if (calMode === 'month') {
+    calYear += dir;
+    renderCal();
+  } else {
+    calMonth += dir;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCal();
+  }
+}
+
+function renderCal() {
+  const popup = document.getElementById('cal-popup');
+  const body  = document.getElementById('cal-body');
+  const title = document.getElementById('cal-hdr-title');
+
+  if (calMode === 'year') {
+    const yb = getYearBase();
+    title.textContent = yb + ' – ' + (yb + 11);
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'cal-year-grid';
+    for (let y = yb; y < yb + 12; y++) {
+      const el = document.createElement('div');
+      el.className = 'cal-year-item' + (y === calYear ? ' selected' : '') + (y > TODAY.getFullYear() ? ' future' : '');
+      el.textContent = y;
+      if (y <= TODAY.getFullYear()) {
+        el.onclick = () => { calYear = y; calMode = 'month'; yearPage = 0; renderCal(); };
+      }
+      grid.appendChild(el);
+    }
+    body.appendChild(grid);
+
+  } else if (calMode === 'month') {
+    title.textContent = calYear + ' 年，選擇月份';
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'cal-month-grid';
+    MONTHS.forEach((m, i) => {
+      const el = document.createElement('div');
+      el.className = 'cal-month-item' + (i === calMonth ? ' selected' : '');
+      el.textContent = m;
+      el.onclick = () => { calMonth = i; calMode = 'day'; renderCal(); };
+      grid.appendChild(el);
+    });
+    body.appendChild(grid);
+
+  } else {
+    // day
+    title.textContent = calYear + ' 年 ' + (calMonth + 1) + ' 月';
+    body.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'cal-day-grid';
+
+    // weekday headers
+    const wds = document.createElement('div');
+    wds.className = 'cal-weekdays';
+    ['日','一','二','三','四','五','六'].forEach(d => {
+      const wd = document.createElement('div'); wd.className = 'cal-wd'; wd.textContent = d;
+      wds.appendChild(wd);
+    });
+    wrap.appendChild(wds);
+
+    const days = document.createElement('div');
+    days.className = 'cal-days';
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const selVal = document.getElementById('reg-birthday').value;
+    const todayStr = TODAY.toISOString().slice(0, 10);
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement('div'); empty.className = 'cal-day empty'; days.appendChild(empty);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const isFuture = new Date(calYear, calMonth, d) > TODAY;
+      const el = document.createElement('div');
+      el.className = 'cal-day'
+        + (dateStr === selVal  ? ' selected' : '')
+        + (dateStr === todayStr ? ' today'    : '')
+        + (isFuture            ? ' future'   : '');
+      el.textContent = d;
+      if (!isFuture) el.onclick = () => selectDate(dateStr);
+      days.appendChild(el);
+    }
+    wrap.appendChild(days);
+    body.appendChild(wrap);
+  }
+
+  // 標題點擊：day → month，month → year（不做 toggle，只往上）
+  const titleEl = document.getElementById('cal-hdr-title');
+  titleEl.onclick = () => {
+    if (calMode === 'day')   { calMode = 'month'; renderCal(); }
+    else if (calMode === 'month') { calMode = 'year'; renderCal(); }
+  };
+  titleEl.style.cursor = calMode === 'year' ? 'default' : 'pointer';
+}
+
+function selectDate(dateStr) {
+  document.getElementById('reg-birthday').value = dateStr;
+  document.getElementById('date-text').value = dateStr;
+  document.getElementById('date-text').classList.remove('has-error');
+  closeCal();
+}
+
+// 初始化
+renderCal();
+</script>
+</body>
+</html>

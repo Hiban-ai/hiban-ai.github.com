@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作夥伴 — 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#48B4E8;--blue-l:#74CAEF;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
+  --yellow:#FFB830;--yellow-l:#FFD166;--yellow-p:#FFF7E6;
+  --white:#FFFFFF;--bg:#F0F8FE;--bg-card:#FFFFFF;
+  --green:#2EAA7A;--green-p:#E8F8F2;
+  --red:#E05555;--red-p:#FEF0F0;
+  --orange:#F07840;--orange-p:#FEF3EE;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#7A9AAF;
+  --border:#C8E8F6;--border-l:#E0F2FB;
+  --shadow:0 4px 20px rgba(72,180,232,.10);
+  --shadow-lg:0 12px 40px rgba(72,180,232,.18);
+  --r:16px;--rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F8FCFF 100%);color:var(--text);font-size:16px;line-height:1.7;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── Layout ── */
+.pt-layout{display:flex;flex:1;min-height:0}
+
+/* ── Sidebar ── */
+.pt-sidebar{width:230px;background:linear-gradient(180deg,#1260A0,#1A8AC0);color:#fff;
+  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.25)}
+.pt-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.pt-logo-name{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:900;color:#fff}
+.pt-char-row{display:flex;align-items:center;gap:.6rem;margin-top:.75rem}
+.pt-char-ava{width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.3)}
+.pt-char-name{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:#fff;line-height:1.3}
+.pt-char-class{display:inline-block;margin-top:.15rem;padding:.1rem .4rem;
+  background:rgba(255,255,255,.15);border-radius:4px;font-size:.62rem;color:rgba(255,255,255,.85);font-weight:600}
+.pt-wallet-chip{display:flex;align-items:center;gap:.4rem;margin-top:.75rem;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  border-radius:20px;padding:.3rem .75rem;width:fit-content}
+.pt-wallet-amt{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow-l);font-size:.88rem}
+
+.pt-menu{padding:.75rem 0;flex:1;overflow-y:auto}
+.pt-menu-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1.25rem;cursor:pointer;
+  font-size:.88rem;color:rgba(255,255,255,.65);transition:all .25s;
+  border-left:4px solid transparent;margin:.1rem .5rem;border-radius:var(--rs)}
+.pt-menu-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.pt-menu-item.active{background:rgba(255,255,255,.18);color:#fff;border-left-color:var(--yellow-l);font-weight:700}
+.pt-menu-item .mi-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.pt-badge{background:var(--red);color:#fff;font-size:.58rem;font-weight:700;
+  padding:.1rem .35rem;border-radius:10px;margin-left:auto}
+
+.pt-exp-wrap{margin:0 1.25rem .75rem;background:rgba(255,255,255,.08);border-radius:var(--rs);padding:.6rem .75rem}
+.pt-exp-label{display:flex;justify-content:space-between;font-size:.6rem;color:rgba(255,255,255,.5);margin-bottom:.3rem}
+.pt-exp-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.pt-exp-fill{height:100%;background:linear-gradient(90deg,var(--yellow-l),#FFD166);border-radius:3px;transition:width 1s ease}
+
+.pt-logout{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.1);
+  font-size:.78rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:color .2s}
+.pt-logout:hover{color:rgba(255,255,255,.8)}
+
+/* ── Main ── */
+.pt-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+.page-title{font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:700;margin-bottom:1.25rem;
+  color:var(--text);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.page-section{display:none}
+.page-section.active{display:block}
+
+/* ── Character stats card (in tasks section) ── */
+.char-stats-card{background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(235,247,253,.8));
+  border-radius:var(--r);padding:1rem 1.25rem;border-top:4px solid var(--blue);
+  box-shadow:0 6px 24px rgba(72,180,232,.12);margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.char-stats-inner{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;flex:1}
+.stat-box{background:var(--bg);border-radius:var(--rs);padding:.5rem;text-align:center}
+.stat-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d)}
+.stat-label{font-size:.62rem;color:var(--text-s)}
+
+/* ── Quest cards ── */
+.active-task-item{background:linear-gradient(135deg,#EBF7FD,#fff);border:2px solid var(--blue-pp);
+  border-radius:var(--r);padding:1rem;margin-bottom:.6rem;position:relative;box-shadow:0 4px 16px rgba(72,180,232,.08)}
+.active-task-item.revision{background:linear-gradient(135deg,var(--orange-p),#fff);border-color:var(--orange)}
+.at-tag{position:absolute;top:.6rem;right:.75rem;font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:10px}
+.at-tag-active{background:var(--blue);color:#fff}
+.at-tag-revision{background:var(--orange);color:#fff}
+.at-name{font-weight:700;font-size:.88rem;margin-bottom:.3rem;font-family:'Noto Serif TC',serif}
+.at-prog{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:.5rem}
+.at-prog-fill{height:100%;background:linear-gradient(90deg,var(--blue-d),var(--blue-l));border-radius:3px}
+.at-prog-fill.revision{background:linear-gradient(90deg,var(--orange),var(--yellow))}
+.at-btns{display:flex;gap:.4rem;flex-wrap:wrap}
+.at-btn{flex:1;padding:.45rem;border-radius:var(--rs);font-size:.75rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif;min-width:60px}
+.at-btn-p{background:var(--blue);color:#fff}
+.at-btn-s{background:var(--bg);color:var(--text-m);border:1px solid var(--border)}
+
+.filter-row{display:flex;gap:.4rem;margin-bottom:.8rem;overflow-x:auto;padding-bottom:.25rem}
+.fchip{padding:.4rem .85rem;background:var(--bg-card);border:1.5px solid var(--border);border-radius:20px;font-size:.8rem;cursor:pointer;white-space:nowrap;color:var(--text-s);transition:all .2s;flex-shrink:0}
+.fchip.active{background:var(--blue-p);border-color:var(--blue);color:var(--blue-d);font-weight:600}
+.quest-list{display:flex;flex-direction:column;gap:.6rem}
+.q-card{background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid var(--cat-c,var(--blue));box-shadow:0 4px 16px rgba(72,180,232,.08);cursor:pointer;transition:all .25s}
+.q-card:hover{transform:translateX(4px);box-shadow:0 8px 28px rgba(72,180,232,.18)}
+.q-card.cat-text{--cat-c:#3A9CC0}.q-card.cat-social{--cat-c:#9B6FD4}.q-card.cat-visual{--cat-c:#E07830}.q-card.cat-data{--cat-c:#3E9E78}
+.q-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem}
+.q-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem}
+.q-reward{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap}
+.q-meta{display:flex;gap:.4rem;flex-wrap:wrap}
+.qtag{padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600}
+.qtag-cat{background:var(--blue-p);color:var(--blue-d)}.qtag-time{background:var(--green-p);color:var(--green)}.qtag-lvl{background:var(--yellow-p);color:#8A6010}
+
+/* ── Wallet ── */
+.wallet-hero{background:linear-gradient(135deg,#1A8AC0,#48B4E8,#74CAEF);border-radius:var(--r);padding:1.5rem;text-align:center;color:#fff;margin-bottom:1rem;box-shadow:0 12px 36px rgba(72,180,232,.35)}
+.wh-amount{font-family:'Noto Serif TC',serif;font-size:3rem;font-weight:900;color:var(--yellow-l)}
+.txn-card{background:var(--bg-card);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow)}
+.txn-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)}
+.txn-p{font-family:'Noto Serif TC',serif;font-weight:700}
+.txn-p.plus{color:var(--green)}.txn-p.minus{color:var(--red)}
+
+/* ── Notices ── */
+.notice-card{background:#fff;border-radius:var(--r);border-left:5px solid var(--nc,var(--blue));padding:1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.6rem;border:1px solid var(--border-l);border-left-width:5px}
+.notice-card.nc-urgent{--nc:var(--red);background:var(--red-p)}.notice-card.nc-good{--nc:var(--green);background:var(--green-p)}
+.notice-tag{display:inline-block;padding:.12rem .4rem;border-radius:4px;font-size:.62rem;font-weight:700;margin-bottom:.35rem}
+.nt-urgent{background:var(--red-p);color:var(--red)}.nt-info{background:var(--blue-p);color:var(--blue-d)}.nt-good{background:var(--green-p);color:var(--green)}
+
+/* ── Card, Form ── */
+.card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);border:1px solid var(--border-l);margin-bottom:1rem}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:.85rem;font-weight:600;color:var(--text-m);margin-bottom:.4rem}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;outline:none;transition:all .25s;background:#fff}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15)}
+textarea.form-input{resize:none}
+.btn-primary{width:100%;padding:.85rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.35);transition:all .3s;margin-top:.25rem}
+.btn-primary:hover{transform:translateY(-2px)}
+
+/* ── Mobile topbar ── */
+.mobile-topbar{display:none;background:linear-gradient(135deg,#1260A0,#1A8AC0);padding:.85rem 1rem;
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;
+  box-shadow:0 4px 16px rgba(18,96,160,.3)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:768px){
+  .pt-layout{flex-direction:column}
+  .pt-sidebar{width:100%;flex-direction:row;padding:0;overflow-x:auto;position:sticky;bottom:0;z-index:50}
+  .pt-sidebar-logo,.pt-exp-wrap,.pt-logout{display:none!important}
+  .pt-menu{display:flex;flex-direction:row;padding:0;width:100%;overflow-x:auto}
+  .pt-menu-item{flex-direction:column;padding:.5rem .6rem;font-size:.58rem;gap:.2rem;white-space:nowrap;
+    border-left:none;border-top:3px solid transparent;min-width:60px;justify-content:center;align-items:center;margin:0}
+  .pt-menu-item.active{border-left:none;border-top-color:var(--yellow-l)}
+  .pt-menu-item .mi-icon{font-size:1.2rem;width:auto}
+  .pt-badge{margin-left:0;margin-top:.1rem}
+  .pt-main{padding:.75rem;padding-bottom:5rem}
+  .mobile-topbar{display:flex}
+  .char-stats-inner{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mobile-topbar">
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
+    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
+  </div>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">⚔️ 工作夥伴</span>
+</div>
+
+<div class="pt-layout">
+
+  <!-- Sidebar -->
+  <div class="pt-sidebar">
+    <div class="pt-sidebar-logo">
+      <div class="pt-logo-name">希絆雲作所</div>
+      <div class="pt-char-row">
+        <div class="pt-char-ava">🧑</div>
+        <div>
+          <div class="pt-char-name" id="char-nickname">—</div>
+          <div class="pt-char-class">⚔️ 文字學徒</div>
+        </div>
+      </div>
+      <div class="pt-wallet-chip" onclick="switchPage('wallet',document.querySelector('[onclick*=wallet]'))">
+        <span style="font-size:.8rem">💰</span>
+        <span class="pt-wallet-amt" id="wallet-top">$350</span>
+      </div>
+    </div>
+
+    <div class="pt-exp-wrap">
+      <div class="pt-exp-label"><span>文字學徒 → 文字劍士</span><span>35%</span></div>
+      <div class="pt-exp-track"><div class="pt-exp-fill" style="width:35%"></div></div>
+    </div>
+
+    <div class="pt-menu">
+      <div class="pt-menu-item active" onclick="switchPage('quests',this)"><span class="mi-icon">⚔️</span>任務</div>
+      <div class="pt-menu-item" onclick="switchPage('wallet',this)"><span class="mi-icon">💰</span>錢包</div>
+      <div class="pt-menu-item" onclick="switchPage('growth',this)"><span class="mi-icon">🏆</span>成長</div>
+      <div class="pt-menu-item" onclick="switchPage('worklog',this)">
+        <span class="mi-icon">📝</span>回報
+        <span class="pt-badge" id="badge-worklog">1</span>
+      </div>
+      <div class="pt-menu-item" onclick="switchPage('notices',this)">
+        <span class="mi-icon">📢</span>公告
+        <span class="pt-badge" id="badge-notices">2</span>
+      </div>
+      <div class="pt-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
+    </div>
+
+    <div class="pt-logout" onclick="signOut()"><span>🚪</span>登出</div>
+  </div>
+
+  <!-- Main -->
+  <div class="pt-main">
+
+    <!-- 任務 -->
+    <div class="page-section active" id="page-quests">
+      <div class="page-title">⚔️ 任務</div>
+
+      <!-- 角色統計 -->
+      <div class="char-stats-card">
+        <div class="char-stats-inner">
+          <div class="stat-box"><div class="stat-val">$350</div><div class="stat-label">累計收入</div></div>
+          <div class="stat-box"><div class="stat-val">3件</div><div class="stat-label">本月完成</div></div>
+          <div class="stat-box"><div class="stat-val">5天</div><div class="stat-label">連續天數</div></div>
+        </div>
+      </div>
+
+      <!-- 進行中任務 -->
+      <div style="margin-bottom:.75rem">
+        <div class="active-task-item revision">
+          <span class="at-tag at-tag-revision">需要修改</span>
+          <div class="at-name">📣 口碑留言 × 5則</div>
+          <div style="font-size:.7rem;color:var(--orange);margin-bottom:.4rem">督導意見：語氣太正式，請用更口語的方式</div>
+          <div class="at-prog"><div class="at-prog-fill revision" style="width:40%"></div></div>
+          <div class="at-btns"><button class="at-btn at-btn-p" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))" style="background:var(--orange)">查看意見並修改</button></div>
+        </div>
+        <div class="active-task-item">
+          <span class="at-tag at-tag-active">進行中</span>
+          <div class="at-name">🎨 廣告圖設計</div>
+          <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.4rem">進度：已完成 1 / 2 張</div>
+          <div class="at-prog"><div class="at-prog-fill" style="width:50%"></div></div>
+          <div class="at-btns">
+            <button class="at-btn at-btn-p">繼續任務</button>
+            <button class="at-btn at-btn-s" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))">回報進度</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+        <div style="font-size:.88rem;font-weight:700">📋 可接任務</div>
+      </div>
+      <div class="filter-row">
+        <div class="fchip active" onclick="filterQ(this,'all')">全部</div>
+        <div class="fchip" onclick="filterQ(this,'text')">✍️ 文字</div>
+        <div class="fchip" onclick="filterQ(this,'social')">📣 口碑</div>
+        <div class="fchip" onclick="filterQ(this,'visual')">🎨 視覺</div>
+        <div class="fchip" onclick="filterQ(this,'data')">📊 資料</div>
+      </div>
+      <div class="quest-list" id="quest-list"></div>
+    </div>
+
+    <!-- 錢包 -->
+    <div class="page-section" id="page-wallet">
+      <div class="page-title">💰 錢包</div>
+      <div class="wallet-hero">
+        <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">目前餘額</div>
+        <div class="wh-amount">$350</div>
+        <div style="font-size:.68rem;opacity:.6;margin-top:.5rem">💡 累積 $1,000 或每月底可申請提領</div>
+      </div>
+      <div class="txn-card">
+        <div style="font-size:.8rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem">收支明細</div>
+        <div class="txn-row"><div><div style="font-size:.95rem;font-weight:500">口碑留言 × 2則</div><div style="font-size:.78rem;color:var(--text-s)">2025/03/19</div></div><span class="txn-p plus">+$100</span></div>
+        <div class="txn-row"><div><div style="font-size:.95rem;font-weight:500">SEO文案</div><div style="font-size:.78rem;color:var(--text-s)">2025/03/17</div></div><span class="txn-p plus">+$400</span></div>
+        <div class="txn-row"><div><div style="font-size:.95rem;font-weight:500">提領</div><div style="font-size:.78rem;color:var(--text-s)">2025/03/01</div></div><span class="txn-p minus">-$300</span></div>
+      </div>
+    </div>
+
+    <!-- 成長 -->
+    <div class="page-section" id="page-growth">
+      <div class="page-title">🏆 成長</div>
+      <div class="card">
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏆 職業成長</div>
+        <div style="font-size:.78rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem">升級路線（文字系）</div>
+        <div style="display:flex;align-items:center;overflow-x:auto;gap:0">
+          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">🌱</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">初心者</div></div>
+          <div style="flex:1;height:2px;background:var(--blue);min-width:16px"></div>
+          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">⚔️</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">文字學徒</div><div style="font-size:.52rem;color:var(--text-s)">$1,000</div></div>
+          <div style="flex:1;height:1px;background:var(--border);min-width:16px"></div>
+          <div style="text-align:center;min-width:64px;flex-shrink:0;opacity:.5"><div style="font-size:1.1rem">🗡️</div><div style="font-size:.65rem;font-weight:700">文字劍士</div><div style="font-size:.52rem;color:var(--text-s)">$10,000</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 勳章</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">🌅</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">早鳥</div></div>
+          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">⚔️</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">第一任務</div></div>
+          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">🔥</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">連續7天</div></div>
+          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">🛡️</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">鐵人30天</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 回報 -->
+    <div class="page-section" id="page-worklog">
+      <div class="page-title">📝 回報進度</div>
+      <div style="background:var(--orange-p);border:1.5px solid var(--orange);border-radius:var(--r);padding:.9rem;margin-bottom:1rem">
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem;margin-bottom:.35rem">⚠️ 督導退回修改意見</div>
+        <div style="font-size:.82rem;color:var(--text-m)">留言的語氣太正式了，試試看更口語的方式，像是朋友在推薦一樣。</div>
+      </div>
+      <div class="card">
+        <div style="font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:700;margin-bottom:.75rem">📝 回報進度</div>
+        <div class="form-group"><label class="form-label">今天完成了幾則？</label><input class="form-input" type="number" placeholder="請輸入數量" min="0"></div>
+        <div class="form-group"><label class="form-label">遇到什麼困難？（選填）</label><textarea class="form-input" rows="3" placeholder="有任何問題，告訴督導，我們一起想辦法"></textarea></div>
+        <button class="btn-primary" onclick="showToast('回報已送出！','success')">送出回報 ✓</button>
+      </div>
+    </div>
+
+    <!-- 公告 -->
+    <div class="page-section" id="page-notices">
+      <div class="page-title">📢 公告</div>
+      <div class="notice-card nc-urgent">
+        <span class="notice-tag nt-urgent">緊急</span>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700">⚠️ 本週任務截止提醒</div>
+        <div style="font-size:.85rem;color:var(--text-m);margin-top:.2rem">本週口碑任務批次將於 3/22（五）23:59 截止。</div>
+      </div>
+      <div class="notice-card nc-good">
+        <span class="notice-tag nt-good">好消息</span>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700">🎉 新任務上架：社群貼文系列</div>
+        <div style="font-size:.85rem;color:var(--text-m);margin-top:.2rem">本週新增 Facebook 貼文撰寫任務，每則 $150，每人最多接 3 則。</div>
+      </div>
+      <div class="notice-card">
+        <span class="notice-tag nt-info">資訊</span>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700">📅 3月薪資匯款時程</div>
+        <div style="font-size:.85rem;color:var(--text-m);margin-top:.2rem">3月份薪資將於 4/5 統一匯款，請確認銀行帳號資料正確。</div>
+      </div>
+    </div>
+
+    <!-- 個人資料 -->
+    <div class="page-section" id="page-profile">
+      <div class="page-title">🧑 個人資料</div>
+
+      <!-- 區塊1：個人資料 -->
+      <div class="card" style="max-width:520px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
+          <button id="prof-edit-btn" onclick="toggleProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名</label><input class="form-input" id="prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+        </div>
+        <div id="prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
+          <button onclick="saveProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
+          <button onclick="cancelProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        </div>
+      </div>
+
+      <!-- 區塊2：銀行資料 -->
+      <div class="card" style="max-width:520px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">🏦 銀行資料</div>
+          <button id="bank-edit-btn" onclick="toggleBankEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行名稱</label><input class="form-input" id="prof-bank-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行帳號</label><input class="form-input" id="prof-bank-account" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+        </div>
+        <div id="bank-save-row" style="display:none;gap:.5rem;margin-top:1rem">
+          <button onclick="saveBank()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
+          <button onclick="cancelBankEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        </div>
+      </div>
+
+      <!-- 區塊3：修改密碼 -->
+      <div class="card" style="max-width:520px">
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
+        <div id="prof-cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="prof-cpw-new" placeholder="至少 4 碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
+        </div>
+        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">更新密碼</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const QUESTS = [
+  {name:'✍️ SEO 文案撰寫',reward:400,cat:'text',time:'7天',lvl:'學徒以上',desc:'撰寫一篇 800 字 SEO 文章'},
+  {name:'📣 口碑留言 × 3則',reward:150,cat:'social',time:'3天',lvl:'初心者',desc:'在指定平台留下自然口語的好評'},
+  {name:'🎨 社群貼文設計',reward:200,cat:'visual',time:'5天',lvl:'初心者',desc:'設計 2 張 Facebook 貼文圖片'},
+  {name:'📊 資料整理',reward:180,cat:'data',time:'3天',lvl:'初心者',desc:'整理 Excel 客戶資料並分類'},
+];
+let filtered = 'all';
+
+function filterQ(el, cat) {
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filtered = cat;
+  renderQuests();
+}
+function renderQuests() {
+  const list = document.getElementById('quest-list');
+  const shown = filtered === 'all' ? QUESTS : QUESTS.filter(q => q.cat === filtered);
+  list.innerHTML = shown.map(q => `
+    <div class="q-card cat-${q.cat}" onclick="showToast('任務接受功能開發中','info')">
+      <div class="q-top"><div class="q-name">${q.name}</div><div class="q-reward">$${q.reward}</div></div>
+      <div class="q-meta">
+        <span class="qtag qtag-cat">${q.cat==='text'?'文字':q.cat==='social'?'口碑':q.cat==='visual'?'視覺':'資料'}</span>
+        <span class="qtag qtag-time">⏰ ${q.time}</span>
+        <span class="qtag qtag-lvl">🌟 ${q.lvl}</span>
+      </div>
+      <div style="font-size:.85rem;color:var(--text-s);margin-top:.4rem">${q.desc}</div>
+    </div>
+  `).join('') || '<div style="text-align:center;color:var(--text-s);padding:1rem">此分類目前沒有任務</div>';
+}
+
+function switchPage(name, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.pt-menu-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+async function changePassword() {
+  const err = document.getElementById('prof-cpw-err');
+  err.style.display = 'none';
+  const current = document.getElementById('prof-cpw-current').value;
+  const newPw   = document.getElementById('prof-cpw-new').value;
+  const confirm = document.getElementById('prof-cpw-confirm').value;
+  if (newPw.length < 4) { err.textContent = '新密碼至少4碼'; err.style.display = 'block'; return; }
+  if (newPw !== confirm) { err.textContent = '兩次輸入不一致'; err.style.display = 'block'; return; }
+  try {
+    await API.post('/api/change-password', { current_password: current, new_password: newPw });
+    showToast('密碼已修改', 'success');
+    document.getElementById('prof-cpw-current').value = '';
+    document.getElementById('prof-cpw-new').value = '';
+    document.getElementById('prof-cpw-confirm').value = '';
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+let profData = {};
+
+function fillProfile(p) {
+  profData = p;
+  document.getElementById('prof-real-name').value    = p.real_name    || '';
+  document.getElementById('prof-id-number').value    = p.id_number    || '';
+  document.getElementById('prof-birthday').value     = p.birthday     || '';
+  document.getElementById('prof-phone').value        = p.phone        || '';
+  document.getElementById('prof-address').value      = p.address      || '';
+  document.getElementById('prof-bank-name').value    = p.bank_name    || '';
+  document.getElementById('prof-bank-account').value = p.bank_account || '';
+}
+
+function setFieldEditable(ids, editable) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    el.disabled = !editable;
+    el.style.background = editable ? '#fff' : 'var(--bg)';
+    el.style.color = editable ? 'var(--text)' : 'var(--text-s)';
+  });
+}
+
+function toggleProfEdit() {
+  setFieldEditable(['prof-phone','prof-address'], true);
+  document.getElementById('prof-edit-btn').style.display = 'none';
+  document.getElementById('prof-save-row').style.display = 'flex';
+}
+function cancelProfEdit() {
+  fillProfile(profData);
+  setFieldEditable(['prof-phone','prof-address'], false);
+  document.getElementById('prof-edit-btn').style.display = '';
+  document.getElementById('prof-save-row').style.display = 'none';
+}
+async function saveProfile() {
+  try {
+    await API.put('/api/profile', {
+      phone:   document.getElementById('prof-phone').value,
+      address: document.getElementById('prof-address').value,
+    });
+    profData.phone   = document.getElementById('prof-phone').value;
+    profData.address = document.getElementById('prof-address').value;
+    cancelProfEdit();
+    showToast('個人資料已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function toggleBankEdit() {
+  setFieldEditable(['prof-bank-name','prof-bank-account'], true);
+  document.getElementById('bank-edit-btn').style.display = 'none';
+  document.getElementById('bank-save-row').style.display = 'flex';
+}
+function cancelBankEdit() {
+  document.getElementById('prof-bank-name').value    = profData.bank_name    || '';
+  document.getElementById('prof-bank-account').value = profData.bank_account || '';
+  setFieldEditable(['prof-bank-name','prof-bank-account'], false);
+  document.getElementById('bank-edit-btn').style.display = '';
+  document.getElementById('bank-save-row').style.display = 'none';
+}
+async function saveBank() {
+  try {
+    await API.put('/api/profile/bank', {
+      bank_name:    document.getElementById('prof-bank-name').value,
+      bank_account: document.getElementById('prof-bank-account').value,
+    });
+    profData.bank_name    = document.getElementById('prof-bank-name').value;
+    profData.bank_account = document.getElementById('prof-bank-account').value;
+    cancelBankEdit();
+    showToast('銀行資料已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function init() {
+  const me = await requireAuth(['partner']);
+  if (!me) return;
+  document.getElementById('char-nickname').textContent = me.nickname || me.real_name;
+  const p = await API.get('/api/profile');
+  fillProfile(p);
+  renderQuests();
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作人員 — 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#48B4E8;--blue-l:#74CAEF;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
+  --yellow:#FFB830;--yellow-l:#FFD166;--yellow-p:#FFF7E6;
+  --white:#FFFFFF;--bg:#F0F8FE;--bg-card:#FFFFFF;
+  --green:#2EAA7A;--green-p:#E8F8F2;
+  --red:#E05555;--red-p:#FEF0F0;
+  --orange:#F07840;--orange-p:#FEF3EE;
+  --purple:#9B6FD4;--purple-p:#F0EBF8;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#7A9AAF;
+  --border:#C8E8F6;--border-l:#E0F2FB;
+  --shadow:0 4px 20px rgba(72,180,232,.10);
+  --shadow-lg:0 12px 40px rgba(72,180,232,.18);
+  --r:16px;--rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);color:var(--text);font-size:16px;line-height:1.7;min-height:100vh;display:flex;flex-direction:column}
+
+/* Layout */
+.st-layout{display:flex;flex:1;min-height:0}
+.st-sidebar{width:230px;background:linear-gradient(180deg,#0D4A72,#155E8C);color:#fff;
+  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(13,74,114,.25)}
+.st-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.st-logo-name{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:900;color:#fff}
+.st-logo-role{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:.15rem}
+.st-user-label{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:.35rem}
+.st-menu{padding:.75rem 0;flex:1}
+.st-menu-group{padding:.5rem 1.25rem .25rem;font-size:.62rem;color:rgba(255,255,255,.3);letter-spacing:.08em;font-weight:600}
+.st-menu-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1.25rem;
+  cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.65);
+  transition:all .25s;border-left:4px solid transparent;margin:.1rem .5rem;border-radius:var(--rs)}
+.st-menu-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.st-menu-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#74CAEF;font-weight:700}
+.st-menu-item .mi-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.st-badge{background:var(--red);color:#fff;font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:10px;margin-left:auto}
+.st-logout{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.08);
+  font-size:.78rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:color .2s}
+.st-logout:hover{color:rgba(255,255,255,.8)}
+
+/* Main */
+.st-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+.page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.page-section{display:none}
+.page-section.active{display:block}
+
+/* Cards */
+.card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);border:1px solid var(--border-l);margin-bottom:1rem}
+.impact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem}
+.impact-card{background:#fff;border-radius:var(--r);padding:1.1rem;text-align:center;
+  box-shadow:0 6px 24px rgba(72,180,232,.1);border:1px solid var(--border-l);border-bottom:4px solid var(--ic,var(--blue));transition:transform .2s}
+.impact-card:hover{transform:translateY(-2px)}
+.ic-val{font-family:'Noto Serif TC',serif;font-size:1.75rem;font-weight:700;color:var(--ic,var(--blue));margin-bottom:.15rem}
+.ic-label{font-size:.75rem;color:var(--text-s)}
+
+/* Tables */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.78rem;color:var(--text-s);font-weight:600;padding:.6rem .75rem;text-align:left;border-bottom:2px solid var(--border);background:var(--bg);white-space:nowrap}
+td{font-size:.88rem;padding:.7rem .75rem;border-bottom:1px solid var(--border-l);vertical-align:middle}
+tr:hover td{background:var(--blue-p)}
+.status-badge{display:inline-block;padding:.18rem .55rem;border-radius:20px;font-size:.72rem;font-weight:700}
+.sb-active{background:var(--green-p);color:var(--green)}
+.sb-pending{background:var(--blue-p);color:var(--blue-d)}
+.sb-inactive{background:var(--bg);color:var(--text-s)}
+.role-tag{display:inline-block;padding:.15rem .45rem;border-radius:4px;font-size:.68rem;font-weight:700}
+.rt-partner{background:var(--blue-p);color:var(--blue-d)}
+.rt-supervisor{background:var(--purple-p);color:#6A3FAA}
+.rt-staff{background:var(--yellow-p);color:#7A5010}
+
+/* Action buttons */
+.action-btn{padding:.28rem .65rem;border-radius:4px;font-size:.75rem;font-weight:600;
+  border:1.5px solid var(--border);background:transparent;cursor:pointer;
+  color:var(--text-m);transition:all .2s;font-family:'Noto Sans TC',sans-serif;margin-right:.25rem;white-space:nowrap}
+.action-btn:hover{border-color:var(--blue);color:var(--blue)}
+.action-btn.approve{border-color:var(--green);color:var(--green)}
+.action-btn.approve:hover{background:var(--green-p)}
+.action-btn.danger{border-color:var(--red);color:var(--red)}
+.action-btn.danger:hover{background:var(--red-p)}
+.action-btn.warn{border-color:var(--orange);color:var(--orange)}
+.action-btn.warn:hover{background:var(--orange-p)}
+
+/* Forgot requests */
+.forgot-card{background:#fff;border-radius:var(--r);padding:1rem 1.1rem;
+  border-left:5px solid var(--orange);box-shadow:var(--shadow);margin-bottom:.65rem;
+  display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;
+  border:1px solid var(--border-l);border-left-width:5px}
+.forgot-info{min-width:0}
+.forgot-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem}
+.forgot-meta{font-size:.78rem;color:var(--text-s);margin-top:.15rem}
+
+/* Mobile topbar */
+.mobile-topbar{display:none;background:linear-gradient(135deg,#0D4A72,#1A8AC0);padding:.85rem 1rem;
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;box-shadow:0 4px 16px rgba(13,74,114,.3)}
+
+/* Confirm dialog */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:#fff;border-radius:20px;width:340px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;animation:fadeUp .3s ease;border-top:4px solid var(--red)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.confirm-title{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.confirm-desc{font-size:.85rem;color:var(--text-s);margin-bottom:1.25rem;line-height:1.6}
+.confirm-btns{display:flex;gap:.5rem}
+.btn-danger{flex:1;padding:.75rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:opacity .2s}
+.btn-danger:hover{opacity:.85}
+.btn-cancel{flex:1;padding:.75rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
+.btn-cancel:hover{border-color:var(--blue);color:var(--blue)}
+
+@media(max-width:768px){
+  .st-layout{flex-direction:column}
+  .st-sidebar{width:100%;flex-direction:row;padding:0;overflow-x:auto;position:sticky;bottom:0;z-index:50}
+  .st-sidebar-logo,.st-logout,.st-menu-group{display:none!important}
+  .st-menu{display:flex;flex-direction:row;padding:0;width:100%;overflow-x:auto}
+  .st-menu-item{flex-direction:column;padding:.5rem .6rem;font-size:.58rem;gap:.2rem;white-space:nowrap;border-left:none;border-top:3px solid transparent;min-width:60px;justify-content:center;align-items:center;margin:0}
+  .st-menu-item.active{border-left:none;border-top-color:#74CAEF}
+  .st-menu-item .mi-icon{font-size:1.2rem;width:auto}
+  .st-badge{margin-left:0;margin-top:.1rem}
+  .st-main{padding:.75rem;padding-bottom:5rem}
+  .impact-grid{grid-template-columns:1fr 1fr}
+  .mobile-topbar{display:flex}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mobile-topbar">
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
+    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
+  </div>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">🧹 工作人員</span>
+</div>
+
+<div class="st-layout">
+  <!-- Sidebar -->
+  <div class="st-sidebar">
+    <div class="st-sidebar-logo">
+      <div class="st-logo-name">希絆雲作所</div>
+      <div class="st-logo-role">🧹 工作人員</div>
+      <div class="st-user-label" id="st-user-label">—</div>
+    </div>
+    <div class="st-menu">
+      <div class="st-menu-group">管理</div>
+      <div class="st-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>影響力儀表板</div>
+      <div class="st-menu-item" onclick="switchPage('accounts',this)">
+        <span class="mi-icon">👤</span>帳號管理
+        <span class="st-badge" id="badge-accounts" style="display:none">0</span>
+      </div>
+      <div class="st-menu-item" onclick="switchPage('forgot',this)">
+        <span class="mi-icon">🔑</span>忘記密碼
+        <span class="st-badge" id="badge-forgot" style="display:none">0</span>
+      </div>
+      <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
+      <div class="st-menu-group">設定</div>
+      <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
+      <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理</div>
+      <div class="st-menu-group">帳號</div>
+      <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
+    </div>
+    <div class="st-logout" onclick="signOut()"><span>🚪</span>登出</div>
+  </div>
+
+  <!-- Main -->
+  <div class="st-main">
+
+    <!-- Dashboard -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="page-title">📊 影響力儀表板</div>
+      <div class="impact-grid">
+        <div class="impact-card" style="--ic:var(--blue)"><div class="ic-val" id="dash-active">—</div><div class="ic-label">活躍工作夥伴</div></div>
+        <div class="impact-card" style="--ic:var(--orange)"><div class="ic-val" id="dash-pending">—</div><div class="ic-label">待審核帳號</div></div>
+        <div class="impact-card" style="--ic:var(--green)"><div class="ic-val" id="dash-total">—</div><div class="ic-label">總帳號數</div></div>
+        <div class="impact-card" style="--ic:var(--purple)"><div class="ic-val" id="dash-forgot">—</div><div class="ic-label">待處理忘記密碼</div></div>
+      </div>
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">快速操作</div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="action-btn" onclick="switchPage('accounts',document.querySelector('[onclick*=accounts]'))">👤 帳號管理</button>
+          <button class="action-btn warn" onclick="switchPage('forgot',document.querySelector('[onclick*=forgot]'))">🔑 處理忘記密碼</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 帳號管理 -->
+    <div class="page-section" id="page-accounts">
+      <div class="page-title">
+        👤 帳號管理
+        <button onclick="openCreateUser('supervisor')" style="padding:.4rem .9rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">＋ 新增督導人員</button>
+        <button onclick="openCreateUser('staff')" style="padding:.4rem .9rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">＋ 新增工作人員</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>帳號</th><th>姓名</th><th>角色</th><th>身份別</th><th>狀態</th><th>申請時間</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="accounts-tbody">
+              <tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 忘記密碼申請 -->
+    <div class="page-section" id="page-forgot">
+      <div class="page-title">🔑 忘記密碼申請</div>
+      <div id="forgot-list">
+        <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
+      </div>
+    </div>
+
+    <!-- 薪資管理 -->
+    <div class="page-section" id="page-payroll">
+      <div class="page-title">💰 薪資管理</div>
+      <div class="card"><p style="color:var(--text-s);font-size:.88rem">薪資管理功能開發中</p></div>
+    </div>
+
+    <!-- 任務管理 -->
+    <div class="page-section" id="page-tasks">
+      <div class="page-title">⚔️ 任務管理</div>
+      <div class="card"><p style="color:var(--text-s);font-size:.88rem">任務管理功能開發中</p></div>
+    </div>
+
+    <!-- 公告管理 -->
+    <div class="page-section" id="page-notices">
+      <div class="page-title">📢 公告管理</div>
+      <div class="card"><p style="color:var(--text-s);font-size:.88rem">公告管理功能開發中</p></div>
+    </div>
+
+    <!-- 個人資料 -->
+    <div class="page-section" id="page-profile">
+      <div class="page-title">🧑 個人資料</div>
+      <div class="card" style="max-width:480px">
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">帳號資訊</div>
+        <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)"><span style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">帳號</span><span style="font-size:.9rem;font-weight:600" id="prof-username">—</span></div>
+        <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)"><span style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">姓名</span><span style="font-size:.9rem;font-weight:600" id="prof-realname">—</span></div>
+        <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 0"><span style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">角色</span><span style="font-size:.82rem;font-weight:700;padding:.15rem .5rem;background:var(--yellow-p);color:#7A5010;border-radius:4px">🧹 工作人員</span></div>
+      </div>
+      <div class="card" style="max-width:480px">
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
+        <div id="prof-cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="prof-cpw-new" placeholder="至少 4 碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
+        </div>
+        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">更新密碼</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 新增帳號 overlay -->
+<div class="confirm-overlay" id="create-user-overlay">
+  <div class="confirm-box" style="width:420px;text-align:left;border-top-color:var(--blue)">
+    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem" id="create-user-title">新增督導人員</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1.1rem">建立後帳號立即啟用，預設密碼 <strong>0000</strong>，首次登入需修改。</div>
+    <input type="hidden" id="create-user-role">
+    <div id="cu-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.1rem">
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名 <span style="color:var(--red)">*</span></label><input class="form-input" id="cu-name" placeholder="請輸入真實姓名" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證 <span style="color:var(--red)">*</span></label><input class="form-input" id="cu-id" placeholder="例：A123456789" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日 <span style="color:var(--red)">*</span></label><input class="form-input" type="date" id="cu-birthday" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">*</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeCreateUser()">取消</button>
+      <button class="btn-danger" style="background:linear-gradient(135deg,#1A8AC0,#48B4E8)" onclick="submitCreateUser()">建立帳號</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div style="font-size:2.5rem;margin-bottom:.5rem" id="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">確認操作</div>
+    <div class="confirm-desc" id="confirm-desc">確定要執行此操作嗎？</div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn-danger" id="confirm-ok-btn">確認</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let me = null;
+
+async function init() {
+  me = await requireAuth(['staff']);
+  if (!me) return;
+  document.getElementById('st-user-label').textContent = me.real_name;
+  document.getElementById('prof-username').textContent = me.username;
+  document.getElementById('prof-realname').textContent = me.real_name;
+  await Promise.all([loadAccounts(), loadForgotRequests()]);
+  updateDashboard();
+}
+
+// 頁面切換
+function switchPage(name, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.st-menu-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (name === 'accounts') loadAccounts();
+  if (name === 'forgot') loadForgotRequests();
+}
+
+// ── 帳號管理 ──
+let usersCache = [];
+async function loadAccounts() {
+  try {
+    usersCache = await API.get('/api/admin/users');
+    renderAccounts();
+    updateDashboard();
+  } catch(e) {
+    document.getElementById('accounts-tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red);padding:1rem">${e.message}</td></tr>`;
+  }
+}
+
+const roleMap = { partner:'工作夥伴', supervisor:'督導人員', staff:'工作人員' };
+const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
+const statusMap = { active:'active', pending:'pending', inactive:'inactive' };
+const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用' };
+const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive' };
+
+function renderAccounts() {
+  const tbody = document.getElementById('accounts-tbody');
+  if (!usersCache.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無帳號資料</td></tr>'; return; }
+  tbody.innerHTML = usersCache.map(u => `
+    <tr>
+      <td><code style="font-size:.82rem;background:var(--bg);padding:.1rem .4rem;border-radius:4px">${u.username}</code></td>
+      <td>${u.real_name}${u.nickname?`<br><span style="font-size:.72rem;color:var(--text-s)">${u.nickname}</span>`:''}</td>
+      <td><span class="role-tag ${roleClass[u.role]}">${roleMap[u.role]}</span></td>
+      <td style="font-size:.8rem;color:var(--text-s)">${u.identity||'—'}</td>
+      <td><span class="status-badge ${statusClass[u.status]}">${statusLabel[u.status]}</span></td>
+      <td style="font-size:.78rem;color:var(--text-s)">${u.created_at.slice(0,10)}</td>
+      <td>${accountActions(u)}</td>
+    </tr>
+  `).join('');
+
+  // badge
+  const pending = usersCache.filter(u=>u.status==='pending').length;
+  const badge = document.getElementById('badge-accounts');
+  badge.textContent = pending;
+  badge.style.display = pending ? 'inline-flex' : 'none';
+}
+
+function accountActions(u) {
+  let btns = '';
+  if (u.status === 'pending') {
+    btns += `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">✓ 核准</button>`;
+  }
+  if (u.status === 'active') {
+    btns += `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">🔑 重設密碼</button>`;
+    btns += `<button class="action-btn" onclick="deactivateUser(${u.id},'${u.real_name}')">⏸ 停用</button>`;
+  }
+  if (u.status === 'inactive') {
+    btns += `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">▶ 啟用</button>`;
+  }
+  if (u.id !== me.id) {
+    btns += `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">🗑 刪除</button>`;
+  }
+  return btns || '—';
+}
+
+async function approveUser(id, name) {
+  await API.put(`/api/admin/users/${id}/approve`);
+  showToast(`已核准 ${name}`, 'success');
+  loadAccounts();
+}
+async function deactivateUser(id, name) {
+  openConfirm('⏸', '停用帳號', `確定要停用「${name}」的帳號？停用後無法登入。`, async () => {
+    await API.put(`/api/admin/users/${id}/deactivate`);
+    showToast(`已停用 ${name}`, 'warn');
+    loadAccounts();
+  });
+}
+async function resetPassword(id, name) {
+  openConfirm('🔑', '重設密碼', `確定要將「${name}」的密碼重設為 0000？\n下次登入需要修改密碼。`, async () => {
+    await API.put(`/api/admin/users/${id}/reset-password`);
+    showToast(`已重設 ${name} 的密碼為 0000`, 'success');
+    loadForgotRequests();
+  });
+}
+async function deleteUser(id, name) {
+  openConfirm('🗑', '刪除帳號', `確定要永久刪除「${name}」？\n此操作無法復原，所有相關資料將一併移除。`, async () => {
+    await API.delete(`/api/admin/users/${id}`);
+    showToast(`已刪除 ${name}`, 'info');
+    loadAccounts();
+  });
+}
+
+// ── 忘記密碼 ──
+let forgotCache = [];
+async function loadForgotRequests() {
+  try {
+    forgotCache = await API.get('/api/admin/forgot-requests');
+    renderForgotRequests();
+    updateDashboard();
+  } catch {}
+}
+
+function renderForgotRequests() {
+  const el = document.getElementById('forgot-list');
+  const badge = document.getElementById('badge-forgot');
+  badge.textContent = forgotCache.length;
+  badge.style.display = forgotCache.length ? 'inline-flex' : 'none';
+
+  if (!forgotCache.length) {
+    el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-s);padding:2rem">目前沒有忘記密碼申請</div>';
+    return;
+  }
+  el.innerHTML = forgotCache.map(r => `
+    <div class="forgot-card">
+      <div class="forgot-info">
+        <div class="forgot-name">${r.real_name}</div>
+        <div class="forgot-meta">帳號：${r.username} · 申請時間：${r.created_at.slice(0,16)}</div>
+      </div>
+      <button class="action-btn warn" onclick="resetPassword(${r.user_id},'${r.real_name}')">🔑 重設密碼為 0000</button>
+    </div>
+  `).join('');
+}
+
+// ── Dashboard 統計 ──
+function updateDashboard() {
+  document.getElementById('dash-total').textContent = usersCache.length || '—';
+  document.getElementById('dash-active').textContent = usersCache.filter(u=>u.status==='active'&&u.role==='partner').length || '0';
+  document.getElementById('dash-pending').textContent = usersCache.filter(u=>u.status==='pending').length || '0';
+  document.getElementById('dash-forgot').textContent = forgotCache.length || '0';
+}
+
+// ── 新增帳號 ──
+function openCreateUser(role) {
+  const titles = { supervisor:'新增督導人員', staff:'新增工作人員' };
+  document.getElementById('create-user-title').textContent = titles[role];
+  document.getElementById('create-user-role').value = role;
+  ['cu-name','cu-id','cu-phone'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cu-birthday').value = '';
+  document.getElementById('cu-err').style.display = 'none';
+  document.getElementById('create-user-overlay').classList.add('open');
+}
+function closeCreateUser() {
+  document.getElementById('create-user-overlay').classList.remove('open');
+}
+async function submitCreateUser() {
+  const err = document.getElementById('cu-err');
+  err.style.display = 'none';
+  const role     = document.getElementById('create-user-role').value;
+  const real_name = document.getElementById('cu-name').value.trim();
+  const id_number = document.getElementById('cu-id').value.trim();
+  const birthday  = document.getElementById('cu-birthday').value;
+  const phone     = document.getElementById('cu-phone').value.trim();
+  if (!real_name || !id_number || !birthday || !phone) {
+    err.textContent = '請填寫所有必填欄位'; err.style.display = 'block'; return;
+  }
+  try {
+    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone });
+    closeCreateUser();
+    showToast(`帳號已建立：${res.username}`, 'success');
+    loadAccounts();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+// ── 個人資料 — 修改密碼 ──
+async function changePassword() {
+  const err = document.getElementById('prof-cpw-err');
+  err.style.display='none';
+  const current=document.getElementById('prof-cpw-current').value;
+  const newPw=document.getElementById('prof-cpw-new').value;
+  const confirm=document.getElementById('prof-cpw-confirm').value;
+  if(newPw.length<4){err.textContent='新密碼至少4碼';err.style.display='block';return;}
+  if(newPw!==confirm){err.textContent='兩次輸入不一致';err.style.display='block';return;}
+  try{
+    await API.post('/api/change-password',{current_password:current,new_password:newPw});
+    showToast('密碼已修改','success');
+    document.getElementById('prof-cpw-current').value='';
+    document.getElementById('prof-cpw-new').value='';
+    document.getElementById('prof-cpw-confirm').value='';
+  }catch(e){err.textContent=e.message;err.style.display='block';}
+}
+
+// ── Confirm dialog ──
+let confirmCallback = null;
+function openConfirm(icon, title, desc, cb) {
+  document.getElementById('confirm-icon').textContent = icon;
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-desc').textContent = desc;
+  confirmCallback = cb;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  confirmCallback = null;
+}
+document.getElementById('confirm-ok-btn').onclick = async () => {
+  if (confirmCallback) {
+    try { await confirmCallback(); } catch(e) { showToast(e.message, 'error'); }
+  }
+  closeConfirm();
+};
+
+init();
+</script>
+</body>
+</html>

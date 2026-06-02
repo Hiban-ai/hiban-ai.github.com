@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>督導人員 — 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#48B4E8;--blue-l:#74CAEF;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
+  --yellow:#FFB830;--yellow-p:#FFF7E6;--white:#FFFFFF;--bg:#F0F8FE;--bg-card:#FFFFFF;
+  --green:#2EAA7A;--green-p:#E8F8F2;--red:#E05555;--red-p:#FEF0F0;
+  --orange:#F07840;--orange-p:#FEF3EE;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#7A9AAF;
+  --border:#C8E8F6;--border-l:#E0F2FB;
+  --shadow:0 4px 20px rgba(72,180,232,.10);--shadow-lg:0 12px 40px rgba(72,180,232,.18);
+  --r:16px;--rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+.sv-layout{display:flex;flex:1;min-height:0}
+.sv-sidebar{width:230px;background:linear-gradient(180deg,#155E8C,#1A7AAF);color:#fff;display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.2)}
+.sv-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.sv-logo-main{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.95)}
+.sv-menu{padding:.75rem 0;flex:1}
+.sv-menu-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1.25rem;cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.65);transition:all .25s;border-left:4px solid transparent;margin:.1rem .5rem;border-radius:var(--rs)}
+.sv-menu-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.sv-menu-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#74CAEF;font-weight:700}
+.sv-menu-item .mi-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sv-badge{background:var(--red);color:#fff;font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:10px;margin-left:auto}
+.sv-logout{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.08);font-size:.78rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:color .2s}
+.sv-logout:hover{color:rgba(255,255,255,.8)}
+
+.sv-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+.page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
+.page-section{display:none}
+.page-section.active{display:block}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
+.stat-card{background:#fff;border-radius:var(--r);padding:1.1rem;box-shadow:0 6px 20px rgba(72,180,232,.1);border-top:4px solid var(--sc,var(--blue));border:1px solid var(--border-l);border-top-width:4px}
+.stat-card.sc-blue{--sc:var(--blue)}.stat-card.sc-green{--sc:var(--green)}.stat-card.sc-yellow{--sc:var(--yellow)}.stat-card.sc-red{--sc:var(--red)}
+.sc-label{font-size:.78rem;color:var(--text-s);margin-bottom:.3rem}
+.sc-val{font-family:'Noto Serif TC',serif;font-size:1.7rem;font-weight:700;color:var(--text)}
+
+.card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);border:1px solid var(--border-l);margin-bottom:1rem}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:.95rem;font-weight:700;color:var(--text)}
+.sec-action{font-size:.75rem;color:var(--blue);cursor:pointer;border:none;background:none;font-family:'Noto Sans TC',sans-serif}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.78rem;color:var(--text-s);font-weight:600;padding:.6rem .75rem;text-align:left;border-bottom:2px solid var(--border);background:var(--bg);white-space:nowrap}
+td{font-size:.88rem;padding:.7rem .75rem;border-bottom:1px solid var(--border-l);vertical-align:middle}
+tr:hover td{background:var(--blue-p)}
+.status-badge{display:inline-block;padding:.18rem .55rem;border-radius:20px;font-size:.72rem;font-weight:700}
+.sb-active{background:var(--green-p);color:var(--green)}.sb-warn{background:var(--orange-p);color:var(--orange)}.sb-pending{background:var(--blue-p);color:var(--blue-d)}
+.action-btn{padding:.28rem .65rem;border-radius:4px;font-size:.75rem;font-weight:600;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text-m);transition:all .2s;font-family:'Noto Sans TC',sans-serif;margin-right:.25rem}
+.action-btn:hover{border-color:var(--blue);color:var(--blue)}
+.action-btn.approve{border-color:var(--green);color:var(--green)}.action-btn.approve:hover{background:var(--green-p)}
+.action-btn.reject{border-color:var(--red);color:var(--red)}.action-btn.reject:hover{background:var(--red-p)}
+
+.wl-review-card{background:#fff;border-radius:var(--r);padding:1.1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem;border-left:5px solid var(--blue);border:1px solid var(--border-l);border-left-width:5px}
+.wl-rev-name{font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700}
+.wl-rev-task{font-size:.8rem;color:var(--text-s);margin:.25rem 0 .5rem}
+.wl-rev-note{background:var(--bg);border-radius:var(--rs);padding:.6rem .75rem;font-size:.85rem;color:var(--text-m);margin-bottom:.65rem;line-height:1.6}
+.wl-rev-btns{display:flex;gap:.5rem}
+.rev-btn{padding:.45rem 1rem;border-radius:var(--rs);font-size:.85rem;font-weight:600;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:opacity .2s}
+.rev-btn.approve{background:var(--green);color:#fff}.rev-btn.reject{background:var(--red);color:#fff}
+.rev-btn:hover{opacity:.85}
+.revision-input{background:var(--orange-p);border:1.5px solid var(--orange);border-radius:var(--r);padding:.9rem;margin-top:.75rem;display:none}
+.revision-input.open{display:block}
+
+.alert-card{background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid var(--ac,var(--blue));box-shadow:0 4px 16px rgba(72,180,232,.08);display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem;border:1px solid var(--border-l);border-left-width:5px}
+.alert-card.ac-red{--ac:var(--red);background:var(--red-p)}.alert-card.ac-orange{--ac:var(--orange);background:var(--orange-p)}
+.alert-action{padding:.35rem .75rem;border:1.5px solid currentColor;border-radius:20px;font-size:.68rem;font-weight:600;cursor:pointer;background:transparent;color:var(--ac);font-family:'Noto Sans TC',sans-serif;white-space:nowrap;margin-left:auto}
+
+.form-group{margin-bottom:.9rem}
+.form-label{display:block;font-size:.85rem;font-weight:600;color:var(--text-m);margin-bottom:.4rem}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.72rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;outline:none;background:#fff;transition:all .2s}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15)}
+textarea.form-input{resize:none}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.72rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;outline:none;background:var(--bg);cursor:pointer}
+.btn-primary{width:100%;padding:.85rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3);transition:all .3s;margin-top:.25rem}
+.btn-primary:hover{transform:translateY(-2px)}
+
+.mobile-topbar{display:none;background:linear-gradient(135deg,#155E8C,#1A8AC0);padding:.85rem 1rem;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;box-shadow:0 4px 16px rgba(21,94,140,.3)}
+
+.pw-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.pw-overlay.open{display:flex}
+.pw-box{background:#fff;border-radius:20px;width:360px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);border-top:4px solid var(--blue);animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.error-msg{background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.6rem .9rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none}
+
+@media(max-width:768px){
+  .sv-layout{flex-direction:column}
+  .sv-sidebar{width:100%;flex-direction:row;padding:0;overflow-x:auto;position:sticky;bottom:0;z-index:50}
+  .sv-sidebar-logo,.sv-logout{display:none!important}
+  .sv-menu{display:flex;flex-direction:row;padding:0;width:100%;overflow-x:auto}
+  .sv-menu-item{flex-direction:column;padding:.5rem .6rem;font-size:.58rem;gap:.2rem;white-space:nowrap;border-left:none;border-top:3px solid transparent;min-width:60px;justify-content:center;align-items:center;margin:0}
+  .sv-menu-item.active{border-left:none;border-top-color:#74CAEF}
+  .sv-menu-item .mi-icon{font-size:1.2rem;width:auto}
+  .sv-main{padding:.75rem;padding-bottom:5rem}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .mobile-topbar{display:flex}
+}
+</style>
+</head>
+<body>
+
+<div class="mobile-topbar">
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
+    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
+  </div>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">📖 督導人員</span>
+</div>
+
+<div class="sv-layout">
+  <div class="sv-sidebar">
+    <div class="sv-sidebar-logo">
+      <div class="sv-logo-main">希絆雲作所</div>
+      <div style="display:inline-block;margin-top:.3rem;padding:.15rem .5rem;background:rgba(58,156,192,.35);border-radius:4px;font-size:.65rem;color:rgba(255,255,255,.8);font-weight:600">📖 督導人員</div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.4rem" id="sv-user-label">—</div>
+    </div>
+    <div class="sv-menu">
+      <div class="sv-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+      <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
+      <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
+      <div class="sv-menu-item" onclick="switchPage('worklog-review',this)"><span class="mi-icon">📝</span>WorkLog審核<span class="sv-badge">5</span></div>
+      <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
+      <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
+      <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
+    </div>
+    <div class="sv-logout" onclick="signOut()"><span>🚪</span>登出</div>
+  </div>
+
+  <div class="sv-main">
+
+    <!-- Dashboard -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="page-title">📊 督導總覽</div>
+      <div class="stats-row">
+        <div class="stat-card sc-blue"><div class="sc-label">負責夥伴數</div><div class="sc-val">4</div></div>
+        <div class="stat-card sc-green"><div class="sc-label">本月完成任務</div><div class="sc-val">12</div></div>
+        <div class="stat-card sc-yellow"><div class="sc-label">待審核WorkLog</div><div class="sc-val">5</div></div>
+        <div class="stat-card sc-red"><div class="sc-label">預警夥伴</div><div class="sc-val">2</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+        <div class="card">
+          <div class="sec-header"><div class="sec-title">⚠️ 需要注意</div><button class="sec-action" onclick="switchPage('alerts',document.querySelector('[onclick*=alerts]'))">查看全部</button></div>
+          <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">陳小明</div><div style="font-size:.8rem;color:var(--text-m)">5天未登入</div></div><button class="alert-action">聯繫</button></div>
+          <div class="alert-card ac-orange"><span style="font-size:1.1rem">⚠️</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">林阿華</div><div style="font-size:.8rem;color:var(--text-m)">任務卡關超過3天</div></div><button class="alert-action">協助</button></div>
+        </div>
+        <div class="card">
+          <div class="sec-header"><div class="sec-title">📝 待審核</div><button class="sec-action" onclick="switchPage('worklog-review',document.querySelector('[onclick*=worklog]'))">查看全部</button></div>
+          <div style="font-size:.82rem;color:var(--text-s)">5 件 WorkLog 待審核</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="page-section" id="page-alerts">
+      <div class="page-title">⚠️ 預警通知</div>
+      <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">陳小明 — 5天未登入</div><div style="font-size:.8rem;color:var(--text-m)">上次登入：3/15 · 未接任何任務</div></div><button class="alert-action">聯繫夥伴</button></div>
+      <div class="alert-card ac-orange"><span style="font-size:1.1rem">⚠️</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">林阿華 — 任務卡關</div><div style="font-size:.8rem;color:var(--text-m)">口碑任務已3天未更新進度</div></div><button class="alert-action">協助解決</button></div>
+    </div>
+
+    <!-- Partners -->
+    <div class="page-section" id="page-partners">
+      <div class="page-title">👥 夥伴管理</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>姓名</th><th>職業</th><th>本月任務</th><th>累計收入</th><th>最後回報</th><th>狀態</th></tr></thead>
+            <tbody id="sv-partner-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- WorkLog Review -->
+    <div class="page-section" id="page-worklog-review">
+      <div class="page-title">📝 WorkLog 審核 <span style="background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">5件待審</span></div>
+      <div class="wl-review-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem">
+          <div class="wl-rev-name">月影旅者（陳小花）</div>
+          <span class="status-badge sb-pending">待審核</span>
+        </div>
+        <div class="wl-rev-task">📣 口碑留言 × 5則 · 第2輪修改</div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-m);margin-bottom:.65rem"><span>📅 今天 10:30</span><span>✅ 完成 3 則</span><span>🤖 使用 ChatGPT</span></div>
+        <div class="wl-rev-note">已按照意見修改，語氣改成比較口語的方式，第3則也重新調整了關鍵字的位置。</div>
+        <div class="wl-rev-btns">
+          <button class="rev-btn approve" onclick="approveWL(this)">✓ 核准</button>
+          <button class="rev-btn reject" onclick="toggleRevInput(this)">✎ 退回修改</button>
+        </div>
+        <div class="revision-input">
+          <div style="font-size:.75rem;font-weight:600;color:var(--orange);margin-bottom:.5rem">✎ 填寫修改意見</div>
+          <textarea class="form-input" rows="3" placeholder="具體說明需要修改的地方..." style="margin-bottom:.5rem"></textarea>
+          <button class="btn-primary" style="margin-top:0" onclick="sendRevision(this)">送出意見</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mentor -->
+    <div class="page-section" id="page-mentor">
+      <div class="page-title">💬 督導紀錄</div>
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">新增督導紀錄</div>
+        <div class="form-group"><label class="form-label">選擇夥伴</label><select class="form-select" id="mentor-partner-sel"><option value="">請選擇夥伴</option></select></div>
+        <div class="form-group"><label class="form-label">輔導類型</label><select class="form-select"><option>電話關心</option><option>線上輔導</option><option>面談</option><option>任務指導</option><option>心理支持</option></select></div>
+        <div class="form-group"><label class="form-label">輔導內容</label><textarea class="form-input" rows="4" placeholder="記錄本次輔導的主要內容、夥伴狀況、後續追蹤事項..."></textarea></div>
+        <button class="btn-primary" onclick="showToast('督導紀錄已儲存','success')">儲存紀錄</button>
+      </div>
+    </div>
+
+    <!-- 個人資料 -->
+    <div class="page-section" id="page-profile">
+      <div class="page-title">🧑 個人資料</div>
+      <div class="card" style="max-width:480px">
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">👤 基本資料</div>
+        <div style="display:grid;grid-template-columns:80px 1fr;row-gap:.7rem;align-items:center">
+          <span style="font-size:.82rem;color:var(--text-s)">姓名</span><span style="font-size:.92rem;font-weight:600" id="prof-realname">—</span>
+          <span style="font-size:.82rem;color:var(--text-s)">身分證</span><span style="font-size:.92rem;font-weight:600;letter-spacing:.05em" id="prof-id-number">—</span>
+          <span style="font-size:.82rem;color:var(--text-s)">生日</span><span style="font-size:.92rem;font-weight:600" id="prof-birthday">—</span>
+          <span style="font-size:.82rem;color:var(--text-s)">電話</span><span style="font-size:.92rem;font-weight:600" id="prof-phone">—</span>
+        </div>
+      </div>
+
+      <!-- 修改密碼：簡潔橫排風格 -->
+      <div class="card" style="max-width:480px">
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
+        <div id="cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label>
+            <input class="form-input" type="password" id="cpw-current" placeholder="輸入目前密碼" style="flex:1">
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label>
+            <input class="form-input" type="password" id="cpw-new" placeholder="至少 4 碼" style="flex:1">
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label>
+            <input class="form-input" type="password" id="cpw-confirm" placeholder="再輸入一次" style="flex:1">
+          </div>
+        </div>
+        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,112,160,.3);transition:all .25s">更新密碼</button>
+      </div>
+    </div>
+
+    <!-- Tasks sv -->
+    <div class="page-section" id="page-tasks-sv">
+      <div class="page-title">⚔️ 任務派案</div>
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">指派任務給夥伴</div>
+        <div class="form-group"><label class="form-label">指派給</label><select class="form-select" id="assign-partner-sel"><option value="">請選擇夥伴</option></select></div>
+        <div class="form-group"><label class="form-label">選擇任務</label><select class="form-select"><option value="">請選擇任務</option><option>📣 口碑留言 × 5則 ($250)</option><option>✍️ SEO文案撰寫 ($400)</option><option>🎨 廣告圖設計 × 2張 ($300)</option></select></div>
+        <div class="form-group"><label class="form-label">補充說明（選填）</label><textarea class="form-input" rows="2" placeholder="特別提醒或指示..."></textarea></div>
+        <button class="btn-primary" onclick="showToast('已派案！','success')">確認派案</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script src="shared.js"></script>
+<script>
+function switchPage(name, el) {
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.sv-menu-item').forEach(i=>i.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function approveWL(btn) {
+  const card = btn.closest('.wl-review-card');
+  card.style.opacity='.4';
+  card.style.pointerEvents='none';
+  showToast('已核准！💰 收入已計算', 'success');
+}
+function toggleRevInput(btn) {
+  const ri = btn.closest('.wl-review-card').querySelector('.revision-input');
+  ri.classList.toggle('open');
+}
+function sendRevision(btn) {
+  const card = btn.closest('.wl-review-card');
+  card.style.opacity='.4';
+  card.style.pointerEvents='none';
+  showToast('修改意見已送出', 'warn');
+}
+
+async function loadPartners() {
+  try {
+    const users = await API.get('/api/users-list?role=partner');
+    const opts = users.map(u=>`<option value="${u.id}">${u.nickname||u.real_name}</option>`).join('');
+    document.querySelectorAll('#mentor-partner-sel,#assign-partner-sel').forEach(sel=>{
+      sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
+    });
+    // 夥伴管理 table
+    const tbody = document.getElementById('sv-partner-tbody');
+    tbody.innerHTML = users.map(u=>`
+      <tr><td>${u.nickname||'—'}<br><span style="font-size:.72rem;color:var(--text-s)">${u.real_name}</span></td>
+      <td>⚔️ 文字學徒</td><td>3件</td><td>$350</td><td>今天</td>
+      <td><span class="status-badge sb-active">正常</span></td></tr>
+    `).join('');
+  } catch {}
+}
+
+async function changePassword() {
+  const err = document.getElementById('cpw-err');
+  err.style.display='none';
+  const current=document.getElementById('cpw-current').value;
+  const newPw=document.getElementById('cpw-new').value;
+  const confirm=document.getElementById('cpw-confirm').value;
+  if(newPw.length<4){err.textContent='新密碼至少4碼';err.style.display='block';return;}
+  if(newPw!==confirm){err.textContent='兩次輸入不一致';err.style.display='block';return;}
+  try{
+    await API.post('/api/change-password',{current_password:current,new_password:newPw});
+    showToast('密碼已修改','success');
+    document.getElementById('cpw-current').value='';
+    document.getElementById('cpw-new').value='';
+    document.getElementById('cpw-confirm').value='';
+  }catch(e){err.textContent=e.message;err.style.display='block';}
+}
+
+async function init() {
+  const me = await requireAuth(['supervisor']);
+  if (!me) return;
+  document.getElementById('sv-user-label').textContent = me.real_name;
+  const p = await API.get('/api/profile');
+  document.getElementById('prof-realname').textContent  = p.real_name  || '—';
+  document.getElementById('prof-id-number').textContent = p.id_number  || '—';
+  document.getElementById('prof-birthday').textContent  = p.birthday   || '—';
+  document.getElementById('prof-phone').textContent     = p.phone      || '—';
+  loadPartners();
+}
+init();
+</script>
+</body>
+</html>

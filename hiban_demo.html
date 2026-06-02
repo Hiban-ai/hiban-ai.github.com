@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:    #48B4E8;
+  --blue-l:  #74CAEF;
+  --blue-d:  #1A8AC0;
+  --blue-p:  #EBF7FD;
+  --blue-pp: #D0EEFA;
+  --yellow:  #FFB830;
+  --yellow-l:#FFD166;
+  --yellow-p:#FFF7E6;
+  --white:   #FFFFFF;
+  --bg:      #F0F8FE;
+  --bg-card: #FFFFFF;
+  --green:   #2EAA7A;
+  --green-p: #E8F8F2;
+  --red:     #E05555;
+  --red-p:   #FEF0F0;
+  --orange:  #F07840;
+  --orange-p:#FEF3EE;
+  --text:    #1A2E40;
+  --text-m:  #3D5A70;
+  --text-s:  #7A9AAF;
+  --border:  #C8E8F6;
+  --border-l:#E0F2FB;
+  --shadow:    0 4px 20px rgba(72,180,232,.10);
+  --shadow-lg: 0 12px 40px rgba(72,180,232,.18);
+  --r:16px; --rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F8FCFF 60%,#FFFFFF 100%);color:var(--text);font-size:16px;line-height:1.7;min-height:100vh}
+.view{display:none;min-height:100vh}
+.view.active{display:flex}
+
+/* ══ LOGIN ══ */
+#view-home{flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#48B4E8 0%,#74CAEF 40%,#A8DCEF 70%,#EBF7FD 100%);
+  position:relative;overflow:hidden;min-height:100vh}
+#view-home::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;
+  background:rgba(255,255,255,.05);top:-180px;right:-150px}
+#view-home::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;
+  background:rgba(212,165,32,.1);bottom:-150px;left:-100px}
+/* Role Tab Card */
+.role-tab-card{background:rgba(255,255,255,.96);border-radius:24px;
+  width:420px;max-width:94vw;box-shadow:0 20px 60px rgba(26,112,160,.18),0 4px 20px rgba(72,180,232,.1);
+  position:relative;z-index:1;animation:fadeUp .5s ease;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.8);overflow:hidden}
+.role-tabs{display:flex;border-bottom:2px solid rgba(72,180,232,.15)}
+.role-tab-btn{flex:1;padding:.85rem .5rem;text-align:center;cursor:pointer;font-size:.82rem;font-weight:600;
+  color:rgba(72,180,232,.6);border:none;background:none;font-family:'Noto Sans TC',sans-serif;
+  transition:all .25s;border-bottom:3px solid transparent;margin-bottom:-2px;display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.role-tab-btn:hover{color:var(--blue-d);background:rgba(72,180,232,.04)}
+.role-tab-btn.active{color:var(--blue-d);border-bottom-color:var(--blue);background:rgba(72,180,232,.06)}
+.role-tab-btn .rt-icon{font-size:1.3rem}
+.role-tab-panel{display:none;padding:1.75rem 2rem 2rem;animation:fadeUp .25s ease}
+.role-tab-panel.active{display:block}
+.rtp-emoji{font-size:3.2rem;text-align:center;margin-bottom:.75rem}
+.rtp-title{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:var(--text);text-align:center;margin-bottom:.4rem}
+.rtp-desc{font-size:.82rem;color:var(--text-s);text-align:center;line-height:1.7;margin-bottom:1.5rem}
+.rtp-enter-btn{width:100%;padding:.9rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
+  color:#fff;border:none;border-radius:var(--rs);font-size:1rem;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.35);
+  transition:all .3s;letter-spacing:.03em}
+.rtp-enter-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(72,180,232,.5)}
+/* legacy - keep for compat */
+.login-box{background:rgba(255,255,255,.96);border-radius:24px;padding:40px 36px;
+  width:440px;max-width:94vw;box-shadow:0 20px 60px rgba(26,112,160,.15),0 4px 20px rgba(72,180,232,.1);
+  position:relative;z-index:1;animation:fadeUp .5s ease;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.8)}
+.login-logo{font-family:'Noto Serif TC',serif;font-size:1.9rem;font-weight:900;
+  background:linear-gradient(135deg,#1A6FA0,#48B4E8);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:.2em}
+.login-sub{text-align:center;color:var(--blue-d);font-size:.78rem;letter-spacing:.2em;margin-bottom:2rem;opacity:.7}
+.login-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:.8rem 1rem;font-size:1rem;font-family:'Noto Sans TC',sans-serif;
+  outline:none;transition:border-color .2s;background:var(--bg)}
+.login-input:focus{border-color:var(--blue)}
+.google-btn{width:100%;padding:.8rem;background:#fff;color:var(--text);
+  border:2px solid var(--border);border-radius:var(--rs);font-size:.95rem;font-weight:600;
+  font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:.65rem}
+.google-btn:hover{border-color:var(--blue);box-shadow:0 6px 18px rgba(72,180,232,.2);transform:translateY(-2px);background:var(--blue-p)}
+
+/* ══ REGISTER ══ */
+#view-register{flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem 1rem;background:var(--bg)}
+.reg-container{width:100%;max-width:460px}
+.step-indicators{display:flex;align-items:center;margin-bottom:1.5rem}
+.si{display:flex;align-items:center;gap:.4rem;flex:1}
+.si-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--text-s);flex-shrink:0;transition:all .3s}
+.si.active .si-num{border-color:var(--blue);background:var(--blue);color:#fff}
+.si.done .si-num{border-color:var(--green);background:var(--green);color:#fff}
+.si-label{font-size:.72rem;color:var(--text-s)}
+.si.active .si-label{color:var(--blue-d);font-weight:600}
+.si-line{flex:1;height:1px;background:var(--border);margin:0 .2rem}
+.reg-panel{background:#fff;border-radius:var(--r);padding:1.5rem;box-shadow:0 8px 32px rgba(72,180,232,.12);margin-bottom:1rem;border-top:4px solid var(--blue)}
+.reg-panel-title{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:.25rem}
+.reg-panel-desc{font-size:.88rem;color:var(--text-s);margin-bottom:1.25rem}
+.pending-center{text-align:center;padding:2rem 0}
+.pending-icon{font-size:3.5rem;margin-bottom:.75rem;animation:pulse 2s ease infinite}
+.pending-title{font-family:'Noto Serif TC',serif;font-size:1.3rem;color:var(--blue-d);margin-bottom:.5rem}
+.pending-desc{font-size:.82rem;color:var(--text-m);line-height:1.7}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ══ PARTNER VIEW ══ */
+#view-partner{flex-direction:column;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 40%,#fff 100%)}
+.p-topbar{background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;padding:.9rem 1.1rem;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;
+  box-shadow:0 4px 16px rgba(72,180,232,.3)}
+.p-topbar-logo{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.9)}
+.p-wallet{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);padding:.3rem .8rem;border-radius:20px;cursor:pointer}
+.p-wallet-amt{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow-l);font-size:.9rem}
+.p-avatar{width:34px;height:34px;background:linear-gradient(135deg,var(--blue),var(--blue-l));
+  border:2px solid rgba(255,255,255,.3);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer}
+/* Role switcher */
+.role-switcher{position:relative;display:inline-block}
+.role-switcher-btn{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);padding:.3rem .75rem;border-radius:20px;cursor:pointer;
+  font-size:.75rem;color:#fff;transition:all .2s}
+.role-switcher-btn:hover{background:rgba(255,255,255,.2)}
+.role-switcher-dropdown{position:absolute;top:calc(100% + .4rem);right:0;
+  background:var(--bg-card);border-radius:var(--r);box-shadow:var(--shadow-lg);
+  border:1px solid var(--border);min-width:160px;z-index:200;display:none;overflow:hidden}
+.role-switcher-dropdown.open{display:block;animation:fadeUp .2s ease}
+.rsd-item{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;
+  cursor:pointer;font-size:.85rem;color:var(--text-m);transition:all .15s;
+  border-bottom:1px solid var(--border-l)}
+.rsd-item:last-child{border-bottom:none}
+.rsd-item:hover{background:var(--blue-p);color:var(--blue-d)}
+.rsd-item.active{background:var(--blue-p);color:var(--blue-d);font-weight:700}
+.rsd-icon{font-size:1rem;width:20px;text-align:center}
+.rsd-divider{height:1px;background:var(--border-l)}
+/* Character card */
+.char-card{margin:1rem;background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(235,247,253,.8));
+  border-radius:var(--r);box-shadow:0 8px 32px rgba(72,180,232,.15),0 2px 8px rgba(72,180,232,.08);
+  padding:1.25rem;border-top:4px solid var(--blue);position:relative;overflow:hidden}
+.char-top{display:flex;align-items:center;gap:.9rem;margin-bottom:.9rem}
+.char-ava{width:60px;height:60px;background:linear-gradient(135deg,#1A8AC0,#74CAEF);
+  border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;border:3px solid rgba(255,255,255,.8);flex-shrink:0;box-shadow:0 6px 16px rgba(72,180,232,.3)}
+.char-name{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.2rem}
+.char-class{display:inline-block;padding:.15rem .5rem;background:var(--blue-p);border:1px solid var(--blue-pp);
+  color:var(--blue-d);font-size:.8rem;font-weight:700;border-radius:4px}
+.char-badges{display:flex;gap:.35rem;margin-top:.35rem}
+.badge-dot{width:24px;height:24px;background:var(--yellow-p);border:1px solid var(--yellow);
+  border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem}
+.exp-label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-s);margin-bottom:.3rem}
+.exp-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.exp-fill{height:100%;background:linear-gradient(90deg,var(--blue-d),var(--blue-l));border-radius:4px;transition:width 1s ease}
+.char-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-top:.9rem}
+.stat-box{background:var(--bg);border-radius:var(--rs);padding:.5rem;text-align:center}
+.stat-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d)}
+.stat-label{font-size:.62rem;color:var(--text-s)}
+/* Partner tabs */
+.p-tabs{display:flex;background:#fff;border-bottom:2px solid var(--blue-p);
+  padding:0;overflow-x:auto;box-shadow:0 2px 8px rgba(72,180,232,.06)}
+.p-tab{padding:.75rem 1rem;font-size:.88rem;color:var(--text-s);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .25s;
+  white-space:nowrap;display:flex;align-items:center;gap:.35rem;flex-shrink:0;font-weight:500}
+.p-tab:hover{color:var(--blue-d);background:var(--blue-p)}
+.p-tab.active{color:var(--blue-d);border-bottom-color:var(--blue);font-weight:700;background:var(--blue-p)}
+.p-content{flex:1;padding:1rem;overflow-y:auto;background:transparent;padding-bottom:80px}
+.p-tab-content{display:none}
+.p-tab-content.active{display:block}
+/* Quest board */
+.active-tasks-wrap{margin-bottom:1rem}
+.active-task-item{background:linear-gradient(135deg,#EBF7FD,#fff);
+  border:2px solid var(--blue-pp);border-radius:var(--r);
+  padding:1rem;margin-bottom:.6rem;position:relative;box-shadow:0 4px 16px rgba(72,180,232,.08)}
+.active-task-item.revision{background:linear-gradient(135deg,var(--orange-p),#fff);border-color:var(--orange)}
+.at-tag{position:absolute;top:.6rem;right:.75rem;font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:10px}
+.at-tag-active{background:var(--blue);color:#fff;animation:blink 2s infinite}
+.at-tag-revision{background:var(--orange);color:#fff;animation:blink 1.5s infinite}
+.at-name{font-weight:700;font-size:.88rem;margin-bottom:.3rem;font-family:'Noto Serif TC',serif}
+.at-prog{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:.5rem}
+.at-prog-fill{height:100%;background:linear-gradient(90deg,var(--blue-d),var(--blue-l));border-radius:3px}
+.at-prog-fill.revision{background:linear-gradient(90deg,var(--orange),var(--yellow))}
+.at-btns{display:flex;gap:.4rem;flex-wrap:wrap}
+.at-btn{flex:1;padding:.45rem;border-radius:var(--rs);font-size:.75rem;font-weight:600;
+  border:none;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif;min-width:60px}
+.at-btn-p{background:var(--blue);color:#fff}
+.at-btn-p.revision-btn{background:var(--orange)}
+.at-btn-s{background:var(--bg);color:var(--text-m);border:1px solid var(--border)}
+.at-btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);font-size:.68rem}
+.filter-row{display:flex;gap:.4rem;margin-bottom:.8rem;overflow-x:auto;padding-bottom:.25rem}
+.fchip{padding:.4rem .85rem;background:var(--bg-card);border:1.5px solid var(--border);
+  border-radius:20px;font-size:.8rem;cursor:pointer;white-space:nowrap;
+  color:var(--text-s);transition:all .2s;flex-shrink:0}
+.fchip:hover{border-color:var(--blue);color:var(--blue)}
+.fchip.active{background:var(--blue-p);border-color:var(--blue);color:var(--blue-d);font-weight:600}
+.quest-list{display:flex;flex-direction:column;gap:.6rem}
+.q-card{background:#fff;border-radius:var(--r);padding:1rem 1.1rem;
+  border-left:5px solid var(--cat-c,var(--blue));
+  box-shadow:0 4px 16px rgba(72,180,232,.08),0 1px 4px rgba(72,180,232,.05);
+  cursor:pointer;transition:all .25s}
+.q-card:hover{transform:translateX(4px);box-shadow:0 8px 28px rgba(72,180,232,.18)}
+.q-card.locked{opacity:.5;cursor:not-allowed}
+.q-card.locked:hover{transform:none}
+.q-card.cat-text{--cat-c:#3A9CC0}
+.q-card.cat-social{--cat-c:#9B6FD4}
+.q-card.cat-visual{--cat-c:#E07830}
+.q-card.cat-data{--cat-c:#3E9E78}
+.q-card.cat-video{--cat-c:#C04080}
+.q-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem}
+.q-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem}
+.q-reward{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap}
+.q-meta{display:flex;gap:.4rem;flex-wrap:wrap}
+.qtag{padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600}
+.qtag-cat{background:var(--blue-p);color:var(--blue-d)}
+.qtag-time{background:var(--green-p);color:var(--green)}
+.qtag-lvl{background:var(--yellow-p);color:#8A6010}
+.qtag-lock{background:var(--bg);color:var(--text-s)}
+.q-desc{font-size:.85rem;color:var(--text-s);margin-top:.4rem;line-height:1.5}
+/* Wallet */
+.wallet-hero{background:linear-gradient(135deg,#1A8AC0,#48B4E8,#74CAEF);
+  border-radius:var(--r);padding:1.5rem;text-align:center;color:#fff;
+  margin-bottom:1rem;position:relative;overflow:hidden;box-shadow:0 12px 36px rgba(72,180,232,.35)}
+.wallet-hero::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+  background:rgba(255,255,255,.04);top:-80px;right:-60px}
+.wh-label{font-size:.72rem;opacity:.7;letter-spacing:.1em;margin-bottom:.25rem}
+.wh-amount{font-family:'Noto Serif TC',serif;font-size:3.2rem;font-weight:900;color:var(--yellow-l)}
+.wh-prog-wrap{margin:1rem 0}
+.wh-prog-label{display:flex;justify-content:space-between;font-size:.68rem;opacity:.7;margin-bottom:.3rem}
+.wh-prog-track{height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden}
+.wh-prog-fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--yellow-l));border-radius:4px;width:35%}
+.wh-hint{font-size:.67rem;opacity:.6;margin-top:.4rem}
+.withdraw-btn{width:100%;padding:.85rem;border-radius:var(--rs);font-size:.9rem;font-weight:700;
+  border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);
+  color:#fff;cursor:pointer;transition:all .25s;font-family:'Noto Sans TC',sans-serif}
+.withdraw-btn:disabled{opacity:.4;cursor:not-allowed}
+.withdraw-btn:not(:disabled):hover{background:rgba(255,255,255,.2)}
+.txn-card{background:var(--bg-card);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow)}
+.txn-title{font-size:.8rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem}
+.txn-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)}
+.txn-row:last-child{border-bottom:none}
+.txn-n{font-size:.95rem;font-weight:500}
+.txn-d{font-size:.78rem;color:var(--text-s)}
+.txn-p{font-family:'Noto Serif TC',serif;font-weight:700}
+.txn-p.plus{color:var(--green)}
+.txn-p.minus{color:var(--red)}
+/* Withdraw status */
+.withdraw-status{background:var(--bg);border-radius:var(--r);padding:1rem;margin-top:.75rem;border:1.5px solid var(--border)}
+.ws-step{display:flex;align-items:center;gap:.75rem;padding:.5rem 0}
+.ws-step:not(:last-child){border-bottom:1px solid var(--border-l)}
+.ws-icon{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.ws-icon.done{background:var(--green);border-color:var(--green);color:#fff}
+.ws-icon.active{background:var(--blue);border-color:var(--blue);color:#fff;animation:pulse 2s infinite}
+.ws-label{font-size:.8rem;color:var(--text-m)}
+.ws-date{font-size:.65rem;color:var(--text-s);margin-top:.1rem}
+/* Growth */
+.firstpass-row{display:flex;align-items:center;gap:.75rem;
+  background:linear-gradient(135deg,var(--yellow-p),#fff);border:1.5px solid var(--yellow);
+  border-radius:var(--r);padding:.8rem;margin-bottom:.75rem}
+.fp-icon{font-size:1.6rem;flex-shrink:0}
+.fp-info{flex:1}
+.fp-title{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.85rem;color:#7A5010;margin-bottom:.2rem}
+.fp-bar-wrap{display:flex;align-items:center;gap:.6rem}
+.fp-bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.fp-fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--yellow-l));border-radius:4px;transition:width 1s}
+.fp-count{font-size:.72rem;color:var(--yellow);font-weight:700;white-space:nowrap}
+.fp-desc{font-size:.65rem;color:var(--text-s);margin-top:.2rem}
+.class-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.cc{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);
+  border:1px solid var(--border-l);border-top:4px solid var(--cc,var(--blue))}
+.cc-icon{font-size:1.5rem;margin-bottom:.4rem}
+.cc-sys{font-size:.65rem;color:var(--text-s);margin-bottom:.15rem}
+.cc-title{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
+.cc-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:.3rem}
+.cc-fill{height:100%;background:var(--cc,var(--blue));border-radius:3px}
+.cc-income{font-size:.62rem;color:var(--text-s)}
+.roadmap-card{background:var(--bg-card);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.rm-title{font-size:.78rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem}
+.rm-row{display:flex;align-items:center;overflow-x:auto;gap:0}
+.rm-node{text-align:center;min-width:64px;flex-shrink:0}
+.rm-node-icon{font-size:1.1rem}
+.rm-node-name{font-size:.65rem;font-weight:700;color:var(--text-m);margin-top:.15rem}
+.rm-node-amt{font-size:.52rem;color:var(--text-s)}
+.rm-node.active .rm-node-name{color:var(--blue-d)}
+.rm-line{flex:1;height:1px;background:var(--border);min-width:16px}
+.rm-line.done{background:var(--blue)}
+.badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1rem}
+.bdg{aspect-ratio:1;background:var(--bg-card);border-radius:var(--rs);border:1.5px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;cursor:pointer;transition:all .2s}
+.bdg.earned{border-color:var(--yellow);background:var(--yellow-p)}
+.bdg.locked{opacity:.3}
+.bdg-e{font-size:1.5rem;margin-bottom:.15rem}
+.bdg-n{font-size:.6rem;color:var(--text-s);text-align:center;line-height:1.2}
+.bdg.earned .bdg-n{color:#8A6010;font-weight:600}
+.title-row{display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg-card);border-radius:var(--rs);padding:.65rem .9rem;
+  border:1.5px solid var(--border);margin-bottom:.4rem;box-shadow:var(--shadow)}
+.title-row.active-t{border-color:var(--yellow);background:var(--yellow-p)}
+.trow-l{display:flex;flex-direction:column;gap:.15rem}
+.trow-status{font-size:.62rem;color:var(--text-s)}
+.trow-name{font-size:.82rem;font-weight:700}
+.title-row.active-t .trow-name{color:#7A5010}
+.trow-cond{font-size:.67rem;color:var(--text-s)}
+/* Worklog */
+.wl-form{background:var(--bg-card);border-radius:var(--r);padding:1.1rem;box-shadow:var(--shadow)}
+.wl-task-box{background:var(--blue-p);border-left:3px solid var(--blue);border-radius:var(--rs);padding:.7rem;margin-bottom:1rem}
+.wl-task-lbl{font-size:.62rem;color:var(--text-s);margin-bottom:.2rem}
+.wl-task-name{font-size:.88rem;font-weight:700;color:var(--blue-d)}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:.85rem;font-weight:600;color:var(--text-m);margin-bottom:.4rem;letter-spacing:.03em}
+.form-input{width:100%;border:2px solid var(--border);border-radius:var(--rs);
+  padding:.8rem 1rem;font-size:1rem;font-family:'Noto Sans TC',sans-serif;
+  outline:none;transition:all .25s;background:#fff;box-shadow:0 2px 8px rgba(72,180,232,.05)}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15)}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:.8rem 1rem;font-size:1rem;font-family:'Noto Sans TC',sans-serif;
+  outline:none;appearance:none;background:var(--bg);cursor:pointer}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:1.5rem;
+  text-align:center;cursor:pointer;transition:all .25s;background:var(--bg)}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-p)}
+.upload-zone .uz-icon{font-size:1.5rem;margin-bottom:.3rem}
+.upload-zone .uz-text{font-size:.78rem;color:var(--text-s)}
+.ai-toggle{display:flex;align-items:center;gap:.75rem;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:var(--rs);padding:.65rem .9rem;cursor:pointer;margin-bottom:.75rem}
+.tog-sw{width:34px;height:18px;background:var(--border);border-radius:9px;position:relative;flex-shrink:0;transition:background .3s}
+.tog-sw.on{background:var(--blue)}
+.tog-sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .3s}
+.tog-sw.on::after{transform:translateX(16px)}
+.ai-tools{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
+.ai-chip{padding:.28rem .65rem;background:var(--bg-card);border:1.5px solid var(--border);border-radius:20px;font-size:.7rem;cursor:pointer;transition:all .2s}
+.ai-chip.sel{border-color:var(--blue);color:var(--blue-d);background:var(--blue-p);font-weight:600}
+/* Revision banners */
+.revision-banner{background:var(--orange-p);border:1.5px solid var(--orange);border-radius:var(--r);padding:.9rem;margin-bottom:1rem}
+.rb-top{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.rb-badge{background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;white-space:nowrap}
+.rb-title{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem}
+.rb-comment{background:#fff;border-radius:var(--rs);padding:.65rem .8rem;
+  font-size:.85rem;color:var(--text-m);line-height:1.7;border-left:3px solid var(--orange)}
+.rb-hint{font-size:.68rem;color:var(--orange);margin-top:.4rem;font-weight:600}
+.global-alert{background:var(--red);color:#fff;padding:.5rem 1.1rem;font-size:.8rem;font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.global-alert.hidden{display:none}
+/* Notices */
+.notice-card{background:#fff;border-radius:var(--r);border-left:5px solid var(--nc,var(--blue));
+  padding:1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.6rem;cursor:pointer;
+  transition:all .25s;border:1px solid var(--border-l);border-left-width:5px}
+.notice-card:hover{transform:translateX(3px)}
+.notice-card.nc-urgent{--nc:var(--red);background:var(--red-p)}
+.notice-card.nc-info{--nc:var(--blue)}
+.notice-card.nc-good{--nc:var(--green);background:var(--green-p)}
+.notice-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem}
+.notice-title{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem}
+.notice-date{font-size:.65rem;color:var(--text-s)}
+.notice-body{font-size:.85rem;color:var(--text-m);line-height:1.5}
+.notice-tag{display:inline-block;padding:.12rem .4rem;border-radius:4px;font-size:.62rem;font-weight:700;margin-bottom:.35rem}
+.nt-urgent{background:var(--red-p);color:var(--red)}
+.nt-info{background:var(--blue-p);color:var(--blue-d)}
+.nt-good{background:var(--green-p);color:var(--green)}
+/* Buttons */
+.btn-primary{width:100%;padding:.95rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
+  color:#fff;border:none;border-radius:var(--rs);font-size:1rem;font-weight:700;
+  cursor:pointer;transition:all .3s;font-family:'Noto Sans TC',sans-serif;margin-top:.5rem;
+  box-shadow:0 6px 20px rgba(72,180,232,.35);letter-spacing:.03em}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(72,180,232,.5)}
+.btn-secondary{width:100%;padding:.7rem;background:transparent;color:var(--text-s);
+  border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;
+  cursor:pointer;margin-top:.4rem;transition:all .2s;font-family:'Noto Sans TC',sans-serif}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+/* Bottom nav */
+.p-nav{background:#fff;box-shadow:0 -4px 20px rgba(72,180,232,.12);
+  display:flex;position:sticky;bottom:0;z-index:50;border-radius:16px 16px 0 0}
+.p-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:.65rem .3rem;cursor:pointer;font-size:.7rem;color:var(--text-s);
+  transition:all .25s;gap:.25rem;border:none;background:none;border-top:3px solid transparent}
+.p-nav-item .ni{font-size:1.35rem}
+.p-nav-item:hover{color:var(--blue-d)}
+.p-nav-item.active{color:var(--blue-d);font-weight:700;border-top-color:var(--blue);background:var(--blue-p)}
+.ni-wrap{position:relative;display:inline-block}
+.nav-badge{position:absolute;top:-5px;right:-8px;background:var(--red);color:#fff;font-size:.5rem;font-weight:700;
+  min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 2px}
+
+/* ══ SUPERVISOR VIEW ══ */
+#view-supervisor{background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);flex-direction:column}
+.sv-layout{display:flex;flex:1;width:100%;min-height:0}
+.sv-sidebar{width:230px;background:linear-gradient(180deg,#155E8C,#1A7AAF);color:#fff;
+  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.2)}
+.sv-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.sv-logo-main{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.95)}
+.sv-logo-role{display:inline-block;margin-top:.3rem;padding:.15rem .5rem;
+  background:rgba(58,156,192,.35);border-radius:4px;font-size:.65rem;color:rgba(255,255,255,.8);font-weight:600}
+.sv-menu{padding:.75rem 0;flex:1}
+.sv-menu-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1.25rem;
+  cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.65);
+  transition:all .25s;border-left:4px solid transparent;margin:.1rem .5rem;border-radius:var(--rs)}
+.sv-menu-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.sv-menu-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#74CAEF;font-weight:700}
+.sv-menu-item .mi-icon{font-size:1rem;width:20px;text-align:center}
+.sv-badge{background:var(--red);color:#fff;font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:10px;margin-left:auto}
+.sv-logout{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.08);
+  font-size:.75rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem}
+.sv-logout:hover{color:rgba(255,255,255,.7)}
+.sv-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+.page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
+.card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:0 6px 24px rgba(72,180,232,.1),0 2px 8px rgba(72,180,232,.06);border:1px solid var(--border-l)}
+.card-sm{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);border:1px solid var(--border-l)}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
+.stat-card{background:#fff;border-radius:var(--r);padding:1.1rem;box-shadow:0 6px 20px rgba(72,180,232,.1);
+  border-top:4px solid var(--sc,var(--blue));border:1px solid var(--border-l);border-top-width:4px}
+.stat-card.sc-blue{--sc:var(--blue)}
+.stat-card.sc-green{--sc:var(--green)}
+.stat-card.sc-yellow{--sc:var(--yellow)}
+.stat-card.sc-red{--sc:var(--red)}
+.sc-label{font-size:.78rem;color:var(--text-s);margin-bottom:.3rem}
+.sc-val{font-family:'Noto Serif TC',serif;font-size:1.7rem;font-weight:700;color:var(--text)}
+.sc-sub{font-size:.72rem;color:var(--text-s);margin-top:.2rem}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:.95rem;font-weight:700;color:var(--text)}
+.sec-action{font-size:.75rem;color:var(--blue);cursor:pointer;border:none;background:none;font-family:'Noto Sans TC',sans-serif}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.mb-1{margin-bottom:.75rem}
+.mb-2{margin-bottom:1.25rem}
+.alert-list{display:flex;flex-direction:column;gap:.6rem}
+.alert-card{background:#fff;border-radius:var(--r);padding:1rem 1.1rem;
+  border-left:5px solid var(--ac,var(--blue));box-shadow:0 4px 16px rgba(72,180,232,.08);
+  display:flex;align-items:center;gap:.8rem;border:1px solid var(--border-l);border-left-width:5px}
+.alert-card.ac-red{--ac:var(--red);background:var(--red-p)}
+.alert-card.ac-orange{--ac:var(--orange);background:var(--orange-p)}
+.alert-card.ac-blue{--ac:var(--blue);background:var(--blue-p)}
+.alert-icon{font-size:1.1rem;flex-shrink:0}
+.alert-content{flex:1;min-width:0}
+.alert-title{font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700}
+.alert-desc{font-size:.8rem;color:var(--text-m)}
+.alert-action{padding:.35rem .75rem;border:1.5px solid currentColor;border-radius:20px;
+  font-size:.68rem;font-weight:600;cursor:pointer;background:transparent;
+  color:var(--ac);transition:all .2s;font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
+.alert-action:hover{opacity:.7}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.78rem;color:var(--text-s);font-weight:600;padding:.6rem .75rem;text-align:left;border-bottom:2px solid var(--border);background:var(--bg);white-space:nowrap}
+td{font-size:.88rem;padding:.7rem .75rem;border-bottom:1px solid var(--border-l);vertical-align:middle}
+tr:hover td{background:var(--blue-p)}
+.status-badge{display:inline-block;padding:.18rem .55rem;border-radius:20px;font-size:.72rem;font-weight:700}
+.sb-active{background:var(--green-p);color:var(--green)}
+.sb-warn{background:var(--orange-p);color:var(--orange)}
+.sb-pending{background:var(--blue-p);color:var(--blue-d)}
+.sb-inactive{background:var(--bg);color:var(--text-s)}
+.action-btn{padding:.25rem .6rem;border-radius:4px;font-size:.75rem;font-weight:600;
+  border:1.5px solid var(--border);background:transparent;cursor:pointer;
+  color:var(--text-m);transition:all .2s;font-family:'Noto Sans TC',sans-serif;margin-right:.25rem}
+.action-btn:hover{border-color:var(--blue);color:var(--blue)}
+.action-btn.approve{border-color:var(--green);color:var(--green)}
+.action-btn.approve:hover{background:var(--green-p)}
+.action-btn.reject{border-color:var(--red);color:var(--red)}
+.action-btn.reject:hover{background:var(--red-p)}
+/* WorkLog review */
+.wl-review-card{background:#fff;border-radius:var(--r);padding:1.1rem;
+  box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem;
+  border:1px solid var(--border-l);border-left:5px solid var(--blue);border-left-width:5px}
+.wl-rev-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem}
+.wl-rev-name{font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700}
+.wl-rev-task{font-size:.8rem;color:var(--text-s);margin-bottom:.5rem}
+.wl-rev-detail{display:flex;gap:.75rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-m);margin-bottom:.65rem}
+.wl-rev-note{background:var(--bg);border-radius:var(--rs);padding:.6rem .75rem;
+  font-size:.85rem;color:var(--text-m);margin-bottom:.65rem;line-height:1.6}
+.wl-rev-btns{display:flex;gap:.5rem}
+.rev-btn{padding:.45rem 1rem;border-radius:var(--rs);font-size:.85rem;font-weight:600;
+  border:none;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif}
+.rev-btn.approve{background:var(--green);color:#fff}
+.rev-btn.reject{background:var(--red);color:#fff}
+.rev-btn.approve:hover,.rev-btn.reject:hover{opacity:.85}
+/* Revision input */
+.revision-input-wrap{background:var(--orange-p);border:1.5px solid var(--orange);
+  border-radius:var(--r);padding:.9rem;margin-top:.75rem;display:none}
+.revision-input-wrap.open{display:block}
+/* Mentor log */
+.mentor-form{background:var(--bg-card);border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.mentor-log-item{background:#fff;border-radius:var(--r);padding:1rem;
+  border-left:4px solid var(--blue);box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.65rem;
+  border:1px solid var(--border-l);border-left-width:4px}
+.ml-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+.ml-who{font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700}
+.ml-date{font-size:.67rem;color:var(--text-s)}
+.ml-type{font-size:.68rem;font-weight:600;padding:.12rem .45rem;border-radius:4px;background:var(--blue-p);color:var(--blue-d)}
+.ml-note{font-size:.85rem;color:var(--text-m);line-height:1.6}
+/* Task form */
+.task-form-card{background:var(--bg-card);border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow);margin-bottom:1rem;border-top:3px solid var(--blue)}
+.step-fields{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.5rem}
+.step-field-row{display:flex;gap:.5rem;align-items:center}
+.step-field-row input{flex:1}
+.step-del{width:28px;height:28px;border:1.5px solid var(--red);border-radius:4px;
+  color:var(--red);background:none;cursor:pointer;font-size:.8rem;flex-shrink:0}
+.add-step-btn{width:100%;padding:.55rem;border:1.5px dashed var(--border);border-radius:var(--rs);
+  background:none;color:var(--text-s);font-size:.78rem;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif}
+.add-step-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ══ STAFF VIEW ══ */
+#view-staff{background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);flex-direction:column}
+.st-layout{display:flex;flex:1;width:100%;min-height:0}
+.st-sidebar{width:230px;background:linear-gradient(180deg,#0D4A72,#155E8C);color:#fff;
+  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(13,74,114,.25)}
+.st-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.st-menu{padding:.75rem 0;flex:1}
+.st-menu-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1.25rem;
+  cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.65);
+  transition:all .25s;border-left:4px solid transparent;margin:.1rem .5rem;border-radius:var(--rs)}
+.st-menu-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.st-menu-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#74CAEF;font-weight:700}
+.st-menu-item .mi-icon{font-size:1rem;width:20px;text-align:center}
+.st-menu-group{padding:.5rem 1.25rem .25rem;font-size:.62rem;color:rgba(255,255,255,.3);letter-spacing:.08em;font-weight:600}
+.st-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+.impact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem}
+.impact-card{background:#fff;border-radius:var(--r);padding:1.25rem;
+  box-shadow:0 6px 24px rgba(72,180,232,.1);text-align:center;
+  border-bottom:4px solid var(--ic,var(--blue));border:1px solid var(--border-l);border-bottom-width:4px;transition:transform .2s,box-shadow .2s}
+.impact-card:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(72,180,232,.18)}
+.ic-val{font-family:'Noto Serif TC',serif;font-size:1.75rem;font-weight:700;color:var(--ic);margin-bottom:.2rem}
+.ic-label{font-size:.75rem;color:var(--text-s);margin-bottom:.15rem}
+.ic-trend{font-size:.65rem;color:var(--green);font-weight:600}
+/* Case cards */
+.case-card{background:#fff;border-radius:var(--r);padding:1.1rem;
+  box-shadow:0 4px 16px rgba(72,180,232,.08);cursor:pointer;transition:all .25s;
+  border-left:5px solid var(--cc-color,var(--blue));border:1px solid var(--border-l);border-left-width:5px}
+.case-card:hover{transform:translateX(4px);box-shadow:0 8px 28px rgba(72,180,232,.18)}
+.case-card.growing{--cc-color:var(--green)}
+.case-card.stuck{--cc-color:var(--orange)}
+.case-card.new{--cc-color:var(--blue)}
+.case-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.case-ava{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--blue-d),var(--blue));
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.case-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem}
+.case-meta{font-size:.75rem;color:var(--text-s);margin-top:.1rem}
+.case-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
+.cs-item{background:var(--bg);border-radius:var(--rs);padding:.4rem;text-align:center}
+.cs-val{font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:700;color:var(--text)}
+.cs-label{font-size:.65rem;color:var(--text-s)}
+.case-list{display:flex;flex-direction:column;gap:.6rem}
+/* Registration review */
+.reg-review-card{background:var(--bg-card);border-radius:var(--r);padding:1rem;
+  box-shadow:var(--shadow);margin-bottom:.75rem;border-top:3px solid var(--yellow)}
+.rr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.rr-name{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700}
+.rr-date{font-size:.67rem;color:var(--text-s)}
+.rr-info{display:flex;gap:1rem;font-size:.72rem;color:var(--text-m);margin-bottom:.65rem;flex-wrap:wrap}
+.rr-btns{display:flex;gap:.5rem}
+.role-tag{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.68rem;font-weight:700}
+.rt-partner{background:var(--blue-p);color:var(--blue-d)}
+.rt-supervisor{background:#F0EBF8;color:#6A3FAA}
+.rt-staff{background:var(--yellow-p);color:#7A5010}
+
+/* ══ MODALS ══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--bg-card);border-radius:20px 20px 0 0;
+  width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+  animation:slideUp .3s ease;border-top:3px solid var(--blue)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{padding:1.25rem;border-bottom:1px solid var(--border-l);display:flex;justify-content:space-between;align-items:flex-start}
+.modal-title{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-s);padding:0}
+.modal-body{padding:1.25rem}
+.modal-reward{text-align:center;padding:1rem;background:var(--yellow-p);border-radius:var(--rs);margin-bottom:1rem}
+.modal-reward-val{font-family:'Noto Serif TC',serif;font-size:1.8rem;font-weight:900;color:var(--yellow)}
+.modal-reward-label{font-size:.7rem;color:var(--text-s)}
+.step-list{margin-bottom:1rem}
+.step-item{display:flex;gap:.7rem;margin-bottom:.7rem;align-items:flex-start}
+.step-num{width:22px;height:22px;background:var(--blue-p);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--blue-d);flex-shrink:0;margin-top:.1rem}
+.step-text{font-size:.88rem;line-height:1.6;color:var(--text-m)}
+/* Detail overlay (case detail) */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:300;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto}
+.detail-overlay.open{display:flex}
+.detail-modal{background:var(--bg-card);border-radius:var(--r);width:100%;max-width:620px;box-shadow:var(--shadow-lg);animation:fadeUp .3s ease;margin:auto}
+.detail-header{padding:1.25rem;border-bottom:1px solid var(--border-l);
+  display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(135deg,#1A8AC0,#48B4E8);border-radius:var(--r) var(--r) 0 0;color:#fff}
+.detail-header-info{display:flex;align-items:center;gap:.9rem}
+.detail-ava{width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.detail-name{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700}
+.detail-class{font-size:.78rem;opacity:.75;margin-top:.15rem}
+.detail-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.9rem}
+.detail-body{padding:1.25rem}
+.detail-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1.25rem}
+.ds-item{background:var(--bg);border-radius:var(--rs);padding:.6rem;text-align:center;border-bottom:2px solid var(--ds-c,var(--border))}
+.ds-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--ds-c,var(--text))}
+.ds-label{font-size:.6rem;color:var(--text-s);margin-top:.15rem}
+.trend-strip{background:var(--bg);border-radius:var(--rs);padding:.75rem;margin-bottom:1.25rem}
+.trend-title{font-size:.75rem;font-weight:700;color:var(--text-m);margin-bottom:.6rem}
+.trend-bars{display:flex;align-items:flex-end;gap:.35rem;height:48px}
+.trend-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.trend-b{width:100%;background:var(--blue-pp);border-radius:3px 3px 0 0;transition:height .5s ease;min-height:4px}
+.trend-b.good{background:linear-gradient(180deg,var(--green-p),var(--green))}
+.trend-b.warn{background:linear-gradient(180deg,var(--orange-p),var(--orange))}
+.trend-b-label{font-size:.55rem;color:var(--text-s)}
+.timeline{position:relative;padding-left:1.5rem}
+.timeline::before{content:'';position:absolute;left:.5rem;top:0;bottom:0;width:2px;background:var(--border-l)}
+.tl-item{position:relative;margin-bottom:1rem}
+.tl-dot{position:absolute;left:-1.15rem;top:.2rem;width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--td-c,var(--blue));background:var(--bg-card)}
+.tl-item.tl-task .tl-dot{--td-c:var(--blue)}
+.tl-item.tl-mentor .tl-dot{--td-c:#9B6FD4;background:#9B6FD4}
+.tl-item.tl-level .tl-dot{--td-c:var(--yellow);background:var(--yellow)}
+.tl-item.tl-firstpass .tl-dot{--td-c:var(--green);background:var(--green)}
+.tl-date{font-size:.72rem;color:var(--text-s);margin-bottom:.2rem}
+.tl-content{background:var(--bg);border-radius:var(--rs);padding:.65rem .8rem;font-size:.88rem;color:var(--text-m);line-height:1.5}
+.tl-item.tl-task .tl-content{background:var(--blue-p)}
+.tl-item.tl-mentor .tl-content{background:#F0EBF8}
+.tl-item.tl-level .tl-content{background:var(--yellow-p)}
+.tl-item.tl-firstpass .tl-content{background:var(--green-p)}
+.tl-tag{display:inline-block;padding:.1rem .4rem;border-radius:4px;font-size:.6rem;font-weight:700;margin-bottom:.25rem}
+.tag-task{background:var(--blue-pp);color:var(--blue-d)}
+.tag-mentor{background:#E8D8F8;color:#6A3FAA}
+.tag-level{background:var(--yellow-p);color:#7A5010}
+.tag-firstpass{background:var(--green-p);color:var(--green)}
+
+/* ══ MOBILE TOPBAR ══ */
+.mobile-topbar{display:none;background:linear-gradient(135deg,#1A8AC0,#48B4E8);padding:.85rem 1rem;
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;box-shadow:0 4px 16px rgba(72,180,232,.3)}
+
+/* ══ IMPERSONATE BAR ══ */
+.impersonate-bar{background:linear-gradient(135deg,#FF8C00,#FFB830);color:#fff;padding:.5rem 1rem;
+  display:flex;align-items:center;justify-content:space-between;font-size:.78rem;font-weight:700;
+  position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(255,140,0,.3)}
+.impersonate-bar.hidden{display:none}
+.imp-select{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;
+  padding:.25rem .6rem;border-radius:6px;font-size:.75rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;max-width:160px}
+.imp-select option{background:#FF8C00;color:#fff}
+.imp-back{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;
+  padding:.25rem .75rem;border-radius:6px;font-size:.72rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
+.imp-back:hover{background:rgba(255,255,255,.35)}
+
+/* ══ LOADING ══ */
+.loading-overlay{position:fixed;inset:0;
+  background:linear-gradient(160deg,rgba(235,247,253,.97),rgba(255,255,255,.97));
+  z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.loading-overlay.hidden{display:none}
+.loading-spinner{width:48px;height:48px;border:4px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;box-shadow:0 0 20px rgba(72,180,232,.2)}
+.loading-text{font-size:.88rem;color:var(--text-m)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ ANIMATIONS ══ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes coinPop{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(.5)}}
+.coin-pop{position:fixed;font-size:1.4rem;pointer-events:none;z-index:999;animation:coinPop .8s ease forwards}
+
+/* ══ RWD ══ */
+@media (max-width:768px) {
+  .login-box{padding:1.5rem 1.25rem;border-radius:16px;margin:1rem}
+  .sv-layout,.st-layout{flex-direction:column!important}
+  .sv-sidebar,.st-sidebar{width:100%!important;flex-direction:row!important;padding:0!important;
+    overflow-x:auto;position:sticky;bottom:0;z-index:50}
+  .sv-sidebar-logo,.st-sidebar-logo,.sv-logout{display:none!important}
+  .sv-menu,.st-menu{display:flex!important;flex-direction:row!important;padding:0!important;width:100%;overflow-x:auto}
+  .sv-menu-item,.st-menu-item{flex-direction:column!important;padding:.5rem .6rem!important;
+    font-size:.58rem!important;gap:.2rem!important;white-space:nowrap;border-left:none!important;
+    border-top:3px solid transparent;min-width:60px;justify-content:center;align-items:center}
+  .sv-menu-item.active,.st-menu-item.active{border-left:none!important;border-top-color:var(--blue-l)!important}
+  .sv-menu-item .mi-icon,.st-menu-item .mi-icon{font-size:1.2rem!important;width:auto!important}
+  .sv-badge{margin-left:0!important;margin-top:.1rem}
+  .sv-main,.st-main{padding:.75rem!important;padding-bottom:5rem!important}
+  .stats-row,.impact-grid{grid-template-columns:1fr 1fr!important}
+  .table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  .grid-2,.grid-3{grid-template-columns:1fr!important}
+  .class-grid{grid-template-columns:1fr 1fr!important}
+  .page-title{font-size:1.15rem!important}
+  .case-stats{grid-template-columns:1fr 1fr!important}
+  .detail-overlay{padding:0!important;align-items:flex-start!important}
+  .detail-modal{border-radius:0!important;min-height:100vh}
+  .modal-sheet{max-height:95vh!important}
+  .mobile-topbar{display:flex!important}
+}
+@media (max-width:380px) {
+  .sv-menu-item,.st-menu-item{font-size:.52rem!important;padding:.45rem .4rem!important;min-width:50px}
+}
+@media (min-width:769px) {
+  .sv-sidebar,.st-sidebar{position:sticky!important;top:0!important;height:100vh!important;overflow-y:auto!important}
+}
+</style>
+</head>
+<body>
+
+
+<!-- ══ LOGIN ══ -->
+<div id="view-home" class="view active">
+  <div style="width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;position:relative;z-index:1">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,#fff,rgba(255,255,255,.85));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.05em;margin-bottom:.4rem">希絆雲作所</div>
+      <div style="color:rgba(255,255,255,.7);font-size:.82rem;letter-spacing:.18em">HIBAN CLOUD WORKSPACE</div>
+      <div style="margin-top:.6rem;color:rgba(255,255,255,.55);font-size:.8rem">請選擇你的角色</div>
+    </div>
+
+    <!-- Role Tab Card -->
+    <div class="role-tab-card">
+      <!-- Tab buttons -->
+      <div class="role-tabs">
+        <button class="role-tab-btn active" id="rtab-partner" onclick="switchRoleTab('partner')">
+          <span class="rt-icon">⚔️</span>工作夥伴
+        </button>
+        <button class="role-tab-btn" id="rtab-supervisor" onclick="switchRoleTab('supervisor')">
+          <span class="rt-icon">📖</span>督導人員
+        </button>
+        <button class="role-tab-btn" id="rtab-staff" onclick="switchRoleTab('staff')">
+          <span class="rt-icon">🧹</span>工作人員
+        </button>
+      </div>
+      <!-- Partner panel -->
+      <div class="role-tab-panel active" id="rpanel-partner">
+        <div class="rtp-emoji">⚔️</div>
+        <div class="rtp-title">工作夥伴</div>
+        <div class="rtp-desc">接任務・賺收入<br>查看自己的成長紀錄與成就</div>
+        <button class="rtp-enter-btn" onclick="enterRole('partner')">進入工作夥伴介面 →</button>
+      </div>
+      <!-- Supervisor panel -->
+      <div class="role-tab-panel" id="rpanel-supervisor">
+        <div class="rtp-emoji">📖</div>
+        <div class="rtp-title">督導人員</div>
+        <div class="rtp-desc">管理夥伴・審核工作回報<br>派案與督導輔導紀錄</div>
+        <button class="rtp-enter-btn" onclick="enterRole('supervisor')">進入督導人員介面 →</button>
+      </div>
+      <!-- Staff panel -->
+      <div class="role-tab-panel" id="rpanel-staff">
+        <div class="rtp-emoji">🧹</div>
+        <div class="rtp-title">工作人員</div>
+        <div class="rtp-desc">影響力儀表板・薪資管理<br>全局審核與系統設定</div>
+        <button class="rtp-enter-btn" onclick="enterRole('staff')">進入工作人員介面 →</button>
+      </div>
+    </div>
+
+    <div style="margin-top:1.75rem;color:rgba(255,255,255,.35);font-size:.72rem">展示版 · 希絆股份有限公司</div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ══ -->
+<div id="view-register" class="view">
+  <div class="reg-container">
+    <div class="step-indicators" id="reg-inds">
+      <div class="si active" id="si1"><div class="si-num">1</div><span class="si-label">基本資料</span></div>
+      <div class="si-line"></div>
+      <div class="si" id="si2"><div class="si-num">2</div><span class="si-label">證明文件</span></div>
+      <div class="si-line"></div>
+      <div class="si" id="si3"><div class="si-num">3</div><span class="si-label">匯款資料</span></div>
+      <div class="si-line"></div>
+      <div class="si" id="si4"><div class="si-num">4</div><span class="si-label">等待審核</span></div>
+    </div>
+    <!-- Step 1 -->
+    <div class="reg-panel" id="rp1">
+      <div class="reg-panel-title">✨ 歡迎加入希絆</div>
+      <div class="reg-panel-desc">填寫基本資料，開始你的旅程</div>
+      <div class="form-group"><label class="form-label">姓名（真實，督導可見）</label><input class="form-input" id="reg-realname" type="text" placeholder="請輸入真實姓名"></div>
+      <div class="form-group">
+        <label class="form-label">冒險者稱號 <span style="color:var(--red);font-size:.72rem">必填</span></label>
+        <div style="font-size:.75rem;color:var(--text-s);margin-bottom:.4rem">這是你在平台上的身份，其他人看到的名字，真實姓名只有督導可見</div>
+        <input class="form-input" type="text" id="reg-nickname" placeholder="例如：月影旅者、靜默劍士...">
+      </div>
+      <div class="form-group"><label class="form-label">身份證字號</label><input class="form-input" id="reg-idnum" type="text" placeholder="A123456789"></div>
+      <div class="form-group"><label class="form-label">聯絡電話</label><input class="form-input" id="reg-phone" type="tel" placeholder="09xxxxxxxx"></div>
+      <div class="form-group"><label class="form-label">聯絡地址</label><input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、地址"></div>
+      <div class="form-group"><label class="form-label">身份別</label>
+        <select class="form-select" id="reg-identity">
+          <option value="">請選擇</option>
+          <option>身心障礙者</option><option>單親家庭</option>
+          <option>中高齡者（45歲以上）</option><option>二度就業婦女</option><option>其他弱勢族群</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="regStep(2)">繼續 →</button>
+    </div>
+    <!-- Step 2 -->
+    <div class="reg-panel" id="rp2" style="display:none">
+      <div class="reg-panel-title">📋 上傳證明文件</div>
+      <div class="reg-panel-desc">確認身份，保護每一位夥伴</div>
+      <div class="form-group"><label class="form-label">身份證（正面）</label><div class="upload-zone" onclick="fakeUpload(this)"><div class="uz-icon">🪪</div><div class="uz-text">點擊上傳</div></div></div>
+      <div class="form-group"><label class="form-label">身份證（反面）</label><div class="upload-zone" onclick="fakeUpload(this)"><div class="uz-icon">🪪</div><div class="uz-text">點擊上傳</div></div></div>
+      <div class="form-group"><label class="form-label">相關證明文件（手冊、證書等）</label><div class="upload-zone" onclick="fakeUpload(this)"><div class="uz-icon">📄</div><div class="uz-text">點擊上傳</div></div></div>
+      <button class="btn-primary" onclick="regStep(3)">繼續 →</button>
+      <button class="btn-secondary" onclick="regStep(1)">← 上一步</button>
+    </div>
+    <!-- Step 3 -->
+    <div class="reg-panel" id="rp3" style="display:none">
+      <div class="reg-panel-title">🏦 收款資料</div>
+      <div class="reg-panel-desc">你賺到的錢，我們匯到這個帳戶</div>
+      <div class="form-group"><label class="form-label">銀行名稱</label><input class="form-input" id="reg-bank" placeholder="例：台灣銀行"></div>
+      <div class="form-group"><label class="form-label">分行名稱</label><input class="form-input" id="reg-branch" placeholder="例：板橋分行"></div>
+      <div class="form-group"><label class="form-label">帳號</label><input class="form-input" id="reg-account" placeholder="請輸入完整帳號"></div>
+      <div class="form-group"><label class="form-label">戶名</label><input class="form-input" id="reg-holder" placeholder="必須與身份證相同"></div>
+      <button class="btn-primary" onclick="submitRegistration()">送出申請 ✓</button>
+      <button class="btn-secondary" onclick="regStep(2)">← 上一步</button>
+    </div>
+    <!-- Step 4 -->
+    <div class="reg-panel" id="rp4" style="display:none">
+      <div class="pending-center">
+        <div class="pending-icon">⏳</div>
+        <div class="pending-title">申請已送出！</div>
+        <div class="pending-desc">督導人員將在 1-3 個工作天內審核<br>通過後，你就可以進入<strong>新手村</strong>開始旅程</div>
+        <button class="btn-primary" style="margin-top:1.5rem" onclick="goView('login')">返回登入</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PARTNER VIEW ══ -->
+<div id="view-partner" class="view">
+  <div class="impersonate-bar hidden" id="partner-imp-bar" style="display:none!important">
+    <span>👁️ 預覽模式</span>
+    <select class="imp-select" id="partner-imp-select" onchange="impersonatePartner(this.value)">
+      <option value="">選擇夥伴...</option>
+    </select>
+    <button class="imp-back" onclick="exitImpersonate('partner')">✕ 返回自己</button>
+  </div>
+  <div class="p-topbar">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:.3rem;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">🚪 登出</button>
+      <div class="p-topbar-logo">希絆雲作所</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.65rem">
+      <div class="p-wallet" onclick="pSwitchTab('wallet')">
+        <span style="font-size:.85rem">💰</span>
+        <span class="p-wallet-amt" id="partner-wallet-top">$350</span>
+      </div>
+      <div class="role-switcher" id="partner-role-sw">
+        <div class="role-switcher-btn" onclick="toggleRoleSwitcher('partner-role-sw')">
+          <span>⚔️ 夥伴</span> ▾
+        </div>
+        <div class="role-switcher-dropdown" id="partner-role-dd">
+          <div class="rsd-item active" onclick="switchToRole('partner')"><span class="rsd-icon">⚔️</span>工作夥伴</div>
+          <div class="rsd-item" id="sw-supervisor" onclick="switchToRole('supervisor')" style="display:none"><span class="rsd-icon">📖</span>督導人員</div>
+          <div class="rsd-item" id="sw-staff" onclick="switchToRole('staff')" style="display:none"><span class="rsd-icon">🧹</span>工作人員</div>
+          <div class="rsd-divider"></div>
+          <div class="rsd-item" onclick="signOut()"><span class="rsd-icon">🚪</span>登出</div>
+        </div>
+      </div>
+      <div class="p-avatar" onclick="toggleRoleSwitcher('partner-role-sw')">🧑</div>
+    </div>
+  </div>
+  <!-- Character card -->
+  <div class="char-card">
+    <div class="char-top">
+      <div class="char-ava">🧑</div>
+      <div style="flex:1">
+        <div class="char-name" id="partner-nickname">—</div>
+        <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem" id="partner-realname"></div>
+        <div class="char-class">⚔️ 文字學徒</div>
+        <div class="char-badges">
+          <div class="badge-dot" title="早鳥">🌅</div>
+          <div class="badge-dot" title="第一任務">⚔️</div>
+          <div class="badge-dot" style="background:var(--bg);border-color:var(--border);opacity:.4" title="連續7天">🔥</div>
+        </div>
+      </div>
+    </div>
+    <div class="exp-label"><span>文字學徒 → 文字劍士</span><span style="color:var(--blue-d);font-weight:600">$350 / $1,000</span></div>
+    <div class="exp-track"><div class="exp-fill" style="width:35%"></div></div>
+    <div class="char-stats">
+      <div class="stat-box"><div class="stat-val" id="partner-total-income">$350</div><div class="stat-label">累計收入</div></div>
+      <div class="stat-box"><div class="stat-val">3件</div><div class="stat-label">本月完成</div></div>
+      <div class="stat-box"><div class="stat-val">5天</div><div class="stat-label">連續天數</div></div>
+    </div>
+  </div>
+  <!-- Tabs -->
+  <div class="p-tabs">
+    <div class="p-tab active" id="ptab-quests" onclick="pSwitchTab('quests')">⚔️ 任務</div>
+    <div class="p-tab" id="ptab-wallet" onclick="pSwitchTab('wallet')">💰 錢包</div>
+    <div class="p-tab" id="ptab-growth" onclick="pSwitchTab('growth')">🏆 成長</div>
+    <div class="p-tab" id="ptab-worklog" onclick="pSwitchTab('worklog');clearBadge('worklog-badge','nav-worklog-badge')">📝 回報 <span class="tab-badge" id="worklog-badge">1</span></div>
+    <div class="p-tab" id="ptab-notices" onclick="pSwitchTab('notices');clearBadge('notices-badge','nav-notices-badge')">📢 公告 <span class="tab-badge" id="notices-badge">2</span></div>
+  </div>
+  <div class="p-content">
+    <!-- QUESTS TAB -->
+    <div class="p-tab-content active" id="pc-quests">
+      <div class="global-alert" id="revision-global-alert" onclick="pSwitchTab('worklog')">
+        ⚠️ 督導退回了你的任務，請查看修改意見 → 點此前往
+        <span>→</span>
+      </div>
+      <div class="active-tasks-wrap">
+        <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">進行中任務</div>
+        <div class="active-task-item revision">
+          <span class="at-tag at-tag-revision">需要修改</span>
+          <div class="at-name">📣 口碑留言 × 5則</div>
+          <div style="font-size:.7rem;color:var(--orange);margin-bottom:.4rem">督導意見：語氣太正式，請用更口語的方式</div>
+          <div class="at-prog"><div class="at-prog-fill revision" style="width:40%"></div></div>
+          <div class="at-btns">
+            <button class="at-btn at-btn-p revision-btn" onclick="pSwitchTab('worklog')">查看意見並修改</button>
+            <button class="at-btn at-btn-danger" onclick="cancelTask(this,'口碑留言 × 5則')">放棄任務</button>
+          </div>
+        </div>
+        <div class="active-task-item">
+          <span class="at-tag at-tag-active">進行中</span>
+          <div class="at-name">🎨 廣告圖設計</div>
+          <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.4rem">進度：已完成 1 / 2 張</div>
+          <div class="at-prog"><div class="at-prog-fill" style="width:50%"></div></div>
+          <div class="at-btns">
+            <button class="at-btn at-btn-p" onclick="openQuestModal({name:'廣告圖設計',reward:300,cat:'visual'})">繼續任務</button>
+            <button class="at-btn at-btn-s" onclick="pSwitchTab('worklog')">回報進度</button>
+            <button class="at-btn at-btn-danger" onclick="cancelTask(this,'廣告圖設計')">放棄</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+        <div style="font-size:.88rem;font-weight:700">📋 可接任務 <span style="background:var(--blue);color:#fff;font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;margin-left:.3rem" id="quest-count">6</span></div>
+      </div>
+      <div class="filter-row">
+        <div class="fchip active" onclick="filterQ(this,'all')">全部</div>
+        <div class="fchip" onclick="filterQ(this,'text')">✍️ 文字</div>
+        <div class="fchip" onclick="filterQ(this,'social')">📣 口碑</div>
+        <div class="fchip" onclick="filterQ(this,'visual')">🎨 視覺</div>
+        <div class="fchip" onclick="filterQ(this,'data')">📊 資料</div>
+        <div class="fchip" onclick="filterQ(this,'video')">🎬 影音</div>
+      </div>
+      <div class="quest-list" id="p-quest-list"></div>
+    </div>
+
+    <!-- WALLET TAB -->
+    <div class="p-tab-content" id="pc-wallet">
+      <div class="wallet-hero">
+        <div class="wh-label">目前餘額</div>
+        <div class="wh-amount">$350</div>
+        <div class="wh-prog-wrap">
+          <div class="wh-prog-label"><span>距離提領門檻</span><span>$350 / $1,000</span></div>
+          <div class="wh-prog-track"><div class="wh-prog-fill"></div></div>
+          <div class="wh-hint">💡 累積 $1,000 或每月底可申請提領</div>
+        </div>
+        <button class="withdraw-btn" disabled>尚未達到提領門檻</button>
+      </div>
+      <div class="withdraw-status">
+        <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">📦 上次提領狀態</div>
+        <div class="ws-step"><div class="ws-icon done">✓</div><div><div class="ws-label">提領申請送出</div><div class="ws-date">2025/03/01 10:20</div></div></div>
+        <div class="ws-step"><div class="ws-icon done">✓</div><div><div class="ws-label">工作人員已確認</div><div class="ws-date">2025/03/02 14:30</div></div></div>
+        <div class="ws-step"><div class="ws-icon active">↗</div><div><div class="ws-label">匯款處理中</div><div class="ws-date">預計 1-3 個工作天</div></div></div>
+        <div class="ws-step"><div class="ws-icon" style="opacity:.3">$</div><div><div class="ws-label" style="opacity:.5">匯款完成</div><div class="ws-date" style="opacity:.4">尚未完成</div></div></div>
+      </div>
+      <div class="txn-card" style="margin-top:.75rem">
+        <div class="txn-title">收支明細</div>
+        <div class="txn-row"><div><div class="txn-n">口碑留言 × 2則</div><div class="txn-d">2025/03/19</div></div><span class="txn-p plus">+$100</span></div>
+        <div class="txn-row"><div><div class="txn-n">SEO文案</div><div class="txn-d">2025/03/17</div></div><span class="txn-p plus">+$400</span></div>
+        <div class="txn-row"><div><div class="txn-n">廣告圖設計</div><div class="txn-d">2025/03/10</div></div><span class="txn-p plus">+$150</span></div>
+        <div class="txn-row"><div><div class="txn-n">提領</div><div class="txn-d">2025/03/01</div></div><span class="txn-p minus">-$300</span></div>
+      </div>
+    </div>
+
+    <!-- GROWTH TAB -->
+    <div class="p-tab-content" id="pc-growth">
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">職業成長</div>
+      <div class="firstpass-row">
+        <div class="fp-icon">🎯</div>
+        <div class="fp-info">
+          <div class="fp-title">一次過加速升級</div>
+          <div class="fp-bar-wrap"><div class="fp-bar"><div class="fp-fill" style="width:60%"></div></div><span class="fp-count">3 / 5 次</span></div>
+          <div class="fp-desc">累積5次「一次過」→ 升級所需收入減少10%</div>
+        </div>
+      </div>
+      <div class="class-grid">
+        <div class="cc" style="--cc:#3A9CC0"><div class="cc-icon">⚔️</div><div class="cc-sys">文字系</div><div class="cc-title">文字學徒</div><div class="cc-bar"><div class="cc-fill" style="width:35%"></div></div><div class="cc-income">$350 / $1,000</div></div>
+        <div class="cc" style="--cc:#9B6FD4"><div class="cc-icon">🎭</div><div class="cc-sys">口碑系</div><div class="cc-title">初心者</div><div class="cc-bar"><div class="cc-fill" style="width:0%"></div></div><div class="cc-income">$0 / $1,000</div></div>
+        <div class="cc" style="--cc:#E07830"><div class="cc-icon">🔮</div><div class="cc-sys">視覺系</div><div class="cc-title">初心者</div><div class="cc-bar"><div class="cc-fill" style="width:0%"></div></div><div class="cc-income">$0 / $1,000</div></div>
+        <div class="cc" style="--cc:#3E9E78"><div class="cc-icon">🏹</div><div class="cc-sys">資料系</div><div class="cc-title">初心者</div><div class="cc-bar"><div class="cc-fill" style="width:0%"></div></div><div class="cc-income">$0 / $1,000</div></div>
+      </div>
+      <div class="roadmap-card">
+        <div class="rm-title">升級路線（文字系）</div>
+        <div class="rm-row">
+          <div class="rm-node active"><div class="rm-node-icon">🌱</div><div class="rm-node-name">初心者</div><div class="rm-node-amt">新手村</div></div>
+          <div class="rm-line done"></div>
+          <div class="rm-node active"><div class="rm-node-icon">⚔️</div><div class="rm-node-name">文字學徒</div><div class="rm-node-amt">$1,000</div></div>
+          <div class="rm-line"></div>
+          <div class="rm-node" style="opacity:.5"><div class="rm-node-icon">🗡️</div><div class="rm-node-name">文字劍士</div><div class="rm-node-amt">$10,000</div></div>
+          <div class="rm-line"></div>
+          <div class="rm-node" style="opacity:.35"><div class="rm-node-icon">🔪</div><div class="rm-node-name">文字刺客</div><div class="rm-node-amt">$50,000</div></div>
+          <div class="rm-line"></div>
+          <div class="rm-node" style="opacity:.25"><div class="rm-node-icon">👑</div><div class="rm-node-name">文字劍聖</div><div class="rm-node-amt">$100,000</div></div>
+        </div>
+      </div>
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 勳章</div>
+      <div class="badge-grid">
+        <div class="bdg earned"><div class="bdg-e">🌅</div><div class="bdg-n">早鳥</div></div>
+        <div class="bdg earned"><div class="bdg-e">⚔️</div><div class="bdg-n">第一任務</div></div>
+        <div class="bdg earned"><div class="bdg-e">💰</div><div class="bdg-n">首筆收入</div></div>
+        <div class="bdg locked"><div class="bdg-e">🔥</div><div class="bdg-n">連續7天</div></div>
+        <div class="bdg locked"><div class="bdg-e">🛡️</div><div class="bdg-n">鐵人30天</div></div>
+        <div class="bdg locked"><div class="bdg-e">🏹</div><div class="bdg-n">百發百中</div></div>
+        <div class="bdg locked"><div class="bdg-e">🌟</div><div class="bdg-n">傳說</div></div>
+        <div class="bdg locked"><div class="bdg-e">👑</div><div class="bdg-n">大師</div></div>
+      </div>
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">✨ 特殊稱號</div>
+      <div class="title-row active-t"><div class="trow-l"><div class="trow-status">已解鎖</div><div class="trow-name">☀️ 黎明戰士</div></div><div class="trow-cond">連續30天早上完成任務</div></div>
+      <div class="title-row"><div class="trow-l"><div class="trow-status">未解鎖</div><div class="trow-name" style="color:var(--text-s)">🦾 鐵人</div></div><div class="trow-cond">連續90天不中斷</div></div>
+    </div>
+
+    <!-- WORKLOG TAB -->
+    <div class="p-tab-content" id="pc-worklog">
+      <div class="revision-banner" id="revision-notice">
+        <div class="rb-top">
+          <span class="rb-badge">第 2 輪修改</span>
+          <span class="rb-title">督導有修改意見</span>
+        </div>
+        <div style="font-size:.65rem;color:var(--text-s);margin-bottom:.4rem">督導：陳督導 · 今天 09:15</div>
+        <div class="rb-comment">留言的語氣太正式了，試試看更口語的方式，像是朋友在推薦一樣。另外第3則的關鍵字放得太明顯，要更自然一點。</div>
+        <div class="rb-hint">📌 修改後重新提交，不需要重新接案</div>
+      </div>
+      <div class="wl-form">
+        <div style="font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:700;margin-bottom:.2rem">📝 回報進度</div>
+        <div style="font-size:.75rem;color:var(--text-s);margin-bottom:1rem">告訴督導你今天做了什麼</div>
+        <div class="wl-task-box">
+          <div class="wl-task-lbl">目前任務 <span style="font-size:.62rem;color:var(--orange);font-weight:700;margin-left:.4rem">第2輪</span></div>
+          <div class="wl-task-name">📣 口碑留言 × 5則</div>
+        </div>
+        <div class="form-group"><label class="form-label">今天完成了幾則？</label><input class="form-input" id="wl-qty" type="number" placeholder="請輸入數量" min="0" max="5"></div>
+        <div class="form-group"><label class="form-label">遇到什麼困難嗎？（選填）</label><textarea class="form-input" id="wl-note" rows="3" placeholder="有任何問題，告訴督導，我們一起想辦法" style="resize:none"></textarea></div>
+        <div class="form-group"><label class="form-label">上傳截圖證明（選填）</label><div class="upload-zone" onclick="fakeUpload(this)"><div class="uz-icon">📸</div><div class="uz-text">上傳完成截圖</div></div></div>
+        <div class="form-group"><label class="form-label">貼上成果連結（選填）</label><input class="form-input" id="wl-url" type="url" placeholder="例：https://... 或留言頁面連結"></div>
+        <div class="form-label" style="margin-bottom:.4rem">這次有使用 AI 工具嗎？</div>
+        <div class="ai-toggle" onclick="toggleAI(this)">
+          <div class="tog-sw" id="ai-sw"></div>
+          <span id="ai-lbl" style="font-size:.82rem">沒有使用 AI 工具</span>
+        </div>
+        <div class="ai-tools" id="ai-tools" style="display:none">
+          <div class="ai-chip" onclick="this.classList.toggle('sel')">ChatGPT</div>
+          <div class="ai-chip" onclick="this.classList.toggle('sel')">Claude</div>
+          <div class="ai-chip" onclick="this.classList.toggle('sel')">Canva AI</div>
+          <div class="ai-chip" onclick="this.classList.toggle('sel')">CapCut AI</div>
+        </div>
+        <button class="btn-primary" onclick="submitWL()">送出回報 ✓</button>
+      </div>
+    </div>
+
+    <!-- NOTICES TAB -->
+    <div class="p-tab-content" id="pc-notices">
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">📢 最新公告</div>
+      <div class="notice-card nc-urgent">
+        <div class="notice-top">
+          <div><span class="notice-tag nt-urgent">緊急</span><div class="notice-title">⚠️ 本週任務截止提醒</div></div>
+          <div class="notice-date">2025/03/20</div>
+        </div>
+        <div class="notice-body">本週口碑任務批次將於 3/22（五）23:59 截止，請盡快完成並回報，逾期將無法審核。</div>
+      </div>
+      <div class="notice-card nc-good">
+        <div class="notice-top">
+          <div><span class="notice-tag nt-good">好消息</span><div class="notice-title">🎉 新任務上架：社群貼文系列</div></div>
+          <div class="notice-date">2025/03/18</div>
+        </div>
+        <div class="notice-body">本週新增 Facebook 貼文撰寫任務，每則 $150，每人最多接 3 則。歡迎嘗試！</div>
+      </div>
+      <div class="notice-card nc-info">
+        <div class="notice-top">
+          <div><span class="notice-tag nt-info">資訊</span><div class="notice-title">📅 3月薪資匯款時程</div></div>
+          <div class="notice-date">2025/03/15</div>
+        </div>
+        <div class="notice-body">3月份薪資將於 4/5 統一匯款，請確認你的銀行帳號資料正確無誤。如有問題請聯繫督導。</div>
+      </div>
+      <div class="notice-card nc-info">
+        <div class="notice-top">
+          <div><span class="notice-tag nt-info">說明</span><div class="notice-title">💡 AI 工具使用規範更新</div></div>
+          <div class="notice-date">2025/03/10</div>
+        </div>
+        <div class="notice-body">使用 AI 工具完成任務需如實回報，使用後仍需進行人工校稿與修改，督導會依此評分。</div>
+      </div>
+    </div>
+  </div><!-- end p-content -->
+
+  <div class="p-nav">
+    <button class="p-nav-item active" id="pnav-quests" onclick="pSwitchTab('quests')"><span class="ni">⚔️</span>任務</button>
+    <button class="p-nav-item" id="pnav-wallet" onclick="pSwitchTab('wallet')"><span class="ni">💰</span>錢包</button>
+    <button class="p-nav-item" id="pnav-growth" onclick="pSwitchTab('growth')"><span class="ni">🏆</span>成長</button>
+    <button class="p-nav-item" id="pnav-worklog" onclick="pSwitchTab('worklog');clearBadge('worklog-badge','nav-worklog-badge')">
+      <span class="ni-wrap"><span class="ni">📝</span><span class="nav-badge" id="nav-worklog-badge">1</span></span>回報
+    </button>
+    <button class="p-nav-item" id="pnav-notices" onclick="pSwitchTab('notices');clearBadge('notices-badge','nav-notices-badge')">
+      <span class="ni-wrap"><span class="ni">📢</span><span class="nav-badge" id="nav-notices-badge">2</span></span>公告
+    </button>
+  </div>
+</div><!-- end view-partner -->
+
+<!-- ══ SUPERVISOR VIEW ══ -->
+<div id="view-supervisor" class="view">
+  <div class="impersonate-bar hidden" id="sv-imp-bar" style="display:none!important">
+    <span>👁️ 預覽督導</span>
+    <select class="imp-select" id="sv-imp-select" onchange="impersonateSupervisor(this.value)"><option value="">選擇督導...</option></select>
+    <button class="imp-back" onclick="exitImpersonate('supervisor')">✕ 返回</button>
+  </div>
+  <div class="mobile-topbar">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:.3rem">🚪 登出</button>
+      <div style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</div>
+    </div>
+    <div class="role-switcher" id="sv-mobile-role-sw">
+      <div class="role-switcher-btn" onclick="toggleRoleSwitcher('sv-mobile-role-sw')"><span>📖 督導</span> ▾</div>
+      <div class="role-switcher-dropdown" id="sv-mobile-role-dd">
+        <div class="rsd-item" onclick="switchToRole('partner')"><span class="rsd-icon">⚔️</span>工作夥伴</div>
+        <div class="rsd-item active" onclick="switchToRole('supervisor')"><span class="rsd-icon">📖</span>督導人員</div>
+        <div class="rsd-item" id="sv-mobile-staff-btn" style="display:none" onclick="switchToRole('staff')" style="display:none"><span class="rsd-icon">🧹</span>工作人員</div>
+        <div class="rsd-divider"></div>
+        <div class="rsd-item" onclick="signOut()"><span class="rsd-icon">🚪</span>登出</div>
+      </div>
+    </div>
+  </div>
+  <div class="sv-layout">
+    <div class="sv-sidebar">
+      <div class="sv-sidebar-logo">
+        <div class="sv-logo-main">希絆雲作所</div>
+        <div class="sv-logo-role">📖 督導人員</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.4rem" id="sv-user-name">督導人員</div>
+        <div id="sv-role-switch-btns" style="display:none;margin-top:.75rem;flex-direction:column;gap:.3rem"></div>
+      </div>
+      <div class="sv-menu">
+        <div class="sv-menu-item active" data-page="dashboard" onclick="svPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+        <div class="sv-menu-item" data-page="alerts" onclick="svPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
+        <div class="sv-menu-item" data-page="partners" onclick="svPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
+        <div class="sv-menu-item" data-page="worklog-review" onclick="svPage('worklog-review',this)"><span class="mi-icon">📝</span>WorkLog審核<span class="sv-badge">5</span></div>
+        <div class="sv-menu-item" data-page="mentor" onclick="svPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
+        <div class="sv-menu-item" data-page="tasks-sv" onclick="svPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
+      </div>
+      <!-- 種子帳號角色切換區（顯眼） -->
+      <div id="sv-role-switch-wrap" style="display:none;padding:.75rem .75rem .5rem;border-top:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:.62rem;color:rgba(255,255,255,.4);letter-spacing:.08em;font-weight:600;margin-bottom:.5rem">切換介面</div>
+        <div id="sv-role-switch-btns" style="display:flex;flex-direction:column;gap:.35rem"></div>
+      </div>
+      <div class="sv-logout" onclick="signOut()"><span>🚪</span>登出</div>
+    </div>
+    <div class="sv-main">
+      <!-- Dashboard -->
+      <div id="svp-dashboard">
+        <div class="page-title">📊 督導總覽</div>
+        <div class="stats-row">
+          <div class="stat-card sc-blue"><div class="sc-label">負責夥伴數</div><div class="sc-val" id="sv-stat-partners">—</div><div class="sc-sub">即時資料</div></div>
+          <div class="stat-card sc-green"><div class="sc-label">本月完成任務</div><div class="sc-val" id="sv-stat-tasks">—</div><div class="sc-sub">即時資料</div></div>
+          <div class="stat-card sc-yellow"><div class="sc-label">待審核WorkLog</div><div class="sc-val" id="sv-stat-pending">—</div><div class="sc-sub">需要盡快處理</div></div>
+          <div class="stat-card sc-red"><div class="sc-label">預警夥伴</div><div class="sc-val" id="sv-stat-alert">—</div><div class="sc-sub">請主動關心</div></div>
+        </div>
+        <div class="grid-2 mb-2">
+          <div class="card">
+            <div class="sec-header"><div class="sec-title">⚠️ 需要注意</div><button class="sec-action" onclick="svPage('alerts')">查看全部</button></div>
+            <div class="alert-list">
+              <div class="alert-card ac-red"><span class="alert-icon">🔴</span><div class="alert-content"><div class="alert-title">陳小明</div><div class="alert-desc">5天未登入，請主動關心</div></div><button class="alert-action" onclick="svPage('mentor',null)">聯繫</button></div>
+              <div class="alert-card ac-orange"><span class="alert-icon">⚠️</span><div class="alert-content"><div class="alert-title">林阿華</div><div class="alert-desc">任務卡關超過3天</div></div><button class="alert-action" onclick="svPage('mentor',null)">協助</button></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="sec-header"><div class="sec-title">📝 待審核</div><button class="sec-action" onclick="svPage('worklog-review',null)">查看全部</button></div>
+            <div style="display:flex;flex-direction:column;gap:.5rem" id="sv-pending-list">
+              <div style="color:var(--text-s);font-size:.82rem;text-align:center;padding:.5rem">載入中...</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="sec-header"><div class="sec-title">👥 夥伴狀態一覽</div><button class="sec-action" onclick="svPage('partners',null)">管理夥伴</button></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>姓名</th><th>職業</th><th>本月任務</th><th>累計收入</th><th>最後回報</th><th>狀態</th></tr></thead>
+              <tbody id="sv-partner-table">
+                <tr><td colspan="6" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div id="svp-alerts" style="display:none">
+        <div class="page-title">⚠️ 預警通知</div>
+        <div class="alert-list">
+          <div class="alert-card ac-red"><span class="alert-icon">🔴</span><div class="alert-content"><div class="alert-title">陳小明 — 5天未登入</div><div class="alert-desc">上次登入：3/15 · 未接任何任務</div></div><button class="alert-action" onclick="svPage('mentor',null)">聯繫夥伴</button></div>
+          <div class="alert-card ac-orange"><span class="alert-icon">⚠️</span><div class="alert-content"><div class="alert-title">林阿華 — 任務卡關</div><div class="alert-desc">口碑任務已3天未更新進度</div></div><button class="alert-action" onclick="svPage('mentor',null)">協助解決</button></div>
+          <div class="alert-card ac-blue"><span class="alert-icon">💬</span><div class="alert-content"><div class="alert-title">王美玲 — 需要輔導</div><div class="alert-desc">本月修改輪數偏高（平均3.2輪）</div></div><button class="alert-action" onclick="svPage('mentor',null)">安排輔導</button></div>
+        </div>
+      </div>
+
+      <!-- Partners -->
+      <div id="svp-partners" style="display:none">
+        <div class="page-title">👥 夥伴管理</div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>姓名</th><th>身份別</th><th>職業</th><th>本月任務</th><th>累計收入</th><th>狀態</th><th>操作</th></tr></thead>
+              <tbody id="sv-partners-full-table">
+                <tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- WorkLog Review -->
+      <div id="svp-worklog-review" style="display:none">
+        <div class="page-title">📝 WorkLog 審核 <span style="background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;margin-left:.5rem">5件待審</span></div>
+        <div style="background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.65rem .9rem;margin-bottom:1rem;font-size:.78rem;color:var(--blue-d)">
+          📬 已重新提交第2輪修改，請查看。
+        </div>
+        <div id="sv-wl-review-list">
+          <!-- 範例審核卡片 -->
+          <div class="wl-review-card">
+            <div class="wl-rev-top">
+              <div><div class="wl-rev-name">月影旅者（陳小花）</div><div class="wl-rev-task">📣 口碑留言 × 5則 · 第2輪修改</div></div>
+              <span class="status-badge sb-pending">待審核</span>
+            </div>
+            <div class="wl-rev-detail"><span>📅 今天 10:30</span><span>✅ 完成 3 則</span><span>🤖 使用 ChatGPT</span></div>
+            <div class="wl-rev-note">已按照意見修改，語氣改成比較口語的方式，第3則也重新調整了關鍵字的位置，請督導再看看是否符合要求。</div>
+            <div class="wl-rev-btns">
+              <button class="rev-btn approve" onclick="approveWL(this)">✓ 核准</button>
+              <button class="rev-btn reject" onclick="toggleRevInput(this)">✎ 退回修改</button>
+            </div>
+            <div class="revision-input-wrap">
+              <div style="font-size:.75rem;font-weight:600;color:var(--orange);margin-bottom:.5rem">✎ 填寫修改意見（夥伴將收到通知）</div>
+              <textarea class="form-input" rows="3" placeholder="具體說明需要修改的地方..." style="resize:none;margin-bottom:.5rem"></textarea>
+              <button class="btn-primary" style="margin-top:0" onclick="sendRevision(this)">送出意見</button>
+            </div>
+          </div>
+          <div class="wl-review-card">
+            <div class="wl-rev-top">
+              <div><div class="wl-rev-name">靜默劍士（林大明）</div><div class="wl-rev-task">🎨 廣告圖設計 · 第1輪</div></div>
+              <span class="status-badge sb-pending">待審核</span>
+            </div>
+            <div class="wl-rev-detail"><span>📅 昨天 15:20</span><span>✅ 完成 2 張</span><span>🎨 使用 Canva AI</span></div>
+            <div class="wl-rev-note">已完成兩張廣告圖，連結在下方，請督導確認風格是否符合客戶需求。</div>
+            <div class="wl-rev-btns">
+              <button class="rev-btn approve" onclick="approveWL(this)">✓ 核准</button>
+              <button class="rev-btn reject" onclick="toggleRevInput(this)">✎ 退回修改</button>
+            </div>
+            <div class="revision-input-wrap">
+              <div style="font-size:.75rem;font-weight:600;color:var(--orange);margin-bottom:.5rem">✎ 填寫修改意見</div>
+              <textarea class="form-input" rows="3" placeholder="具體說明需要修改的地方..." style="resize:none;margin-bottom:.5rem"></textarea>
+              <button class="btn-primary" style="margin-top:0" onclick="sendRevision(this)">送出意見</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mentor Log -->
+      <div id="svp-mentor" style="display:none">
+        <div class="page-title">💬 督導紀錄</div>
+        <div class="mentor-form">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">新增督導紀錄</div>
+          <div class="form-group">
+            <label class="form-label">選擇夥伴</label>
+            <select class="form-select" id="mentor-partner"><option value="">請選擇夥伴</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">輔導類型</label>
+            <select class="form-select" id="mentor-type">
+              <option>電話關心</option><option>線上輔導</option><option>面談</option><option>任務指導</option><option>心理支持</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">輔導內容</label>
+            <textarea class="form-input" id="mentor-note" rows="4" placeholder="記錄本次輔導的主要內容、夥伴狀況、後續追蹤事項..." style="resize:none"></textarea>
+          </div>
+          <button class="btn-primary" onclick="saveMentorLog()">儲存紀錄</button>
+        </div>
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">歷史紀錄</div>
+        <div class="mentor-log-item">
+          <div class="ml-header"><div><div class="ml-who">月影旅者（陳小花）</div><div class="ml-date">2025/03/19 14:30</div></div><span class="ml-type">電話關心</span></div>
+          <div class="ml-note">夥伴表示對口語化的寫作方式有些不熟悉，給了幾個範例並示範如何調整語氣。夥伴理解後表示會再嘗試，下週追蹤。</div>
+        </div>
+        <div class="mentor-log-item">
+          <div class="ml-header"><div><div class="ml-who">陳小明</div><div class="ml-date">2025/03/15 10:00</div></div><span class="ml-type">線上輔導</span></div>
+          <div class="ml-note">因5天未登入，主動聯繫。夥伴說最近家裡有事，情緒較低落。鼓勵不需要給自己太大壓力，可以先接小任務。後續持續關注。</div>
+        </div>
+      </div>
+
+      <!-- Tasks - Supervisor -->
+      <div id="svp-tasks-sv" style="display:none">
+        <div class="page-title">⚔️ 任務派案</div>
+        <div class="task-form-card">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">指派任務給夥伴</div>
+          <div class="form-group">
+            <label class="form-label">指派給</label>
+            <select class="form-select" id="assign-partner"><option value="">請選擇夥伴</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">選擇任務</label>
+            <select class="form-select" id="assign-task">
+              <option value="">請選擇任務</option>
+              <option>📣 口碑留言 × 5則 ($250)</option>
+              <option>✍️ SEO文案撰寫 ($400)</option>
+              <option>🎨 廣告圖設計 × 2張 ($300)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">補充說明（選填）</label>
+            <textarea class="form-input" rows="2" placeholder="特別提醒或指示..." style="resize:none"></textarea>
+          </div>
+          <button class="btn-primary" onclick="assignTask()">確認派案</button>
+        </div>
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">任務狀態追蹤</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>夥伴</th><th>任務</th><th>派案時間</th><th>狀態</th><th>修改輪數</th></tr></thead>
+            <tbody>
+              <tr><td>月影旅者</td><td>口碑留言 × 5則</td><td>3/15</td><td><span class="status-badge sb-warn">修改中</span></td><td>第2輪</td></tr>
+              <tr><td>靜默劍士</td><td>廣告圖設計</td><td>3/17</td><td><span class="status-badge sb-pending">審核中</span></td><td>第1輪</td></tr>
+              <tr><td>雲端行者</td><td>SEO文案</td><td>3/10</td><td><span class="status-badge sb-active">已完成</span></td><td>第1輪</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- end sv-main -->
+  </div><!-- end sv-layout -->
+</div><!-- end view-supervisor -->
+
+<!-- ══ STAFF VIEW ══ -->
+<div id="view-staff" class="view">
+  <div class="mobile-topbar" id="st-mobile-bar">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:.3rem">🚪 登出</button>
+      <div style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</div>
+    </div>
+    <div class="role-switcher" id="st-mobile-role-sw">
+      <div class="role-switcher-btn" onclick="toggleRoleSwitcher('st-mobile-role-sw')"><span>🧹 管理</span> ▾</div>
+      <div class="role-switcher-dropdown" id="st-mobile-role-dd">
+        <div class="rsd-item" onclick="switchToRole('partner')"><span class="rsd-icon">⚔️</span>工作夥伴</div>
+        <div class="rsd-item" onclick="switchToRole('supervisor')"><span class="rsd-icon">📖</span>督導人員</div>
+        <div class="rsd-item active" onclick="switchToRole('staff')"><span class="rsd-icon">🧹</span>工作人員</div>
+        <div class="rsd-divider"></div>
+        <div class="rsd-item" onclick="signOut()"><span class="rsd-icon">🚪</span>登出</div>
+      </div>
+    </div>
+  </div>
+  <div class="st-layout">
+    <div class="st-sidebar">
+      <div class="st-sidebar-logo">
+        <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:900;color:#fff">希絆雲作所</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.2rem">🧹 工作人員</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.4rem" id="st-user-name">工作人員</div>
+        <div id="st-role-switch-btns" style="display:none;margin-top:.75rem;flex-direction:column;gap:.3rem"></div>
+      </div>
+      <div class="st-menu">
+        <div class="st-menu-group">管理</div>
+        <div class="st-menu-item active" data-page="dashboard" onclick="stPage('dashboard',this)"><span class="mi-icon">📊</span>影響力儀表板</div>
+        <div class="st-menu-item" data-page="partners" onclick="stPage('partners',this)"><span class="mi-icon">👥</span>全體夥伴</div>
+        <div class="st-menu-item" data-page="cases" onclick="stPage('cases',this)"><span class="mi-icon">🌱</span>個案成長</div>
+        <div class="st-menu-item" data-page="payroll" onclick="stPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
+        <div class="st-menu-item" data-page="approval" onclick="stPage('approval',this)"><span class="mi-icon">📋</span>審核申請<span class="sv-badge" id="st-approval-badge" style="display:none">待審</span></div>
+        <div class="st-menu-group">設定</div>
+        <div class="st-menu-item" data-page="units" onclick="stPage('units',this)"><span class="mi-icon">🏢</span>合作單位</div>
+        <div class="st-menu-item" data-page="tasks" onclick="stPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
+        <div class="st-menu-item" data-page="notices" onclick="stPage('notices',this)"><span class="mi-icon">📢</span>公告管理</div>
+      </div>
+      <!-- 種子帳號角色切換區（顯眼） -->
+      <div id="st-role-switch-wrap" style="display:none;padding:.75rem .75rem .5rem;border-top:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:.62rem;color:rgba(255,255,255,.4);letter-spacing:.08em;font-weight:600;margin-bottom:.5rem">切換介面</div>
+        <div id="st-role-switch-btns" style="display:flex;flex-direction:column;gap:.35rem"></div>
+      </div>
+      <div class="sv-logout" onclick="signOut()"><span>🚪</span>登出</div>
+    </div>
+    <div class="st-main">
+      <!-- Dashboard -->
+      <div id="stp-dashboard">
+        <div class="page-title">📊 影響力儀表板 <button class="action-btn" style="float:right;margin-top:.25rem" onclick="alert('匯出功能開發中')">📤 匯出PDF</button></div>
+        <div class="impact-grid">
+          <div class="impact-card" style="--ic:var(--blue)"><div class="ic-val" id="st-active-partners">—</div><div class="ic-label">活躍工作夥伴</div><div class="ic-trend" id="st-partners-trend">載入中</div></div>
+          <div class="impact-card" style="--ic:var(--green)"><div class="ic-val" id="st-total-income">—</div><div class="ic-label">本月夥伴總收入</div><div class="ic-trend" id="st-income-trend">載入中</div></div>
+          <div class="impact-card" style="--ic:var(--yellow)"><div class="ic-val" id="st-completed-tasks">—</div><div class="ic-label">本月完成任務</div><div class="ic-trend" id="st-tasks-trend">載入中</div></div>
+          <div class="impact-card" style="--ic:#9B6FD4"><div class="ic-val" id="st-sroi">—</div><div class="ic-label">SROI 社會投報率</div><div class="ic-trend">計算中</div></div>
+        </div>
+        <div class="card">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">全體夥伴概況</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem">
+            <div style="background:var(--blue-p);border-radius:var(--rs);padding:.75rem;text-align:center"><div style="font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:800;color:var(--blue-d)" id="st-total-partners">—</div><div style="font-size:.7rem;color:var(--text-s)">總輔導人數</div></div>
+            <div style="background:var(--green-p);border-radius:var(--rs);padding:.75rem;text-align:center"><div style="font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:800;color:var(--green)" id="st-total-comms">—</div><div style="font-size:.7rem;color:var(--text-s)">完成工作紀錄</div></div>
+            <div style="background:var(--yellow-p);border-radius:var(--rs);padding:.75rem;text-align:center"><div style="font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:800;color:var(--yellow)" id="st-avg-rounds">—</div><div style="font-size:.7rem;color:var(--text-s)">平均修改輪數</div></div>
+            <div style="background:#F5F0FC;border-radius:var(--rs);padding:.75rem;text-align:center"><div style="font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:800;color:#9B6FD4" id="st-firstpass-rate">—</div><div style="font-size:.7rem;color:var(--text-s)">一次過比例</div></div>
+            <div style="background:var(--orange-p);border-radius:var(--rs);padding:.75rem;text-align:center"><div style="font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:800;color:var(--orange)" id="st-total-amount">—</div><div style="font-size:.7rem;color:var(--text-s)">累計發放金額</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Partners -->
+      <div id="stp-partners" style="display:none">
+        <div class="page-title">👥 全體夥伴</div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="st-partners-table">
+              <thead><tr><th>姓名</th><th>身份別</th><th>督導</th><th>職業等級</th><th>累計收入</th><th>完成件數</th><th>狀態</th><th>角色</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="9" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Cases -->
+      <div id="stp-cases" style="display:none">
+        <div class="page-title">🌱 個案成長</div>
+        <div class="case-list" id="st-cases-list">
+          <div style="color:var(--text-s);font-size:.85rem;padding:.5rem">載入夥伴資料中...</div>
+        </div>
+      </div>
+      <!-- Payroll -->
+      <div id="stp-payroll" style="display:none">
+        <div class="page-title">💰 薪資管理</div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="st-payroll-table">
+              <thead><tr><th>姓名</th><th>本月金額</th><th>匯款帳號</th><th>申請日期</th><th>狀態</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="6" style="text-align:center;color:var(--text-s);padding:1.5rem">載入薪資資料中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Approval -->
+      <div id="stp-approval" style="display:none">
+        <div class="page-title">📋 審核申請</div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="st-approval-table">
+              <thead><tr><th>姓名</th><th>身份別</th><th>申請時間</th><th>狀態</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="5" style="text-align:center;color:var(--text-s);padding:1.5rem">載入申請資料中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Units -->
+      <div id="stp-units" style="display:none">
+        <div class="page-title">🏢 合作單位</div>
+        <div class="card"><p style="color:var(--text-s);font-size:.88rem">合作單位管理功能開發中</p></div>
+      </div>
+      <!-- Tasks -->
+      <div id="stp-tasks" style="display:none">
+        <div class="page-title">⚔️ 任務管理</div>
+        <div class="card"><p style="color:var(--text-s);font-size:.88rem">任務管理功能開發中</p></div>
+      </div>
+      <!-- Notices management -->
+      <div id="stp-notices" style="display:none">
+        <div class="page-title">📢 公告管理</div>
+        <div class="card"><p style="color:var(--text-s);font-size:.88rem">公告管理功能開發中</p></div>
+      </div>
+    </div><!-- end st-main -->
+  </div><!-- end st-layout -->
+</div><!-- end view-staff -->
+
+<!-- ══ QUEST MODAL ══ -->
+<div class="modal-overlay" id="quest-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div><div class="modal-title" id="qm-title">任務詳情</div><div style="font-size:.72rem;color:var(--text-s);margin-top:.2rem" id="qm-cat"></div></div>
+      <button class="modal-close" onclick="closeQuestModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-reward"><div class="modal-reward-val" id="qm-reward">$0</div><div class="modal-reward-label">任務獎勵</div></div>
+      <div style="font-size:.82rem;color:var(--text-m);margin-bottom:1rem" id="qm-desc"></div>
+      <div class="step-list" id="qm-steps"></div>
+      <div style="font-size:.78rem;color:var(--text-s);margin-bottom:1rem" id="qm-deadline"></div>
+      <button class="btn-primary" id="qm-accept-btn" onclick="acceptQuest()">接受任務 ⚔️</button>
+      <button class="btn-secondary" onclick="closeQuestModal()">稍後再說</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CASE DETAIL MODAL ══ -->
+<div class="detail-overlay" id="case-detail-overlay">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div class="detail-header-info">
+        <div class="detail-ava">🧑</div>
+        <div><div class="detail-name" id="detail-name">—</div><div class="detail-class" id="detail-class">—</div></div>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <button class="action-btn" style="color:#fff;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)" onclick="alert('匯出個案報告')">📥 匯出</button>
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-stats">
+        <div class="ds-item" style="--ds-c:var(--blue)"><div class="ds-val" id="detail-comms">—</div><div class="ds-label">總溝通次數</div></div>
+        <div class="ds-item" style="--ds-c:var(--green)"><div class="ds-val" id="detail-avg-rev">—</div><div class="ds-label">平均修改輪數</div></div>
+        <div class="ds-item" style="--ds-c:var(--yellow)"><div class="ds-val" id="detail-income">—</div><div class="ds-label">累計收入</div></div>
+        <div class="ds-item" style="--ds-c:#9B6FD4"><div class="ds-val" id="detail-firstpass">—</div><div class="ds-label">一次過比例</div></div>
+      </div>
+      <div class="trend-strip">
+        <div class="trend-title">修改次數趨勢（越低代表越進步）</div>
+        <div class="trend-bars">
+          <div class="trend-bar-wrap"><div class="trend-b warn" style="height:90%"></div><div class="trend-b-label">1月</div></div>
+          <div class="trend-bar-wrap"><div class="trend-b warn" style="height:70%"></div><div class="trend-b-label">2月</div></div>
+          <div class="trend-bar-wrap"><div class="trend-b" style="height:50%;background:var(--yellow)"></div><div class="trend-b-label">3月初</div></div>
+          <div class="trend-bar-wrap"><div class="trend-b good" style="height:30%"></div><div class="trend-b-label">3月中</div></div>
+          <div class="trend-bar-wrap"><div class="trend-b good" style="height:20%"></div><div class="trend-b-label">本週</div></div>
+        </div>
+      </div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📋 歷程時間軸</div>
+      <div class="timeline">
+        <div class="tl-item tl-level"><div class="tl-dot"></div><div class="tl-date">2025/03/01</div><div class="tl-content"><span class="tl-tag tag-level">升級</span> 晉升為文字學徒</div></div>
+        <div class="tl-item tl-task"><div class="tl-dot"></div><div class="tl-date">2025/03/10</div><div class="tl-content"><span class="tl-tag tag-task">任務</span> 完成廣告圖設計（一次過）</div></div>
+        <div class="tl-item tl-mentor"><div class="tl-dot"></div><div class="tl-date">2025/03/15</div><div class="tl-content"><span class="tl-tag tag-mentor">督導</span> 電話輔導，討論口語化寫作技巧</div></div>
+        <div class="tl-item tl-firstpass"><div class="tl-dot"></div><div class="tl-date">2025/03/17</div><div class="tl-content"><span class="tl-tag tag-firstpass">一次過</span> SEO文案一次通過審核</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB BADGE STYLE (inline so it doesn't break CSS cascade) ══ -->
+<style>
+.tab-badge{background:var(--red);color:#fff;font-size:.55rem;font-weight:700;padding:.1rem .35rem;border-radius:8px;margin-left:.2rem}
+</style>
+
+<script>
+// ══════════════════════════════════════
+// MOCK DATA
+// ══════════════════════════════════════
+const MOCK_PARTNERS = [
+  {name:'陳語晴', nick:'月影遊俠', type:'肢體障礙', cls:'文字劍士', income:12400, tasks:18, pass:89, rounds:1.2},
+  {name:'林大明', nick:'光速吟遊詩人', type:'視覺障礙', cls:'口碑騎士', income:8600, tasks:12, pass:92, rounds:1.1},
+  {name:'王小涵', nick:'星織師', type:'單親家庭', cls:'製圖術士', income:5200, tasks:9, pass:78, rounds:1.6},
+  {name:'張俊豪', nick:'鐵臂守護者', type:'中高齡', cls:'文字學徒', income:3100, tasks:5, pass:80, rounds:1.4},
+  {name:'劉美芳', nick:'翡翠獵人', type:'肢體障礙', cls:'獵人', income:6400, tasks:11, pass:91, rounds:1.0},
+  {name:'吳志遠', nick:'迷霧行者', type:'新住民', cls:'文字劍士', income:9800, tasks:15, pass:87, rounds:1.3},
+  {name:'許淑君', nick:'流光妖精', type:'單親家庭', cls:'聲望遊俠', income:4700, tasks:8, pass:75, rounds:1.7},
+  {name:'鄭宏偉', nick:'暗影騎士', type:'肢體障礙', cls:'影刃', income:11200, tasks:16, pass:88, rounds:1.1},
+];
+
+const MOCK_PENDING_REVIEWS = [
+  {name:'王小涵', task:'Facebook 貼文×3篇', time:'今天 10:22', qty:3, note:'已完成三篇，附上截圖'},
+  {name:'許淑君', task:'口碑留言×5則', time:'昨天 15:47', qty:5, note:'已留言於各平台'},
+  {name:'張俊豪', task:'SEO文案撰寫', time:'昨天 09:30', qty:1, note:'已提交文案初稿'},
+  {name:'林大明', task:'廣告圖設計×2張', time:'3天前', qty:2, note:''},
+  {name:'劉美芳', task:'口碑留言×5則', time:'3天前', qty:5, note:''},
+];
+
+const QUEST_DATA = [
+  { id:1, name:'SEO文案撰寫', cat:'text', reward:400, time:'3天', level:1, locked:false,
+    desc:'為合作廠商撰寫一篇 600-800 字的 SEO 優化文案，需包含關鍵字自然融入。',
+    steps:['閱讀品牌資料與關鍵字清單','撰寫文案初稿（600-800字）','自我校稿並提交'],
+    deadline:'截止：3/25（三）' },
+  { id:2, name:'口碑留言 × 5則', cat:'social', reward:250, time:'2天', level:1, locked:false,
+    desc:'在指定平台撰寫 5 則真實感的口碑留言，語氣自然口語，不可過度行銷。',
+    steps:['閱讀產品說明','以不同角度撰寫5則留言','附上截圖提交'],
+    deadline:'截止：3/24（二）' },
+  { id:3, name:'Facebook 貼文 × 3篇', cat:'social', reward:300, time:'3天', level:1, locked:false,
+    desc:'為客戶品牌撰寫 3 篇 Facebook 貼文，需符合品牌調性，每篇 150-300 字。',
+    steps:['了解品牌風格指南','撰寫3篇貼文','提交文字稿'],
+    deadline:'截止：3/26（四）' },
+  { id:4, name:'廣告圖設計 × 2張', cat:'visual', reward:300, time:'4天', level:1, locked:false,
+    desc:'使用 Canva 設計 2 張符合規格的廣告圖，需提供 PNG 格式檔案。',
+    steps:['下載品牌素材包','依規格設計2張圖','匯出PNG並提交'],
+    deadline:'截止：3/27（五）' },
+  { id:5, name:'資料整理 × 100筆', cat:'data', reward:500, time:'5天', level:2, locked:true,
+    desc:'整理並校正 100 筆客戶名單資料，需達到文字學徒等級才可接案。',
+    steps:['下載資料檔案','按格式整理校正','提交完成的試算表'],
+    deadline:'需達 Lv.2 解鎖' },
+  { id:6, name:'短影片剪輯 × 1支', cat:'video', reward:600, time:'7天', level:2, locked:true,
+    desc:'剪輯 1 支 60 秒以內的品牌短影片，需達到文字學徒等級才可接案。',
+    steps:['取得素材','依腳本剪輯','提交MP4檔案'],
+    deadline:'需達 Lv.2 解鎖' },
+];
+
+let currentQuestData = null;
+
+// ══════════════════════════════════════
+// 畫面切換
+// ══════════════════════════════════════
+function goView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('view-' + v);
+  if (el) el.classList.add('active');
+  // 首頁不顯示浮動按鈕
+  const floatNav = document.getElementById('float-nav');
+  if (floatNav) floatNav.style.display = (v === 'home') ? 'none' : 'block';
+}
+
+function toggleFloat() {
+  const menu = document.getElementById('float-menu');
+  const btn = document.getElementById('float-toggle');
+  const isOpen = menu.style.display === 'flex';
+  menu.style.display = isOpen ? 'none' : 'flex';
+  btn.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+// 登入頁 role tab 切換
+function switchRoleTab(role) {
+  ['partner','supervisor','staff'].forEach(r => {
+    document.getElementById('rtab-'+r).classList.toggle('active', r===role);
+    document.getElementById('rpanel-'+r).classList.toggle('active', r===role);
+  });
+}
+
+// 點選角色卡進入
+function enterRole(role) {
+  if (role === 'partner') {
+    goView('partner');
+    loadMockPartner();
+    renderQ('all');
+  } else if (role === 'supervisor') {
+    goView('supervisor');
+    loadMockSupervisor();
+  } else if (role === 'staff') {
+    goView('staff');
+    loadMockStaff();
+  }
+}
+
+function signOut() { goView('home'); }
+
+// ══════════════════════════════════════
+// MOCK 資料填充
+// ══════════════════════════════════════
+function loadMockPartner() {
+  const p = MOCK_PARTNERS[0];
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('partner-nickname', p.nick);
+  setEl('partner-realname', p.name);
+  setEl('partner-wallet-top', '$' + p.income.toLocaleString());
+  setEl('partner-total-income', '$' + p.income.toLocaleString());
+  const statBoxes = document.querySelectorAll('.char-stats .stat-box .stat-val');
+  if (statBoxes[0]) statBoxes[0].textContent = '$' + p.income.toLocaleString();
+  if (statBoxes[1]) statBoxes[1].textContent = p.tasks + '件';
+  if (statBoxes[2]) statBoxes[2].textContent = p.pass + '%';
+  if (statBoxes[3]) statBoxes[3].textContent = p.rounds;
+  const clsEl = document.getElementById('partner-class');
+  if (clsEl) clsEl.textContent = p.cls;
+  // 進行中任務 mock
+  const activeList = document.getElementById('p-active-tasks');
+  if (activeList) {
+    activeList.innerHTML = `
+      <div class="active-task-item" style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-weight:700;font-size:.95rem;color:var(--text)">SEO文案撰寫</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.2rem">截止：3/25（三）・$400</div>
+          </div>
+          <button onclick="cancelTask(this,'SEO文案撰寫')" style="background:none;border:1px solid var(--border);color:var(--text-s);border-radius:8px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer">放棄</button>
+        </div>
+        <div style="margin-top:.7rem;background:var(--bg);border-radius:8px;height:8px;overflow:hidden">
+          <div style="width:40%;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-l));border-radius:8px"></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">進行中 40%</div>
+      </div>
+      <div class="active-task-item" style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-weight:700;font-size:.95rem;color:var(--text)">口碑留言 × 5則</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.2rem">截止：3/24（二）・$250</div>
+          </div>
+          <button onclick="cancelTask(this,'口碑留言')" style="background:none;border:1px solid var(--border);color:var(--text-s);border-radius:8px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer">放棄</button>
+        </div>
+        <div style="margin-top:.7rem;background:var(--bg);border-radius:8px;height:8px;overflow:hidden">
+          <div style="width:80%;height:100%;background:linear-gradient(90deg,var(--green),#5CD0A0);border-radius:8px"></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">幾乎完成 80%</div>
+      </div>`;
+  }
+  // 公告
+  const notices = document.getElementById('pc-notices-list');
+  if (notices) {
+    notices.innerHTML = `
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.75rem">
+        <div style="font-weight:700;color:var(--text);margin-bottom:.3rem">📢 3月任務開放接案</div>
+        <div style="font-size:.8rem;color:var(--text-m)">本月新增廣告圖設計、短影片剪輯等任務，歡迎踴躍接案！</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.5rem">2025-03-01</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem">
+        <div style="font-weight:700;color:var(--text);margin-bottom:.3rem">💰 2月薪資已發放</div>
+        <div style="font-size:.8rem;color:var(--text-m)">2月份所有已審核案件薪資已完成匯款，請確認帳戶。</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.5rem">2025-02-28</div>
+      </div>`;
+  }
+}
+
+function loadMockSupervisor() {
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('sv-user-name', '林督導');
+  setEl('sv-stat-partners', 6);
+  setEl('sv-stat-tasks', 18);
+  setEl('sv-stat-pending', 5);
+  setEl('sv-stat-alert', 2);
+  // 夥伴總覽表格
+  const tbody = document.getElementById('sv-partner-table');
+  if (tbody) {
+    tbody.innerHTML = MOCK_PARTNERS.slice(0,6).map(p => `<tr>
+      <td>${p.name}</td><td>${p.type}</td>
+      <td>${p.cls}</td><td>$${p.income.toLocaleString()}</td><td>${p.pass}%</td>
+      <td><span class="status-badge sb-active">活躍</span></td></tr>`).join('');
+  }
+  // 夥伴管理頁
+  const tbody2 = document.querySelector('#svp-partners table tbody');
+  if (tbody2) {
+    tbody2.innerHTML = MOCK_PARTNERS.slice(0,6).map(p => `<tr>
+      <td>${p.name}</td><td>${p.type}</td><td>—</td>
+      <td>${p.cls}</td><td>$${p.income.toLocaleString()}</td><td>${p.tasks}件</td>
+      <td><span class="status-badge sb-active">活躍</span></td>
+      <td><button class="action-btn" onclick="svPage('mentor',null)">督導紀錄</button></td></tr>`).join('');
+  }
+  // 待審核 WorkLog
+  const wlList = document.getElementById('sv-wl-review-list');
+  if (wlList) {
+    wlList.innerHTML = MOCK_PENDING_REVIEWS.map(r => `
+      <div class="wl-review-card" style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.1rem;margin-bottom:.9rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
+          <div>
+            <div style="font-weight:700;color:var(--text)">${r.name}</div>
+            <div style="font-size:.78rem;color:var(--text-s)">${r.task}・數量：${r.qty}</div>
+            ${r.note ? `<div style="font-size:.78rem;color:var(--text-m);margin-top:.2rem">${r.note}</div>` : ''}
+          </div>
+          <div style="font-size:.72rem;color:var(--text-s)">${r.time}</div>
+        </div>
+        <div class="wl-rev-btns" style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button onclick="approveWL(this)" class="btn-primary" style="font-size:.8rem;padding:.4rem .9rem">✅ 核准</button>
+          <button onclick="toggleRevInput(this)" style="background:var(--orange-p);color:var(--orange);border:none;border-radius:8px;padding:.4rem .9rem;font-size:.8rem;cursor:pointer;font-weight:600">📝 退回修改</button>
+        </div>
+        <div class="revision-input-wrap" style="margin-top:.7rem;display:none">
+          <textarea placeholder="填寫修改意見..." style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:.6rem;font-size:.82rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:60px"></textarea>
+          <button onclick="sendRevision(this)" style="margin-top:.4rem;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-size:.8rem;cursor:pointer;font-weight:600">送出</button>
+        </div>
+      </div>`).join('');
+  }
+  // 待審核快覽
+  const pendingList = document.getElementById('sv-pending-list');
+  if (pendingList) {
+    pendingList.innerHTML = `<div style="color:var(--text-m);font-size:.82rem;padding:.5rem 0">共 5 件待審核</div>
+      <button class="btn-primary" style="margin-top:.25rem" onclick="svPage('worklog-review',null)">前往審核</button>`;
+  }
+  // 輔導選單
+  const mentorSel = document.getElementById('mentor-partner');
+  const assignSel = document.getElementById('assign-partner');
+  const opts = '<option value="">請選擇夥伴</option>' + MOCK_PARTNERS.slice(0,6).map(p=>`<option>${p.name}</option>`).join('');
+  if (mentorSel) mentorSel.innerHTML = opts;
+  if (assignSel) assignSel.innerHTML = opts;
+}
+
+function loadMockStaff() {
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('st-user-name', '陳主任');
+  setEl('st-active-partners', 12);
+  setEl('st-completed-tasks', 240);
+  setEl('st-total-income', '$148,600');
+  setEl('st-sroi', '3.2x');
+  setEl('st-total-partners', 12);
+  setEl('st-total-comms', 240);
+  setEl('st-avg-rounds', '1.3');
+  setEl('st-firstpass-rate', '83%');
+  setEl('st-total-amount', '$148,600');
+  // 全體夥伴表格
+  const tbody = document.querySelector('#st-partners-table tbody');
+  if (tbody) {
+    tbody.innerHTML = MOCK_PARTNERS.map(p => `<tr>
+      <td>${p.name}</td><td>${p.type}</td>
+      <td>—</td><td>${p.cls}</td>
+      <td>$${p.income.toLocaleString()}</td><td>${p.tasks}件</td>
+      <td><span class="status-badge sb-active">活躍</span></td>
+      <td><span class="role-tag rt-partner">⚔️ 夥伴</span></td>
+      <td><button class="action-btn" onclick="alert('展示版不支援此功能')">設定角色</button></td>
+    </tr>`).join('');
+  }
+  // 個案成長
+  const caseList = document.getElementById('st-cases-list');
+  if (caseList) {
+    const icons = ['🧑‍🦯','🧑','👩','👨','🧑‍🦽','👩‍💼','🧑‍🎨','👨‍💻'];
+    caseList.innerHTML = MOCK_PARTNERS.map((p,i) => `
+      <div class="case-card ${p.income>10000?'top':p.income>5000?'':''}" onclick="openDetail('${p.nick}','${p.cls}','$${p.income.toLocaleString()}','${p.tasks}件','${p.pass}%','${p.rounds}')">
+        <div class="case-top">
+          <div class="case-ava">${icons[i%icons.length]}</div>
+          <div><div class="case-name">${p.nick}</div><div class="case-meta">${p.type}</div></div>
+        </div>
+        <div class="case-stats">
+          <div class="cs-item"><div class="cs-val">$${p.income.toLocaleString()}</div><div class="cs-label">累計收入</div></div>
+          <div class="cs-item"><div class="cs-val">${p.tasks}件</div><div class="cs-label">完成任務</div></div>
+          <div class="cs-item"><div class="cs-val">${p.pass}%</div><div class="cs-label">一次過率</div></div>
+          <div class="cs-item"><div class="cs-val">${p.rounds}</div><div class="cs-label">修改輪數</div></div>
+        </div>
+      </div>`).join('');
+  }
+  // 薪資
+  const payTbody = document.querySelector('#st-payroll-table tbody');
+  if (payTbody) {
+    payTbody.innerHTML = MOCK_PARTNERS.map(p => `
+      <tr><td>${p.name}</td><td>$${p.income.toLocaleString()}</td><td>玉山銀行 1234-5678</td><td>—</td>
+      <td><span class="status-badge" style="background:var(--green-p);color:var(--green)">已發放</span></td>
+      <td><button onclick="confirmPayment(this,'${p.name}','$${p.income.toLocaleString()}')" class="action-btn">確認匯款</button></td></tr>`).join('');
+  }
+  // 審核申請
+  const approvalTbody = document.querySelector('#st-approval-table tbody');
+  if (approvalTbody) {
+    approvalTbody.innerHTML = `
+      <tr>
+        <td>黃小君</td><td>單親家庭</td><td>2025-03-10</td>
+        <td><span class="status-badge sb-pending">待審核</span></td>
+        <td>
+          <button class="action-btn approve" onclick="approveRegistration('黃小君')">核准</button>
+          <button class="action-btn reject" onclick="rejectRegistration('黃小君')">拒絕</button>
+        </td>
+      </tr>
+      <tr>
+        <td>廖志豪</td><td>中高齡</td><td>2025-03-12</td>
+        <td><span class="status-badge sb-pending">待審核</span></td>
+        <td>
+          <button class="action-btn approve" onclick="approveRegistration('廖志豪')">核准</button>
+          <button class="action-btn reject" onclick="rejectRegistration('廖志豪')">拒絕</button>
+        </td>
+      </tr>`;
+    const badge = document.getElementById('st-approval-badge');
+    if (badge) { badge.textContent = '2'; badge.style.display = 'inline'; }
+  }
+  // 公告管理
+  const noticeList = document.getElementById('stp-notices');
+  // already has mock content from HTML
+}
+
+// ══════════════════════════════════════
+// UI 函式（保留）
+// ══════════════════════════════════════
+function pSwitchTab(t) {
+  document.querySelectorAll('.p-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.p-tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.p-nav-item').forEach(el => el.classList.remove('active'));
+  const tab = document.getElementById('ptab-' + t);
+  const content = document.getElementById('pc-' + t);
+  const nav = document.getElementById('pnav-' + t);
+  if (tab) tab.classList.add('active');
+  if (content) content.classList.add('active');
+  if (nav) nav.classList.add('active');
+}
+
+function clearBadge(...ids) {
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+}
+
+function svPage(p, el) {
+  document.querySelectorAll('[id^="svp-"]').forEach(e => e.style.display = 'none');
+  document.querySelectorAll('.sv-menu-item').forEach(e => e.classList.remove('active'));
+  const page = document.getElementById('svp-' + p);
+  if (page) page.style.display = 'block';
+  if (el) el.classList.add('active');
+}
+
+function stPage(p, el) {
+  document.querySelectorAll('[id^="stp-"]').forEach(e => e.style.display = 'none');
+  document.querySelectorAll('.st-menu-item').forEach(e => e.classList.remove('active'));
+  const page = document.getElementById('stp-' + p);
+  if (page) page.style.display = 'block';
+  if (el) el.classList.add('active');
+}
+
+function renderQ(filterCat) {
+  const list = document.getElementById('p-quest-list');
+  if (!list) return;
+  const filtered = filterCat && filterCat !== 'all'
+    ? QUEST_DATA.filter(q => q.cat === filterCat)
+    : QUEST_DATA;
+  const countEl = document.getElementById('quest-count');
+  if (countEl) countEl.textContent = filtered.filter(q => !q.locked).length;
+  list.innerHTML = filtered.map(q => `
+    <div class="q-card cat-${q.cat}${q.locked ? ' locked' : ''}" onclick="${q.locked ? '' : `openQuestModal(${JSON.stringify(q).replace(/"/g,"'")})`}">
+      <div class="q-top">
+        <div class="q-name">${q.name}</div>
+        <div class="q-reward">$${q.reward}</div>
+      </div>
+      <div class="q-meta">
+        <span class="qtag qtag-cat">${catLabel(q.cat)}</span>
+        <span class="qtag qtag-time">⏱ ${q.time}</span>
+        ${q.locked ? `<span class="qtag qtag-lock">🔒 需升級解鎖</span>` : `<span class="qtag qtag-lvl">Lv.${q.level}</span>`}
+      </div>
+      <div class="q-desc">${q.desc}</div>
+    </div>`).join('');
+}
+
+function catLabel(cat) {
+  return {text:'✍️ 文字',social:'📣 口碑',visual:'🎨 視覺',data:'📊 資料',video:'🎬 影音'}[cat] || cat;
+}
+
+function filterQ(el, cat) {
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderQ(cat);
+}
+
+function openQuestModal(q) {
+  currentQuestData = q;
+  document.getElementById('qm-title').textContent = q.name;
+  document.getElementById('qm-cat').textContent = catLabel(q.cat);
+  document.getElementById('qm-reward').textContent = '$' + q.reward;
+  document.getElementById('qm-desc').textContent = q.desc;
+  document.getElementById('qm-deadline').textContent = q.deadline || '';
+  document.getElementById('qm-steps').innerHTML = (q.steps || []).map((s,i) =>
+    `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`
+  ).join('');
+  document.getElementById('quest-modal').classList.add('open');
+}
+
+function closeQuestModal() {
+  document.getElementById('quest-modal').classList.remove('open');
+  currentQuestData = null;
+}
+
+function acceptQuest() {
+  if (!currentQuestData) return;
+  alert(`✅ 已接受任務：${currentQuestData.name}\n請在「📝 回報」分頁提交你的進度。`);
+  closeQuestModal();
+}
+
+function submitWL() {
+  const qty = document.getElementById('wl-qty')?.value;
+  if (!qty) { alert('請輸入完成數量'); return; }
+  spawnCoin();
+  setTimeout(() => alert('✅ 回報已送出！督導已收到，等待審核中。'), 500);
+  if (document.getElementById('wl-qty')) document.getElementById('wl-qty').value = '';
+  if (document.getElementById('wl-note')) document.getElementById('wl-note').value = '';
+  if (document.getElementById('wl-url')) document.getElementById('wl-url').value = '';
+}
+
+function spawnCoin() {
+  const coin = document.createElement('div');
+  coin.className = 'coin-pop';
+  coin.textContent = '💰';
+  coin.style.cssText = `left:${Math.random()*60+20}%;top:60%`;
+  document.body.appendChild(coin);
+  setTimeout(() => coin.remove(), 1000);
+}
+
+function cancelTask(btn, name) {
+  if (!confirm(`確定要放棄任務「${name}」嗎？`)) return;
+  const card = btn.closest('.active-task-item');
+  if (card) {
+    card.style.transition = 'opacity .3s, transform .3s';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(-20px)';
+    setTimeout(() => card.remove(), 300);
+  }
+}
+
+function toggleRevInput(btn) {
+  const wrap = btn.closest('.wl-review-card')?.querySelector('.revision-input-wrap');
+  if (wrap) wrap.classList.toggle('open');
+}
+
+function approveWL(btn) {
+  const card = btn.closest('.wl-review-card');
+  if (card) {
+    card.style.opacity = '0.4';
+    card.style.pointerEvents = 'none';
+    card.querySelector('.wl-rev-btns').innerHTML = '<span style="color:var(--green);font-weight:700;font-size:.85rem">✅ 已核准</span>';
+  }
+}
+
+function sendRevision(btn) {
+  const wrap = btn.closest('.revision-input-wrap');
+  const note = wrap?.querySelector('textarea')?.value;
+  if (!note?.trim()) { alert('請填寫修改意見'); return; }
+  alert('📝 修改意見已送出，夥伴將重新提交。');
+  wrap.style.display = 'none';
+}
+
+function toggleAI(el) {
+  const sw = el.querySelector('.tog-sw');
+  const lbl = el.querySelector('#ai-lbl');
+  const tools = document.getElementById('ai-tools');
+  const isOn = sw.classList.toggle('on');
+  lbl.textContent = isOn ? '有使用 AI 工具' : '沒有使用 AI 工具';
+  if (tools) tools.style.display = isOn ? 'flex' : 'none';
+}
+
+function saveMentorLog() {
+  const note = document.getElementById('mentor-note')?.value;
+  if (!note?.trim()) { alert('請填寫輔導內容'); return; }
+  alert('✅ 督導紀錄已儲存！');
+  if (document.getElementById('mentor-note')) document.getElementById('mentor-note').value = '';
+}
+
+function assignTask() {
+  const partner = document.getElementById('assign-partner')?.value;
+  const task = document.getElementById('assign-task')?.value;
+  if (!partner || !task) { alert('請選擇夥伴和任務'); return; }
+  alert(`✅ 已派案：\n${task}\n指派給：${partner}`);
+}
+
+function fakeUpload(el) {
+  el.querySelector('.uz-text').textContent = '✅ 已上傳';
+  el.style.borderColor = 'var(--green)';
+  el.style.background = 'var(--green-p)';
+}
+
+function regStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const panel = document.getElementById('rp' + i);
+    if (panel) panel.style.display = i === n ? 'block' : 'none';
+    const ind = document.getElementById('si' + i);
+    if (ind) ind.className = 'si' + (i === n ? ' active' : i < n ? ' done' : '');
+  }
+  window.scrollTo(0, 0);
+}
+
+function openDetail(name, cls, income, comms, avgRev, firstpass) {
+  document.getElementById('detail-name').textContent = name;
+  document.getElementById('detail-class').textContent = cls;
+  document.getElementById('detail-income').textContent = income;
+  document.getElementById('detail-comms').textContent = comms;
+  document.getElementById('detail-avg-rev').textContent = avgRev;
+  document.getElementById('detail-firstpass').textContent = firstpass;
+  document.getElementById('case-detail-overlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('case-detail-overlay').classList.remove('open');
+}
+
+function confirmPayment(btn, name, amount) {
+  if (!confirm(`確認已匯款給 ${name} ${amount}？`)) return;
+  btn.textContent = '✅ 已確認';
+  btn.disabled = true;
+  btn.style.background = 'var(--green)';
+  btn.style.color = '#fff';
+}
+
+function approveRegistration(name) {
+  if (!confirm(`確認核准「${name}」的申請？`)) return;
+  alert('✅ 已核准！（展示版）');
+}
+
+function rejectRegistration(name) {
+  if (!confirm(`確認拒絕「${name}」的申請？`)) return;
+  alert('已拒絕申請。（展示版）');
+}
+
+// ══════════════════════════════════════
+// 啟動
+// ══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('float-nav').style.display = 'none';
+  renderQ('all');
+});
+</script>
+
+<!-- 浮動切換按鈕 -->
+<div id="float-nav" style="position:fixed;bottom:1.4rem;right:1.4rem;z-index:9999">
+  <div id="float-menu" style="display:none;flex-direction:column;gap:.5rem;margin-bottom:.6rem;align-items:flex-end">
+    <button onclick="enterRole('partner');toggleFloat()" style="background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:12px;padding:.55rem 1rem;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(72,180,232,.4);white-space:nowrap;font-family:'Noto Sans TC',sans-serif">⚔️ 工作夥伴</button>
+    <button onclick="enterRole('supervisor');toggleFloat()" style="background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:12px;padding:.55rem 1rem;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(72,180,232,.4);white-space:nowrap;font-family:'Noto Sans TC',sans-serif">📖 督導人員</button>
+    <button onclick="enterRole('staff');toggleFloat()" style="background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:12px;padding:.55rem 1rem;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(72,180,232,.4);white-space:nowrap;font-family:'Noto Sans TC',sans-serif">🧹 工作人員</button>
+    <button onclick="goView('home');toggleFloat()" style="background:#fff;color:#1A8AC0;border:2px solid #48B4E8;border-radius:12px;padding:.55rem 1rem;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(72,180,232,.2);white-space:nowrap;font-family:'Noto Sans TC',sans-serif">🏠 回首頁</button>
+  </div>
+  <button id="float-toggle" onclick="toggleFloat()" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 20px rgba(72,180,232,.45);display:flex;align-items:center;justify-content:center;transition:transform .2s">⇄</button>
+</div>
+</body>
+</html>

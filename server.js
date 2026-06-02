@@ -98,13 +98,20 @@ app.post('/api/change-password', requireAuth, async (req, res) => {
 
 app.post('/api/forgot-password', async (req, res) => {
   try {
-    const { username } = req.body;
-    if (!username) return res.status(400).json({ error: 'Missing username' });
-    const user = await Users.byName(username);
-    if (!user || user.status !== 'active') return res.status(404).json({ error: 'Account not found' });
-    if (await ForgotReqs.byUser(user.id)) return res.json({ ok: true, msg: 'Already submitted' });
+    const { real_name, id_number, birthday } = req.body;
+    if (!real_name || !id_number || !birthday)
+      return res.status(400).json({ error: '請填寫姓名、身分證及生日' });
+    const all  = await Users.all();
+    const user = all.find(u =>
+      u.real_name  === real_name.trim() &&
+      u.id_number  === id_number.trim().toUpperCase() &&
+      u.birthday   === birthday &&
+      u.status     === 'active'
+    );
+    if (!user) return res.status(404).json({ error: '資料不符，請確認姓名、身分證及生日是否正確' });
+    if (await ForgotReqs.byUser(user.id)) return res.json({ ok: true, msg: '申請已送出，請等待工作人員處理' });
     await ForgotReqs.create(user.id);
-    res.json({ ok: true, msg: 'Request submitted' });
+    res.json({ ok: true, msg: '申請已送出！工作人員將盡快重設密碼' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

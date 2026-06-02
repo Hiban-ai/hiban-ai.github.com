@@ -89,7 +89,19 @@ const ForgotReqs = {
 // ── 種子帳號 ──────────────────────────────────────────────────
 async function seed() {
   const snap = await db.collection('users').limit(1).get();
-  if (!snap.empty) return;
+  if (!snap.empty) {
+    // 補建 admin（若不存在）
+    const adminSnap = await db.collection('users').where('username','==','admin').limit(1).get();
+    if (adminSnap.empty) {
+      await Users.create({
+        username:'admin', real_name:'系統管理員', nickname:null,
+        role:'staff', status:'active', is_first_login:false,
+        password_hash: bcrypt.hashSync('1234', 10),
+      });
+      console.log('✅ Firebase: Admin 帳號已補建');
+    }
+    return;
+  }
 
   const defaultPw = bcrypt.hashSync('0000', 10);
   const adminPw   = bcrypt.hashSync('1234', 10);

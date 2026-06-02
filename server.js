@@ -183,9 +183,9 @@ app.get('/api/admin/forgot-requests', requireRole('staff'), (req, res) => {
   res.json(rows);
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('\nServer started: http://localhost:' + PORT);
   console.log('Default accounts (password: 0000)');
-  console.log('  staff01 / supervisor01 / partner01 (first login) / partner02');
+  console.log('  admin(1234) / staff01 / supervisor01 / partner01 (first login) / partner02');
 });

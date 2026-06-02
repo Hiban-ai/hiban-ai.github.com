@@ -1,73 +1,109 @@
-// db.js — 使用 lowdb（JSON 檔案資料庫，純 JS，無需編譯）
-const low     = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
-const bcrypt  = require('bcryptjs');
-const path    = require('path');
+// db.js — Firebase Firestore 版本
+const admin  = require('firebase-admin');
+const bcrypt = require('bcryptjs');
 
-const adapter = new FileSync(path.join(__dirname, 'hiban_db.json'));
-const db      = low(adapter);
-
-// 預設資料結構
-db.defaults({ users: [], forgot_requests: [], _nextId: { users: 1, forgot: 1 } }).write();
-
-// ── 工具函式 ──────────────────────────────────────────────────
-function nextId(table) {
-  const id = db.get(`_nextId.${table}`).value();
-  db.set(`_nextId.${table}`, id + 1).write();
-  return id;
+// ── 初始化 Firebase ──────────────────────────────────────────
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  if (serviceAccount.private_key)
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+} else {
+  serviceAccount = require('./firebase-key.json');
 }
+
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const db = admin.firestore();
 
 function now() {
   return new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
 }
 
+// ── 自動遞增 ID ───────────────────────────────────────────────
+async function nextId(table) {
+  const ref = db.collection('_meta').doc('counters');
+  return db.runTransaction(async t => {
+    const doc  = await t.get(ref);
+    const data = doc.exists ? doc.data() : {};
+    const next = (data[table] || 0) + 1;
+    t.set(ref, { ...data, [table]: next }, { merge: true });
+    return next;
+  });
+}
+
 // ── Users ─────────────────────────────────────────────────────
 const Users = {
-  all:    ()     => db.get('users').value(),
-  byId:   (id)   => db.get('users').find({ id }).value(),
-  byName: (username) => db.get('users').find({ username }).value(),
-
-  create(data) {
-    const user = { id: nextId('users'), created_at: now(), ...data };
-    db.get('users').push(user).write();
+  async all() {
+    const snap = await db.collection('users').get();
+    return snap.docs.map(d => d.data());
+  },
+  async byId(id) {
+    const snap = await db.collection('users').where('id','==',id).limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async byName(username) {
+    const snap = await db.collection('users').where('username','==',username).limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async create(data) {
+    const id   = await nextId('users');
+    const user = { id, created_at: now(), ...data };
+    await db.collection('users').doc(String(id)).set(user);
     return user;
   },
-
-  update(id, patch) {
-    db.get('users').find({ id }).assign(patch).write();
+  async update(id, patch) {
+    await db.collection('users').doc(String(id)).update(patch);
     return this.byId(id);
   },
-
-  delete(id) {
-    db.get('users').remove({ id }).write();
+  async delete(id) {
+    await db.collection('users').doc(String(id)).delete();
   },
 };
 
 // ── ForgotRequests ────────────────────────────────────────────
 const ForgotReqs = {
-  pending:     ()      => db.get('forgot_requests').filter({ status: 'pending' }).value(),
-  byUser:      (uid)   => db.get('forgot_requests').find({ user_id: uid, status: 'pending' }).value(),
-  create(uid)          { db.get('forgot_requests').push({ id: nextId('forgot'), user_id: uid, status: 'pending', created_at: now() }).write(); },
-  resolveByUser(uid)   { db.get('forgot_requests').find({ user_id: uid, status: 'pending' }).assign({ status: 'done' }).write(); },
+  async pending() {
+    const snap = await db.collection('forgot_requests').where('status','==','pending').get();
+    return snap.docs.map(d => d.data());
+  },
+  async byUser(uid) {
+    const snap = await db.collection('forgot_requests')
+      .where('user_id','==',uid).where('status','==','pending').limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async create(uid) {
+    const id = await nextId('forgot');
+    await db.collection('forgot_requests').doc(String(id)).set({
+      id, user_id: uid, status: 'pending', created_at: now()
+    });
+  },
+  async resolveByUser(uid) {
+    const snap = await db.collection('forgot_requests')
+      .where('user_id','==',uid).where('status','==','pending').get();
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.update(d.ref, { status: 'done' }));
+    await batch.commit();
+  },
 };
 
 // ── 種子帳號 ──────────────────────────────────────────────────
-function seed() {
-  if (Users.all().length > 0) return; // 已有資料就跳過
+async function seed() {
+  const snap = await db.collection('users').limit(1).get();
+  if (!snap.empty) return;
 
   const defaultPw = bcrypt.hashSync('0000', 10);
-  const adminPw = bcrypt.hashSync('1234', 10);
+  const adminPw   = bcrypt.hashSync('1234', 10);
   const seeds = [
-    { username: 'admin',        real_name: '系統管理員', nickname: null,       role: 'staff',      status: 'active',   is_first_login: false, password_hash: adminPw },
-    { username: 'staff01',      real_name: '張管理',  nickname: null,        role: 'staff',      status: 'active',   is_first_login: false, password_hash: defaultPw },
-    { username: 'supervisor01', real_name: '陳督導',  nickname: null,        role: 'supervisor', status: 'active',   is_first_login: false, password_hash: defaultPw },
-    { username: 'partner01',    real_name: '陳小花',  nickname: '月影旅者',  role: 'partner',    status: 'active',   is_first_login: true,  password_hash: defaultPw },
-    { username: 'partner02',    real_name: '林大明',  nickname: '靜默劍士',  role: 'partner',    status: 'active',   is_first_login: false, password_hash: defaultPw },
+    { username:'admin',        real_name:'系統管理員', nickname:null,         role:'staff',      status:'active', is_first_login:false, password_hash:adminPw   },
+    { username:'staff01',      real_name:'張管理',     nickname:null,         role:'staff',      status:'active', is_first_login:false, password_hash:defaultPw },
+    { username:'supervisor01', real_name:'陳督導',     nickname:null,         role:'supervisor', status:'active', is_first_login:false, password_hash:defaultPw },
+    { username:'partner01',    real_name:'陳小花',     nickname:'月影旅者',   role:'partner',    status:'active', is_first_login:true,  password_hash:defaultPw },
+    { username:'partner02',    real_name:'林大明',     nickname:'靜默劍士',   role:'partner',    status:'active', is_first_login:false, password_hash:defaultPw },
   ];
-  seeds.forEach(s => Users.create(s));
-  console.log('✅ 已建立預設帳號');
+  for (const s of seeds) await Users.create(s);
+  console.log('✅ Firebase: 預設帳號已建立');
 }
 
-seed();
+seed().catch(console.error);
 
 module.exports = { Users, ForgotReqs };

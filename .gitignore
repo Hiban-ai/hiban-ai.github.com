@@ -2,3 +2,5 @@ node_modules/
 hiban_db.json
 *.log
 .env
+.claude/
+firebase-key.json

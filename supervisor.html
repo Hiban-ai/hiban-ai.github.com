@@ -296,14 +296,14 @@ function sendRevision(btn) {
 async function loadPartners() {
   try {
     const users = await API.get('/api/users-list?role=partner');
-    const opts = users.map(u=>`<option value="${u.id}">${u.nickname||u.real_name}</option>`).join('');
+    const opts = users.map(u=>`<option value="${u.id}">${u.real_name}</option>`).join('');
     document.querySelectorAll('#mentor-partner-sel,#assign-partner-sel').forEach(sel=>{
       sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     });
     // 夥伴管理 table
     const tbody = document.getElementById('sv-partner-tbody');
     tbody.innerHTML = users.map(u=>`
-      <tr><td>${u.nickname||'—'}<br><span style="font-size:.72rem;color:var(--text-s)">${u.real_name}</span></td>
+      <tr><td style="font-weight:700;color:var(--text)">${u.real_name}</td>
       <td>⚔️ 文字學徒</td><td>3件</td><td>$350</td><td>今天</td>
       <td><span class="status-badge sb-active">正常</span></td></tr>
     `).join('');

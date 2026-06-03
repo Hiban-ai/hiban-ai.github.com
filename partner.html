@@ -31,9 +31,16 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .pt-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
 .pt-logo-name{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:900;color:#fff}
 .pt-char-row{display:flex;align-items:center;gap:.6rem;margin-top:.75rem}
-.pt-char-ava{width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
-  border:2px solid rgba(255,255,255,.3)}
+.pt-char-ava{width:48px;height:48px;background:rgba(255,255,255,.2);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.35);cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .2s}
+.pt-char-ava:hover{border-color:rgba(255,255,255,.7)}
+.pt-char-ava:hover .ava-hover{opacity:1}
+.ava-hover{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;
+  justify-content:center;font-size:.55rem;color:#fff;font-weight:700;opacity:0;transition:opacity .2s;
+  text-align:center;line-height:1.3;letter-spacing:.02em}
+.pt-char-ava img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:none}
 .pt-char-name{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:#fff;line-height:1.3}
 .pt-char-class{display:inline-block;margin-top:.15rem;padding:.1rem .4rem;
   background:rgba(255,255,255,.15);border-radius:4px;font-size:.62rem;color:rgba(255,255,255,.85);font-weight:600}
@@ -172,9 +179,14 @@ textarea.form-input{resize:none}
     <div class="pt-sidebar-logo">
       <div class="pt-logo-name">希絆雲作所</div>
       <div class="pt-char-row">
-        <div class="pt-char-ava">🧑</div>
+        <div class="pt-char-ava" onclick="document.getElementById('ava-input').click()" title="點擊更換頭像">
+          <img id="ava-img">
+          <span id="ava-emoji">🧑</span>
+          <div class="ava-hover">換<br>頭像</div>
+        </div>
+        <input type="file" id="ava-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
         <div>
-          <div class="pt-char-name" id="char-nickname">—</div>
+          <div class="pt-char-name" id="char-realname-sidebar">—</div>
           <div class="pt-char-class">⚔️ 文字學徒</div>
         </div>
       </div>
@@ -515,10 +527,41 @@ async function saveBank() {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+// ── 頭像上傳 ─────────────────────────────────────────────────
+let meId = null;
+
+function loadAvatar(id) {
+  const saved = localStorage.getItem('hiban_ava_' + id);
+  if (saved) {
+    document.getElementById('ava-img').src = saved;
+    document.getElementById('ava-img').style.display = 'block';
+    document.getElementById('ava-emoji').style.display = 'none';
+  }
+}
+
+function uploadAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) { showToast('圖片請小於 3MB', 'warn'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    localStorage.setItem('hiban_ava_' + meId, base64);
+    document.getElementById('ava-img').src = base64;
+    document.getElementById('ava-img').style.display = 'block';
+    document.getElementById('ava-emoji').style.display = 'none';
+    showToast('頭像已更新 ✓', 'success');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
 async function init() {
   const me = await requireAuth(['partner']);
   if (!me) return;
-  document.getElementById('char-nickname').textContent = me.nickname || me.real_name;
+  meId = me.id;
+  document.getElementById('char-realname-sidebar').textContent = me.real_name;
+  loadAvatar(me.id);
   const p = await API.get('/api/profile');
   fillProfile(p);
   renderQuests();

@@ -68,7 +68,7 @@ app.get('/api/profile', requireAuth, async (req, res) => {
 app.put('/api/profile', requireAuth, async (req, res) => {
   try {
     const role    = req.session.user.role;
-    const allowed = role === 'partner' ? ['phone','address'] : ['phone'];
+    const allowed = ['phone','address'];
     const patch   = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) patch[f] = req.body[f]; });
     await Users.update(req.session.user.id, patch);

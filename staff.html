@@ -280,13 +280,24 @@ tr:hover td{background:var(--blue-p)}
     <!-- 個人資料 -->
     <div class="page-section" id="page-profile">
       <div class="page-title">🧑 個人資料</div>
-      <div class="card" style="max-width:480px">
-        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">帳號資訊</div>
-        <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)"><span style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">帳號</span><span style="font-size:.9rem;font-weight:600" id="prof-username">—</span></div>
-        <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)"><span style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">姓名</span><span style="font-size:.9rem;font-weight:600" id="prof-realname">—</span></div>
-        <div style="display:flex;gap:.5rem;align-items:center;padding:.6rem 0"><span style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">角色</span><span style="font-size:.82rem;font-weight:700;padding:.15rem .5rem;background:var(--yellow-p);color:#7A5010;border-radius:4px">🧹 工作人員</span></div>
+      <div class="card" style="max-width:520px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
+          <button id="st-prof-edit-btn" onclick="toggleStProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名</label><input class="form-input" id="st-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="st-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="st-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="st-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="st-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+        </div>
+        <div id="st-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
+          <button onclick="saveStProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
+          <button onclick="cancelStProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        </div>
       </div>
-      <div class="card" style="max-width:480px">
+      <div class="card" style="max-width:520px">
         <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
         <div id="prof-cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
@@ -338,14 +349,6 @@ tr:hover td{background:var(--blue-p)}
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" id="cu-email" placeholder="選填" type="email" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem">
-        <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身份別</label>
-        <select class="form-input" id="cu-identity" style="flex:1">
-          <option value="">請選擇（選填）</option>
-          <option>身心障礙者</option><option>單親家庭</option>
-          <option>中高齡者（45歲以上）</option><option>二度就業婦女</option><option>其他弱勢族群</option>
-        </select>
-      </div>
     </div>
     <div style="display:flex;gap:.5rem">
       <button class="btn-cancel" onclick="closeCreateUser()" style="flex:1">取消</button>
@@ -375,9 +378,9 @@ async function init() {
   me = await requireAuth(['staff']);
   if (!me) return;
   document.getElementById('st-user-label').textContent = me.real_name;
-  document.getElementById('prof-username').textContent = me.username;
-  document.getElementById('prof-realname').textContent = me.real_name;
   initCuBday();
+  const p = await API.get('/api/profile');
+  fillStProfile(p);
   await Promise.all([loadAccounts(), loadForgotRequests()]);
   updateDashboard();
 }
@@ -584,7 +587,6 @@ function openCreateUser(role) {
   ['cu-name','cu-id','cu-phone','cu-email','cu-address'].forEach(id => document.getElementById(id).value = '');
   ['cu-bday-year','cu-bday-month','cu-bday-day'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('cu-birthday').value = '';
-  document.getElementById('cu-identity').value = '';
   document.getElementById('cu-err').style.display = 'none';
   document.getElementById('create-user-overlay').classList.add('open');
 }
@@ -601,17 +603,59 @@ async function submitCreateUser() {
   const phone     = document.getElementById('cu-phone').value.trim();
   const email     = document.getElementById('cu-email').value.trim();
   const address   = document.getElementById('cu-address').value.trim();
-  const identity  = document.getElementById('cu-identity').value;
   if (!real_name) { err.textContent='請填寫姓名'; err.style.display='block'; return; }
   if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
   if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
   if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
   try {
-    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, identity });
+    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address });
     closeCreateUser();
     showToast(`帳號已建立：${res.username}`, 'success');
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+// ── 個人資料 — 基本資料 ──
+let stProfData = {};
+
+function fillStProfile(p) {
+  stProfData = p;
+  document.getElementById('st-prof-real-name').value  = p.real_name  || '';
+  document.getElementById('st-prof-id-number').value  = p.id_number  || '';
+  document.getElementById('st-prof-birthday').value   = p.birthday   || '';
+  document.getElementById('st-prof-phone').value      = p.phone      || '';
+  document.getElementById('st-prof-address').value    = p.address    || '';
+}
+function setStFieldEditable(ids, on) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    el.disabled = !on;
+    el.style.background = on ? '#fff' : 'var(--bg)';
+    el.style.color = on ? 'var(--text)' : 'var(--text-s)';
+  });
+}
+function toggleStProfEdit() {
+  setStFieldEditable(['st-prof-phone','st-prof-address'], true);
+  document.getElementById('st-prof-edit-btn').style.display = 'none';
+  document.getElementById('st-prof-save-row').style.display = 'flex';
+}
+function cancelStProfEdit() {
+  fillStProfile(stProfData);
+  setStFieldEditable(['st-prof-phone','st-prof-address'], false);
+  document.getElementById('st-prof-edit-btn').style.display = '';
+  document.getElementById('st-prof-save-row').style.display = 'none';
+}
+async function saveStProfile() {
+  try {
+    await API.put('/api/profile', {
+      phone:   document.getElementById('st-prof-phone').value,
+      address: document.getElementById('st-prof-address').value,
+    });
+    stProfData.phone   = document.getElementById('st-prof-phone').value;
+    stProfData.address = document.getElementById('st-prof-address').value;
+    cancelStProfEdit();
+    showToast('個人資料已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 // ── 個人資料 — 修改密碼 ──

@@ -219,33 +219,31 @@ textarea.form-input{resize:none}
     <!-- 個人資料 -->
     <div class="page-section" id="page-profile">
       <div class="page-title">🧑 個人資料</div>
-      <div class="card" style="max-width:480px">
-        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">👤 基本資料</div>
-        <div style="display:grid;grid-template-columns:80px 1fr;row-gap:.7rem;align-items:center">
-          <span style="font-size:.82rem;color:var(--text-s)">姓名</span><span style="font-size:.92rem;font-weight:600" id="prof-realname">—</span>
-          <span style="font-size:.82rem;color:var(--text-s)">身分證</span><span style="font-size:.92rem;font-weight:600;letter-spacing:.05em" id="prof-id-number">—</span>
-          <span style="font-size:.82rem;color:var(--text-s)">生日</span><span style="font-size:.92rem;font-weight:600" id="prof-birthday">—</span>
-          <span style="font-size:.82rem;color:var(--text-s)">電話</span><span style="font-size:.92rem;font-weight:600" id="prof-phone">—</span>
+      <div class="card" style="max-width:520px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
+          <button id="sv-prof-edit-btn" onclick="toggleSvProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名</label><input class="form-input" id="sv-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="sv-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="sv-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="sv-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="sv-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+        </div>
+        <div id="sv-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
+          <button onclick="saveSvProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
+          <button onclick="cancelSvProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
         </div>
       </div>
 
-      <!-- 修改密碼：簡潔橫排風格 -->
-      <div class="card" style="max-width:480px">
+      <div class="card" style="max-width:520px">
         <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
         <div id="cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label>
-            <input class="form-input" type="password" id="cpw-current" placeholder="輸入目前密碼" style="flex:1">
-          </div>
-          <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label>
-            <input class="form-input" type="password" id="cpw-new" placeholder="至少 4 碼" style="flex:1">
-          </div>
-          <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label>
-            <input class="form-input" type="password" id="cpw-confirm" placeholder="再輸入一次" style="flex:1">
-          </div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="cpw-new" placeholder="至少 4 碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
         </div>
         <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,112,160,.3);transition:all .25s">更新密碼</button>
       </div>
@@ -310,6 +308,49 @@ async function loadPartners() {
   } catch {}
 }
 
+// ── 個人資料 — 基本資料 ──
+let svProfData = {};
+
+function fillSvProfile(p) {
+  svProfData = p;
+  document.getElementById('sv-prof-real-name').value  = p.real_name  || '';
+  document.getElementById('sv-prof-id-number').value  = p.id_number  || '';
+  document.getElementById('sv-prof-birthday').value   = p.birthday   || '';
+  document.getElementById('sv-prof-phone').value      = p.phone      || '';
+  document.getElementById('sv-prof-address').value    = p.address    || '';
+}
+function setSvFieldEditable(ids, on) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    el.disabled = !on;
+    el.style.background = on ? '#fff' : 'var(--bg)';
+    el.style.color = on ? 'var(--text)' : 'var(--text-s)';
+  });
+}
+function toggleSvProfEdit() {
+  setSvFieldEditable(['sv-prof-phone','sv-prof-address'], true);
+  document.getElementById('sv-prof-edit-btn').style.display = 'none';
+  document.getElementById('sv-prof-save-row').style.display = 'flex';
+}
+function cancelSvProfEdit() {
+  fillSvProfile(svProfData);
+  setSvFieldEditable(['sv-prof-phone','sv-prof-address'], false);
+  document.getElementById('sv-prof-edit-btn').style.display = '';
+  document.getElementById('sv-prof-save-row').style.display = 'none';
+}
+async function saveSvProfile() {
+  try {
+    await API.put('/api/profile', {
+      phone:   document.getElementById('sv-prof-phone').value,
+      address: document.getElementById('sv-prof-address').value,
+    });
+    svProfData.phone   = document.getElementById('sv-prof-phone').value;
+    svProfData.address = document.getElementById('sv-prof-address').value;
+    cancelSvProfEdit();
+    showToast('個人資料已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
 async function changePassword() {
   const err = document.getElementById('cpw-err');
   err.style.display='none';
@@ -332,10 +373,7 @@ async function init() {
   if (!me) return;
   document.getElementById('sv-user-label').textContent = me.real_name;
   const p = await API.get('/api/profile');
-  document.getElementById('prof-realname').textContent  = p.real_name  || '—';
-  document.getElementById('prof-id-number').textContent = p.id_number  || '—';
-  document.getElementById('prof-birthday').textContent  = p.birthday   || '—';
-  document.getElementById('prof-phone').textContent     = p.phone      || '—';
+  fillSvProfile(p);
   loadPartners();
 }
 init();

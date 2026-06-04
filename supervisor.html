@@ -291,6 +291,14 @@ textarea.form-input{resize:none}
             <div style="flex:1;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.72rem 1rem;font-family:'Noto Serif TC',serif;font-weight:700;color:var(--blue-d);font-size:1rem" id="assign-total">$0</div>
           </div>
 
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">完成期限</label>
+            <div style="flex:1;display:flex;align-items:center;gap:.5rem">
+              <input class="form-input" type="number" id="assign-days" min="1" placeholder="天數" style="flex:1">
+              <span style="font-size:.9rem;color:var(--text-s);white-space:nowrap">天內完成</span>
+            </div>
+          </div>
+
           <div style="display:flex;align-items:flex-start;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.7rem">補充說明</label>
             <textarea class="form-input" id="assign-notes" rows="3" placeholder="特別提醒或指示...（選填）" style="flex:1"></textarea>
@@ -351,18 +359,21 @@ async function submitAssign() {
   const qty    = document.getElementById('assign-qty').value;
   const price  = document.getElementById('assign-price').value;
   const notes  = document.getElementById('assign-notes').value;
+  const days   = document.getElementById('assign-days').value;
   if (!target) { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
   if (!task)   { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
   if (!qty || parseInt(qty) < 1)    { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
   if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
+  if (!days || parseInt(days) < 1)  { err.textContent = '請填寫完成期限'; err.style.display = 'block'; return; }
   try {
     await API.post('/api/assignments', {
       task_name: task, quantity: qty, unit_price: price, notes,
+      deadline_days: parseInt(days),
       assign_type: target === 'all' ? 'all' : 'individual',
       target_partner_id: target === 'all' ? null : parseInt(target),
     });
     showToast('派案成功！', 'success');
-    ['assign-target','assign-task','assign-qty','assign-price','assign-notes'].forEach(id => document.getElementById(id).value = '');
+    ['assign-target','assign-task','assign-qty','assign-price','assign-notes','assign-days'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('assign-total').textContent = '$0';
     loadAssignHistory();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }

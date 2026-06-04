@@ -240,13 +240,14 @@ app.get('/api/_setup/admin', async (req, res) => {
 
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, quantity, unit_price, notes, assign_type, target_partner_id } = req.body;
+    const { task_name, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days } = req.body;
     if (!task_name || !quantity || !unit_price) return res.status(400).json({ error: '缺少必填欄位' });
     if (assign_type === 'individual' && !target_partner_id) return res.status(400).json({ error: '請選擇指派對象' });
     const qty = parseInt(quantity), price = parseInt(unit_price);
     const item = await Assignments.create({
       task_name, quantity: qty, unit_price: price, total_price: qty * price,
       notes: notes || '',
+      deadline_days: parseInt(deadline_days) || 7,
       assign_type: assign_type || 'individual',
       target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
       supervisor_id: req.session.user.id,

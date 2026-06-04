@@ -507,31 +507,43 @@ function renderPending(list) {
     el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有待回覆的派案</div>';
     return;
   }
-  el.innerHTML = list.map(a => `
-    <div style="background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:.65rem;overflow:hidden;border:1.5px solid var(--border-l)">
-      <div onclick="toggleDetail(this)" style="padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
-        <div>
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">${a.task_name}</div>
-          <div style="font-size:.78rem;color:var(--text-s);margin-top:.15rem">督導：${a.supervisor_name||'—'} ・ $${(a.total_price||0).toLocaleString()}</div>
+  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
+  el.innerHTML = list.map(a => {
+    const color = taskColor[a.task_name] || 'var(--blue)';
+    return `
+    <div style="background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${color};overflow:hidden">
+      <!-- 摘要列（點擊展開） -->
+      <div onclick="toggleDetail(this)" style="padding:1rem 1.1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
+          </div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem">
+            <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
+            ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days}天</span>` : ''}
+            <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity}件</span>
+            ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
+          </div>
         </div>
-        <span style="font-size:.85rem;color:var(--text-s);transition:transform .2s" class="toggle-arrow">▼</span>
+        <span style="font-size:.8rem;color:var(--text-s);transition:transform .2s;margin-left:.75rem;flex-shrink:0" class="toggle-arrow">▼</span>
       </div>
-      <div class="task-detail" style="display:none;padding:0 1rem 1rem">
-        <div style="border-top:1px solid var(--border-l);padding-top:.75rem;display:flex;flex-direction:column;gap:.4rem;font-size:.85rem;color:var(--text-m);margin-bottom:.75rem">
-          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">任務</span><strong>${a.task_name}</strong></div>
-          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">數量</span><strong>${a.quantity} 件</strong></div>
-          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">單價</span><strong>$${(a.unit_price||0).toLocaleString()}</strong></div>
-          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">總價</span><strong style="color:var(--blue-d);font-family:'Noto Serif TC',serif;font-size:1rem">$${(a.total_price||0).toLocaleString()}</strong></div>
+      <!-- 詳細內容 -->
+      <div class="task-detail" style="display:none;padding:0 1.1rem 1rem">
+        <div style="border-top:1px solid var(--border-l);padding-top:.75rem;display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m);margin-bottom:.75rem">
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">督導</span><span>${a.supervisor_name||'—'}</span></div>
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">單價</span><span>$${(a.unit_price||0).toLocaleString()} / 件</span></div>
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">總價</span><strong style="color:var(--blue-d);font-family:'Noto Serif TC',serif">$${(a.total_price||0).toLocaleString()}</strong></div>
+          ${a.deadline_days ? `<div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">期限</span><span>${a.deadline_days} 天內完成</span></div>` : ''}
           ${a.notes ? `<div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">說明</span><span>${a.notes}</span></div>` : ''}
-          ${a.assign_type==='all' ? '<div style="color:var(--orange);font-size:.78rem;font-weight:700;margin-top:.25rem">📢 公開任務，其他夥伴也可能接到此案</div>' : ''}
         </div>
         <div style="display:flex;gap:.5rem">
-          <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
-          <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.72rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">❌ 拒絕</button>
+          <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
+          <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.75rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">❌ 拒絕</button>
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function toggleDetail(header) {

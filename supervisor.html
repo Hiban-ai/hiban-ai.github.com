@@ -252,12 +252,52 @@ textarea.form-input{resize:none}
     <!-- Tasks sv -->
     <div class="page-section" id="page-tasks-sv">
       <div class="page-title">⚔️ 任務派案</div>
-      <div class="card">
-        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">指派任務給夥伴</div>
-        <div class="form-group"><label class="form-label">指派給</label><select class="form-select" id="assign-partner-sel"><option value="">請選擇夥伴</option></select></div>
-        <div class="form-group"><label class="form-label">選擇任務</label><select class="form-select"><option value="">請選擇任務</option><option>📣 口碑留言 × 5則 ($250)</option><option>✍️ SEO文案撰寫 ($400)</option><option>🎨 廣告圖設計 × 2張 ($300)</option></select></div>
-        <div class="form-group"><label class="form-label">補充說明（選填）</label><textarea class="form-input" rows="2" placeholder="特別提醒或指示..."></textarea></div>
-        <button class="btn-primary" onclick="showToast('已派案！','success')">確認派案</button>
+      <div class="card" style="max-width:540px">
+        <div id="assign-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">指派給</label>
+            <select class="form-select" id="assign-target" style="flex:1" onchange="updateAssignLabel()">
+              <option value="">請選擇夥伴</option>
+            </select>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
+            <select class="form-select" id="assign-task" style="flex:1">
+              <option value="">請選擇任務</option>
+              <option value="口碑任務">📣 口碑任務</option>
+              <option value="SEO文案撰寫">✍️ SEO文案撰寫</option>
+              <option value="廣告圖設計">🎨 廣告圖設計</option>
+            </select>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">數量</label>
+            <input class="form-input" type="number" id="assign-qty" min="1" placeholder="請輸入數量" style="flex:1" oninput="calcAssignTotal()">
+          </div>
+
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">單價</label>
+            <div style="flex:1;position:relative">
+              <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
+              <input class="form-input" type="number" id="assign-price" min="0" placeholder="每件單價" style="padding-left:1.8rem" oninput="calcAssignTotal()">
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">總價</label>
+            <div style="flex:1;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.72rem 1rem;font-family:'Noto Serif TC',serif;font-weight:700;color:var(--blue-d);font-size:1rem" id="assign-total">$0</div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.7rem">補充說明</label>
+            <textarea class="form-input" id="assign-notes" rows="3" placeholder="特別提醒或指示...（選填）" style="flex:1"></textarea>
+          </div>
+
+        </div>
+        <button onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>
     </div>
 
@@ -291,11 +331,43 @@ function sendRevision(btn) {
   showToast('修改意見已送出', 'warn');
 }
 
+// ── 任務派案 ──
+function calcAssignTotal() {
+  const qty   = parseInt(document.getElementById('assign-qty').value)   || 0;
+  const price = parseInt(document.getElementById('assign-price').value) || 0;
+  document.getElementById('assign-total').textContent = '$' + (qty * price).toLocaleString();
+}
+
+async function submitAssign() {
+  const err   = document.getElementById('assign-err');
+  err.style.display = 'none';
+  const target = document.getElementById('assign-target').value;
+  const task   = document.getElementById('assign-task').value;
+  const qty    = document.getElementById('assign-qty').value;
+  const price  = document.getElementById('assign-price').value;
+  const notes  = document.getElementById('assign-notes').value;
+  if (!target) { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
+  if (!task)   { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
+  if (!qty || parseInt(qty) < 1)  { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
+  if (!price || parseInt(price) < 0) { err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
+  // 目前先顯示成功提示，等派案 API 完成後再串接
+  showToast(`已派案：${task} × ${qty} 件，總價 $${(parseInt(qty)*parseInt(price)).toLocaleString()}`, 'success');
+  document.getElementById('assign-target').value = '';
+  document.getElementById('assign-task').value   = '';
+  document.getElementById('assign-qty').value    = '';
+  document.getElementById('assign-price').value  = '';
+  document.getElementById('assign-notes').value  = '';
+  document.getElementById('assign-total').textContent = '$0';
+}
+
 async function loadPartners() {
   try {
     const users = await API.get('/api/users-list?role=partner');
     const opts = users.map(u=>`<option value="${u.id}">${u.real_name}</option>`).join('');
-    document.querySelectorAll('#mentor-partner-sel,#assign-partner-sel').forEach(sel=>{
+    // 任務派案下拉
+    const assignTarget = document.getElementById('assign-target');
+    if (assignTarget) assignTarget.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
+    document.querySelectorAll('#mentor-partner-sel').forEach(sel=>{
       sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     });
     // 夥伴管理 table

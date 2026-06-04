@@ -593,7 +593,7 @@ async function rejectTask(id, btn) {
 
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(loadTasks, 8000);
+  pollInterval = setInterval(loadTasks, 3000);
 }
 
 async function changePassword() {
@@ -722,7 +722,7 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   renderQuests();
-  loadTasks();
+  await loadTasks();
   startPolling();
 }
 init();

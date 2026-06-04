@@ -420,19 +420,6 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
-<!-- 拒絕原因 overlay -->
-<div class="overlay" id="reject-overlay">
-  <div class="overlay-box">
-    <div class="overlay-title">❌ 拒絕原因</div>
-    <div class="overlay-desc">請說明拒絕原因，督導人員將收到你的回覆。</div>
-    <div class="form-group">
-      <textarea class="form-input" id="reject-reason" rows="3" placeholder="請說明原因..."></textarea>
-    </div>
-    <div id="reject-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
-    <button class="btn-primary" onclick="submitReject()">確認送出</button>
-    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeReject()">取消</button>
-  </div>
-</div>
 
 <script src="shared.js"></script>
 <script>
@@ -521,7 +508,7 @@ function renderPending(list) {
         </div>
         <div style="display:flex;gap:.5rem">
           <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
-          <button onclick="openReject(${a.id})" style="flex:1;padding:.72rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">❌ 拒絕</button>
+          <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.72rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">❌ 拒絕</button>
         </div>
       </div>
     </div>
@@ -568,27 +555,13 @@ async function acceptTask(id, btn) {
   } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
 
-function openReject(id) {
-  rejectId = id;
-  document.getElementById('reject-reason').value = '';
-  document.getElementById('reject-err').style.display = 'none';
-  document.getElementById('reject-overlay').classList.add('open');
-}
-function closeReject() {
-  document.getElementById('reject-overlay').classList.remove('open');
-  rejectId = null;
-}
-async function submitReject() {
-  const reason = document.getElementById('reject-reason').value.trim();
-  const err    = document.getElementById('reject-err');
-  err.style.display = 'none';
-  if (!reason) { err.textContent='請填寫拒絕原因'; err.style.display='block'; return; }
+async function rejectTask(id, btn) {
+  btn.disabled = true;
   try {
-    await API.put(`/api/assignments/${rejectId}/reject`, { reason });
-    closeReject();
-    showToast('已送出拒絕', 'warn');
+    await API.put(`/api/assignments/${id}/reject`, { reason: '' });
+    showToast('已拒絕此派案', 'warn');
     loadTasks();
-  } catch(e) { err.textContent=e.message; err.style.display='block'; }
+  } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
 
 function startPolling() {

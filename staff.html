@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作人員 — 希絆雲作所</title>
+<title>管理人員 — 希絆雲作所</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -158,7 +158,7 @@ textarea.form-input{resize:none}
     <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
     <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
   </div>
-  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">🧹 工作人員</span>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">🧹 管理人員</span>
 </div>
 
 <div class="st-layout">
@@ -166,7 +166,7 @@ textarea.form-input{resize:none}
   <div class="st-sidebar">
     <div class="st-sidebar-logo">
       <div class="st-logo-name">希絆雲作所</div>
-      <div class="st-logo-role">🧹 工作人員</div>
+      <div class="st-logo-role">🧹 管理人員</div>
       <div class="st-user-label" id="st-user-label">—</div>
     </div>
     <div class="st-menu">
@@ -219,7 +219,7 @@ textarea.form-input{resize:none}
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem;overflow-x:auto">
         <button class="acc-tab active" id="atab-partner"    onclick="switchAccTab('partner')"   >⚔️ 工作夥伴</button>
         <button class="acc-tab"        id="atab-supervisor" onclick="switchAccTab('supervisor')" >📖 督導人員 <button onclick="openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</button></button>
-        <button class="acc-tab"        id="atab-staff"      onclick="switchAccTab('staff')"      >🧹 工作人員 <button onclick="openCreateUser('staff')"      class="add-inline-btn">＋ 新增</button></button>
+        <button class="acc-tab"        id="atab-staff"      onclick="switchAccTab('staff')"      >🧹 管理人員 <button onclick="openCreateUser('staff')"      class="add-inline-btn">＋ 新增</button></button>
       </div>
 
       <!-- 工作夥伴 -->
@@ -246,7 +246,7 @@ textarea.form-input{resize:none}
         </div>
       </div>
 
-      <!-- 工作人員 -->
+      <!-- 管理人員 -->
       <div id="acc-panel-staff" style="display:none">
         <div class="card" style="padding:0">
           <div class="table-wrap">
@@ -404,7 +404,7 @@ function switchPage(name, el) {
 }
 
 // ── 帳號管理 ──
-const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'工作人員' };
+const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' };
 const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
 const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用' };
 const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive' };
@@ -589,7 +589,7 @@ function initCuBday() {
 }
 
 function openCreateUser(role) {
-  const titles = { supervisor:'新增督導人員', staff:'新增工作人員' };
+  const titles = { supervisor:'新增督導人員', staff:'新增管理人員' };
   document.getElementById('create-user-title').textContent = titles[role];
   document.getElementById('create-user-role').value = role;
   ['cu-name','cu-id','cu-phone','cu-email','cu-address'].forEach(id => document.getElementById(id).value = '');

@@ -109,9 +109,9 @@ app.post('/api/forgot-password', async (req, res) => {
       u.status     === 'active'
     );
     if (!user) return res.status(404).json({ error: '資料不符，請確認姓名、身分證及生日是否正確' });
-    if (await ForgotReqs.byUser(user.id)) return res.json({ ok: true, msg: '申請已送出，請等待工作人員處理' });
+    if (await ForgotReqs.byUser(user.id)) return res.json({ ok: true, msg: '申請已送出，請等待管理人員處理' });
     await ForgotReqs.create(user.id);
-    res.json({ ok: true, msg: '申請已送出！工作人員將盡快重設密碼' });
+    res.json({ ok: true, msg: '申請已送出！管理人員將盡快重設密碼' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

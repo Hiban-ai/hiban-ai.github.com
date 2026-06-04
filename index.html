@@ -113,7 +113,7 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
       <span class="rt-icon">📖</span>督導人員
     </button>
     <button class="role-tab-btn" id="rtab-staff" onclick="switchTab('staff')">
-      <span class="rt-icon">🧹</span>工作人員
+      <span class="rt-icon">🧹</span>管理人員
     </button>
   </div>
 
@@ -171,7 +171,7 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
         <button class="pw-toggle" type="button" onclick="togglePw('pw-staff',this)">👁</button>
       </div>
     </div>
-    <button class="btn-primary" onclick="doLogin('staff')">登入工作人員介面</button>
+    <button class="btn-primary" onclick="doLogin('staff')">登入管理人員介面</button>
     <div class="link-row">
       <button class="link-btn" onclick="openForgot('staff')">忘記密碼？</button>
     </div>
@@ -208,7 +208,7 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
 <div class="overlay" id="forgot-overlay">
   <div class="overlay-box" style="width:420px">
     <div class="overlay-title">🔑 忘記密碼</div>
-    <div class="overlay-desc">請輸入註冊時填寫的資料進行身份核對，核對正確後工作人員將重設密碼為 <strong>0000</strong>。</div>
+    <div class="overlay-desc">請輸入註冊時填寫的資料進行身份核對，核對正確後管理人員將重設密碼為 <strong>0000</strong>。</div>
     <div class="form-group">
       <label class="form-label">真實姓名</label>
       <input class="form-input" type="text" id="forgot-name" placeholder="請輸入真實姓名">

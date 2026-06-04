@@ -247,7 +247,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
     const item = await Assignments.create({
       task_name, quantity: qty, unit_price: price, total_price: qty * price,
       notes: notes || '',
-      deadline_days: parseInt(deadline_days) || 7,
+      deadline_days: (parseInt(deadline_days) >= 1) ? parseInt(deadline_days) : 7,
       assign_type: assign_type || 'individual',
       target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
       supervisor_id: req.session.user.id,

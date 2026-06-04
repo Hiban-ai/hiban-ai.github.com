@@ -409,7 +409,7 @@ async function loadPartners() {
     const opts = users.map(u=>`<option value="${u.id}">${u.real_name}</option>`).join('');
     // 任務派案下拉（含全部夥伴）
     const assignTarget = document.getElementById('assign-target');
-    if (assignTarget) assignTarget.innerHTML = '<option value="">請選擇夥伴</option><option value="all">📢 全部夥伴</option>' + opts;
+    if (assignTarget) assignTarget.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     document.querySelectorAll('#mentor-partner-sel').forEach(sel=>{
       sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     });

@@ -594,6 +594,10 @@ async function rejectTask(id, btn) {
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(loadTasks, 3000);
+  // 切回分頁時立即更新
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) loadTasks();
+  });
 }
 
 async function changePassword() {

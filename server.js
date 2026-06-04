@@ -6,7 +6,14 @@ const { Users, ForgotReqs, Assignments } = require('./db');
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), {
+  etag: false,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 app.use(session({
   secret: 'hiban-secret-2025',
   resave: false,

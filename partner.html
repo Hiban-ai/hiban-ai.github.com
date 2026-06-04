@@ -230,6 +230,9 @@ textarea.form-input{resize:none}
     <div class="page-section active" id="page-quests">
       <div class="page-title">📊 總覽</div>
 
+      <!-- 待回覆派案通知 -->
+      <div id="overview-pending"></div>
+
       <!-- 角色統計 -->
       <div class="char-stats-card">
         <div class="char-stats-inner">
@@ -458,7 +461,8 @@ function switchPage(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.pt-menu-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (name === 'tasks') { loadTasks(); renderQuests(); }
+  if (name === 'tasks')  { loadTasks(); renderQuests(); }
+  if (name === 'quests') { loadTasks(); }
 }
 
 // ── 派案接收 ──────────────────────────────────────────────────
@@ -479,11 +483,26 @@ async function loadTasks() {
 function renderPending(list) {
   const badge = document.getElementById('pending-badge');
   const el    = document.getElementById('pending-list');
-  if (!badge || !el) return;
-  badge.textContent   = list.length;
-  badge.style.display = list.length ? '' : 'none';
+  if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
   const tb = document.getElementById('badge-active-tasks');
   if (tb) { tb.textContent = list.length; tb.style.display = list.length ? '' : 'none'; }
+
+  // 總覽頁通知
+  const ov = document.getElementById('overview-pending');
+  if (ov) {
+    ov.innerHTML = list.length ? `
+      <div onclick="switchPage('tasks', document.querySelector('[onclick*=tasks]'))"
+           style="background:linear-gradient(135deg,var(--orange-p),#fff);border:1.5px solid var(--orange);border-radius:var(--r);padding:.85rem 1rem;margin-bottom:1rem;cursor:pointer;display:flex;align-items:center;gap:.75rem;box-shadow:0 4px 16px rgba(240,120,64,.12)">
+        <span style="font-size:1.4rem">🔔</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.92rem;color:var(--text)">你有 <span style="color:var(--orange)">${list.length}</span> 個待回覆的派案任務</div>
+          <div style="font-size:.78rem;color:var(--text-s);margin-top:.15rem">點此查看 → 任務頁面</div>
+        </div>
+        <span style="color:var(--orange);font-size:1.1rem">›</span>
+      </div>` : '';
+  }
+
+  if (!el) return;
   if (!list.length) {
     el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有待回覆的派案</div>';
     return;
@@ -566,10 +585,7 @@ async function rejectTask(id, btn) {
 
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(() => {
-    const active = document.querySelector('.pt-menu-item.active');
-    if (active && active.textContent.includes('任務')) loadTasks();
-  }, 8000);
+  pollInterval = setInterval(loadTasks, 8000);
 }
 
 async function changePassword() {
@@ -698,6 +714,7 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   renderQuests();
+  loadTasks();
   startPolling();
 }
 init();

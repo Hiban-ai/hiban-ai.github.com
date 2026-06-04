@@ -252,7 +252,7 @@ textarea.form-input{resize:none}
     <!-- Tasks sv -->
     <div class="page-section" id="page-tasks-sv">
       <div class="page-title">⚔️ 任務派案</div>
-      <div class="card" style="max-width:540px">
+      <div class="card" style="max-width:540px;margin-bottom:1.5rem">
         <div id="assign-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.75rem">
 
@@ -299,6 +299,10 @@ textarea.form-input{resize:none}
         </div>
         <button onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>
+
+      <!-- 派案紀錄 -->
+      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📂 派案紀錄</div>
+      <div id="assign-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
   </div>
@@ -312,6 +316,7 @@ function switchPage(name, el) {
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sv-menu-item').forEach(i=>i.classList.remove('active'));
   if (el) el.classList.add('active');
+  if (name === 'tasks-sv') loadAssignHistory();
 }
 
 function approveWL(btn) {
@@ -339,7 +344,7 @@ function calcAssignTotal() {
 }
 
 async function submitAssign() {
-  const err   = document.getElementById('assign-err');
+  const err = document.getElementById('assign-err');
   err.style.display = 'none';
   const target = document.getElementById('assign-target').value;
   const task   = document.getElementById('assign-task').value;
@@ -348,25 +353,52 @@ async function submitAssign() {
   const notes  = document.getElementById('assign-notes').value;
   if (!target) { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
   if (!task)   { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
-  if (!qty || parseInt(qty) < 1)  { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
-  if (!price || parseInt(price) < 0) { err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
-  // 目前先顯示成功提示，等派案 API 完成後再串接
-  showToast(`已派案：${task} × ${qty} 件，總價 $${(parseInt(qty)*parseInt(price)).toLocaleString()}`, 'success');
-  document.getElementById('assign-target').value = '';
-  document.getElementById('assign-task').value   = '';
-  document.getElementById('assign-qty').value    = '';
-  document.getElementById('assign-price').value  = '';
-  document.getElementById('assign-notes').value  = '';
-  document.getElementById('assign-total').textContent = '$0';
+  if (!qty || parseInt(qty) < 1)    { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
+  if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
+  try {
+    await API.post('/api/assignments', {
+      task_name: task, quantity: qty, unit_price: price, notes,
+      assign_type: target === 'all' ? 'all' : 'individual',
+      target_partner_id: target === 'all' ? null : parseInt(target),
+    });
+    showToast('派案成功！', 'success');
+    ['assign-target','assign-task','assign-qty','assign-price','assign-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('assign-total').textContent = '$0';
+    loadAssignHistory();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+async function loadAssignHistory() {
+  try {
+    const list = await API.get('/api/assignments/history');
+    const el = document.getElementById('assign-history');
+    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無派案紀錄</div>'; return; }
+    const statusLabel = { pending:'待回覆', accepted:'已接案', rejected:'已拒絕' };
+    const statusColor = { pending:'var(--orange)', accepted:'var(--green)', rejected:'var(--red)' };
+    el.innerHTML = list.map(a => `
+      <div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);margin-bottom:.6rem;border-left:4px solid ${statusColor[a.status]||'var(--border)'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700">${a.task_name}</div>
+          <span style="font-size:.75rem;font-weight:700;color:${statusColor[a.status]||'var(--text-s)'}">${statusLabel[a.status]||a.status}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--text-s);display:flex;gap:.75rem;flex-wrap:wrap">
+          <span>👤 ${a.partner_name}</span>
+          <span>📦 ${a.quantity} 件</span>
+          <span>💰 $${(a.total_price||0).toLocaleString()}</span>
+        </div>
+        ${a.reject_reason ? `<div style="font-size:.8rem;color:var(--red);margin-top:.4rem">拒絕原因：${a.reject_reason}</div>` : ''}
+      </div>
+    `).join('');
+  } catch {}
 }
 
 async function loadPartners() {
   try {
     const users = await API.get('/api/users-list?role=partner');
     const opts = users.map(u=>`<option value="${u.id}">${u.real_name}</option>`).join('');
-    // 任務派案下拉
+    // 任務派案下拉（含全部夥伴）
     const assignTarget = document.getElementById('assign-target');
-    if (assignTarget) assignTarget.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
+    if (assignTarget) assignTarget.innerHTML = '<option value="">請選擇夥伴</option><option value="all">📢 全部夥伴</option>' + opts;
     document.querySelectorAll('#mentor-partner-sel').forEach(sel=>{
       sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     });

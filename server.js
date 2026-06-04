@@ -2,7 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt  = require('bcryptjs');
 const path    = require('path');
-const { Users, ForgotReqs } = require('./db');
+const { Users, ForgotReqs, Assignments } = require('./db');
 
 const app = express();
 app.use(express.json());
@@ -234,6 +234,79 @@ app.get('/api/_setup/admin', async (req, res) => {
     return res.json({ ok: true, msg: `admin role 已從 ${existing.role} 修正為 staff` });
   }
   res.json({ ok: true, msg: 'admin 已正確，role: staff', id: existing.id });
+});
+
+// ── 派案 API ──────────────────────────────────────────────────
+
+app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { task_name, quantity, unit_price, notes, assign_type, target_partner_id } = req.body;
+    if (!task_name || !quantity || !unit_price) return res.status(400).json({ error: '缺少必填欄位' });
+    if (assign_type === 'individual' && !target_partner_id) return res.status(400).json({ error: '請選擇指派對象' });
+    const qty = parseInt(quantity), price = parseInt(unit_price);
+    const item = await Assignments.create({
+      task_name, quantity: qty, unit_price: price, total_price: qty * price,
+      notes: notes || '',
+      assign_type: assign_type || 'individual',
+      target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
+      supervisor_id: req.session.user.id,
+      supervisor_name: req.session.user.real_name,
+      status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
+    });
+    res.json({ ok: true, id: item.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/assignments/pending', requireRole('partner'), async (req, res) => {
+  try {
+    res.json(await Assignments.pendingForPartner(req.session.user.id));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/assignments/active', requireRole('partner'), async (req, res) => {
+  try {
+    res.json(await Assignments.activeForPartner(req.session.user.id));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/assignments/:id/accept', requireRole('partner'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const a  = await Assignments.byId(id);
+    if (!a || a.status !== 'pending') return res.status(400).json({ error: '任務已不可接受' });
+    await Assignments.update(id, { status: 'accepted', accepted_by: req.session.user.id });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/assignments/:id/reject', requireRole('partner'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { reason } = req.body;
+    const a = await Assignments.byId(id);
+    if (!a || a.status !== 'pending') return res.status(400).json({ error: '任務已不可操作' });
+    if (a.assign_type === 'individual') {
+      await Assignments.update(id, { status: 'rejected', reject_reason: reason || '' });
+    } else {
+      await Assignments.update(id, { rejected_by: [...(a.rejected_by||[]), req.session.user.id] });
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/assignments/history', requireRole('supervisor'), async (req, res) => {
+  try {
+    const list = await Assignments.forSupervisor(req.session.user.id);
+    const enriched = await Promise.all(list.map(async a => {
+      let partner_name = '全部夥伴';
+      if (a.target_partner_id) {
+        const u = await Users.byId(a.target_partner_id);
+        partner_name = u ? u.real_name : '—';
+      }
+      return { ...a, partner_name };
+    }));
+    res.json(enriched);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 const PORT = process.env.PORT || 3000;

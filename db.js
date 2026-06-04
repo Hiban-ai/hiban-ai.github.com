@@ -118,4 +118,41 @@ async function seed() {
 
 seed().catch(console.error);
 
-module.exports = { Users, ForgotReqs };
+// ── Assignments ───────────────────────────────────────────────
+const Assignments = {
+  async byId(id) {
+    const snap = await db.collection('assignments').where('id','==',id).limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async create(data) {
+    const id   = await nextId('assignments');
+    const item = { id, created_at: now(), ...data };
+    await db.collection('assignments').doc(String(id)).set(item);
+    return item;
+  },
+  async update(id, patch) {
+    await db.collection('assignments').doc(String(id)).update(patch);
+  },
+  // 夥伴待回覆
+  async pendingForPartner(partnerId) {
+    const snap = await db.collection('assignments').where('status','==','pending').get();
+    return snap.docs.map(d => d.data()).filter(a =>
+      a.assign_type === 'individual'
+        ? a.target_partner_id === partnerId
+        : !(a.rejected_by || []).includes(partnerId)
+    ).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+  },
+  // 夥伴已接案
+  async activeForPartner(partnerId) {
+    const snap = await db.collection('assignments')
+      .where('accepted_by','==',partnerId).where('status','==','accepted').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+  },
+  // 督導派案紀錄
+  async forSupervisor(supervisorId) {
+    const snap = await db.collection('assignments').where('supervisor_id','==',supervisorId).get();
+    return snap.docs.map(d => d.data()).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+  },
+};
+
+module.exports = { Users, ForgotReqs, Assignments };

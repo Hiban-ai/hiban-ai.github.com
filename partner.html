@@ -273,15 +273,20 @@ textarea.form-input{resize:none}
       <div class="quest-list" id="quest-list"></div>
     </div>
 
-    <!-- 任務（已接案） -->
+    <!-- 任務 -->
     <div class="page-section" id="page-tasks">
       <div class="page-title">⚔️ 任務</div>
-      <div id="active-tasks-list">
-        <div style="background:#fff;border-radius:var(--r);padding:2rem;text-align:center;box-shadow:var(--shadow);color:var(--text-s)">
-          <div style="font-size:2rem;margin-bottom:.5rem">📭</div>
-          <div style="font-size:.9rem">目前沒有已接案的任務</div>
-        </div>
+
+      <!-- 待回覆派案 -->
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
+        🔔 待回覆
+        <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
       </div>
+      <div id="pending-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+
+      <!-- 進行中任務 -->
+      <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">⚔️ 進行中</div>
+      <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
     <!-- 錢包 -->
@@ -415,6 +420,20 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 拒絕原因 overlay -->
+<div class="overlay" id="reject-overlay">
+  <div class="overlay-box">
+    <div class="overlay-title">❌ 拒絕原因</div>
+    <div class="overlay-desc">請說明拒絕原因，督導人員將收到你的回覆。</div>
+    <div class="form-group">
+      <textarea class="form-input" id="reject-reason" rows="3" placeholder="請說明原因..."></textarea>
+    </div>
+    <div id="reject-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+    <button class="btn-primary" onclick="submitReject()">確認送出</button>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeReject()">取消</button>
+  </div>
+</div>
+
 <script src="shared.js"></script>
 <script>
 const QUESTS = [
@@ -452,6 +471,132 @@ function switchPage(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.pt-menu-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
+  if (name === 'tasks') { loadTasks(); renderQuests(); }
+}
+
+// ── 派案接收 ──────────────────────────────────────────────────
+let rejectId     = null;
+let pollInterval = null;
+
+async function loadTasks() {
+  try {
+    const [pending, active] = await Promise.all([
+      API.get('/api/assignments/pending'),
+      API.get('/api/assignments/active'),
+    ]);
+    renderPending(pending);
+    renderActive(active);
+  } catch {}
+}
+
+function renderPending(list) {
+  const badge = document.getElementById('pending-badge');
+  const el    = document.getElementById('pending-list');
+  if (!badge || !el) return;
+  badge.textContent   = list.length;
+  badge.style.display = list.length ? '' : 'none';
+  const tb = document.getElementById('badge-active-tasks');
+  if (tb) { tb.textContent = list.length; tb.style.display = list.length ? '' : 'none'; }
+  if (!list.length) {
+    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有待回覆的派案</div>';
+    return;
+  }
+  el.innerHTML = list.map(a => `
+    <div style="background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:.65rem;overflow:hidden;border:1.5px solid var(--border-l)">
+      <div onclick="toggleDetail(this)" style="padding:.9rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+        <div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">${a.task_name}</div>
+          <div style="font-size:.78rem;color:var(--text-s);margin-top:.15rem">督導：${a.supervisor_name||'—'} ・ $${(a.total_price||0).toLocaleString()}</div>
+        </div>
+        <span style="font-size:.85rem;color:var(--text-s);transition:transform .2s" class="toggle-arrow">▼</span>
+      </div>
+      <div class="task-detail" style="display:none;padding:0 1rem 1rem">
+        <div style="border-top:1px solid var(--border-l);padding-top:.75rem;display:flex;flex-direction:column;gap:.4rem;font-size:.85rem;color:var(--text-m);margin-bottom:.75rem">
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">任務</span><strong>${a.task_name}</strong></div>
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">數量</span><strong>${a.quantity} 件</strong></div>
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">單價</span><strong>$${(a.unit_price||0).toLocaleString()}</strong></div>
+          <div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">總價</span><strong style="color:var(--blue-d);font-family:'Noto Serif TC',serif;font-size:1rem">$${(a.total_price||0).toLocaleString()}</strong></div>
+          ${a.notes ? `<div style="display:flex;gap:.5rem"><span style="color:var(--text-s);width:56px;flex-shrink:0">說明</span><span>${a.notes}</span></div>` : ''}
+          ${a.assign_type==='all' ? '<div style="color:var(--orange);font-size:.78rem;font-weight:700;margin-top:.25rem">📢 公開任務，其他夥伴也可能接到此案</div>' : ''}
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
+          <button onclick="openReject(${a.id})" style="flex:1;padding:.72rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">❌ 拒絕</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleDetail(header) {
+  const detail = header.nextElementSibling;
+  const arrow  = header.querySelector('.toggle-arrow');
+  const open   = detail.style.display === 'none';
+  detail.style.display = open ? 'block' : 'none';
+  arrow.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function renderActive(list) {
+  const el = document.getElementById('active-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有進行中的任務</div>';
+    return;
+  }
+  el.innerHTML = list.map(a => `
+    <div class="active-task-item">
+      <span class="at-tag at-tag-active">進行中</span>
+      <div class="at-name">${a.task_name} × ${a.quantity} 件</div>
+      <div style="font-size:.75rem;color:var(--text-s);margin-bottom:.4rem">
+        總價：<span style="font-family:'Noto Serif TC',serif;color:var(--yellow);font-weight:700">$${(a.total_price||0).toLocaleString()}</span>
+        ${a.notes ? ` ・ ${a.notes}` : ''}
+      </div>
+      <div class="at-prog"><div class="at-prog-fill" style="width:10%"></div></div>
+      <div class="at-btns">
+        <button class="at-btn at-btn-s" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))">📝 回報進度</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function acceptTask(id, btn) {
+  btn.disabled = true;
+  try {
+    await API.put(`/api/assignments/${id}/accept`);
+    showToast('✅ 已接案！任務加入進行中', 'success');
+    loadTasks();
+  } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
+}
+
+function openReject(id) {
+  rejectId = id;
+  document.getElementById('reject-reason').value = '';
+  document.getElementById('reject-err').style.display = 'none';
+  document.getElementById('reject-overlay').classList.add('open');
+}
+function closeReject() {
+  document.getElementById('reject-overlay').classList.remove('open');
+  rejectId = null;
+}
+async function submitReject() {
+  const reason = document.getElementById('reject-reason').value.trim();
+  const err    = document.getElementById('reject-err');
+  err.style.display = 'none';
+  if (!reason) { err.textContent='請填寫拒絕原因'; err.style.display='block'; return; }
+  try {
+    await API.put(`/api/assignments/${rejectId}/reject`, { reason });
+    closeReject();
+    showToast('已送出拒絕', 'warn');
+    loadTasks();
+  } catch(e) { err.textContent=e.message; err.style.display='block'; }
+}
+
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(() => {
+    const active = document.querySelector('.pt-menu-item.active');
+    if (active && active.textContent.includes('任務')) loadTasks();
+  }, 8000);
 }
 
 async function changePassword() {
@@ -580,6 +725,7 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   renderQuests();
+  startPolling();
 }
 init();
 </script>

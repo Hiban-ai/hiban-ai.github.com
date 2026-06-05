@@ -568,6 +568,8 @@ function roleActions(u) {
   }
   if (u.role === 'staff') {
     if (isSelf) return detail;
+    // 系統管理員只有 admin 本身能管，其他人只能看詳細
+    if (u.username === 'admin' && !isAdmin) return detail;
     const reset = isAdmin ? resetBtn : '';
     if (u.status === 'active')   return detail + stopBtn + reset + delBtn;
     if (u.status === 'inactive') return detail + startBtn + reset + delBtn;

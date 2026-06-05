@@ -470,7 +470,11 @@ async function loadTasks() {
     ]);
     renderPending(pending);
     renderActive(active);
-  } catch {}
+    return true;
+  } catch(e) {
+    console.warn('loadTasks error:', e.message);
+    return false;
+  }
 }
 
 // 完整卡片（含接案/拒絕按鈕）
@@ -726,10 +730,11 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   renderQuests();
-  await loadTasks();
+  // 重試直到成功，確保資料載入
+  let loaded = await loadTasks();
+  if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }
+  if (!loaded) { await new Promise(r => setTimeout(r, 1500)); await loadTasks(); }
   startPolling();
-  // Firebase 冷啟動延遲補償：1.5 秒後再補一次
-  setTimeout(loadTasks, 1500);
 }
 init();
 </script>

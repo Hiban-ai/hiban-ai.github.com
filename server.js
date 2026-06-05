@@ -56,14 +56,14 @@ app.post('/api/login', async (req, res) => {
     if (user.status === 'pending')  return res.status(403).json({ error: 'Account pending approval' });
     if (user.status === 'inactive') return res.status(403).json({ error: 'Account disabled' });
     if (!bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Wrong password' });
-    req.session.user = { id: user.id, username: user.username, real_name: user.real_name, nickname: user.nickname, role: user.role };
+    req.session.user = { id: user.id, username: user.username, real_name: user.real_name, nickname: user.nickname, role: user.role, is_admin: !!(user.is_admin || user.username === 'admin') };
     res.json({ ok: true, role: user.role, is_first_login: !!user.is_first_login });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
 
-app.get('/api/me', requireAuth, (req, res) => res.json(req.session.user));
+app.get('/api/me', requireAuth, (req, res) => res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin }));
 
 app.get('/api/profile', requireAuth, async (req, res) => {
   try {
@@ -168,9 +168,11 @@ app.get('/api/admin/users', requireRole('staff'), async (req, res) => {
 
 app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
   try {
-    const { role, real_name, id_number, birthday, phone, email, address, identity } = req.body;
+    const { role, real_name, id_number, birthday, phone, email, address, identity, is_admin } = req.body;
     if (!['supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (!real_name || !id_number || !birthday || !phone) return res.status(400).json({ error: 'Missing required fields' });
+    // 只有 system admin 才能建立 is_admin 帳號
+    if (is_admin && !req.session.user.is_admin) return res.status(403).json({ error: '權限不足' });
     const prefix   = role === 'supervisor' ? 'sv' : 'st';
     const username = await generateUsername(prefix);
     const user     = await Users.create({
@@ -178,6 +180,7 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
       email:    email    || null,
       address:  address  || null,
       identity: identity || null,
+      is_admin: role === 'staff' && !!is_admin,
       role, status: 'active', is_first_login: true,
       password_hash: bcrypt.hashSync('0000', 10),
     });

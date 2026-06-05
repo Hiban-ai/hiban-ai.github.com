@@ -357,6 +357,10 @@ textarea.form-input{resize:none}
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" id="cu-email" placeholder="選填" type="email" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1"></div>
+      <div id="cu-admin-row" style="display:none;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow)">
+        <input type="checkbox" id="cu-is-admin" style="width:16px;height:16px;cursor:pointer">
+        <label for="cu-is-admin" style="font-size:.88rem;font-weight:600;color:#7A5010;cursor:pointer">設定成系統管理者（可管理 admin 帳號）</label>
+      </div>
     </div>
     <div style="display:flex;gap:.5rem">
       <button class="btn-cancel" onclick="closeCreateUser()" style="flex:1">取消</button>
@@ -548,7 +552,7 @@ function closeDetail() {
 }
 
 function roleActions(u) {
-  const isAdmin   = me.username === 'admin';
+  const isAdmin   = me.username === 'admin' || me.is_admin === true;
   const isSelf    = u.id === me.id;
   const detail    = `<button class="action-btn" onclick="openDetail(${u.id})">詳細</button>`;
   const delBtn    = !isSelf ? `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">刪除</button>` : '';
@@ -751,6 +755,11 @@ function openCreateUser(role) {
   ['cu-bday-year','cu-bday-month','cu-bday-day'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('cu-birthday').value = '';
   document.getElementById('cu-err').style.display = 'none';
+  // 只有 system admin 新增管理人員時顯示「設定成系統管理者」
+  const adminRow = document.getElementById('cu-admin-row');
+  const isSystemAdmin = me.username === 'admin' || me.is_admin === true;
+  adminRow.style.display = (role === 'staff' && isSystemAdmin) ? 'flex' : 'none';
+  document.getElementById('cu-is-admin').checked = false;
   document.getElementById('create-user-overlay').classList.add('open');
 }
 function closeCreateUser() {
@@ -764,14 +773,15 @@ async function submitCreateUser() {
   const id_number = document.getElementById('cu-id').value.trim();
   const birthday  = document.getElementById('cu-birthday').value;
   const phone     = document.getElementById('cu-phone').value.trim();
-  const email     = document.getElementById('cu-email').value.trim();
-  const address   = document.getElementById('cu-address').value.trim();
+  const email    = document.getElementById('cu-email').value.trim();
+  const address  = document.getElementById('cu-address').value.trim();
+  const is_admin = document.getElementById('cu-is-admin')?.checked || false;
   if (!real_name) { err.textContent='請填寫姓名'; err.style.display='block'; return; }
   if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
   if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
   if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
   try {
-    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address });
+    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, is_admin });
     closeCreateUser();
     showToast(`帳號已建立：${res.username}`, 'success');
     loadAccounts();

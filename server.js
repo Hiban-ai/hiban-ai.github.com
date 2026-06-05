@@ -394,6 +394,45 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await WorklogReports.update(id, { status: 'approved' });
+    // 取回 report 找到 assignment_id，把 assignment 改成 completed
+    const snap = await require('./db').WorklogReports;
+    const rSnap = await require('firebase-admin').firestore()
+      .collection('worklog_reports').where('id','==',id).limit(1).get();
+    if (!rSnap.empty) {
+      const r = rSnap.docs[0].data();
+      const now = new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
+      await Assignments.update(r.assignment_id, { status: 'completed', completed_at: now });
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) => {
+  try {
+    const id     = parseInt(req.params.id);
+    const { reason } = req.body;
+    if (!reason) return res.status(400).json({ error: '請填寫退回原因' });
+    await WorklogReports.update(id, { status: 'rejected' });
+    // 把意見寫進 assignment 的 supervisor_comments
+    const rSnap = await require('firebase-admin').firestore()
+      .collection('worklog_reports').where('id','==',id).limit(1).get();
+    if (!rSnap.empty) {
+      const r    = rSnap.docs[0].data();
+      const a    = await Assignments.byId(r.assignment_id);
+      const now  = new Date();
+      const date = now.toLocaleDateString('zh-TW',{timeZone:'Asia/Taipei'});
+      const time = now.toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour12:false,hour:'2-digit',minute:'2-digit'});
+      const comments = [...(a.supervisor_comments || []), { date, time, text: reason }];
+      await Assignments.update(r.assignment_id, { supervisor_comments: comments });
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/reports/:assignmentId', requireRole('partner','supervisor','staff'), async (req, res) => {
   try {
     const list = await WorklogReports.forAssignment(parseInt(req.params.assignmentId));

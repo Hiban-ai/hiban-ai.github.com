@@ -303,6 +303,21 @@ textarea.form-input{resize:none}
 </div>
 
 
+<!-- 退回原因 overlay -->
+<div class="pw-overlay" id="reject-report-overlay">
+  <div class="pw-box">
+    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✎ 退回修改意見</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">填寫退回原因，工作夥伴將會收到此意見。</div>
+    <input type="hidden" id="reject-report-id">
+    <div id="reject-report-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <div class="form-group">
+      <textarea class="form-input" id="reject-report-reason" rows="4" placeholder="請具體說明需要修改的地方..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="submitRejectReport()">送出意見</button>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeRejectReport()">取消</button>
+  </div>
+</div>
+
 <!-- 圖片放大 overlay -->
 <div id="img-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;cursor:zoom-out">
   <img id="img-overlay-src" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
@@ -323,6 +338,37 @@ function enlargeImg(src) {
   const ov = document.getElementById('img-overlay');
   document.getElementById('img-overlay-src').src = src;
   ov.style.display = 'flex';
+}
+
+async function approveReport(reportId, assignmentId) {
+  try {
+    await API.put(`/api/reports/${reportId}/approve`);
+    showToast('已同意，任務標記為完成 ✓', 'success');
+    loadTaskReviews();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openRejectReport(reportId) {
+  document.getElementById('reject-report-id').value = reportId;
+  document.getElementById('reject-report-reason').value = '';
+  document.getElementById('reject-report-err').style.display = 'none';
+  document.getElementById('reject-report-overlay').classList.add('open');
+}
+function closeRejectReport() {
+  document.getElementById('reject-report-overlay').classList.remove('open');
+}
+async function submitRejectReport() {
+  const err    = document.getElementById('reject-report-err');
+  err.style.display = 'none';
+  const id     = parseInt(document.getElementById('reject-report-id').value);
+  const reason = document.getElementById('reject-report-reason').value.trim();
+  if (!reason) { err.textContent = '請填寫退回原因'; err.style.display = 'block'; return; }
+  try {
+    await API.put(`/api/reports/${id}/reject`, { reason });
+    closeRejectReport();
+    showToast('已退回，意見已傳送給夥伴', 'warn');
+    loadTaskReviews();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
 async function loadTaskReviews() {
@@ -352,13 +398,17 @@ async function loadTaskReviews() {
         </div>
         ${r.images && r.images.length ? `
         <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
-          ${r.images.map(img => `
+          ${r.images.map((img,i) => `
             <img src="${img.data}" alt="${img.name}"
-              onclick="enlargeImg('${img.data}')"
+              onclick="enlargeImg(this.src)"
               style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s"
               onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
           `).join('')}
         </div>` : ''}
+        <div style="display:flex;gap:.5rem;margin-top:.5rem">
+          <button onclick="approveReport(${r.id},${r.assignment_id})" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✓ 同意</button>
+          <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 退回</button>
+        </div>
       </div>
     `).join('');
   } catch(e) {

@@ -699,7 +699,16 @@ function renderActive(list) {
         ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : ''}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:60px;overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;margin-bottom:.5rem;border:1px solid var(--border-l)">${a.notes}</div>` : ''}
+      ${(a.supervisor_comments && a.supervisor_comments.length) ? `
+        <div style="margin-bottom:.6rem">
+          ${a.supervisor_comments.map(c => `
+            <div style="background:var(--orange-p);border-left:3px solid var(--orange);border-radius:0 var(--rs) var(--rs) 0;padding:.4rem .6rem;margin-bottom:.3rem;font-size:.82rem">
+              <span style="font-size:.72rem;color:var(--text-s)">${c.date} ${c.time}　</span>
+              <span style="color:var(--text-m)">${c.text}</span>
+            </div>
+          `).join('')}
+        </div>` : ''}
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
       <button onclick="openReport(${a.id},'${a.task_name}')" style="width:100%;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📝 回報</button>
     </div>`
@@ -753,18 +762,29 @@ function handleReportImages(input) {
     if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} 超過 5MB，略過`, 'warn'); return; }
     const reader = new FileReader();
     reader.onload = e => {
-      const base64 = e.target.result;
-      reportImages.push({ name: file.name, data: base64 });
-      // 縮圖
-      const idx = reportImages.length - 1;
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0';
-      wrap.innerHTML = `
-        <img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
-        <button onclick="removeReportImg(${idx},this.closest('div'))"
-          style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">✕</button>
-      `;
-      thumbs.appendChild(wrap);
+      // 壓縮圖片到最寬 900px、品質 0.75
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 900;
+        let w = img.width, h = img.height;
+        if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const base64 = canvas.toDataURL('image/jpeg', 0.75);
+        reportImages.push({ name: file.name, data: base64 });
+        // 縮圖
+        const idx = reportImages.length - 1;
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0';
+        wrap.innerHTML = `
+          <img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+          <button onclick="removeReportImg(${idx},this.closest('div'))"
+            style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">✕</button>
+        `;
+        thumbs.appendChild(wrap);
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
@@ -787,7 +807,7 @@ async function submitReport() {
   if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
   const url   = document.getElementById('report-url').value.trim();
   const notes = document.getElementById('report-notes').value.trim();
-  const imgData = reportImages.map(img => ({ name: img.name, data: img.data.substring(0, 50000) }));
+  const imgData = reportImages.map(img => ({ name: img.name, data: img.data }));
   try {
     await API.post('/api/reports', {
       assignment_id: reportAssignmentId,

@@ -227,8 +227,8 @@ textarea.form-input{resize:none}
         <div class="card" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>
-              <tbody id="tbody-partner"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>督導人員</th><th>操作</th></tr></thead>
+              <tbody id="tbody-partner"><tr><td colspan="8" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -365,6 +365,26 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 更換督導 overlay -->
+<div class="confirm-overlay" id="chgsv-overlay">
+  <div class="confirm-box" style="width:360px;text-align:left;border-top-color:var(--blue)">
+    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">🔄 更換督導人員</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem" id="chgsv-name-label">—</div>
+    <input type="hidden" id="chgsv-user-id">
+    <div id="chgsv-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">督導人員</label>
+      <select class="form-input" id="chgsv-sel" style="flex:1">
+        <option value="">請選擇督導人員</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn-cancel" onclick="closeChgSv()">取消</button>
+      <button onclick="submitChgSv()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認更換</button>
+    </div>
+  </div>
+</div>
+
 <!-- 核准夥伴 - 指定督導 overlay -->
 <div class="confirm-overlay" id="approve-overlay">
   <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
@@ -449,12 +469,20 @@ async function loadAccounts() {
   } catch(e) { console.error(e); }
 }
 
+function getSvName(svId) {
+  if (!svId) return '<span style="color:var(--text-s);font-size:.78rem">未指派</span>';
+  const sv = usersCache.find(u => u.id === svId);
+  return sv ? sv.real_name : '—';
+}
+
 function renderAccounts() {
   ['partner','supervisor','staff'].forEach(role => {
-    const tbody = document.getElementById('tbody-'+role);
-    const list  = usersCache.filter(u => u.role === role);
+    const tbody   = document.getElementById('tbody-'+role);
+    const list    = usersCache.filter(u => u.role === role);
+    const isPartner = role === 'partner';
+    const colspan   = isPartner ? 8 : 7;
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無資料</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無資料</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map(u => `
@@ -468,6 +496,11 @@ function renderAccounts() {
         <td style="font-size:.82rem;color:var(--text-m)">${u.birthday||'—'}</td>
         <td><span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span></td>
         <td style="font-size:.78rem;color:var(--text-s)">${(u.created_at||'').slice(0,10)}</td>
+        ${isPartner ? `
+        <td style="white-space:nowrap">
+          <span style="font-size:.85rem">${getSvName(u.supervisor_id)}</span>
+          <button class="action-btn" onclick="openChgSv(${u.id},'${u.real_name}')" style="margin-left:.25rem;padding:.18rem .45rem;font-size:.68rem">更換</button>
+        </td>` : ''}
         <td style="white-space:nowrap">
           <button class="action-btn" onclick="openDetail(${u.id})">📋 詳細</button>
           ${u.status==='pending' ? `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">✓ 核准</button>` : ''}
@@ -518,6 +551,42 @@ function closeDetail() {
 function accountActions(u) { return ''; } // 保留相容
 
 let svListCache = [];
+async function loadSvList() {
+  if (!svListCache.length) {
+    svListCache = usersCache.filter(u => u.role === 'supervisor' && u.status === 'active');
+  }
+  return svListCache;
+}
+
+// ── 更換督導 ──
+async function openChgSv(id, name) {
+  document.getElementById('chgsv-user-id').value = id;
+  document.getElementById('chgsv-name-label').textContent = `夥伴：${name}`;
+  document.getElementById('chgsv-err').style.display = 'none';
+  const svs = await loadSvList();
+  const cur  = usersCache.find(u => u.id === id)?.supervisor_id;
+  document.getElementById('chgsv-sel').innerHTML =
+    '<option value="">請選擇督導人員</option>' +
+    svs.map(sv => `<option value="${sv.id}"${sv.id===cur?' selected':''}>${sv.real_name}</option>`).join('');
+  document.getElementById('chgsv-overlay').classList.add('open');
+}
+function closeChgSv() {
+  document.getElementById('chgsv-overlay').classList.remove('open');
+}
+async function submitChgSv() {
+  const err  = document.getElementById('chgsv-err');
+  err.style.display = 'none';
+  const id   = parseInt(document.getElementById('chgsv-user-id').value);
+  const svId = document.getElementById('chgsv-sel').value;
+  if (!svId) { err.textContent = '請選擇督導人員'; err.style.display = 'block'; return; }
+  try {
+    await API.put(`/api/admin/users/${id}/set-supervisor`, { supervisor_id: parseInt(svId) });
+    closeChgSv();
+    showToast('督導人員已更換', 'success');
+    svListCache = []; // 清快取
+    loadAccounts();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
 async function approveUser(id, name) {
   const user = usersCache.find(u => u.id === id);
   // 工作夥伴需選督導

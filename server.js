@@ -204,6 +204,18 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { supervisor_id } = req.body;
+    if (!supervisor_id) return res.status(400).json({ error: '請選擇督導人員' });
+    const sv = await Users.byId(parseInt(supervisor_id));
+    if (!sv || sv.role !== 'supervisor') return res.status(400).json({ error: '無效的督導人員' });
+    await Users.update(id, { supervisor_id: parseInt(supervisor_id) });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.put('/api/admin/users/:id/deactivate', requireRole('staff'), async (req, res) => {
   try {
     await Users.update(parseInt(req.params.id), { status: 'inactive' });

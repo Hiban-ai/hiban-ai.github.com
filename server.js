@@ -383,6 +383,8 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
       images: images || [],
       status: 'pending',
     });
+    // 標記 assignment 為審核中，避免重複送出
+    await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing' });
     res.json({ ok: true, id: report.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -403,9 +405,11 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
     const rSnap = await require('firebase-admin').firestore()
       .collection('worklog_reports').where('id','==',id).limit(1).get();
     if (!rSnap.empty) {
-      const r = rSnap.docs[0].data();
+      const r   = rSnap.docs[0].data();
       const now = new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
-      await Assignments.update(r.assignment_id, { status: 'completed', completed_at: now });
+      await Assignments.update(r.assignment_id, {
+        status: 'completed', completed_at: now, review_status: 'approved'
+      });
     }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -413,21 +417,21 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
 
 app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) => {
   try {
-    const id     = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
     const { reason } = req.body;
     if (!reason) return res.status(400).json({ error: '請填寫退回原因' });
     await WorklogReports.update(id, { status: 'rejected' });
-    // 把意見寫進 assignment 的 supervisor_comments
     const rSnap = await require('firebase-admin').firestore()
       .collection('worklog_reports').where('id','==',id).limit(1).get();
     if (!rSnap.empty) {
-      const r    = rSnap.docs[0].data();
-      const a    = await Assignments.byId(r.assignment_id);
-      const now  = new Date();
+      const r   = rSnap.docs[0].data();
+      const a   = await Assignments.byId(r.assignment_id);
+      const now = new Date();
       const date = now.toLocaleDateString('zh-TW',{timeZone:'Asia/Taipei'});
       const time = now.toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour12:false,hour:'2-digit',minute:'2-digit'});
       const comments = [...(a.supervisor_comments || []), { date, time, text: reason }];
-      await Assignments.update(r.assignment_id, { supervisor_comments: comments });
+      // 退回後清除 review_status，讓夥伴可重新送出
+      await Assignments.update(r.assignment_id, { supervisor_comments: comments, review_status: null });
     }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }

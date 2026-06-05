@@ -182,7 +182,7 @@ const WorklogReports = {
     if (!assignIds.length) return [];
     const snap = await db.collection('worklog_reports').get();
     return snap.docs.map(d => d.data())
-      .filter(r => assignIds.includes(r.assignment_id) && r.status !== 'reviewed')
+      .filter(r => assignIds.includes(r.assignment_id) && r.status === 'pending')
       .sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
   },
   async update(id, patch) {

@@ -699,7 +699,7 @@ function renderActive(list) {
         ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:60px;overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;margin-bottom:.5rem;border:1px solid var(--border-l)">${a.notes}</div>` : ''}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:150px;overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;margin-bottom:.5rem;border:1px solid var(--border-l)">${a.notes}</div>` : ''}
       ${(a.supervisor_comments && a.supervisor_comments.length) ? `
         <div style="margin-bottom:.6rem">
           ${a.supervisor_comments.map(c => `

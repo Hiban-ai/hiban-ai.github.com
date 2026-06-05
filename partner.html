@@ -446,8 +446,8 @@ textarea.form-input{resize:none}
     <div class="overlay-desc" id="report-task-name" style="font-weight:600;color:var(--text)"></div>
 
     <div class="form-group" style="margin-top:.75rem">
-      <label class="form-label">完成數量 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
-      <input class="form-input" type="number" id="report-qty" min="0" placeholder="本次完成幾件">
+      <label class="form-label">完成數量</label>
+      <input class="form-input" type="number" id="report-qty" min="1" value="1">
     </div>
 
     <div class="form-group">
@@ -701,10 +701,7 @@ function renderActive(list) {
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : ''}
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
-      <div style="display:flex;gap:.5rem">
-        <button onclick="openReport(${a.id},'${a.task_name}')" style="flex:1;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📝 回報</button>
-        <button onclick="completeTask(${a.id},this)" style="flex:1;padding:.6rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✅ 完成任務</button>
-      </div>
+      <button onclick="openReport(${a.id},'${a.task_name}')" style="width:100%;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📝 回報</button>
     </div>`
   }).join('');
 }
@@ -787,6 +784,8 @@ async function submitReport() {
   const err = document.getElementById('report-err');
   err.style.display = 'none';
   const qty   = document.getElementById('report-qty').value;
+  const err   = document.getElementById('report-err');
+  if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
   const url   = document.getElementById('report-url').value.trim();
   const notes = document.getElementById('report-notes').value.trim();
   const imgData = reportImages.map(img => ({ name: img.name, data: img.data.substring(0, 50000) }));

@@ -155,4 +155,19 @@ const Assignments = {
   },
 };
 
-module.exports = { Users, ForgotReqs, Assignments };
+// ── WorklogReports ────────────────────────────────────────────
+const WorklogReports = {
+  async create(data) {
+    const id   = await nextId('reports');
+    const item = { id, created_at: now(), ...data };
+    await db.collection('worklog_reports').doc(String(id)).set(item);
+    return item;
+  },
+  async forAssignment(assignmentId) {
+    const snap = await db.collection('worklog_reports')
+      .where('assignment_id','==',assignmentId).get();
+    return snap.docs.map(d => d.data()).sort((a,b) => (a.created_at||'').localeCompare(b.created_at||''));
+  },
+};
+
+module.exports = { Users, ForgotReqs, Assignments, WorklogReports };

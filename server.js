@@ -2,7 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt  = require('bcryptjs');
 const path    = require('path');
-const { Users, ForgotReqs, Assignments } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 
 const app = express();
 app.use(express.json());
@@ -342,6 +342,33 @@ app.get('/api/assignments/history', requireRole('supervisor'), async (req, res) 
       return { ...a, partner_name };
     }));
     res.json(enriched);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── 任務回報 ──────────────────────────────────────────────────
+app.post('/api/reports', requireRole('partner'), async (req, res) => {
+  try {
+    const { assignment_id, url, notes, images } = req.body;
+    if (!assignment_id) return res.status(400).json({ error: 'Missing assignment_id' });
+    const a = await Assignments.byId(parseInt(assignment_id));
+    if (!a || a.accepted_by !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+    const report = await WorklogReports.create({
+      assignment_id: parseInt(assignment_id),
+      partner_id: req.session.user.id,
+      partner_name: req.session.user.real_name,
+      task_name: a.task_name,
+      url: url || '',
+      notes: notes || '',
+      images: images || [],
+    });
+    res.json({ ok: true, id: report.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/reports/:assignmentId', requireRole('partner','supervisor','staff'), async (req, res) => {
+  try {
+    const list = await WorklogReports.forAssignment(parseInt(req.params.assignmentId));
+    res.json(list);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

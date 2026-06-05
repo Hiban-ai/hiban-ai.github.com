@@ -418,6 +418,43 @@ textarea.form-input{resize:none}
 </div>
 
 
+<!-- 任務回報 overlay -->
+<div class="overlay" id="report-overlay">
+  <div class="overlay-box" style="width:480px;max-height:90vh;overflow-y:auto">
+    <div class="overlay-title">📝 任務回報</div>
+    <div class="overlay-desc" id="report-task-name" style="font-weight:600;color:var(--text)"></div>
+
+    <div class="form-group" style="margin-top:.75rem">
+      <label class="form-label">網址 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
+      <input class="form-input" type="url" id="report-url" placeholder="https://...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">上傳圖片 <span style="font-size:.72rem;color:var(--text-s)">（選填，可多張）</span></label>
+      <div id="report-upload-zone" onclick="document.getElementById('report-img-input').click()"
+           style="border:2px dashed var(--border);border-radius:var(--rs);padding:1rem;text-align:center;cursor:pointer;background:var(--bg);transition:all .2s">
+        <div style="font-size:1.4rem;margin-bottom:.3rem">🖼️</div>
+        <div style="font-size:.82rem;color:var(--text-s)">點擊選擇圖片（可選多張）</div>
+      </div>
+      <input type="file" id="report-img-input" accept="image/*" multiple style="display:none" onchange="handleReportImages(this)">
+      <!-- 縮圖列 -->
+      <div id="report-thumbnails" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">補充說明 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
+      <textarea class="form-input" id="report-notes" rows="3" placeholder="說明本次完成內容或遇到的問題..."></textarea>
+    </div>
+
+    <div id="report-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+
+    <div style="display:flex;gap:.5rem">
+      <button onclick="submitReport()" style="flex:2;padding:.8rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3)">送出</button>
+      <button onclick="closeReport()" style="flex:1;padding:.8rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.95rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+    </div>
+  </div>
+</div>
+
 <script src="shared.js"></script>
 <script>
 const QUESTS = [
@@ -574,7 +611,7 @@ function renderActive(list) {
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : ''}
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
-      <button onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))" style="width:100%;padding:.6rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📝 回報進度</button>
+      <button onclick="openReport(${a.id},'${a.task_name}')" style="width:100%;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(72,180,232,.25)">📝 回報</button>
     </div>`
   }).join('');
 }
@@ -595,6 +632,79 @@ async function rejectTask(id, btn) {
     showToast('已拒絕此派案', 'warn');
     loadTasks();
   } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
+}
+
+// ── 任務回報 ──────────────────────────────────────────────────
+let reportAssignmentId = null;
+let reportImages = [];
+
+function openReport(assignmentId, taskName) {
+  reportAssignmentId = assignmentId;
+  reportImages = [];
+  document.getElementById('report-task-name').textContent = taskName;
+  document.getElementById('report-url').value = '';
+  document.getElementById('report-notes').value = '';
+  document.getElementById('report-thumbnails').innerHTML = '';
+  document.getElementById('report-err').style.display = 'none';
+  document.getElementById('report-img-input').value = '';
+  document.getElementById('report-overlay').classList.add('open');
+}
+
+function closeReport() {
+  document.getElementById('report-overlay').classList.remove('open');
+}
+
+function handleReportImages(input) {
+  const files = Array.from(input.files);
+  const thumbs = document.getElementById('report-thumbnails');
+  files.forEach(file => {
+    if (reportImages.length >= 6) { showToast('最多上傳 6 張圖片', 'warn'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} 超過 5MB，略過`, 'warn'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const base64 = e.target.result;
+      reportImages.push({ name: file.name, data: base64 });
+      // 縮圖
+      const idx = reportImages.length - 1;
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0';
+      wrap.innerHTML = `
+        <img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+        <button onclick="removeReportImg(${idx},this.closest('div'))"
+          style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">✕</button>
+      `;
+      thumbs.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function removeReportImg(idx, el) {
+  reportImages.splice(idx, 1);
+  el.remove();
+  // 重新編號刪除按鈕
+  document.querySelectorAll('#report-thumbnails > div').forEach((wrap, i) => {
+    wrap.querySelector('button').setAttribute('onclick', `removeReportImg(${i},this.closest('div'))`);
+  });
+}
+
+async function submitReport() {
+  const err = document.getElementById('report-err');
+  err.style.display = 'none';
+  const url   = document.getElementById('report-url').value.trim();
+  const notes = document.getElementById('report-notes').value.trim();
+  // 圖片只存小縮圖（壓縮後）
+  const imgData = reportImages.map(img => ({ name: img.name, data: img.data.substring(0, 50000) }));
+  try {
+    await API.post('/api/reports', {
+      assignment_id: reportAssignmentId,
+      url, notes,
+      images: imgData,
+    });
+    closeReport();
+    showToast('回報已送出 ✓', 'success');
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
 function startPolling() {

@@ -305,6 +305,24 @@ app.get('/api/assignments/active', requireRole('partner'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/api/assignments/completed', requireRole('partner'), async (req, res) => {
+  try {
+    res.json(await Assignments.completedForPartner(req.session.user.id));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/assignments/:id/complete', requireRole('partner'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const a  = await Assignments.byId(id);
+    if (!a || a.accepted_by !== req.session.user.id || a.status !== 'accepted')
+      return res.status(400).json({ error: '無法完成此任務' });
+    const now = new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
+    await Assignments.update(id, { status: 'completed', completed_at: now });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.put('/api/assignments/:id/accept', requireRole('partner'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);

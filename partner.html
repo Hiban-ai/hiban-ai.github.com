@@ -291,6 +291,20 @@ textarea.form-input{resize:none}
       <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">⚔️ 進行中</div>
       <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
 
+      <!-- 已完成任務 -->
+      <div style="display:flex;align-items:center;gap:.6rem;margin:1.25rem 0 .6rem;flex-wrap:wrap">
+        <div style="font-size:.88rem;font-weight:700">✅ 已完成</div>
+        <select id="filter-year"  onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"><option value="">全部年份</option></select>
+        <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer">
+          <option value="">全部月份</option>
+          <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+          <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+          <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+          <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+        </select>
+      </div>
+      <div id="completed-list"></div>
+
     </div>
 
     <!-- 錢包 -->
@@ -508,19 +522,83 @@ function switchPage(name, el) {
 let rejectId     = null;
 let pollInterval = null;
 
+let completedCache = [];
+
 async function loadTasks() {
   try {
-    const [pending, active] = await Promise.all([
+    const [pending, active, completed] = await Promise.all([
       API.get('/api/assignments/pending'),
       API.get('/api/assignments/active'),
+      API.get('/api/assignments/completed'),
     ]);
     renderPending(pending);
     renderActive(active);
+    completedCache = completed;
+    renderCompleted(completed);
+    buildYearFilter(completed);
     return true;
   } catch(e) {
     console.warn('loadTasks error:', e.message);
     return false;
   }
+}
+
+function buildYearFilter(list) {
+  const sel = document.getElementById('filter-year');
+  if (!sel) return;
+  const years = [...new Set(list.map(a => (a.completed_at||'').slice(0,4)).filter(y=>y))].sort((a,b)=>b-a);
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">全部年份</option>' + years.map(y=>`<option value="${y}"${y===cur?' selected':''}>${y} 年</option>`).join('');
+}
+
+function filterCompleted() {
+  const year  = document.getElementById('filter-year').value;
+  const month = document.getElementById('filter-month').value;
+  let list = completedCache;
+  if (year)  list = list.filter(a => (a.completed_at||'').startsWith(year));
+  if (month) {
+    const mm = String(month).padStart(2,'0');
+    list = list.filter(a => {
+      const d = a.completed_at || '';
+      return d.slice(5,7) === mm || d.slice(4,6) === '/'+mm.replace(/^0/,'');
+    });
+  }
+  renderCompleted(list);
+}
+
+function renderCompleted(list) {
+  const el = document.getElementById('completed-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有已完成的任務</div>';
+    return;
+  }
+  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
+  el.innerHTML = list.map(a => {
+    const color = taskColor[a.task_name] || 'var(--green)';
+    return `
+    <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem;opacity:.85">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">✅ 已完成</span>
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text-s)">完成時間：${(a.completed_at||'—').slice(0,16)}</div>
+    </div>`
+  }).join('');
+}
+
+async function completeTask(id, btn) {
+  if (!confirm('確定要將此任務標記為已完成？')) return;
+  btn.disabled = true;
+  try {
+    await API.put(`/api/assignments/${id}/complete`);
+    showToast('任務已完成 ✅', 'success');
+    loadTasks();
+  } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
 
 // 完整卡片（含接案/拒絕按鈕）
@@ -618,7 +696,10 @@ function renderActive(list) {
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : ''}
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
-      <button onclick="openReport(${a.id},'${a.task_name}')" style="width:100%;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(72,180,232,.25)">📝 回報</button>
+      <div style="display:flex;gap:.5rem">
+        <button onclick="openReport(${a.id},'${a.task_name}')" style="flex:1;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📝 回報</button>
+        <button onclick="completeTask(${a.id},this)" style="flex:1;padding:.6rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✅ 完成任務</button>
+      </div>
     </div>`
   }).join('');
 }

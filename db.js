@@ -148,6 +148,12 @@ const Assignments = {
       .where('accepted_by','==',partnerId).where('status','==','accepted').get();
     return snap.docs.map(d => d.data()).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
   },
+  // 夥伴已完成
+  async completedForPartner(partnerId) {
+    const snap = await db.collection('assignments')
+      .where('accepted_by','==',partnerId).where('status','==','completed').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||''));
+  },
   // 督導派案紀錄
   async forSupervisor(supervisorId) {
     const snap = await db.collection('assignments').where('supervisor_id','==',supervisorId).get();

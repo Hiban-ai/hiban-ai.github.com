@@ -703,16 +703,20 @@ function renderActive(list) {
         ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:90px;overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;margin-bottom:.5rem;border:1px solid var(--border-l)">${a.notes}</div>` : ''}
-      ${(a.supervisor_comments && a.supervisor_comments.length) ? `
-        <div style="margin-bottom:.6rem">
-          ${a.supervisor_comments.map(c => `
-            <div style="background:var(--orange-p);border-left:3px solid var(--orange);border-radius:0 var(--rs) var(--rs) 0;padding:.5rem .7rem;margin-bottom:.3rem">
-              <div style="font-size:.75rem;font-weight:700;color:var(--orange);margin-bottom:.2rem">督導意見：${c.date} ${c.time}</div>
-              <div style="font-size:.88rem;color:var(--text-m)">${c.text}</div>
-            </div>
-          `).join('')}
-        </div>` : ''}
+      <div style="margin-bottom:.5rem">
+        <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
+        <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6">${a.notes || ''}</div>
+      </div>
+      <div style="margin-bottom:.6rem">
+        <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">督導意見</div>
+        <div style="max-height:calc(1.6em * 4 + .8rem);overflow-y:auto;background:var(--orange-p);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid rgba(240,120,64,.25);min-height:2rem;line-height:1.6">
+          ${(a.supervisor_comments && a.supervisor_comments.length)
+            ? a.supervisor_comments.map(c =>
+                `<div style="font-size:.82rem;color:var(--text-m)">${c.date} ${c.time}　${c.text}</div>`
+              ).join('')
+            : '<span style="font-size:.8rem;color:var(--text-s)">—</span>'}
+        </div>
+      </div>
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
       <button onclick="${reviewing ? '' : `openReport(${a.id},'${a.task_name}')`}"
         ${reviewing ? 'disabled' : ''}

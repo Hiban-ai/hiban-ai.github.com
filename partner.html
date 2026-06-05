@@ -454,8 +454,8 @@ function switchPage(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.pt-menu-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (name === 'tasks')  { loadTasks(); renderQuests(); }
-  if (name === 'quests') { loadTasks(); }
+  if (name === 'tasks' || name === 'quests') loadTasks();
+  if (name === 'tasks') renderQuests();
 }
 
 // ── 派案接收 ──────────────────────────────────────────────────
@@ -728,6 +728,8 @@ async function init() {
   renderQuests();
   await loadTasks();
   startPolling();
+  // Firebase 冷啟動延遲補償：1.5 秒後再補一次
+  setTimeout(loadTasks, 1500);
 }
 init();
 </script>

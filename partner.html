@@ -783,8 +783,7 @@ function removeReportImg(idx, el) {
 async function submitReport() {
   const err = document.getElementById('report-err');
   err.style.display = 'none';
-  const qty   = document.getElementById('report-qty').value;
-  const err   = document.getElementById('report-err');
+  const qty = document.getElementById('report-qty').value;
   if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
   const url   = document.getElementById('report-url').value.trim();
   const notes = document.getElementById('report-notes').value.trim();

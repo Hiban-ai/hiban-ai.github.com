@@ -446,6 +446,11 @@ textarea.form-input{resize:none}
     <div class="overlay-desc" id="report-task-name" style="font-weight:600;color:var(--text)"></div>
 
     <div class="form-group" style="margin-top:.75rem">
+      <label class="form-label">完成數量 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
+      <input class="form-input" type="number" id="report-qty" min="0" placeholder="本次完成幾件">
+    </div>
+
+    <div class="form-group">
       <label class="form-label">網址 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
       <input class="form-input" type="url" id="report-url" placeholder="https://...">
     </div>
@@ -730,6 +735,7 @@ function openReport(assignmentId, taskName) {
   reportAssignmentId = assignmentId;
   reportImages = [];
   document.getElementById('report-task-name').textContent = taskName;
+  document.getElementById('report-qty').value = '';
   document.getElementById('report-url').value = '';
   document.getElementById('report-notes').value = '';
   document.getElementById('report-thumbnails').innerHTML = '';
@@ -780,13 +786,14 @@ function removeReportImg(idx, el) {
 async function submitReport() {
   const err = document.getElementById('report-err');
   err.style.display = 'none';
+  const qty   = document.getElementById('report-qty').value;
   const url   = document.getElementById('report-url').value.trim();
   const notes = document.getElementById('report-notes').value.trim();
-  // 圖片只存小縮圖（壓縮後）
   const imgData = reportImages.map(img => ({ name: img.name, data: img.data.substring(0, 50000) }));
   try {
     await API.post('/api/reports', {
       assignment_id: reportAssignmentId,
+      completed_qty: parseInt(qty) || 0,
       url, notes,
       images: imgData,
     });

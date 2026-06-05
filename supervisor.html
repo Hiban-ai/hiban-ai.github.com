@@ -127,7 +127,10 @@ textarea.form-input{resize:none}
       <div class="sv-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
       <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
       <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
-      <div class="sv-menu-item" onclick="switchPage('worklog-review',this)"><span class="mi-icon">📝</span>WorkLog審核<span class="sv-badge">5</span></div>
+      <div class="sv-menu-item" onclick="switchPage('worklog-review',this)">
+        <span class="mi-icon">📋</span>任務審核
+        <span class="sv-badge" id="badge-task-review" style="display:none">0</span>
+      </div>
       <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
       <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
       <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
@@ -181,27 +184,10 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <!-- WorkLog Review -->
+    <!-- 任務審核 -->
     <div class="page-section" id="page-worklog-review">
-      <div class="page-title">📝 WorkLog 審核 <span style="background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">5件待審</span></div>
-      <div class="wl-review-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem">
-          <div class="wl-rev-name">月影旅者（陳小花）</div>
-          <span class="status-badge sb-pending">待審核</span>
-        </div>
-        <div class="wl-rev-task">📣 口碑留言 × 5則 · 第2輪修改</div>
-        <div style="display:flex;gap:.75rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-m);margin-bottom:.65rem"><span>📅 今天 10:30</span><span>✅ 完成 3 則</span><span>🤖 使用 ChatGPT</span></div>
-        <div class="wl-rev-note">已按照意見修改，語氣改成比較口語的方式，第3則也重新調整了關鍵字的位置。</div>
-        <div class="wl-rev-btns">
-          <button class="rev-btn approve" onclick="approveWL(this)">✓ 核准</button>
-          <button class="rev-btn reject" onclick="toggleRevInput(this)">✎ 退回修改</button>
-        </div>
-        <div class="revision-input">
-          <div style="font-size:.75rem;font-weight:600;color:var(--orange);margin-bottom:.5rem">✎ 填寫修改意見</div>
-          <textarea class="form-input" rows="3" placeholder="具體說明需要修改的地方..." style="margin-bottom:.5rem"></textarea>
-          <button class="btn-primary" style="margin-top:0" onclick="sendRevision(this)">送出意見</button>
-        </div>
-      </div>
+      <div class="page-title">📋 任務審核</div>
+      <div id="task-review-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
     <!-- Mentor -->
@@ -317,6 +303,11 @@ textarea.form-input{resize:none}
 </div>
 
 
+<!-- 圖片放大 overlay -->
+<div id="img-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;cursor:zoom-out">
+  <img id="img-overlay-src" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+</div>
+
 <script src="shared.js"></script>
 <script>
 function switchPage(name, el) {
@@ -324,7 +315,55 @@ function switchPage(name, el) {
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sv-menu-item').forEach(i=>i.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (name === 'tasks-sv') loadAssignHistory();
+  if (name === 'tasks-sv')      loadAssignHistory();
+  if (name === 'worklog-review') loadTaskReviews();
+}
+
+function enlargeImg(src) {
+  const ov = document.getElementById('img-overlay');
+  document.getElementById('img-overlay-src').src = src;
+  ov.style.display = 'flex';
+}
+
+async function loadTaskReviews() {
+  const el    = document.getElementById('task-review-list');
+  const badge = document.getElementById('badge-task-review');
+  try {
+    const list = await API.get('/api/reports/supervisor');
+    if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
+    if (!list.length) {
+      el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">目前沒有待審核的回報</div>';
+      return;
+    }
+    el.innerHTML = list.map(r => `
+      <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--blue)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.task_name}</div>
+            <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${(r.created_at||'').slice(0,16)}</div>
+          </div>
+          <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          ${r.url ? `<div><span style="color:var(--text-s);width:72px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+          ${r.notes ? `<div><span style="color:var(--text-s);width:72px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+        </div>
+        ${r.images && r.images.length ? `
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+          ${r.images.map(img => `
+            <img src="${img.data}" alt="${img.name}"
+              onclick="enlargeImg('${img.data}')"
+              style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s"
+              onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+          `).join('')}
+        </div>` : ''}
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--red)">${e.message}</div>`;
+  }
 }
 
 function approveWL(btn) {

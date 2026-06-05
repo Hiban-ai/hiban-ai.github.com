@@ -174,6 +174,20 @@ const WorklogReports = {
       .where('assignment_id','==',assignmentId).get();
     return snap.docs.map(d => d.data()).sort((a,b) => (a.created_at||'').localeCompare(b.created_at||''));
   },
+  async pendingForSupervisor(supervisorId) {
+    // 取得所有此督導的夥伴 assignment 的回報
+    const assignSnap = await db.collection('assignments')
+      .where('supervisor_id','==',supervisorId).get();
+    const assignIds = assignSnap.docs.map(d => d.data().id);
+    if (!assignIds.length) return [];
+    const snap = await db.collection('worklog_reports').get();
+    return snap.docs.map(d => d.data())
+      .filter(r => assignIds.includes(r.assignment_id) && r.status !== 'reviewed')
+      .sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+  },
+  async update(id, patch) {
+    await db.collection('worklog_reports').doc(String(id)).update(patch);
+  },
 };
 
 module.exports = { Users, ForgotReqs, Assignments, WorklogReports };

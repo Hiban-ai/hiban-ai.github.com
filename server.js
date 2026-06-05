@@ -366,20 +366,31 @@ app.get('/api/assignments/history', requireRole('supervisor'), async (req, res) 
 // ── 任務回報 ──────────────────────────────────────────────────
 app.post('/api/reports', requireRole('partner'), async (req, res) => {
   try {
-    const { assignment_id, url, notes, images } = req.body;
+    const { assignment_id, url, notes, images, completed_qty } = req.body;
     if (!assignment_id) return res.status(400).json({ error: 'Missing assignment_id' });
     const a = await Assignments.byId(parseInt(assignment_id));
     if (!a || a.accepted_by !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
     const report = await WorklogReports.create({
       assignment_id: parseInt(assignment_id),
+      supervisor_id: a.supervisor_id || null,
       partner_id: req.session.user.id,
       partner_name: req.session.user.real_name,
       task_name: a.task_name,
+      task_quantity: a.quantity,
+      completed_qty: parseInt(completed_qty) || 0,
       url: url || '',
       notes: notes || '',
       images: images || [],
+      status: 'pending',
     });
     res.json({ ok: true, id: report.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) => {
+  try {
+    const list = await WorklogReports.pendingForSupervisor(req.session.user.id);
+    res.json(list);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

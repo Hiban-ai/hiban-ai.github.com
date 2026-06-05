@@ -5,7 +5,7 @@ const path    = require('path');
 const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname), {
   etag: false,
   setHeaders: (res, filePath) => {

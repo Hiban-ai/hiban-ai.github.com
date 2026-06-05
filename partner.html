@@ -283,6 +283,19 @@ textarea.form-input{resize:none}
       <!-- 進行中任務 -->
       <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">⚔️ 進行中</div>
       <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+
+      <!-- 可接任務（靜態） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:1rem 0 .6rem">
+        <div style="font-size:.88rem;font-weight:700">📋 可接任務</div>
+      </div>
+      <div class="filter-row">
+        <div class="fchip active" onclick="filterQ(this,'all')">全部</div>
+        <div class="fchip" onclick="filterQ(this,'text')">✍️ 文字</div>
+        <div class="fchip" onclick="filterQ(this,'social')">📣 口碑</div>
+        <div class="fchip" onclick="filterQ(this,'visual')">🎨 視覺</div>
+        <div class="fchip" onclick="filterQ(this,'data')">📊 資料</div>
+      </div>
+      <div class="quest-list" id="quest-list"></div>
     </div>
 
     <!-- 錢包 -->
@@ -435,6 +448,7 @@ function filterQ(el, cat) {
 }
 function renderQuests() {
   const list = document.getElementById('quest-list');
+  if (!list) return;
   const shown = filtered === 'all' ? QUESTS : QUESTS.filter(q => q.cat === filtered);
   list.innerHTML = shown.map(q => `
     <div class="q-card cat-${q.cat}" onclick="showToast('任務接受功能開發中','info')">
@@ -729,7 +743,6 @@ async function init() {
   loadAvatar(me.id);
   const p = await API.get('/api/profile');
   fillProfile(p);
-  renderQuests();
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
   if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }

@@ -365,6 +365,27 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 核准夥伴 - 指定督導 overlay -->
+<div class="confirm-overlay" id="approve-overlay">
+  <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
+    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">✓ 核准工作夥伴</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">請選擇負責此夥伴的督導人員</div>
+    <input type="hidden" id="approve-user-id">
+    <input type="hidden" id="approve-user-name">
+    <div id="approve-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">督導人員</label>
+      <select class="form-input" id="approve-supervisor-sel" style="flex:1">
+        <option value="">請選擇督導人員</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn-cancel" onclick="closeApprove()">取消</button>
+      <button onclick="submitApprove()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認核准</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm dialog -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
@@ -469,6 +490,7 @@ function openDetail(id) {
   const rows = [
     ['帳號',     u.username],
     ['姓名',     u.real_name],
+    ...(u.role==='partner' ? [['負責督導', u.supervisor_id ? (usersCache.find(x=>x.id===u.supervisor_id)?.real_name||'—') : '未指派']] : []),
     ['暱稱',     u.nickname || '—'],
     ['角色',     roleMap[u.role] || u.role],
     ['身分證',   u.id_number || '—'],
@@ -495,10 +517,45 @@ function closeDetail() {
 
 function accountActions(u) { return ''; } // 保留相容
 
+let svListCache = [];
 async function approveUser(id, name) {
-  await API.put(`/api/admin/users/${id}/approve`);
-  showToast(`已核准 ${name}`, 'success');
-  loadAccounts();
+  const user = usersCache.find(u => u.id === id);
+  // 工作夥伴需選督導
+  if (user && user.role === 'partner') {
+    document.getElementById('approve-user-id').value   = id;
+    document.getElementById('approve-user-name').value = name;
+    document.getElementById('approve-err').style.display = 'none';
+    // 載入督導清單
+    if (!svListCache.length) {
+      svListCache = (await API.get('/api/admin/users')).filter(u => u.role === 'supervisor' && u.status === 'active');
+    }
+    const sel = document.getElementById('approve-supervisor-sel');
+    sel.innerHTML = '<option value="">請選擇督導人員</option>' +
+      svListCache.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
+    document.getElementById('approve-overlay').classList.add('open');
+  } else {
+    // 非夥伴直接核准
+    await API.put(`/api/admin/users/${id}/approve`, {});
+    showToast(`已核准 ${name}`, 'success');
+    loadAccounts();
+  }
+}
+function closeApprove() {
+  document.getElementById('approve-overlay').classList.remove('open');
+}
+async function submitApprove() {
+  const err  = document.getElementById('approve-err');
+  err.style.display = 'none';
+  const id   = parseInt(document.getElementById('approve-user-id').value);
+  const name = document.getElementById('approve-user-name').value;
+  const svId = document.getElementById('approve-supervisor-sel').value;
+  if (!svId) { err.textContent = '請選擇督導人員'; err.style.display = 'block'; return; }
+  try {
+    await API.put(`/api/admin/users/${id}/approve`, { supervisor_id: parseInt(svId) });
+    closeApprove();
+    showToast(`已核准 ${name}，已指派督導`, 'success');
+    loadAccounts();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 async function deactivateUser(id, name) {
   openConfirm('⏸', '停用帳號', `確定要停用「${name}」的帳號？停用後無法登入。`, async () => {

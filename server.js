@@ -39,6 +39,10 @@ app.get('/api/users-list', async (req, res) => {
     let users = await Users.all();
     users = users.filter(u => u.status === 'active');
     if (role) users = users.filter(u => u.role === role);
+    // 督導只看自己負責的夥伴
+    if (req.session.user?.role === 'supervisor' && role === 'partner') {
+      users = users.filter(u => u.supervisor_id === req.session.user.id);
+    }
     res.json(users.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname })));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -183,7 +187,19 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
 
 app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) => {
   try {
-    await Users.update(parseInt(req.params.id), { status: 'active' });
+    const id = parseInt(req.params.id);
+    const user = await Users.byId(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    // 工作夥伴核准時必須指定督導
+    if (user.role === 'partner') {
+      const { supervisor_id } = req.body;
+      if (!supervisor_id) return res.status(400).json({ error: '請選擇負責督導人員' });
+      const sv = await Users.byId(parseInt(supervisor_id));
+      if (!sv || sv.role !== 'supervisor') return res.status(400).json({ error: '無效的督導人員' });
+      await Users.update(id, { status: 'active', supervisor_id: parseInt(supervisor_id) });
+    } else {
+      await Users.update(id, { status: 'active' });
+    }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

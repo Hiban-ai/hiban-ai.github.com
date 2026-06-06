@@ -13,7 +13,10 @@ if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
   console.log('✅ Gmail mailer 已設定：' + process.env.GMAIL_USER);
 } else {
@@ -900,13 +903,14 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
   </div>
 </body></html>`;
 
-    await mailer.sendMail({
+    // 先回應，背景寄信避免逾時
+    res.json({ ok: true, message: `寄送中，稍後請至 ${me.email} 收信 ✅` });
+    mailer.sendMail({
       from: `"希絆雲作所" <${process.env.GMAIL_USER}>`,
       to: me.email,
       subject: `【希絆雲作所】${monthLabel}薪資彙整 — ${me.real_name}`,
       html
-    });
-    res.json({ ok: true, message: `已寄送至 ${me.email} ✅` });
+    }).catch(e => console.error('[send-me] 寄信失敗:', e.message));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

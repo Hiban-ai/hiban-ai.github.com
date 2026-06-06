@@ -322,6 +322,7 @@ textarea.form-input{resize:none}
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="st-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="st-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="st-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">Email</label><input class="form-input" type="email" id="st-prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="設定後可接收薪資彙整"></div>
         </div>
         <div id="st-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
           <button onclick="saveStProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
@@ -821,6 +822,7 @@ function fillStProfile(p) {
   document.getElementById('st-prof-birthday').value   = p.birthday   || '';
   document.getElementById('st-prof-phone').value      = p.phone      || '';
   document.getElementById('st-prof-address').value    = p.address    || '';
+  document.getElementById('st-prof-email').value      = p.email      || '';
 }
 function setStFieldEditable(ids, on) {
   ids.forEach(id => {
@@ -831,13 +833,13 @@ function setStFieldEditable(ids, on) {
   });
 }
 function toggleStProfEdit() {
-  setStFieldEditable(['st-prof-phone','st-prof-address'], true);
+  setStFieldEditable(['st-prof-phone','st-prof-address','st-prof-email'], true);
   document.getElementById('st-prof-edit-btn').style.display = 'none';
   document.getElementById('st-prof-save-row').style.display = 'flex';
 }
 function cancelStProfEdit() {
   fillStProfile(stProfData);
-  setStFieldEditable(['st-prof-phone','st-prof-address'], false);
+  setStFieldEditable(['st-prof-phone','st-prof-address','st-prof-email'], false);
   document.getElementById('st-prof-edit-btn').style.display = '';
   document.getElementById('st-prof-save-row').style.display = 'none';
 }
@@ -846,9 +848,11 @@ async function saveStProfile() {
     await API.put('/api/profile', {
       phone:   document.getElementById('st-prof-phone').value,
       address: document.getElementById('st-prof-address').value,
+      email:   document.getElementById('st-prof-email').value.trim(),
     });
     stProfData.phone   = document.getElementById('st-prof-phone').value;
     stProfData.address = document.getElementById('st-prof-address').value;
+    stProfData.email   = document.getElementById('st-prof-email').value.trim();
     cancelStProfEdit();
     showToast('個人資料已儲存', 'success');
   } catch(e) { showToast(e.message, 'error'); }

@@ -92,9 +92,9 @@ app.get('/api/profile', requireAuth, async (req, res) => {
   try {
     const u = await Users.byId(req.session.user.id);
     if (!u) return res.status(404).json({ error: 'Not found' });
-    const { id, username, real_name, role, status, id_number, birthday, phone, address,
+    const { id, username, real_name, role, status, id_number, birthday, phone, address, email,
             identity, bank_name, bank_branch, bank_account, bank_holder } = u;
-    res.json({ id, username, real_name, role, status, id_number, birthday, phone, address,
+    res.json({ id, username, real_name, role, status, id_number, birthday, phone, address, email,
                identity, bank_name, bank_branch, bank_account, bank_holder });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -102,7 +102,7 @@ app.get('/api/profile', requireAuth, async (req, res) => {
 app.put('/api/profile', requireAuth, async (req, res) => {
   try {
     const role    = req.session.user.role;
-    const allowed = ['phone','address'];
+    const allowed = ['phone','address','email'];
     const patch   = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) patch[f] = req.body[f]; });
     await Users.update(req.session.user.id, patch);
@@ -818,7 +818,7 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
 
     // 取登入管理員的 email（從 DB 抓，確保是最新的）
     const me = await Users.byName(req.session.user.username);
-    if (!me || !me.email) return res.status(400).json({ error: '您尚未設定 Email，請先在系統設定中設定信箱' });
+    if (!me || !me.email) return res.status(400).json({ error: '您尚未設定 Email，請先至個人資料填寫信箱' });
 
     const [fy, fm] = year_month.split('-');
     const monthLabel = `${fy} 年 ${parseInt(fm)} 月`;

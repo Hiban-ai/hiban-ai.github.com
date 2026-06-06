@@ -3,16 +3,29 @@ const session    = require('express-session');
 const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
-const { Resend } = require('resend');
+const Mailjet = require('node-mailjet');
 const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 
-// ── Resend 寄件設定 ──────────────────────────────────────
+// ── Mailjet 寄件設定 ──────────────────────────────────────
 let resendClient = null;
-if (process.env.RESEND_API_KEY) {
-  resendClient = new Resend(process.env.RESEND_API_KEY);
-  console.log('✅ Resend mailer 已設定');
+if (process.env.MAILJET_API_KEY && process.env.MAILJET_SECRET_KEY) {
+  resendClient = Mailjet.apiConnect(process.env.MAILJET_API_KEY, process.env.MAILJET_SECRET_KEY);
+  console.log('✅ Mailjet mailer 已設定');
 } else {
-  console.log('⚠️  RESEND_API_KEY 未設定，寄信功能停用');
+  console.log('⚠️  MAILJET_API_KEY / MAILJET_SECRET_KEY 未設定，寄信功能停用');
+}
+
+async function sendMail({ to, subject, html }) {
+  if (!resendClient) throw new Error('寄件服務未設定');
+  const from = process.env.MAILJET_FROM || '';
+  await resendClient.post('send', { version: 'v3.1' }).request({
+    Messages: [{
+      From: { Email: from, Name: '希絆雲作所' },
+      To:   [{ Email: to }],
+      Subject: subject,
+      HTMLPart: html,
+    }]
+  });
 }
 
 // 統一日期格式：YYYY/MM/DD hh:mm:ss（台北時區）
@@ -716,7 +729,7 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
 // 薪資通知寄信：POST /api/admin/payroll/send-email
 app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
+    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 MAILJET_API_KEY / MAILJET_SECRET_KEY' });
     const { partner_id, year_month } = req.body; // year_month = "2026-06"
     if (!partner_id || !year_month) return res.status(400).json({ error: '缺少必要參數' });
 
@@ -793,12 +806,7 @@ app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res)
 </body>
 </html>`;
 
-    await resendClient.emails.send({
-      from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-      to: partner.email,
-      subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`,
-      html
-    });
+    await sendMail({ to: partner.email, subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`, html });
 
     res.json({ ok: true, message: `已寄送至 ${partner.email}` });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -807,7 +815,7 @@ app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res)
 // 薪資彙整寄給登入管理員自己：POST /api/admin/payroll/send-me
 app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
+    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 MAILJET_API_KEY / MAILJET_SECRET_KEY' });
     const { year_month } = req.body;
     if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
 
@@ -897,12 +905,8 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
 
     // 先回應，背景寄信避免逾時
     res.json({ ok: true, message: `寄送中，稍後請至 ${me.email} 收信 ✅` });
-    resendClient.emails.send({
-      from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-      to: me.email,
-      subject: `【希絆雲作所】${monthLabel}薪資彙整 — ${me.real_name}`,
-      html
-    }).then(info => console.log('[send-me] 寄信成功:', info.messageId, '→', me.email))
+    sendMail({ to: me.email, subject: `【希絆雲作所】${monthLabel}薪資彙整 — ${me.real_name}`, html })
+      .then(() => console.log('[send-me] 寄信成功 →', me.email))
       .catch(e => console.error('[send-me] 寄信失敗:', e.message));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -910,7 +914,7 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
 // 薪資通知寄信（全體）：POST /api/admin/payroll/send-all
 app.post('/api/admin/payroll/send-all', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
+    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 MAILJET_API_KEY / MAILJET_SECRET_KEY' });
     const { year_month } = req.body;
     if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
 
@@ -978,12 +982,7 @@ app.post('/api/admin/payroll/send-all', requireRole('staff'), async (req, res) =
     </div>
   </div>
 </body></html>`;
-      await resendClient.emails.send({
-        from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-        to: partner.email,
-        subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`,
-        html
-      });
+      await sendMail({ to: partner.email, subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`, html });
       sent++;
     }
     res.json({ ok: true, sent, skipped, message: `已寄送 ${sent} 位，${skipped} 位略過` });
@@ -1018,12 +1017,7 @@ async function autoSendPayroll(year, month) {
       </tr>`).join('');
     const html = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f7fa;padding:24px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)"><div style="background:linear-gradient(135deg,#1a6fa0,#48B4E8);padding:28px 32px;color:#fff"><div style="font-size:22px;font-weight:700">💰 ${monthLabel}薪資通知</div><div style="font-size:14px;opacity:.85">希絆雲作所</div></div><div style="padding:28px 32px"><p>親愛的 <strong>${partner.real_name}</strong> 夥伴，您好：</p><table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0"><thead><tr style="background:#1a6fa0;color:#fff"><th style="padding:10px;text-align:left;border:1px solid #1a6fa0">任務</th><th style="padding:10px;border:1px solid #1a6fa0">數量</th><th style="padding:10px;border:1px solid #1a6fa0">單價</th><th style="padding:10px;border:1px solid #1a6fa0">小計</th><th style="padding:10px;border:1px solid #1a6fa0">完成時間</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:#fff8e8"><td colspan="3" style="padding:10px;border:1px solid #e0e0e0;text-align:right;font-weight:700">本月總計</td><td style="padding:10px;border:1px solid #e0e0e0;font-weight:700;color:#c87000">$${total.toLocaleString()}</td><td style="border:1px solid #e0e0e0"></td></tr></tfoot></table></div><div style="background:#f5f7fa;padding:16px;font-size:12px;color:#aaa;text-align:center">© 希絆雲作所 · 系統自動發送</div></div></body></html>`;
     try {
-      await resendClient.emails.send({
-        from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-        to: partner.email,
-        subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`,
-        html
-      });
+      await sendMail({ to: partner.email, subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`, html });
       sent++;
     } catch(e) { console.error(`[cron] 寄信失敗(${partner.real_name}):`, e.message); }
   }

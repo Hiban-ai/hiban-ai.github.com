@@ -10,14 +10,9 @@ const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 let mailer = null;
 if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
   mailer = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+    service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    family: 4,
+    tls: { rejectUnauthorized: false },
   });
   console.log('✅ Gmail mailer 已設定：' + process.env.GMAIL_USER);
 } else {

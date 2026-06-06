@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first'); // 強制 IPv4 優先，解決 Railway IPv6 ENETUNREACH
+
 const express    = require('express');
 const session    = require('express-session');
 const bcrypt     = require('bcryptjs');

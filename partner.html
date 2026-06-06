@@ -20,14 +20,26 @@
   --r:16px;--rs:10px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F8FCFF 100%);color:var(--text);font-size:16px;line-height:1.7;min-height:100vh;display:flex;flex-direction:column}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F8FCFF 100%);color:var(--text);font-size:16px;line-height:1.7;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* ── Layout ── */
-.pt-layout{display:flex;flex:1;min-height:0}
+.pt-layout{display:flex;flex:1;min-height:0;overflow:hidden}
+
+/* 左側捲軸 */
+.pt-menu::-webkit-scrollbar{width:4px}
+.pt-menu::-webkit-scrollbar-track{background:transparent}
+.pt-menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
+.pt-menu::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.5)}
+/* 右側捲軸 */
+.pt-main::-webkit-scrollbar{width:6px}
+.pt-main::-webkit-scrollbar-track{background:transparent}
+.pt-main::-webkit-scrollbar-thumb{background:#B8D9EE;border-radius:6px}
+.pt-main::-webkit-scrollbar-thumb:hover{background:#74CAEF}
 
 /* ── Sidebar ── */
 .pt-sidebar{width:230px;background:linear-gradient(180deg,#1260A0,#1A8AC0);color:#fff;
-  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.25)}
+  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.25);overflow:hidden}
 .pt-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
 .pt-logo-name{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:900;color:#fff}
 .pt-char-row{display:flex;align-items:center;gap:.6rem;margin-top:.75rem}
@@ -523,6 +535,21 @@ function switchPage(name, el) {
   if (name === 'tasks') renderQuests();
 }
 
+// ── 日期格式化 ────────────────────────────────────────────────
+function fmtDate(s) {
+  if (!s || s === '—') return '—';
+  const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
+  const [y,m,d] = datePart.split('/');
+  const date = `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+  return timePart ? `${date} ${timePart}` : date;
+}
+function fmtDay(s) {
+  if (!s || s === '—') return '—';
+  const datePart = s.replace(/-/g,'/').split(' ')[0];
+  const [y,m,d] = datePart.split('/');
+  return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+}
+
 // ── 派案接收 ──────────────────────────────────────────────────
 let rejectId     = null;
 let pollInterval = null;
@@ -591,7 +618,7 @@ function renderCompleted(list) {
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">✅ 已完成</span>
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件</span>
       </div>
-      <div style="font-size:.78rem;color:var(--text-s)">完成時間：${(a.completed_at||'—').slice(0,16)}</div>
+      <div style="font-size:.78rem;color:var(--text-s)">完成時間：${fmtDate(a.completed_at)}</div>
     </div>`
   }).join('');
 }
@@ -620,7 +647,7 @@ function buildTaskCards(list) {
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
-        ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
@@ -647,7 +674,7 @@ function buildTaskCardsReadonly(list) {
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
-        ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
@@ -700,7 +727,8 @@ function renderActive(list) {
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         ${statusTag}
-        ${a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.accepted_at ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">📌 接案：${fmtDate(a.accepted_at)}</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
       </div>
       <div style="margin-bottom:.5rem">
@@ -721,7 +749,7 @@ function renderActive(list) {
       <button onclick="${reviewing ? '' : `openReport(${a.id},'${a.task_name}')`}"
         ${reviewing ? 'disabled' : ''}
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:'Noto Sans TC',sans-serif">
-        ${reviewing ? '⏳ 審核中' : '📝 回報'}
+        ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
       </button>
     </div>`
   }).join('');

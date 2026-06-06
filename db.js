@@ -1,4 +1,9 @@
 // db.js — Firebase Firestore 版本
+// 日期字串轉 timestamp，支援 'YYYY/MM/DD hh:mm:ss' 與 'YYYY/M/D...' 格式
+function byDate(a, b) {
+  const parse = s => s ? new Date((s||'').replace(/\//g,'-').replace(' ','T')).getTime() : 0;
+  return parse(a) - parse(b);
+}
 const admin  = require('firebase-admin');
 const bcrypt = require('bcryptjs');
 
@@ -16,7 +21,9 @@ admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
 function now() {
-  return new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
 // ── 自動遞增 ID ───────────────────────────────────────────────
@@ -140,24 +147,24 @@ const Assignments = {
       a.assign_type === 'individual'
         ? a.target_partner_id === partnerId
         : !(a.rejected_by || []).includes(partnerId)
-    ).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    ).sort((a,b) => byDate(b.created_at, a.created_at));
   },
   // 夥伴已接案
   async activeForPartner(partnerId) {
     const snap = await db.collection('assignments')
       .where('accepted_by','==',partnerId).where('status','==','accepted').get();
-    return snap.docs.map(d => d.data()).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
   },
   // 夥伴已完成
   async completedForPartner(partnerId) {
     const snap = await db.collection('assignments')
       .where('accepted_by','==',partnerId).where('status','==','completed').get();
-    return snap.docs.map(d => d.data()).sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||''));
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.completed_at, a.completed_at));
   },
   // 督導派案紀錄
   async forSupervisor(supervisorId) {
     const snap = await db.collection('assignments').where('supervisor_id','==',supervisorId).get();
-    return snap.docs.map(d => d.data()).sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
   },
 };
 
@@ -183,7 +190,17 @@ const WorklogReports = {
     const snap = await db.collection('worklog_reports').get();
     return snap.docs.map(d => d.data())
       .filter(r => assignIds.includes(r.assignment_id) && r.status === 'pending')
-      .sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+      .sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+  async approvedForSupervisor(supervisorId) {
+    const assignSnap = await db.collection('assignments')
+      .where('supervisor_id','==',supervisorId).get();
+    const assignIds = assignSnap.docs.map(d => d.data().id);
+    if (!assignIds.length) return [];
+    const snap = await db.collection('worklog_reports').get();
+    return snap.docs.map(d => d.data())
+      .filter(r => assignIds.includes(r.assignment_id) && r.status === 'approved')
+      .sort((a,b) => byDate(b.created_at, a.created_at));
   },
   async update(id, patch) {
     await db.collection('worklog_reports').doc(String(id)).update(patch);

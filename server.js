@@ -4,6 +4,13 @@ const bcrypt  = require('bcryptjs');
 const path    = require('path');
 const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 
+// 統一日期格式：YYYY/MM/DD hh:mm:ss（台北時區）
+function nowTW() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
 const app = express();
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname), {
@@ -282,10 +289,18 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
     if (!task_name || !quantity || !unit_price) return res.status(400).json({ error: '缺少必填欄位' });
     if (assign_type === 'individual' && !target_partner_id) return res.status(400).json({ error: '請選擇指派對象' });
     const qty = parseInt(quantity), price = parseInt(unit_price);
+    const ddays = (parseInt(deadline_days) >= 1) ? parseInt(deadline_days) : 7;
+    const assigned_at = nowTW();
+    const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    dlBase.setDate(dlBase.getDate() + ddays);
+    const p = n => String(n).padStart(2,'0');
+    const deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
     const item = await Assignments.create({
       task_name, quantity: qty, unit_price: price, total_price: qty * price,
       notes: notes || '',
-      deadline_days: (parseInt(deadline_days) >= 1) ? parseInt(deadline_days) : 7,
+      deadline_days: ddays,
+      deadline_date,
+      assigned_at,
       assign_type: assign_type || 'individual',
       target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
       supervisor_id: req.session.user.id,
@@ -320,8 +335,7 @@ app.put('/api/assignments/:id/complete', requireRole('partner'), async (req, res
     const a  = await Assignments.byId(id);
     if (!a || a.accepted_by !== req.session.user.id || a.status !== 'accepted')
       return res.status(400).json({ error: '無法完成此任務' });
-    const now = new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
-    await Assignments.update(id, { status: 'completed', completed_at: now });
+    await Assignments.update(id, { status: 'completed', completed_at: nowTW() });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -331,7 +345,7 @@ app.put('/api/assignments/:id/accept', requireRole('partner'), async (req, res) 
     const id = parseInt(req.params.id);
     const a  = await Assignments.byId(id);
     if (!a || a.status !== 'pending') return res.status(400).json({ error: '任務已不可接受' });
-    await Assignments.update(id, { status: 'accepted', accepted_by: req.session.user.id });
+    await Assignments.update(id, { status: 'accepted', accepted_by: req.session.user.id, accepted_at: nowTW() });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -395,7 +409,48 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
 app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) => {
   try {
     const list = await WorklogReports.pendingForSupervisor(req.session.user.id);
-    res.json(list);
+    const enriched = await Promise.all(list.map(async r => {
+      const a = await Assignments.byId(r.assignment_id);
+      let partner_name = r.partner_name || '—';
+      if (a && a.accepted_by) {
+        const u = await Users.byId(a.accepted_by);
+        partner_name = u ? u.real_name : partner_name;
+      }
+      return {
+        ...r,
+        partner_name,
+        accepted_at:   a ? a.accepted_at   : null,
+        deadline_date: a ? a.deadline_date  : null,
+        assigned_at:   a ? a.assigned_at    : null,
+      };
+    }));
+    res.json(enriched);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => {
+  try {
+    const list = await WorklogReports.approvedForSupervisor(req.session.user.id);
+    const enriched = await Promise.all(list.map(async r => {
+      const a = await Assignments.byId(r.assignment_id);
+      let partner_name = '—';
+      if (a && a.accepted_by) {
+        const u = await Users.byId(a.accepted_by);
+        partner_name = u ? u.real_name : '—';
+      }
+      return {
+        ...r,
+        task_name:     a ? a.task_name     : '—',
+        task_quantity: a ? a.task_quantity : null,
+        partner_name,
+        partner_id:    a ? a.accepted_by   : null,
+        assigned_at:   a ? a.assigned_at   : null,
+        accepted_at:   a ? a.accepted_at   : null,
+        deadline_date: a ? a.deadline_date : null,
+        completed_at:  a ? a.completed_at  : null,
+      };
+    }));
+    res.json(enriched);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -409,9 +464,8 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
       .collection('worklog_reports').where('id','==',id).limit(1).get();
     if (!rSnap.empty) {
       const r   = rSnap.docs[0].data();
-      const now = new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});
       await Assignments.update(r.assignment_id, {
-        status: 'completed', completed_at: now, review_status: 'approved'
+        status: 'completed', completed_at: nowTW(), review_status: 'approved'
       });
     }
     res.json({ ok: true });
@@ -429,9 +483,8 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
     if (!rSnap.empty) {
       const r   = rSnap.docs[0].data();
       const a   = await Assignments.byId(r.assignment_id);
-      const now = new Date();
-      const date = now.toLocaleDateString('zh-TW',{timeZone:'Asia/Taipei'});
-      const time = now.toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour12:false,hour:'2-digit',minute:'2-digit'});
+      const ts = nowTW(); // YYYY/MM/DD hh:mm:ss
+      const [date, time] = ts.split(' ');
       const comments = [...(a.supervisor_comments || []), { date, time, text: reason }];
       // 退回後清除 review_status，讓夥伴可重新送出
       await Assignments.update(r.assignment_id, { supervisor_comments: comments, review_status: null });

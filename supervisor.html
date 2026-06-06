@@ -17,10 +17,12 @@
   --r:16px;--rs:10px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-.sv-layout{display:flex;flex:1;min-height:0}
-.sv-sidebar{width:230px;background:linear-gradient(180deg,#155E8C,#1A7AAF);color:#fff;display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.2)}
+.sv-layout{display:flex;flex:1;min-height:0;overflow:hidden}
+.sv-sidebar{width:230px;background:linear-gradient(180deg,#155E8C,#1A7AAF);color:#fff;display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.2);overflow:hidden}
+.sv-sidebar-nav{flex:1;overflow-y:auto;overflow-x:hidden}
 .sv-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)}
 .sv-logo-main{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.95)}
 .sv-menu{padding:.75rem 0;flex:1}
@@ -33,6 +35,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .sv-logout:hover{color:rgba(255,255,255,.8)}
 
 .sv-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+
+/* 左側捲軸 — 半透明白 */
+.sv-sidebar-nav::-webkit-scrollbar{width:4px}
+.sv-sidebar-nav::-webkit-scrollbar-track{background:transparent}
+.sv-sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
+.sv-sidebar-nav::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.5)}
+
+/* 右側捲軸 — 淡藍灰 */
+.sv-main::-webkit-scrollbar{width:6px}
+.sv-main::-webkit-scrollbar-track{background:transparent}
+.sv-main::-webkit-scrollbar-thumb{background:#B8D9EE;border-radius:6px}
+.sv-main::-webkit-scrollbar-thumb:hover{background:#74CAEF}
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
 .page-section{display:none}
 .page-section.active{display:block}
@@ -123,17 +137,20 @@ textarea.form-input{resize:none}
       <div style="display:inline-block;margin-top:.4rem;padding:.18rem .6rem;background:rgba(255,255,255,.18);border-radius:4px;font-size:.72rem;color:#fff;font-weight:700;letter-spacing:.03em">📖 督導人員</div>
       <div style="font-size:.92rem;font-weight:600;color:rgba(255,255,255,.92);margin-top:.45rem" id="sv-user-label">—</div>
     </div>
-    <div class="sv-menu">
-      <div class="sv-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
-      <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
-      <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
-      <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
-      <div class="sv-menu-item" onclick="switchPage('worklog-review',this)">
-        <span class="mi-icon">📋</span>任務審核
-        <span class="sv-badge" id="badge-task-review" style="display:none">0</span>
+    <div class="sv-sidebar-nav">
+      <div class="sv-menu">
+        <div class="sv-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+        <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
+        <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
+        <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
+        <div class="sv-menu-item" onclick="switchPage('worklog-review',this)">
+          <span class="mi-icon">📋</span>任務審核
+          <span class="sv-badge" id="badge-task-review" style="display:none">0</span>
+        </div>
+        <div class="sv-menu-item" onclick="switchPage('task-records',this)"><span class="mi-icon">📁</span>任務紀錄</div>
+        <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
+        <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
-      <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
-      <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
     </div>
     <div class="sv-logout" onclick="signOut()"><span>🚪</span>登出</div>
   </div>
@@ -142,9 +159,9 @@ textarea.form-input{resize:none}
 
     <!-- Dashboard -->
     <div class="page-section active" id="page-dashboard">
-      <div class="page-title">📊 督導總覽</div>
+      <div class="page-title">📊 總覽儀表板</div>
       <div class="stats-row">
-        <div class="stat-card sc-blue"><div class="sc-label">負責夥伴數</div><div class="sc-val">4</div></div>
+        <div class="stat-card sc-blue"><div class="sc-label">負責夥伴數</div><div class="sc-val" id="dashboard-partner-count">—</div></div>
         <div class="stat-card sc-green"><div class="sc-label">本月完成任務</div><div class="sc-val">12</div></div>
         <div class="stat-card sc-yellow"><div class="sc-label">待審核WorkLog</div><div class="sc-val">5</div></div>
         <div class="stat-card sc-red"><div class="sc-label">預警夥伴</div><div class="sc-val">2</div></div>
@@ -188,6 +205,15 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-worklog-review">
       <div class="page-title">📋 任務審核</div>
       <div id="task-review-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+    </div>
+
+    <!-- 任務紀錄 -->
+    <div class="page-section" id="page-task-records">
+      <div class="page-title">📁 任務紀錄</div>
+      <!-- 人員分頁 tabs -->
+      <div id="task-records-tabs" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem"></div>
+      <!-- 內容區 -->
+      <div id="task-records-content"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
     <!-- Mentor -->
@@ -319,8 +345,12 @@ textarea.form-input{resize:none}
 </div>
 
 <!-- 圖片放大 overlay -->
-<div id="img-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;cursor:zoom-out">
-  <img id="img-overlay-src" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+<div id="img-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:.75rem">
+  <div style="display:flex;gap:.75rem;align-items:center">
+    <button onclick="downloadOverlayImg()" style="padding:.45rem 1.1rem;background:#fff;color:#222;border:none;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⬇ 下載</button>
+    <button onclick="document.getElementById('img-overlay').style.display='none'" style="padding:.45rem 1.1rem;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:20px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✕ 關閉</button>
+  </div>
+  <img id="img-overlay-src" onclick="document.getElementById('img-overlay').style.display='none'" style="max-width:90vw;max-height:82vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:zoom-out">
 </div>
 
 <script src="shared.js"></script>
@@ -332,12 +362,36 @@ function switchPage(name, el) {
   if (el) el.classList.add('active');
   if (name === 'tasks-sv')      loadAssignHistory();
   if (name === 'worklog-review') loadTaskReviews();
+  if (name === 'task-records')  loadTaskRecords();
 }
 
-function enlargeImg(src) {
-  const ov = document.getElementById('img-overlay');
+// 日期格式化：YYYY/MM/DD hh:mm:ss
+function fmtDate(s) {
+  if (!s) return '—';
+  const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
+  const [y,m,d] = datePart.split('/');
+  const date = `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+  return timePart ? `${date} ${timePart}` : date;
+}
+// 只顯示日期：YYYY/MM/DD
+function fmtDay(s) {
+  if (!s) return '—';
+  const datePart = s.replace(/-/g,'/').split(' ')[0];
+  const [y,m,d] = datePart.split('/');
+  return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+}
+
+function enlargeImg(src, name) {
   document.getElementById('img-overlay-src').src = src;
-  ov.style.display = 'flex';
+  document.getElementById('img-overlay-src').dataset.name = name || 'image.jpg';
+  document.getElementById('img-overlay').style.display = 'flex';
+}
+function downloadOverlayImg() {
+  const img = document.getElementById('img-overlay-src');
+  const a = document.createElement('a');
+  a.href = img.src;
+  a.download = img.dataset.name || 'image.jpg';
+  a.click();
 }
 
 async function approveReport(reportId, assignmentId) {
@@ -345,6 +399,10 @@ async function approveReport(reportId, assignmentId) {
     await API.put(`/api/reports/${reportId}/approve`);
     showToast('已同意，任務標記為完成 ✓', 'success');
     loadTaskReviews();
+    // 若任務紀錄頁已開啟則同步刷新
+    if (document.getElementById('page-task-records').classList.contains('active')) {
+      loadTaskRecords();
+    }
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -386,21 +444,24 @@ async function loadTaskReviews() {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.task_name}</div>
-            <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${(r.created_at||'').slice(0,16)}</div>
+            <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
           </div>
           <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
-          ${r.url ? `<div><span style="color:var(--text-s);width:72px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
-          ${r.notes ? `<div><span style="color:var(--text-s);width:72px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+          ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">回報日期</span>${fmtDate(r.created_at)}</div>
         </div>
         ${r.images && r.images.length ? `
         <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
           ${r.images.map((img,i) => `
             <img src="${img.data}" alt="${img.name}"
-              onclick="enlargeImg(this.src)"
+              onclick="enlargeImg(this.src,'${img.name}')"
               style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s"
               onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
           `).join('')}
@@ -473,23 +534,34 @@ async function loadAssignHistory() {
     const list = await API.get('/api/assignments/history');
     const el = document.getElementById('assign-history');
     if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無派案紀錄</div>'; return; }
-    const statusLabel = { pending:'待回覆', accepted:'已接案', rejected:'已拒絕' };
-    const statusColor = { pending:'var(--orange)', accepted:'var(--green)', rejected:'var(--red)' };
-    el.innerHTML = list.map(a => `
-      <div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);margin-bottom:.6rem;border-left:4px solid ${statusColor[a.status]||'var(--border)'}">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700">${a.task_name}</div>
-          <span style="font-size:.75rem;font-weight:700;color:${statusColor[a.status]||'var(--text-s)'}">${statusLabel[a.status]||a.status}</span>
+    const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已拒絕' };
+    const statusColor = { pending:'var(--orange)', accepted:'var(--blue)', completed:'var(--green)', rejected:'var(--red)' };
+    el.innerHTML = list.map(a => {
+      const s = a.status || 'pending';
+      const reviewTag = a.review_status === 'reviewing'
+        ? `<span style="font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:8px;background:var(--blue-p);color:var(--blue-d);margin-left:.4rem">審核中</span>` : '';
+      return `
+      <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor[s]||'var(--border)'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem">
+          <div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+            <div style="font-size:.8rem;color:var(--text-s);margin-top:.15rem">📤 派案：${fmtDate(a.assigned_at)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
+            <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor[s]+'22'||'#eee'};color:${statusColor[s]||'var(--text-s)'}">${statusLabel[s]||s}</span>
+            ${reviewTag}
+          </div>
         </div>
-        <div style="font-size:.82rem;color:var(--text-s);display:flex;gap:.75rem;flex-wrap:wrap">
-          <span>👤 ${a.partner_name}</span>
-          <span>📦 ${a.quantity} 件</span>
-          <span>💰 $${(a.total_price||0).toLocaleString()}</span>
+        <div style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m)">
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">指派給</span>${a.partner_name || (a.assign_type==='all'?'全部夥伴':'—')}</div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${a.quantity} 件</div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">單價／總價</span>$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">完成期限</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'天' : '—')}</div>
+          ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">補充說明</span><div style="font-family:'標楷體','DFKai-SB',serif;height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
         </div>
-        ${a.reject_reason ? `<div style="font-size:.8rem;color:var(--red);margin-top:.4rem">拒絕原因：${a.reject_reason}</div>` : ''}
-      </div>
-    `).join('');
-  } catch {}
+      </div>`
+    }).join('');
+  } catch(e) { console.error(e); }
 }
 
 async function loadPartners() {
@@ -502,6 +574,9 @@ async function loadPartners() {
     document.querySelectorAll('#mentor-partner-sel').forEach(sel=>{
       sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     });
+    // 儀表板負責夥伴數
+    const countEl = document.getElementById('dashboard-partner-count');
+    if (countEl) countEl.textContent = users.length;
     // 夥伴管理 table
     const tbody = document.getElementById('sv-partner-tbody');
     tbody.innerHTML = users.map(u=>`
@@ -581,6 +656,92 @@ async function init() {
   loadPartners();
 }
 init();
+
+// ── 任務紀錄 ──────────────────────────────────────────────────
+let _taskRecordsCurrentTab = 'all';
+let _taskRecordsCache = { approved: [], partners: [] };
+
+async function loadTaskRecords() {
+  const tabsEl    = document.getElementById('task-records-tabs');
+  const contentEl = document.getElementById('task-records-content');
+  contentEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">載入中...</div>';
+  try {
+    const [approved, partners] = await Promise.all([
+      API.get('/api/reports/approved'),
+      API.get('/api/users-list?role=partner')
+    ]);
+    _taskRecordsCache = { approved, partners };
+
+    const tabs = [{ id: 'all', label: '全部' }, ...partners.map(p => ({ id: String(p.id), label: p.real_name }))];
+    if (!tabs.find(t => t.id === _taskRecordsCurrentTab)) _taskRecordsCurrentTab = 'all';
+
+    tabsEl.innerHTML = tabs.map(t => `
+      <button onclick="switchTaskRecordTab('${t.id}')" id="tr-tab-${t.id}"
+        style="padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--blue);
+               background:${_taskRecordsCurrentTab===t.id?'var(--blue)':'transparent'};
+               color:${_taskRecordsCurrentTab===t.id?'#fff':'var(--blue-d)'};
+               font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">
+        ${t.label}
+      </button>`).join('');
+
+    renderTaskRecordsContent();
+  } catch(e) {
+    contentEl.innerHTML = `<div style="color:var(--red)">${e.message}</div>`;
+  }
+}
+
+function switchTaskRecordTab(tabId) {
+  _taskRecordsCurrentTab = tabId;
+  document.querySelectorAll('[id^="tr-tab-"]').forEach(btn => {
+    const active = btn.id === 'tr-tab-' + tabId;
+    btn.style.background = active ? 'var(--blue)' : 'transparent';
+    btn.style.color = active ? '#fff' : 'var(--blue-d)';
+  });
+  renderTaskRecordsContent();
+}
+
+function renderTaskRecordsContent() {
+  const contentEl = document.getElementById('task-records-content');
+  const { approved } = _taskRecordsCache;
+
+  const filtered = _taskRecordsCurrentTab === 'all'
+    ? approved
+    : approved.filter(r => String(r.partner_id) === _taskRecordsCurrentTab);
+
+  if (!filtered.length) {
+    contentEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">目前沒有已完成的任務紀錄</div>';
+    return;
+  }
+
+  contentEl.innerHTML = filtered.map(r => `
+    <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--green)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.task_name}</div>
+          <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📤 派案 ${fmtDate(r.assigned_at)}</div>
+        </div>
+        <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
+        ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
+        <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+        ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+        ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+        ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}
+        ${r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
+        ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成日期</span>${fmtDate(r.completed_at)}</div>`  : ''}
+      </div>
+      ${r.images && r.images.length ? `
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+        ${r.images.map(img => `
+          <img src="${img.data}" alt="${img.name}"
+            onclick="enlargeImg(this.src,'${img.name}')"
+            style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+        `).join('')}
+      </div>` : ''}
+    </div>`).join('');
+}
 </script>
 </body>
 </html>

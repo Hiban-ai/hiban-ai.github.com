@@ -196,8 +196,6 @@ textarea.form-input{resize:none}
           <span class="st-badge" id="badge-forgot" style="display:none">0</span>
         </div>
         <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
-        <div class="st-menu-group">設定</div>
-        <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">⚙️</span>系統設定</div>
         <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
         <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理</div>
         <div class="st-menu-group">帳號</div>
@@ -295,32 +293,6 @@ textarea.form-input{resize:none}
           <button onclick="sendAllPayroll(this)" style="padding:.35rem .85rem;background:linear-gradient(135deg,#1a6fa0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">📧 寄送目前資料</button>
         </div>
         <div id="payroll-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
-      </div>
-    </div>
-
-    <!-- 系統設定 -->
-    <div class="page-section" id="page-settings">
-      <div class="page-title">⚙️ 系統設定</div>
-
-      <!-- 信箱設定 -->
-      <div class="card" style="max-width:480px">
-        <div style="font-size:.95rem;font-weight:700;color:var(--text-m);margin-bottom:1rem">📧 信箱設定</div>
-        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem;background:var(--blue-p);border-radius:var(--rs);padding:.6rem .85rem;border:1px solid var(--border)">
-          💡 設定完成後，系統將於每月 1 號自動匯總上個月薪資資料，寄送至各夥伴信箱。
-        </div>
-        <div id="settings-current-email" style="font-size:.85rem;color:var(--text-s);margin-bottom:.75rem"></div>
-        <div style="display:flex;flex-direction:column;gap:.65rem">
-          <div>
-            <label class="form-label">新信箱</label>
-            <input class="form-input" type="email" id="settings-email" placeholder="輸入 Email">
-          </div>
-          <div>
-            <label class="form-label">確認密碼</label>
-            <input class="form-input" type="password" id="settings-pw" placeholder="輸入登入密碼以確認">
-          </div>
-          <div id="settings-err" style="display:none;color:var(--red);font-size:.82rem"></div>
-          <button onclick="saveSettingsEmail()" style="padding:.75rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">儲存信箱</button>
-        </div>
       </div>
     </div>
 
@@ -499,7 +471,7 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
-  if (name === 'settings') loadSettings();
+
 }
 
 // ── 帳號管理 ──
@@ -1036,34 +1008,6 @@ async function sendPayrollEmail(partnerId, btn) {
   }
 }
 
-// ── 系統設定 ──────────────────────────────────────────────────
-let _meCache = null;
-
-async function loadSettings() {
-  try {
-    if (!_meCache) _meCache = await API.get('/api/me');
-    const el = document.getElementById('settings-current-email');
-    if (el) el.textContent = _meCache.email ? `目前信箱：${_meCache.email}` : '目前尚未設定信箱';
-  } catch {}
-}
-
-async function saveSettingsEmail() {
-  const email = document.getElementById('settings-email').value.trim();
-  const pw    = document.getElementById('settings-pw').value;
-  const errEl = document.getElementById('settings-err');
-  errEl.style.display = 'none';
-  if (!email) { errEl.textContent = '請填寫信箱'; errEl.style.display = 'block'; return; }
-  if (!pw)    { errEl.textContent = '請輸入密碼'; errEl.style.display = 'block'; return; }
-  try {
-    await API.post('/api/staff/set-email', { email, password: pw });
-    _meCache = null;
-    document.getElementById('settings-email').value = '';
-    document.getElementById('settings-pw').value = '';
-    showToast('信箱已儲存 ✅', 'success');
-    loadSettings();
-    loadPayroll(); // 更新薪資頁顯示
-  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
-}
 
 
 // ── 寄送目前資料給自己（登入中的管理員）────────────────────────

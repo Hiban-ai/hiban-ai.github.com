@@ -283,6 +283,46 @@ app.get('/api/_setup/admin', async (req, res) => {
 
 // ── 派案 API ──────────────────────────────────────────────────
 
+// ── 任務類型管理 ──────────────────────────────────────────────
+const ttCol = () => require('firebase-admin').firestore().collection('task_types');
+
+app.get('/api/task-types', async (req, res) => {
+  try {
+    const snap = await ttCol().orderBy('sort','asc').get();
+    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  } catch { // fallback：若無資料或無 sort 欄位
+    const snap = await ttCol().get();
+    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  }
+});
+
+app.post('/api/task-types', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: '請輸入任務名稱' });
+    const snap = await ttCol().get();
+    const ref = ttCol().doc();
+    await ref.set({ name: name.trim(), sort: snap.size });
+    res.json({ ok: true, id: ref.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/task-types/:id', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: '請輸入任務名稱' });
+    await ttCol().doc(req.params.id).update({ name: name.trim() });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/task-types/:id', requireRole('supervisor'), async (req, res) => {
+  try {
+    await ttCol().doc(req.params.id).delete();
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
     const { task_name, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days } = req.body;

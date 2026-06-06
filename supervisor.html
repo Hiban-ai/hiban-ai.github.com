@@ -279,10 +279,8 @@ textarea.form-input{resize:none}
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
             <select class="form-select" id="assign-task" style="flex:1">
               <option value="">請選擇任務</option>
-              <option value="口碑任務">📣 口碑任務</option>
-              <option value="SEO文案撰寫">✍️ SEO文案撰寫</option>
-              <option value="廣告圖設計">🎨 廣告圖設計</option>
             </select>
+            <button onclick="openTaskTypesMgr()" title="管理任務項目" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
@@ -330,6 +328,39 @@ textarea.form-input{resize:none}
 
 
 <!-- 退回原因 overlay -->
+<!-- 任務類型管理 overlay -->
+<div class="pw-overlay" id="task-types-overlay">
+  <div class="pw-box" style="width:340px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 任務項目管理</div>
+      <button onclick="closeTaskTypesMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <!-- 操作選擇 -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <button onclick="ttShowMode('add')"    id="tt-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">＋ 新增</button>
+      <button onclick="ttShowMode('edit')"   id="tt-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✎ 修改</button>
+      <button onclick="ttShowMode('delete')" id="tt-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✕ 刪除</button>
+    </div>
+    <!-- 新增面板 -->
+    <div id="tt-panel-add" style="display:none;flex-direction:column;gap:.6rem">
+      <input class="form-input" id="tt-new-name" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem">
+      <button onclick="addTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增</button>
+    </div>
+    <!-- 修改面板 -->
+    <div id="tt-panel-edit" style="display:none;flex-direction:column;gap:.6rem">
+      <select class="form-select" id="tt-edit-sel" style="font-size:.88rem"><option value="">請選擇要修改的項目</option></select>
+      <div style="font-size:.82rem;color:var(--text-s)">修改為</div>
+      <input class="form-input" id="tt-edit-name" placeholder="新的任務名稱" style="font-size:.88rem">
+      <button onclick="editTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">修改</button>
+    </div>
+    <!-- 刪除面板 -->
+    <div id="tt-panel-delete" style="display:none;flex-direction:column;gap:.6rem">
+      <select class="form-select" id="tt-del-sel" style="font-size:.88rem"><option value="">請選擇要刪除的項目</option></select>
+      <button onclick="deleteTaskType()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">刪除</button>
+    </div>
+  </div>
+</div>
+
 <div class="pw-overlay" id="reject-report-overlay">
   <div class="pw-box">
     <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✎ 退回修改意見</div>
@@ -654,8 +685,90 @@ async function init() {
   const p = await API.get('/api/profile');
   fillSvProfile(p);
   loadPartners();
+  loadTaskTypes();
 }
 init();
+
+// ── 任務類型管理 ──────────────────────────────────────────────
+let _ttList = [];
+
+async function loadTaskTypes() {
+  try {
+    _ttList = await API.get('/api/task-types');
+    // 更新派案下拉
+    const sel = document.getElementById('assign-task');
+    if (sel) sel.innerHTML = '<option value="">請選擇任務</option>' +
+      _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+    // 更新管理面板下拉
+    const opts = '<option value="">請選擇</option>' +
+      _ttList.map(t => `<option value="${t.id}" data-name="${t.name}">${t.name}</option>`).join('');
+    const editSel = document.getElementById('tt-edit-sel');
+    const delSel  = document.getElementById('tt-del-sel');
+    if (editSel) editSel.innerHTML = opts;
+    if (delSel)  delSel.innerHTML  = opts;
+  } catch {}
+}
+
+function ttShowMode(mode) {
+  ['add','edit','delete'].forEach(m => {
+    document.getElementById('tt-panel-'+m).style.display = m === mode ? 'flex' : 'none';
+    const btn = document.getElementById('tt-btn-'+m);
+    const active = m === mode;
+    btn.style.background = active ? 'var(--blue)' : '#fff';
+    btn.style.color = active ? '#fff' : 'var(--text-m)';
+    btn.style.borderColor = active ? 'var(--blue)' : 'var(--border)';
+  });
+}
+
+async function addTaskType() {
+  const name = document.getElementById('tt-new-name').value.trim();
+  if (!name) return showToast('請輸入任務名稱', 'error');
+  if (!confirm(`是否新增「${name}」？`)) return;
+  try {
+    await API.post('/api/task-types', { name });
+    document.getElementById('tt-new-name').value = '';
+    await loadTaskTypes();
+    showToast(`已新增「${name}」`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function editTaskType() {
+  const sel  = document.getElementById('tt-edit-sel');
+  const id   = sel.value;
+  const oldName = sel.options[sel.selectedIndex]?.dataset.name || '';
+  const newName = document.getElementById('tt-edit-name').value.trim();
+  if (!id)      return showToast('請選擇要修改的項目', 'error');
+  if (!newName) return showToast('請輸入新名稱', 'error');
+  if (!confirm(`「${oldName}」是否修改為「${newName}」？`)) return;
+  try {
+    await API.put(`/api/task-types/${id}`, { name: newName });
+    document.getElementById('tt-edit-name').value = '';
+    await loadTaskTypes();
+    showToast('已修改', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteTaskType() {
+  const sel  = document.getElementById('tt-del-sel');
+  const id   = sel.value;
+  const name = sel.options[sel.selectedIndex]?.dataset.name || '';
+  if (!id) return showToast('請選擇要刪除的項目', 'error');
+  if (!confirm(`是否確定刪除「${name}」？`)) return;
+  try {
+    await API.delete(`/api/task-types/${id}`);
+    await loadTaskTypes();
+    showToast(`已刪除「${name}」`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openTaskTypesMgr() {
+  loadTaskTypes();
+  ttShowMode('add'); // 預設顯示新增
+  document.getElementById('task-types-overlay').classList.add('open');
+}
+function closeTaskTypesMgr() {
+  document.getElementById('task-types-overlay').classList.remove('open');
+}
 
 // ── 任務紀錄 ──────────────────────────────────────────────────
 let _taskRecordsCurrentTab = 'all';

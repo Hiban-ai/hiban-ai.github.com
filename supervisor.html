@@ -276,6 +276,14 @@ textarea.form-input{resize:none}
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">公司</label>
+            <select class="form-select" id="assign-company" style="flex:1">
+              <option value="">請選擇公司</option>
+            </select>
+            <button onclick="openCompanyMgr()" title="管理公司" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
             <select class="form-select" id="assign-task" style="flex:1">
               <option value="">請選擇任務</option>
@@ -327,6 +335,40 @@ textarea.form-input{resize:none}
 </div>
 
 
+<!-- 公司管理 overlay -->
+<div class="pw-overlay" id="company-overlay">
+  <div class="pw-box" style="width:340px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🏢 公司管理</div>
+      <button onclick="closeCompanyMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <button onclick="coShowMode('add')"    id="co-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">＋ 新增</button>
+      <button onclick="coShowMode('edit')"   id="co-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✎ 修改</button>
+      <button onclick="coShowMode('delete')" id="co-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✕ 刪除</button>
+    </div>
+    <div id="co-panel-add" style="display:none;flex-direction:column;gap:.6rem">
+      <div id="co-add-list" style="display:flex;flex-direction:column;gap:.4rem">
+        <div class="co-add-row" style="display:flex;gap:.4rem;align-items:center">
+          <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+          <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
+        </div>
+      </div>
+      <button onclick="addCompany()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增</button>
+    </div>
+    <div id="co-panel-edit" style="display:none;flex-direction:column;gap:.6rem">
+      <select class="form-select" id="co-edit-sel" style="font-size:.88rem"><option value="">請選擇要修改的公司</option></select>
+      <div style="font-size:.82rem;color:var(--text-s)">修改為</div>
+      <input class="form-input" id="co-edit-name" placeholder="新的公司名稱" style="font-size:.88rem">
+      <button onclick="editCompany()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">修改</button>
+    </div>
+    <div id="co-panel-delete" style="display:none;flex-direction:column;gap:.6rem">
+      <select class="form-select" id="co-del-sel" style="font-size:.88rem"><option value="">請選擇要刪除的公司</option></select>
+      <button onclick="deleteCompany()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">刪除</button>
+    </div>
+  </div>
+</div>
+
 <!-- 退回原因 overlay -->
 <!-- 任務類型管理 overlay -->
 <div class="pw-overlay" id="task-types-overlay">
@@ -343,7 +385,12 @@ textarea.form-input{resize:none}
     </div>
     <!-- 新增面板 -->
     <div id="tt-panel-add" style="display:none;flex-direction:column;gap:.6rem">
-      <input class="form-input" id="tt-new-name" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem">
+      <div id="tt-add-list" style="display:flex;flex-direction:column;gap:.4rem">
+        <div class="tt-add-row" style="display:flex;gap:.4rem;align-items:center">
+          <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+          <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
+        </div>
+      </div>
       <button onclick="addTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增</button>
     </div>
     <!-- 修改面板 -->
@@ -474,7 +521,7 @@ async function loadTaskReviews() {
       <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--blue)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
           <div>
-            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.task_name}</div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
             <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
           </div>
           <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
@@ -535,26 +582,28 @@ function calcAssignTotal() {
 async function submitAssign() {
   const err = document.getElementById('assign-err');
   err.style.display = 'none';
-  const target = document.getElementById('assign-target').value;
-  const task   = document.getElementById('assign-task').value;
-  const qty    = document.getElementById('assign-qty').value;
-  const price  = document.getElementById('assign-price').value;
-  const notes  = document.getElementById('assign-notes').value;
-  const days   = document.getElementById('assign-days').value;
-  if (!target) { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
-  if (!task)   { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
+  const target  = document.getElementById('assign-target').value;
+  const company = document.getElementById('assign-company').value;
+  const task    = document.getElementById('assign-task').value;
+  const qty     = document.getElementById('assign-qty').value;
+  const price   = document.getElementById('assign-price').value;
+  const notes   = document.getElementById('assign-notes').value;
+  const days    = document.getElementById('assign-days').value;
+  if (!target)  { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
+  if (!company) { err.textContent = '請選擇公司';     err.style.display = 'block'; return; }
+  if (!task)    { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
   if (!qty || parseInt(qty) < 1)    { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
   if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
   if (!days || parseInt(days) < 1)  { err.textContent = '請填寫完成期限'; err.style.display = 'block'; return; }
   try {
     await API.post('/api/assignments', {
-      task_name: task, quantity: qty, unit_price: price, notes,
+      company, task_name: task, quantity: qty, unit_price: price, notes,
       deadline_days: parseInt(days),
       assign_type: target === 'all' ? 'all' : 'individual',
       target_partner_id: target === 'all' ? null : parseInt(target),
     });
     showToast('派案成功！', 'success');
-    ['assign-target','assign-task','assign-qty','assign-price','assign-notes','assign-days'].forEach(id => document.getElementById(id).value = '');
+    ['assign-target','assign-company','assign-task','assign-qty','assign-price','assign-notes','assign-days'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('assign-total').textContent = '$0';
     loadAssignHistory();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
@@ -575,7 +624,7 @@ async function loadAssignHistory() {
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor[s]||'var(--border)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem">
           <div>
-            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.company ? a.company+"："+a.task_name : a.task_name}</div>
             <div style="font-size:.8rem;color:var(--text-s);margin-top:.15rem">📤 派案：${fmtDate(a.assigned_at)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
@@ -686,8 +735,153 @@ async function init() {
   fillSvProfile(p);
   loadPartners();
   loadTaskTypes();
+  loadCompanies();
 }
 init();
+
+// ── 派案動態列（公司 + 任務）────────────────────────────────
+function buildRowHtml(idx) {
+  const coOpts = '<option value="">請選擇公司</option>' +
+    _coList.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+  const ttOpts = '<option value="">請選擇任務</option>' +
+    _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+  return `
+    <div class="assign-row" style="display:flex;gap:.4rem;align-items:center">
+      <select class="form-select row-company" style="flex:1;font-size:.83rem">${coOpts}</select>
+      <select class="form-select row-task"    style="flex:1;font-size:.83rem">${ttOpts}</select>
+      <button onclick="removeAssignRow(this)" title="移除"
+        style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    </div>`;
+}
+
+function initAssignRows() {
+  const container = document.getElementById('assign-rows');
+  if (!container) return;
+  container.innerHTML = buildRowHtml(0) +
+    `<button onclick="addAssignRow()" style="align-self:flex-start;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">＋ 新增項目</button>`;
+}
+
+function addAssignRow() {
+  const container = document.getElementById('assign-rows');
+  const addBtn = container.querySelector('button[onclick="addAssignRow()"]');
+  const div = document.createElement('div');
+  div.innerHTML = buildRowHtml(Date.now());
+  container.insertBefore(div.firstElementChild, addBtn);
+}
+
+function removeAssignRow(btn) {
+  const rows = document.querySelectorAll('.assign-row');
+  if (rows.length <= 1) {
+    // 最後一列：清空選擇而不刪除
+    const row = btn.closest('.assign-row');
+    row.querySelector('.row-company').value = '';
+    row.querySelector('.row-task').value = '';
+    return;
+  }
+  btn.closest('.assign-row').remove();
+}
+
+// ── 公司管理 ──────────────────────────────────────────────────
+let _coList = [];
+
+async function loadCompanies() {
+  try {
+    _coList = await API.get('/api/companies');
+    // 更新管理面板
+    const opts = '<option value="">請選擇</option>' +
+      _coList.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
+    const editSel = document.getElementById('co-edit-sel');
+    const delSel  = document.getElementById('co-del-sel');
+    if (editSel) editSel.innerHTML = opts;
+    if (delSel)  delSel.innerHTML  = opts;
+    // 更新派案下拉
+    const coSel = document.getElementById('assign-company');
+    if (coSel) { const cur = coSel.value; coSel.innerHTML = '<option value="">請選擇公司</option>' + _coList.map(c => `<option value="${c.name}">${c.name}</option>`).join(''); coSel.value = cur; }
+  } catch {}
+}
+
+function coShowMode(mode) {
+  ['add','edit','delete'].forEach(m => {
+    document.getElementById('co-panel-'+m).style.display = m === mode ? 'flex' : 'none';
+    const btn = document.getElementById('co-btn-'+m);
+    const active = m === mode;
+    btn.style.background = active ? 'var(--blue)' : '#fff';
+    btn.style.color = active ? '#fff' : 'var(--text-m)';
+    btn.style.borderColor = active ? 'var(--blue)' : 'var(--border)';
+  });
+}
+
+function addCoRow() {
+  const list = document.getElementById('co-add-list');
+  const div  = document.createElement('div');
+  div.className = 'co-add-row';
+  div.style.cssText = 'display:flex;gap:.4rem;align-items:center';
+  div.innerHTML = `
+    <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+    <button onclick="removeAddRow(this,'co-add-row')" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>`;
+  list.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+async function addCompany() {
+  const names = [...document.querySelectorAll('.co-add-input')]
+    .map(i => i.value.trim()).filter(n => n);
+  if (!names.length) return showToast('請輸入公司名稱', 'error');
+  if (!confirm(`是否新增 ${names.map(n=>`「${n}」`).join('、')}？`)) return;
+  try {
+    for (const name of names) await API.post('/api/companies', { name });
+    // 清空並重置為單列
+    const list = document.getElementById('co-add-list');
+    list.innerHTML = `<div class="co-add-row" style="display:flex;gap:.4rem;align-items:center">
+      <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+      <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
+    </div>`;
+    await loadCompanies();
+    showToast(`已新增 ${names.length} 項`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function editCompany() {
+  const sel     = document.getElementById('co-edit-sel');
+  const id      = sel.value;
+  const oldName = sel.options[sel.selectedIndex]?.dataset.name || '';
+  const newName = document.getElementById('co-edit-name').value.trim();
+  if (!id)      return showToast('請選擇要修改的公司', 'error');
+  if (!newName) return showToast('請輸入新名稱', 'error');
+  if (!confirm(`「${oldName}」是否修改為「${newName}」？`)) return;
+  try {
+    await API.put(`/api/companies/${id}`, { name: newName });
+    document.getElementById('co-edit-name').value = '';
+    await loadCompanies();
+    showToast('已修改', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCompany() {
+  const sel  = document.getElementById('co-del-sel');
+  const id   = sel.value;
+  const name = sel.options[sel.selectedIndex]?.dataset.name || '';
+  if (!id) return showToast('請選擇要刪除的公司', 'error');
+  if (!confirm(`是否確定刪除「${name}」？`)) return;
+  try {
+    await API.delete(`/api/companies/${id}`);
+    await loadCompanies();
+    showToast(`已刪除「${name}」`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openCompanyMgr() {
+  loadCompanies();
+  coShowMode('add');
+  document.getElementById('co-add-list').innerHTML = `<div class="co-add-row" style="display:flex;gap:.4rem;align-items:center">
+    <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+    <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
+  </div>`;
+  document.getElementById('company-overlay').classList.add('open');
+}
+function closeCompanyMgr() {
+  document.getElementById('company-overlay').classList.remove('open');
+}
 
 // ── 任務類型管理 ──────────────────────────────────────────────
 let _ttList = [];
@@ -695,10 +889,6 @@ let _ttList = [];
 async function loadTaskTypes() {
   try {
     _ttList = await API.get('/api/task-types');
-    // 更新派案下拉
-    const sel = document.getElementById('assign-task');
-    if (sel) sel.innerHTML = '<option value="">請選擇任務</option>' +
-      _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
     // 更新管理面板下拉
     const opts = '<option value="">請選擇</option>' +
       _ttList.map(t => `<option value="${t.id}" data-name="${t.name}">${t.name}</option>`).join('');
@@ -706,6 +896,9 @@ async function loadTaskTypes() {
     const delSel  = document.getElementById('tt-del-sel');
     if (editSel) editSel.innerHTML = opts;
     if (delSel)  delSel.innerHTML  = opts;
+    // 更新派案下拉
+    const ttSel = document.getElementById('assign-task');
+    if (ttSel) { const cur = ttSel.value; ttSel.innerHTML = '<option value="">請選擇任務</option>' + _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join(''); ttSel.value = cur; }
   } catch {}
 }
 
@@ -720,15 +913,38 @@ function ttShowMode(mode) {
   });
 }
 
+function addTtRow() {
+  const list = document.getElementById('tt-add-list');
+  const div  = document.createElement('div');
+  div.className = 'tt-add-row';
+  div.style.cssText = 'display:flex;gap:.4rem;align-items:center';
+  div.innerHTML = `
+    <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+    <button onclick="removeAddRow(this,'tt-add-row')" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>`;
+  list.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function removeAddRow(btn, rowClass) {
+  const rows = document.querySelectorAll('.'+rowClass);
+  if (rows.length <= 1) { btn.closest('.'+rowClass).querySelector('input').value = ''; return; }
+  btn.closest('.'+rowClass).remove();
+}
+
 async function addTaskType() {
-  const name = document.getElementById('tt-new-name').value.trim();
-  if (!name) return showToast('請輸入任務名稱', 'error');
-  if (!confirm(`是否新增「${name}」？`)) return;
+  const names = [...document.querySelectorAll('.tt-add-input')]
+    .map(i => i.value.trim()).filter(n => n);
+  if (!names.length) return showToast('請輸入任務名稱', 'error');
+  if (!confirm(`是否新增 ${names.map(n=>`「${n}」`).join('、')}？`)) return;
   try {
-    await API.post('/api/task-types', { name });
-    document.getElementById('tt-new-name').value = '';
+    for (const name of names) await API.post('/api/task-types', { name });
+    const list = document.getElementById('tt-add-list');
+    list.innerHTML = `<div class="tt-add-row" style="display:flex;gap:.4rem;align-items:center">
+      <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+      <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
+    </div>`;
     await loadTaskTypes();
-    showToast(`已新增「${name}」`, 'success');
+    showToast(`已新增 ${names.length} 項`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -763,7 +979,11 @@ async function deleteTaskType() {
 
 function openTaskTypesMgr() {
   loadTaskTypes();
-  ttShowMode('add'); // 預設顯示新增
+  ttShowMode('add');
+  document.getElementById('tt-add-list').innerHTML = `<div class="tt-add-row" style="display:flex;gap:.4rem;align-items:center">
+    <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+    <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
+  </div>`;
   document.getElementById('task-types-overlay').classList.add('open');
 }
 function closeTaskTypesMgr() {
@@ -830,7 +1050,7 @@ function renderTaskRecordsContent() {
     <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--green)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
         <div>
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.task_name}</div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
           <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📤 派案 ${fmtDate(r.assigned_at)}</div>
         </div>
         <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>

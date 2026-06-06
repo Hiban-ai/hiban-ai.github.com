@@ -211,7 +211,7 @@ textarea.form-input{resize:none}
       </div>
       <div class="pt-wallet-chip" onclick="switchPage('wallet',document.querySelector('[onclick*=wallet]'))">
         <span style="font-size:.8rem">💰</span>
-        <span class="pt-wallet-amt" id="wallet-top">$350</span>
+        <span class="pt-wallet-amt" id="wallet-top">$0</span>
       </div>
     </div>
 
@@ -252,8 +252,8 @@ textarea.form-input{resize:none}
       <!-- 角色統計 -->
       <div class="char-stats-card">
         <div class="char-stats-inner">
-          <div class="stat-box"><div class="stat-val">$350</div><div class="stat-label">累計收入</div></div>
-          <div class="stat-box"><div class="stat-val">3件</div><div class="stat-label">本月完成</div></div>
+          <div class="stat-box"><div class="stat-val" id="overview-income">$0</div><div class="stat-label">收入</div></div>
+          <div class="stat-box"><div class="stat-val" id="overview-month-done">0件</div><div class="stat-label">本月完成</div></div>
           <div class="stat-box"><div class="stat-val">5天</div><div class="stat-label">連續天數</div></div>
         </div>
       </div>
@@ -306,14 +306,8 @@ textarea.form-input{resize:none}
       <!-- 已完成任務 -->
       <div style="display:flex;align-items:center;gap:.6rem;margin:1.25rem 0 .6rem;flex-wrap:wrap">
         <div style="font-size:.88rem;font-weight:700">✅ 已完成</div>
-        <select id="filter-year"  onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"><option value="">全部年份</option></select>
-        <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer">
-          <option value="">全部月份</option>
-          <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-          <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-          <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-          <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
-        </select>
+        <select id="filter-year"  onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
+        <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
       </div>
       <div id="completed-list"></div>
 
@@ -323,15 +317,15 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-wallet">
       <div class="page-title">💰 錢包</div>
       <div class="wallet-hero">
-        <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">目前餘額</div>
-        <div class="wh-amount">$350</div>
-        <div style="font-size:.68rem;opacity:.6;margin-top:.5rem">💡 累積 $1,000 或每月底可申請提領</div>
+        <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">錢包總額</div>
+        <div class="wh-amount" id="wallet-total">$0</div>
       </div>
       <div class="txn-card">
-        <div style="font-size:.8rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem">收支明細</div>
-        <div class="txn-row"><div><div style="font-size:.95rem;font-weight:500">口碑留言 × 2則</div><div style="font-size:.78rem;color:var(--text-s)">2025/03/19</div></div><span class="txn-p plus">+$100</span></div>
-        <div class="txn-row"><div><div style="font-size:.95rem;font-weight:500">SEO文案</div><div style="font-size:.78rem;color:var(--text-s)">2025/03/17</div></div><span class="txn-p plus">+$400</span></div>
-        <div class="txn-row"><div><div style="font-size:.95rem;font-weight:500">提領</div><div style="font-size:.78rem;color:var(--text-s)">2025/03/01</div></div><span class="txn-p minus">-$300</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <div style="font-size:.8rem;font-weight:600;color:var(--text-m)">收入明細</div>
+          <select id="wallet-month" onchange="renderWallet()" style="padding:.25rem .5rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.78rem;background:var(--bg);cursor:pointer"></select>
+        </div>
+        <div id="wallet-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
       </div>
     </div>
 
@@ -536,6 +530,10 @@ function switchPage(name, el) {
 }
 
 // ── 日期格式化 ────────────────────────────────────────────────
+function taskLabel(a) {
+  return a.company ? `${a.company}：${a.task_name}` : a.task_name;
+}
+
 function fmtDate(s) {
   if (!s || s === '—') return '—';
   const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
@@ -566,8 +564,9 @@ async function loadTasks() {
     renderPending(pending);
     renderActive(active);
     completedCache = completed;
-    renderCompleted(completed);
-    buildYearFilter(completed);
+    buildYearFilter();
+    filterCompleted();
+    syncWalletAndOverview(completed);
     return true;
   } catch(e) {
     console.warn('loadTasks error:', e.message);
@@ -575,27 +574,121 @@ async function loadTasks() {
   }
 }
 
-function buildYearFilter(list) {
-  const sel = document.getElementById('filter-year');
-  if (!sel) return;
-  const years = [...new Set(list.map(a => (a.completed_at||'').slice(0,4)).filter(y=>y))].sort((a,b)=>b-a);
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">全部年份</option>' + years.map(y=>`<option value="${y}"${y===cur?' selected':''}>${y} 年</option>`).join('');
+// 產生最近3個月的 [{year,month}] 陣列，最新在前
+function last3Months() {
+  const now = new Date();
+  const res = [];
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    res.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+  }
+  return res;
+}
+
+function buildYearFilter() {
+  const months = last3Months();
+  const yearSel  = document.getElementById('filter-year');
+  const monthSel = document.getElementById('filter-month');
+  if (!yearSel || !monthSel) return;
+
+  const years = [...new Set(months.map(m => m.year))];
+  yearSel.innerHTML  = years.map(y => `<option value="${y}">${y} 年</option>`).join('');
+  monthSel.innerHTML = months.map(m =>
+    `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
+  ).join('');
+
+  // 預設本月
+  const now = new Date();
+  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  monthSel.value = defaultVal;
+  yearSel.value  = String(now.getFullYear());
 }
 
 function filterCompleted() {
-  const year  = document.getElementById('filter-year').value;
-  const month = document.getElementById('filter-month').value;
+  const ym = document.getElementById('filter-month').value; // "2026-06"
   let list = completedCache;
-  if (year)  list = list.filter(a => (a.completed_at||'').startsWith(year));
-  if (month) {
-    const mm = String(month).padStart(2,'0');
+  if (ym) {
+    const [y, m] = ym.split('-');
     list = list.filter(a => {
       const d = a.completed_at || '';
-      return d.slice(5,7) === mm || d.slice(4,6) === '/'+mm.replace(/^0/,'');
+      return d.startsWith(y+'/'+String(parseInt(m)).padStart(2,'0')) ||
+             d.startsWith(y+'/'+parseInt(m)+'/');
     });
   }
   renderCompleted(list);
+}
+
+// 同步錢包與總覽統計
+function syncWalletAndOverview(completed) {
+  const fmt = v => '$' + v.toLocaleString();
+  const now = new Date();
+  const yy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
+
+  // 本月收入
+  const thisMonthList = completed.filter(a => (a.completed_at || '').startsWith(`${yy}/${mm}`));
+  const thisMonthTotal = thisMonthList.reduce((s, a) => s + (a.total_price || 0), 0);
+
+  // 總覽：本月收入
+  const overviewIncomeEl = document.getElementById('overview-income');
+  if (overviewIncomeEl) overviewIncomeEl.textContent = fmt(thisMonthTotal);
+
+  // 側邊欄錢包金額 = 本月收入
+  const walletTopEl = document.getElementById('wallet-top');
+  if (walletTopEl) walletTopEl.textContent = fmt(thisMonthTotal);
+
+  // 本月完成件數
+  const monthDoneEl = document.getElementById('overview-month-done');
+  if (monthDoneEl) monthDoneEl.textContent = thisMonthList.length + ' 件';
+
+  // 填充錢包年月下拉選單，再渲染（錢包總額在 renderWallet 內更新）
+  buildWalletFilter();
+  renderWallet();
+}
+
+function buildWalletFilter() {
+  const months = last3Months();
+  const monthSel = document.getElementById('wallet-month');
+  if (!monthSel || monthSel.options.length) return; // 已建立就不重設
+  const now = new Date();
+  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  monthSel.innerHTML = months.map(m =>
+    `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
+  ).join('');
+  monthSel.value = defaultVal;
+}
+
+function renderWallet() {
+  const monthSel = document.getElementById('wallet-month');
+  const listEl   = document.getElementById('wallet-list');
+  if (!listEl) return;
+  const ym = monthSel ? monthSel.value : '';
+  let list = completedCache || [];
+  if (ym) {
+    const [y, m] = ym.split('-');
+    list = list.filter(a => {
+      const d = a.completed_at || '';
+      return d.startsWith(y + '/' + m);
+    });
+  }
+  // 按完成時間由新到舊
+  list = [...list].sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''));
+  // 更新錢包總額 = 本月份加總
+  const monthTotal = list.reduce((s, a) => s + (a.total_price || 0), 0);
+  const walletTotalEl = document.getElementById('wallet-total');
+  if (walletTotalEl) walletTotalEl.textContent = '$' + monthTotal.toLocaleString();
+
+  if (!list.length) {
+    listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">本月無收入紀錄</div>';
+    return;
+  }
+  listEl.innerHTML = list.map(a => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:.88rem;font-weight:600;color:var(--text-m)">${taskLabel(a)}</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${fmtDate(a.completed_at)}</div>
+      </div>
+      <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:.95rem;white-space:nowrap">+$${(a.total_price||0).toLocaleString()}</div>
+    </div>`).join('');
 }
 
 function renderCompleted(list) {
@@ -611,7 +704,7 @@ function renderCompleted(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem;opacity:.85">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
@@ -642,7 +735,7 @@ function buildTaskCards(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
@@ -669,7 +762,7 @@ function buildTaskCardsReadonly(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
@@ -722,7 +815,7 @@ function renderActive(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.task_name}</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">

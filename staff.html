@@ -21,17 +21,19 @@
   --r:16px;--rs:10px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);color:var(--text);font-size:16px;line-height:1.7;min-height:100vh;display:flex;flex-direction:column}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F5FAFE 100%);color:var(--text);font-size:16px;line-height:1.7;display:flex;flex-direction:column}
 
 /* Layout */
-.st-layout{display:flex;flex:1;min-height:0}
+.st-layout{display:flex;flex:1;min-height:0;overflow:hidden}
 .st-sidebar{width:230px;background:linear-gradient(180deg,#0D4A72,#155E8C);color:#fff;
-  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(13,74,114,.25)}
+  display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(13,74,114,.25);overflow:hidden}
 .st-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)}
 .st-logo-name{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:900;color:#fff}
 .st-logo-role{font-size:.72rem;font-weight:700;color:#fff;margin-top:.4rem;display:inline-block;padding:.18rem .6rem;background:rgba(255,255,255,.18);border-radius:4px;letter-spacing:.03em}
 .st-user-label{font-size:.92rem;font-weight:600;color:rgba(255,255,255,.92);margin-top:.45rem}
-.st-menu{padding:.75rem 0;flex:1}
+.st-sidebar-nav{flex:1;overflow-y:auto;overflow-x:hidden}
+.st-menu{padding:.75rem 0}
 .st-menu-group{padding:.5rem 1.25rem .25rem;font-size:.62rem;color:rgba(255,255,255,.3);letter-spacing:.08em;font-weight:600}
 .st-menu-item{display:flex;align-items:center;gap:.75rem;padding:.8rem 1.25rem;
   cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.65);
@@ -44,8 +46,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
   font-size:.78rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:color .2s}
 .st-logout:hover{color:rgba(255,255,255,.8)}
 
+/* 左側捲軸 */
+.st-sidebar-nav::-webkit-scrollbar{width:4px}
+.st-sidebar-nav::-webkit-scrollbar-track{background:transparent}
+.st-sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
+.st-sidebar-nav::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.5)}
+
 /* Main */
 .st-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
+
+/* 右側捲軸 */
+.st-main::-webkit-scrollbar{width:6px}
+.st-main::-webkit-scrollbar-track{background:transparent}
+.st-main::-webkit-scrollbar-thumb{background:#B8D9EE;border-radius:6px}
+.st-main::-webkit-scrollbar-thumb:hover{background:#74CAEF}
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
 .page-section{display:none}
 .page-section.active{display:block}
@@ -169,23 +183,26 @@ textarea.form-input{resize:none}
       <div class="st-logo-role">🧹 管理人員</div>
       <div class="st-user-label" id="st-user-label">—</div>
     </div>
-    <div class="st-menu">
-      <div class="st-menu-group">管理</div>
-      <div class="st-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>影響力儀表板</div>
-      <div class="st-menu-item" onclick="switchPage('accounts',this)">
-        <span class="mi-icon">👤</span>帳號管理
-        <span class="st-badge" id="badge-accounts" style="display:none">0</span>
+    <div class="st-sidebar-nav">
+      <div class="st-menu">
+        <div class="st-menu-group">管理</div>
+        <div class="st-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+        <div class="st-menu-item" onclick="switchPage('accounts',this)">
+          <span class="mi-icon">👤</span>帳號管理
+          <span class="st-badge" id="badge-accounts" style="display:none">0</span>
+        </div>
+        <div class="st-menu-item" onclick="switchPage('forgot',this)">
+          <span class="mi-icon">🔑</span>忘記密碼
+          <span class="st-badge" id="badge-forgot" style="display:none">0</span>
+        </div>
+        <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
+        <div class="st-menu-group">設定</div>
+        <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">⚙️</span>系統設定</div>
+        <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
+        <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理</div>
+        <div class="st-menu-group">帳號</div>
+        <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
-      <div class="st-menu-item" onclick="switchPage('forgot',this)">
-        <span class="mi-icon">🔑</span>忘記密碼
-        <span class="st-badge" id="badge-forgot" style="display:none">0</span>
-      </div>
-      <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
-      <div class="st-menu-group">設定</div>
-      <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
-      <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理</div>
-      <div class="st-menu-group">帳號</div>
-      <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
     </div>
     <div class="st-logout" onclick="signOut()"><span>🚪</span>登出</div>
   </div>
@@ -195,7 +212,7 @@ textarea.form-input{resize:none}
 
     <!-- Dashboard -->
     <div class="page-section active" id="page-dashboard">
-      <div class="page-title">📊 影響力儀表板</div>
+      <div class="page-title">📊 總覽儀表板</div>
       <div class="impact-grid">
         <div class="impact-card" style="--ic:var(--blue)"><div class="ic-val" id="dash-active">—</div><div class="ic-label">活躍工作夥伴</div></div>
         <div class="impact-card" style="--ic:var(--orange)"><div class="ic-val" id="dash-pending">—</div><div class="ic-label">待審核帳號</div></div>
@@ -270,7 +287,44 @@ textarea.form-input{resize:none}
     <!-- 薪資管理 -->
     <div class="page-section" id="page-payroll">
       <div class="page-title">💰 薪資管理</div>
-      <div class="card"><p style="color:var(--text-s);font-size:.88rem">薪資管理功能開發中</p></div>
+      <div class="card" style="padding:1rem 1.2rem">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;flex-wrap:wrap">
+          <select id="payroll-month" onchange="renderPayroll()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;background:var(--bg);cursor:pointer"></select>
+          <span style="font-size:.8rem;color:var(--text-s)">共 <span id="payroll-partner-count">0</span> 位夥伴</span>
+          <button onclick="exportPayrollExcel()" style="margin-left:auto;padding:.35rem .85rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">📥 匯出 Excel</button>
+        </div>
+        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem">
+          個人信箱：<span id="payroll-my-email" style="color:var(--text-m)">未設定</span>
+          <button onclick="openPayrollEmailModal()" style="margin-left:.5rem;padding:.2rem .55rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;font-size:.72rem;cursor:pointer;color:var(--text-s)">設定信箱</button>
+        </div>
+        <div id="payroll-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+      </div>
+    </div>
+
+    <!-- 系統設定 -->
+    <div class="page-section" id="page-settings">
+      <div class="page-title">⚙️ 系統設定</div>
+
+      <!-- 信箱設定 -->
+      <div class="card" style="max-width:480px">
+        <div style="font-size:.95rem;font-weight:700;color:var(--text-m);margin-bottom:1rem">📧 信箱設定</div>
+        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem;background:var(--blue-p);border-radius:var(--rs);padding:.6rem .85rem;border:1px solid var(--border)">
+          💡 設定完成後，系統將於每月 1 號自動匯總上個月薪資資料，寄送至各夥伴信箱。
+        </div>
+        <div id="settings-current-email" style="font-size:.85rem;color:var(--text-s);margin-bottom:.75rem"></div>
+        <div style="display:flex;flex-direction:column;gap:.65rem">
+          <div>
+            <label class="form-label">新信箱</label>
+            <input class="form-input" type="email" id="settings-email" placeholder="輸入 Email">
+          </div>
+          <div>
+            <label class="form-label">確認密碼</label>
+            <input class="form-input" type="password" id="settings-pw" placeholder="輸入登入密碼以確認">
+          </div>
+          <div id="settings-err" style="display:none;color:var(--red);font-size:.82rem"></div>
+          <button onclick="saveSettingsEmail()" style="padding:.75rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">儲存信箱</button>
+        </div>
+      </div>
     </div>
 
     <!-- 任務管理 -->
@@ -423,6 +477,20 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 薪資管理個人信箱設定 modal -->
+<div id="payroll-email-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:1.5rem;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <div style="font-size:1rem;font-weight:700;margin-bottom:1rem">📧 設定個人信箱</div>
+    <div style="display:flex;flex-direction:column;gap:.65rem">
+      <div><label class="form-label">新信箱</label><input class="form-input" type="email" id="pe-email" placeholder="輸入 Email"></div>
+      <div><label class="form-label">確認密碼</label><input class="form-input" type="password" id="pe-pw" placeholder="輸入登入密碼"></div>
+      <div id="pe-err" style="display:none;color:var(--red);font-size:.82rem"></div>
+      <button onclick="savePayrollEmail()" style="padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">儲存</button>
+      <button onclick="closePayrollEmailModal()" style="padding:.6rem;background:none;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;cursor:pointer;color:var(--text-s)">取消</button>
+    </div>
+  </div>
+</div>
+
 <script src="shared.js"></script>
 <script>
 let me = null;
@@ -446,6 +514,8 @@ function switchPage(name, el) {
   if (el) el.classList.add('active');
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
+  if (name === 'payroll') loadPayroll();
+  if (name === 'settings') loadSettings();
 }
 
 // ── 帳號管理 ──
@@ -491,19 +561,16 @@ function renderAccounts() {
     }
     tbody.innerHTML = list.map(u => `
       <tr>
-        <td>
-          <div style="font-weight:600">${u.real_name}</div>
-          ${u.nickname ? `<div style="font-size:.72rem;color:var(--text-s)">${u.nickname}</div>` : ''}
-        </td>
-        <td><span class="role-tag ${roleClass[u.role]||''}">${roleMap[u.role]||u.role}</span></td>
-        <td style="font-size:.82rem;font-family:monospace">${u.id_number||'—'}</td>
-        <td style="font-size:.82rem;color:var(--text-m)">${u.birthday||'—'}</td>
-        <td><span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span></td>
-        <td style="font-size:.78rem;color:var(--text-s)">${(u.created_at||'').slice(0,10)}</td>
+        <td style="white-space:nowrap;font-weight:600">${u.real_name}</td>
+        <td style="white-space:nowrap"><span class="role-tag ${roleClass[u.role]||''}">${roleMap[u.role]||u.role}</span></td>
+        <td style="white-space:nowrap;font-size:.82rem;font-family:monospace">${u.id_number||'—'}</td>
+        <td style="white-space:nowrap;font-size:.82rem;color:var(--text-m)">${u.birthday||'—'}</td>
+        <td style="white-space:nowrap"><span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span></td>
+        <td style="font-size:.78rem;color:var(--text-s);line-height:1.6">${u.created_at ? (s=>s[0]+'<br>'+(s[1]||''))(u.created_at.split(' ')) : '—'}</td>
         ${isPartner ? `
         <td style="white-space:nowrap">
           <span style="font-size:.85rem">${getSvName(u.supervisor_id)}</span>
-          <button class="action-btn" onclick="openChgSv(${u.id},'${u.real_name}')" style="margin-left:.25rem;padding:.18rem .45rem;font-size:.68rem">更換</button>
+          ${u.status !== 'pending' ? `<button class="action-btn" onclick="openChgSv(${u.id},'${u.real_name}')" style="margin-left:.25rem;padding:.18rem .45rem;font-size:.68rem">更換</button>` : ''}
         </td>` : ''}
         <td style="white-space:nowrap">${roleActions(u)}</td>
       </tr>
@@ -867,6 +934,196 @@ document.getElementById('confirm-ok-btn').onclick = async () => {
     try { await confirmCallback(); } catch(e) { showToast(e.message, 'error'); }
   }
   closeConfirm();
+};
+
+// ── 薪資管理 ──────────────────────────────────────────
+let payrollCache = [];
+
+function last3Months() {
+  const now = new Date();
+  const res = [];
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    res.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+  }
+  return res;
+}
+
+async function loadPayroll() {
+  try {
+    payrollCache = await API.get('/api/admin/payroll');
+    buildPayrollMonthFilter();
+    renderPayroll();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function buildPayrollMonthFilter() {
+  const sel = document.getElementById('payroll-month');
+  if (!sel || sel.options.length) return;
+  const months = last3Months();
+  const now = new Date();
+  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  sel.innerHTML = months.map(m =>
+    `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
+  ).join('');
+  sel.value = defaultVal;
+}
+
+function renderPayroll() {
+  const sel = document.getElementById('payroll-month');
+  const listEl = document.getElementById('payroll-list');
+  const countEl = document.getElementById('payroll-partner-count');
+  if (!listEl) return;
+  const ym = sel ? sel.value : '';
+  const [filterY, filterM] = ym ? ym.split('-') : ['',''];
+
+  // 每位夥伴篩選出該月記錄
+  const filtered = payrollCache.map(p => {
+    const records = p.records.filter(a => {
+      const d = a.completed_at || '';
+      return d.startsWith(`${filterY}/${filterM}`);
+    });
+    return { ...p, records };
+  }).filter(p => p.records.length > 0);
+
+  if (countEl) countEl.textContent = filtered.length;
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">本月無薪資紀錄</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(p => {
+    const total = p.records.reduce((s, a) => s + (a.total_price || 0), 0);
+    const rows = p.records.map(a => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text-m)">${a.company ? a.company+'：'+a.task_name : a.task_name}</div>
+          <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${a.completed_at || '—'}</div>
+        </div>
+        <div style="font-weight:700;color:var(--yellow);font-size:.92rem;white-space:nowrap">+$${(a.total_price||0).toLocaleString()}</div>
+      </div>`).join('');
+
+    return `
+      <div style="background:#fff;border-radius:var(--r);border:1.5px solid var(--border);margin-bottom:.85rem;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--bg-s);border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:.6rem;cursor:pointer;flex:1" onclick="togglePayrollPanel('pp-${p.id}',this.closest('div[style]').querySelector('.pp-arrow-wrap'))">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--blue-p);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--blue-d)">${p.real_name.slice(-1)}</div>
+            <div>
+              <div style="font-size:.9rem;font-weight:700">${p.real_name}</div>
+              <div style="font-size:.72rem;color:var(--text-s)">完成 ${p.records.length} 筆</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1rem">$${total.toLocaleString()}</div>
+            <span class="pp-arrow-wrap" style="font-size:.75rem;color:var(--text-s);cursor:pointer" onclick="togglePayrollPanel('pp-${p.id}',this)">▼</span>
+          </div>
+        </div>
+        <div id="pp-${p.id}" style="padding:.25rem 1rem .5rem;display:none">${rows}</div>
+      </div>`;
+  }).join('');
+}
+
+function togglePayrollPanel(panelId, arrowEl) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : '';
+  if (arrowEl) arrowEl.textContent = open ? '▼' : '▲';
+}
+
+async function sendPayrollEmail(partnerId, btn) {
+  const sel = document.getElementById('payroll-month');
+  const ym  = sel ? sel.value : '';
+  if (!ym) return;
+  const [y, m] = ym.split('-');
+  const monthLabel = `${y} 年 ${parseInt(m)} 月`;
+  if (!confirm(`確定要寄送 ${monthLabel} 薪資通知給此夥伴？`)) return;
+  btn.disabled = true;
+  btn.textContent = '寄送中…';
+  try {
+    const res = await API.post('/api/admin/payroll/send-email', { partner_id: partnerId, year_month: ym });
+    showToast(res.message || '寄送成功 ✅', 'success');
+  } catch(e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📧 寄送通知';
+  }
+}
+
+// ── 系統設定 ──────────────────────────────────────────────────
+let _meCache = null;
+
+async function loadSettings() {
+  try {
+    if (!_meCache) _meCache = await API.get('/api/me');
+    const el = document.getElementById('settings-current-email');
+    if (el) el.textContent = _meCache.email ? `目前信箱：${_meCache.email}` : '目前尚未設定信箱';
+  } catch {}
+}
+
+async function saveSettingsEmail() {
+  const email = document.getElementById('settings-email').value.trim();
+  const pw    = document.getElementById('settings-pw').value;
+  const errEl = document.getElementById('settings-err');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = '請填寫信箱'; errEl.style.display = 'block'; return; }
+  if (!pw)    { errEl.textContent = '請輸入密碼'; errEl.style.display = 'block'; return; }
+  try {
+    await API.post('/api/staff/set-email', { email, password: pw });
+    _meCache = null;
+    document.getElementById('settings-email').value = '';
+    document.getElementById('settings-pw').value = '';
+    showToast('信箱已儲存 ✅', 'success');
+    loadSettings();
+    loadPayroll(); // 更新薪資頁顯示
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ── 薪資頁個人信箱設定 modal ──────────────────────────────────
+function openPayrollEmailModal() {
+  document.getElementById('payroll-email-modal').style.display = 'flex';
+  document.getElementById('pe-err').style.display = 'none';
+  document.getElementById('pe-email').value = '';
+  document.getElementById('pe-pw').value = '';
+}
+function closePayrollEmailModal() {
+  document.getElementById('payroll-email-modal').style.display = 'none';
+}
+async function savePayrollEmail() {
+  const email = document.getElementById('pe-email').value.trim();
+  const pw    = document.getElementById('pe-pw').value;
+  const errEl = document.getElementById('pe-err');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = '請填寫信箱'; errEl.style.display = 'block'; return; }
+  if (!pw)    { errEl.textContent = '請輸入密碼'; errEl.style.display = 'block'; return; }
+  try {
+    await API.post('/api/staff/set-email', { email, password: pw });
+    _meCache = null;
+    closePayrollEmailModal();
+    showToast('信箱已儲存 ✅', 'success');
+    loadPayroll();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ── Excel 匯出 ─────────────────────────────────────────────────
+function exportPayrollExcel() {
+  const sel = document.getElementById('payroll-month');
+  const ym  = sel ? sel.value : '';
+  const url = `/api/admin/payroll/export${ym ? '?year_month='+ym : ''}`;
+  window.open(url, '_blank');
+}
+
+// ── 更新薪資頁個人信箱顯示 ───────────────────────────────────
+const _origLoadPayroll = loadPayroll;
+loadPayroll = async function() {
+  await _origLoadPayroll();
+  try {
+    if (!_meCache) _meCache = await API.get('/api/me');
+    const el = document.getElementById('payroll-my-email');
+    if (el) el.textContent = _meCache.email || '未設定';
+  } catch {}
 };
 
 init();

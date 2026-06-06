@@ -1,8 +1,24 @@
-const express = require('express');
-const session = require('express-session');
-const bcrypt  = require('bcryptjs');
-const path    = require('path');
+const express    = require('express');
+const session    = require('express-session');
+const bcrypt     = require('bcryptjs');
+const path       = require('path');
+const nodemailer = require('nodemailer');
+const cron       = require('node-cron');
 const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
+
+// ── Gmail 寄件設定 ──────────────────────────────────────
+let mailer = null;
+if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
+  mailer = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
+  });
+  console.log('✅ Gmail mailer 已設定：' + process.env.GMAIL_USER);
+} else {
+  console.log('⚠️  GMAIL_USER / GMAIL_PASS 未設定，寄信功能停用');
+}
 
 // 統一日期格式：YYYY/MM/DD hh:mm:ss（台北時區）
 function nowTW() {
@@ -283,6 +299,43 @@ app.get('/api/_setup/admin', async (req, res) => {
 
 // ── 派案 API ──────────────────────────────────────────────────
 
+// ── 公司管理 ──────────────────────────────────────────────────
+const coCol = () => require('firebase-admin').firestore().collection('companies');
+
+app.get('/api/companies', async (req, res) => {
+  try {
+    const snap = await coCol().orderBy('sort','asc').get();
+    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  } catch {
+    const snap = await coCol().get();
+    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  }
+});
+app.post('/api/companies', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: '請輸入公司名稱' });
+    const snap = await coCol().get();
+    const ref = coCol().doc();
+    await ref.set({ name: name.trim(), sort: snap.size });
+    res.json({ ok: true, id: ref.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.put('/api/companies/:id', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: '請輸入公司名稱' });
+    await coCol().doc(req.params.id).update({ name: name.trim() });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.delete('/api/companies/:id', requireRole('supervisor'), async (req, res) => {
+  try {
+    await coCol().doc(req.params.id).delete();
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── 任務類型管理 ──────────────────────────────────────────────
 const ttCol = () => require('firebase-admin').firestore().collection('task_types');
 
@@ -325,7 +378,7 @@ app.delete('/api/task-types/:id', requireRole('supervisor'), async (req, res) =>
 
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days } = req.body;
+    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days } = req.body;
     if (!task_name || !quantity || !unit_price) return res.status(400).json({ error: '缺少必填欄位' });
     if (assign_type === 'individual' && !target_partner_id) return res.status(400).json({ error: '請選擇指派對象' });
     const qty = parseInt(quantity), price = parseInt(unit_price);
@@ -336,7 +389,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
     const p = n => String(n).padStart(2,'0');
     const deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
     const item = await Assignments.create({
-      task_name, quantity: qty, unit_price: price, total_price: qty * price,
+      task_name, company: company || '', quantity: qty, unit_price: price, total_price: qty * price,
       notes: notes || '',
       deadline_days: ddays,
       deadline_date,
@@ -459,7 +512,8 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
       return {
         ...r,
         partner_name,
-        accepted_at:   a ? a.accepted_at   : null,
+        company:       a ? a.company        : '',
+        accepted_at:   a ? a.accepted_at    : null,
         deadline_date: a ? a.deadline_date  : null,
         assigned_at:   a ? a.assigned_at    : null,
       };
@@ -481,6 +535,7 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
       return {
         ...r,
         task_name:     a ? a.task_name     : '—',
+        company:       a ? a.company       : '',
         task_quantity: a ? a.task_quantity : null,
         partner_name,
         partner_id:    a ? a.accepted_by   : null,
@@ -539,6 +594,268 @@ app.get('/api/reports/:assignmentId', requireRole('partner','supervisor','staff'
     res.json(list);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+// Staff 信箱設定（儲存到 user 記錄）
+app.post('/api/staff/set-email', requireRole('staff'), async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: '請填寫信箱與密碼' });
+    const user = await Users.byName(req.session.user.username);
+    if (!user) return res.status(404).json({ error: '找不到用戶' });
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(401).json({ error: '密碼錯誤' });
+    await Users.update(user.id, { email });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 薪資管理：取得所有夥伴的已完成任務（staff 用）
+app.get('/api/admin/payroll', requireRole('staff'), async (req, res) => {
+  try {
+    const { Assignments, Users } = require('./db');
+    // 取得所有 partner
+    const allUsers = await Users.all();
+    const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active');
+    // 取得所有已完成任務
+    const snap = await require('firebase-admin').firestore()
+      .collection('assignments').where('status', '==', 'completed').get();
+    const allCompleted = snap.docs.map(d => d.data());
+    // 組合每位夥伴資料
+    const result = partners.map(p => ({
+      id: p.id,
+      real_name: p.real_name,
+      username: p.username,
+      records: allCompleted
+        .filter(a => a.accepted_by === p.id)
+        .sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''))
+    }));
+    res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 薪資 Excel 匯出：GET /api/admin/payroll/export?year_month=2026-06
+app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const { year_month } = req.query;
+    const [fy, fm] = (year_month || '').split('-');
+    const monthLabel = fy && fm ? `${fy}年${parseInt(fm)}月` : '全部';
+    const fileLabel  = fy && fm ? `薪資總表_${fy}年_${parseInt(fm)}月` : '薪資總表_全部';
+
+    const allUsers = await Users.all();
+    const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active');
+
+    const snap = await require('firebase-admin').firestore()
+      .collection('assignments').where('status', '==', 'completed').get();
+    const allCompleted = snap.docs.map(d => d.data());
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = '希絆雲作所';
+
+    // 總覽分頁
+    const summary = wb.addWorksheet('總覽');
+    summary.columns = [
+      { header: '夥伴姓名', key: 'name',     width: 16 },
+      { header: '帳號',     key: 'username', width: 16 },
+      { header: '筆數',     key: 'count',    width: 10 },
+      { header: '總收入',   key: 'total',    width: 14 },
+    ];
+    summary.getRow(1).font = { bold: true, size: 14, color:{ argb:'FFFFFFFF' } };
+    summary.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+    summary.getRow(1).height = 22;
+
+    for (const p of partners) {
+      let records = allCompleted.filter(a => a.accepted_by === p.id);
+      if (fy && fm) records = records.filter(a => (a.completed_at||'').startsWith(`${fy}/${fm}`));
+      if (!records.length) continue;
+      records.sort((a,b) => (a.completed_at||'').localeCompare(b.completed_at||''));
+      const total = records.reduce((s,a) => s+(a.total_price||0), 0);
+      const sRow = summary.addRow({ name: p.real_name, username: p.username, count: records.length, total });
+      sRow.font = { size: 14 };
+
+      // 個人分頁
+      const ws = wb.addWorksheet(p.real_name);
+      ws.columns = [
+        { header: '編號',     key: 'no',       width: 8  },
+        { header: '完成時間', key: 'completed', width: 24 },
+        { header: '公司',     key: 'company',   width: 20 },
+        { header: '任務名稱', key: 'task',      width: 20 },
+        { header: '數量',     key: 'qty',       width: 10 },
+        { header: '單價',     key: 'unit',      width: 12 },
+        { header: '總價',     key: 'total',     width: 12 },
+        { header: '督導名稱', key: 'sv',        width: 14 },
+      ];
+      ws.getRow(1).font = { bold: true, size: 14, color:{ argb:'FFFFFFFF' } };
+      ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+      ws.getRow(1).height = 22;
+      records.forEach((a, i) => {
+        const row = ws.addRow({
+          no: i+1,
+          completed: a.completed_at || '',
+          company:   a.company || '',
+          task:      a.task_name || '',
+          qty:       a.quantity  || 0,
+          unit:      a.unit_price  || 0,
+          total:     a.total_price || 0,
+          sv:        a.supervisor_name || '',
+        });
+        row.font = { size: 14 };
+        if (i % 2 === 1) row.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
+      });
+      // 合計列
+      const totRow = ws.addRow({ no: '', completed: '', company: '', task: '合計', qty: '', unit: '', total, sv: '' });
+      totRow.font = { bold: true, size: 14 };
+      totRow.getCell('total').fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFFF8E8' } };
+    }
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="salary.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 薪資通知寄信：POST /api/admin/payroll/send-email
+app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
+  try {
+    if (!mailer) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 GMAIL_USER / GMAIL_PASS' });
+    const { partner_id, year_month } = req.body; // year_month = "2026-06"
+    if (!partner_id || !year_month) return res.status(400).json({ error: '缺少必要參數' });
+
+    const [fy, fm] = year_month.split('-');
+    const monthLabel = `${fy} 年 ${parseInt(fm)} 月`;
+
+    // 取得夥伴資料
+    const partner = await Users.byId(Number(partner_id));
+    if (!partner) return res.status(404).json({ error: '找不到夥伴' });
+    if (!partner.email) return res.status(400).json({ error: `${partner.real_name} 尚未設定 Email` });
+
+    // 取得該月已完成任務
+    const allCompleted = await require('firebase-admin').firestore()
+      .collection('assignments')
+      .where('status', '==', 'completed')
+      .where('accepted_by', '==', partner.id)
+      .get();
+    const records = allCompleted.docs.map(d => d.data())
+      .filter(a => (a.completed_at || '').startsWith(`${fy}/${fm}`))
+      .sort((a, b) => (a.completed_at || '').localeCompare(b.completed_at || ''));
+
+    if (!records.length) return res.status(400).json({ error: '該月無薪資紀錄' });
+
+    const total = records.reduce((s, a) => s + (a.total_price || 0), 0);
+
+    // 組成 Email HTML
+    const rows = records.map((a, i) => `
+      <tr style="background:${i%2===0?'#f9f9f9':'#fff'}">
+        <td style="padding:8px 12px;border:1px solid #e0e0e0">${a.task_name}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:center">${a.quantity}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:right">$${(a.unit_price||0).toLocaleString()}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:right;font-weight:700;color:#c87000">$${(a.total_price||0).toLocaleString()}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;color:#888;font-size:12px">${a.completed_at||'—'}</td>
+      </tr>`).join('');
+
+    const html = `
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8"></head>
+<body style="font-family:'Noto Sans TC',Arial,sans-serif;background:#f5f7fa;margin:0;padding:24px">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+    <div style="background:linear-gradient(135deg,#1a6fa0,#48B4E8);padding:28px 32px;color:#fff">
+      <div style="font-size:22px;font-weight:700;margin-bottom:4px">💰 ${monthLabel}薪資通知</div>
+      <div style="font-size:14px;opacity:.85">希絆雲作所 — 工作夥伴薪資明細</div>
+    </div>
+    <div style="padding:28px 32px">
+      <p style="margin:0 0 20px;font-size:15px;color:#333">親愛的 <strong>${partner.real_name}</strong> 夥伴，您好：</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#555">以下是您 ${monthLabel} 的任務完成紀錄與薪資明細：</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px">
+        <thead>
+          <tr style="background:#1a6fa0;color:#fff">
+            <th style="padding:10px 12px;text-align:left;border:1px solid #1a6fa0">任務名稱</th>
+            <th style="padding:10px 12px;text-align:center;border:1px solid #1a6fa0">數量</th>
+            <th style="padding:10px 12px;text-align:right;border:1px solid #1a6fa0">單價</th>
+            <th style="padding:10px 12px;text-align:right;border:1px solid #1a6fa0">小計</th>
+            <th style="padding:10px 12px;text-align:left;border:1px solid #1a6fa0">完成時間</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr style="background:#fff8e8">
+            <td colspan="3" style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:700;text-align:right">本月總計</td>
+            <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:700;color:#c87000;font-size:16px;text-align:right">$${total.toLocaleString()}</td>
+            <td style="border:1px solid #e0e0e0"></td>
+          </tr>
+        </tfoot>
+      </table>
+      <p style="margin:0;font-size:13px;color:#888">如有疑問請聯繫您的督導人員。感謝您的辛勤付出！</p>
+    </div>
+    <div style="background:#f5f7fa;padding:16px 32px;font-size:12px;color:#aaa;text-align:center">
+      © 希絆雲作所 · 此信件由系統自動發送，請勿直接回覆
+    </div>
+  </div>
+</body>
+</html>`;
+
+    await mailer.sendMail({
+      from: `"希絆雲作所" <${process.env.GMAIL_USER}>`,
+      to: partner.email,
+      subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`,
+      html
+    });
+
+    res.json({ ok: true, message: `已寄送至 ${partner.email}` });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── 每月1號自動寄送薪資通知 ──────────────────────────────────
+async function autoSendPayroll(year, month) {
+  if (!mailer) return console.log('[cron] 寄件服務未設定，跳過自動寄送');
+  const ym = `${year}-${String(month).padStart(2,'0')}`;
+  const allUsers = await Users.all();
+  const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active' && u.email);
+  const snap = await require('firebase-admin').firestore()
+    .collection('assignments').where('status','==','completed').get();
+  const allCompleted = snap.docs.map(d => d.data());
+  const p2 = n => String(n).padStart(2,'0');
+  let sent = 0;
+  for (const partner of partners) {
+    const records = allCompleted.filter(a =>
+      a.accepted_by === partner.id && (a.completed_at||'').startsWith(`${year}/${p2(month)}`)
+    );
+    if (!records.length) continue;
+    const total = records.reduce((s,a) => s+(a.total_price||0), 0);
+    const monthLabel = `${year} 年 ${month} 月`;
+    const rows = records.map((a,i) => `
+      <tr style="background:${i%2===0?'#f9f9f9':'#fff'}">
+        <td style="padding:8px 12px;border:1px solid #e0e0e0">${a.company ? a.company+'：'+a.task_name : a.task_name}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:center">${a.quantity}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:right">$${(a.unit_price||0).toLocaleString()}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:right;font-weight:700;color:#c87000">$${(a.total_price||0).toLocaleString()}</td>
+        <td style="padding:8px 12px;border:1px solid #e0e0e0;color:#888;font-size:12px">${a.completed_at||'—'}</td>
+      </tr>`).join('');
+    const html = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f7fa;padding:24px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)"><div style="background:linear-gradient(135deg,#1a6fa0,#48B4E8);padding:28px 32px;color:#fff"><div style="font-size:22px;font-weight:700">💰 ${monthLabel}薪資通知</div><div style="font-size:14px;opacity:.85">希絆雲作所</div></div><div style="padding:28px 32px"><p>親愛的 <strong>${partner.real_name}</strong> 夥伴，您好：</p><table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0"><thead><tr style="background:#1a6fa0;color:#fff"><th style="padding:10px;text-align:left;border:1px solid #1a6fa0">任務</th><th style="padding:10px;border:1px solid #1a6fa0">數量</th><th style="padding:10px;border:1px solid #1a6fa0">單價</th><th style="padding:10px;border:1px solid #1a6fa0">小計</th><th style="padding:10px;border:1px solid #1a6fa0">完成時間</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:#fff8e8"><td colspan="3" style="padding:10px;border:1px solid #e0e0e0;text-align:right;font-weight:700">本月總計</td><td style="padding:10px;border:1px solid #e0e0e0;font-weight:700;color:#c87000">$${total.toLocaleString()}</td><td style="border:1px solid #e0e0e0"></td></tr></tfoot></table></div><div style="background:#f5f7fa;padding:16px;font-size:12px;color:#aaa;text-align:center">© 希絆雲作所 · 系統自動發送</div></div></body></html>`;
+    try {
+      await mailer.sendMail({
+        from: `"希絆雲作所" <${process.env.GMAIL_USER}>`,
+        to: partner.email,
+        subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`,
+        html
+      });
+      sent++;
+    } catch(e) { console.error(`[cron] 寄信失敗(${partner.real_name}):`, e.message); }
+  }
+  console.log(`[cron] 自動薪資通知完成，成功寄送 ${sent} 位`);
+}
+
+// 每月1號 08:00（台北時間）執行
+cron.schedule('0 8 1 * *', () => {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  // 寄上個月資料
+  const lastMonth = now.getMonth() === 0
+    ? { year: now.getFullYear() - 1, month: 12 }
+    : { year: now.getFullYear(), month: now.getMonth() };
+  console.log(`[cron] 開始自動寄送 ${lastMonth.year}/${lastMonth.month} 薪資通知`);
+  autoSendPayroll(lastMonth.year, lastMonth.month).catch(console.error);
+}, { timezone: 'Asia/Taipei' });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

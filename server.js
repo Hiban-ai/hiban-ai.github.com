@@ -17,6 +17,7 @@ if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
+    family: 4,
   });
   console.log('✅ Gmail mailer 已設定：' + process.env.GMAIL_USER);
 } else {

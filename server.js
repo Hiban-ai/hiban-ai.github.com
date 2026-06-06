@@ -906,7 +906,8 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
       to: me.email,
       subject: `【希絆雲作所】${monthLabel}薪資彙整 — ${me.real_name}`,
       html
-    }).catch(e => console.error('[send-me] 寄信失敗:', e.message));
+    }).then(info => console.log('[send-me] 寄信成功:', info.messageId, '→', me.email))
+      .catch(e => console.error('[send-me] 寄信失敗:', e.message));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

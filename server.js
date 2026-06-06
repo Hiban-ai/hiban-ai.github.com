@@ -599,12 +599,15 @@ app.get('/api/reports/:assignmentId', requireRole('partner','supervisor','staff'
 app.post('/api/staff/set-email', requireRole('staff'), async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: '請填寫信箱與密碼' });
-    const user = await Users.byName(req.session.user.username);
-    if (!user) return res.status(404).json({ error: '找不到用戶' });
-    const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) return res.status(401).json({ error: '密碼錯誤' });
-    await Users.update(user.id, { email });
+    if (!email) return res.status(400).json({ error: '請填寫信箱' });
+    // 系統設定頁面會帶 password 做驗證，薪資頁不需要
+    if (password) {
+      const user = await Users.byName(req.session.user.username);
+      if (!user) return res.status(404).json({ error: '找不到用戶' });
+      const ok = await bcrypt.compare(password, user.password_hash);
+      if (!ok) return res.status(401).json({ error: '密碼錯誤' });
+    }
+    await Users.update(req.session.user.id, { email });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -803,6 +806,190 @@ app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res)
     });
 
     res.json({ ok: true, message: `已寄送至 ${partner.email}` });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 薪資彙整寄給登入管理員自己：POST /api/admin/payroll/send-me
+app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) => {
+  try {
+    if (!mailer) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 GMAIL_USER / GMAIL_PASS' });
+    const { year_month } = req.body;
+    if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
+
+    // 取登入管理員的 email（從 DB 抓，確保是最新的）
+    const me = await Users.byName(req.session.user.username);
+    if (!me || !me.email) return res.status(400).json({ error: '您尚未設定 Email，請先在系統設定中設定信箱' });
+
+    const [fy, fm] = year_month.split('-');
+    const monthLabel = `${fy} 年 ${parseInt(fm)} 月`;
+    const p2 = n => String(n).padStart(2,'0');
+    const prefix = `${fy}/${p2(parseInt(fm))}`;
+
+    // 取所有活躍夥伴
+    const allUsers = await Users.all();
+    const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active');
+
+    // 取該月已完成任務
+    const snap = await require('firebase-admin').firestore()
+      .collection('assignments').where('status','==','completed').get();
+    const allCompleted = snap.docs.map(d => d.data());
+
+    // 組成各夥伴區塊
+    let grandTotal = 0;
+    let partnerBlocks = '';
+    for (const partner of partners) {
+      const records = allCompleted
+        .filter(a => a.accepted_by === partner.id && (a.completed_at || '').startsWith(prefix))
+        .sort((a, b) => (a.completed_at || '').localeCompare(b.completed_at || ''));
+      if (!records.length) continue;
+      const total = records.reduce((s, a) => s + (a.total_price || 0), 0);
+      grandTotal += total;
+      const rows = records.map((a, i) => `
+        <tr style="background:${i%2===0?'#f9f9f9':'#fff'}">
+          <td style="padding:6px 10px;border:1px solid #e0e0e0">${a.task_name}</td>
+          <td style="padding:6px 10px;border:1px solid #e0e0e0;text-align:center">${a.quantity}</td>
+          <td style="padding:6px 10px;border:1px solid #e0e0e0;text-align:right">$${(a.unit_price||0).toLocaleString()}</td>
+          <td style="padding:6px 10px;border:1px solid #e0e0e0;text-align:right;font-weight:700;color:#c87000">$${(a.total_price||0).toLocaleString()}</td>
+          <td style="padding:6px 10px;border:1px solid #e0e0e0;color:#888;font-size:12px">${a.completed_at||'—'}</td>
+        </tr>`).join('');
+      partnerBlocks += `
+        <div style="margin-bottom:24px">
+          <div style="font-size:15px;font-weight:700;color:#1a6fa0;margin-bottom:8px">👤 ${partner.real_name}</div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:#1a6fa0;color:#fff">
+                <th style="padding:8px 10px;text-align:left;border:1px solid #1a6fa0">任務名稱</th>
+                <th style="padding:8px 10px;text-align:center;border:1px solid #1a6fa0">數量</th>
+                <th style="padding:8px 10px;text-align:right;border:1px solid #1a6fa0">單價</th>
+                <th style="padding:8px 10px;text-align:right;border:1px solid #1a6fa0">小計</th>
+                <th style="padding:8px 10px;text-align:left;border:1px solid #1a6fa0">完成時間</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+            <tfoot>
+              <tr style="background:#fff8e8">
+                <td colspan="3" style="padding:8px 10px;border:1px solid #e0e0e0;font-weight:700;text-align:right">小計</td>
+                <td style="padding:8px 10px;border:1px solid #e0e0e0;font-weight:700;color:#c87000;text-align:right">$${total.toLocaleString()}</td>
+                <td style="border:1px solid #e0e0e0"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>`;
+    }
+
+    if (!partnerBlocks) return res.status(400).json({ error: '該月無任何薪資紀錄' });
+
+    const html = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"></head>
+<body style="font-family:'Noto Sans TC',Arial,sans-serif;background:#f5f7fa;margin:0;padding:24px">
+  <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+    <div style="background:linear-gradient(135deg,#1a6fa0,#48B4E8);padding:28px 32px;color:#fff">
+      <div style="font-size:22px;font-weight:700;margin-bottom:4px">📊 ${monthLabel}薪資彙整</div>
+      <div style="font-size:14px;opacity:.85">希絆雲作所 — 管理員薪資總覽</div>
+    </div>
+    <div style="padding:28px 32px">
+      <p style="margin:0 0 6px;font-size:15px;color:#333">收件人：<strong>${me.real_name}</strong></p>
+      <p style="margin:0 0 24px;font-size:14px;color:#555">以下是 ${monthLabel} 所有夥伴薪資彙整，合計 <strong style="color:#c87000">$${grandTotal.toLocaleString()}</strong></p>
+      ${partnerBlocks}
+      <div style="border-top:2px solid #1a6fa0;padding-top:12px;margin-top:8px;font-size:16px;font-weight:700;text-align:right;color:#1a6fa0">
+        本月總薪資：$${grandTotal.toLocaleString()}
+      </div>
+    </div>
+    <div style="background:#f5f7fa;padding:16px 32px;font-size:12px;color:#aaa;text-align:center">
+      © 希絆雲作所 · 此信件由系統自動發送，請勿直接回覆
+    </div>
+  </div>
+</body></html>`;
+
+    await mailer.sendMail({
+      from: `"希絆雲作所" <${process.env.GMAIL_USER}>`,
+      to: me.email,
+      subject: `【希絆雲作所】${monthLabel}薪資彙整 — ${me.real_name}`,
+      html
+    });
+    res.json({ ok: true, message: `已寄送至 ${me.email} ✅` });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 薪資通知寄信（全體）：POST /api/admin/payroll/send-all
+app.post('/api/admin/payroll/send-all', requireRole('staff'), async (req, res) => {
+  try {
+    if (!mailer) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 GMAIL_USER / GMAIL_PASS' });
+    const { year_month } = req.body;
+    if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
+
+    const [fy, fm] = year_month.split('-');
+    const monthLabel = `${fy} 年 ${parseInt(fm)} 月`;
+    const p2 = n => String(n).padStart(2,'0');
+    const prefix = `${fy}/${p2(parseInt(fm))}`;
+
+    const allUsers = await Users.all();
+    const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active');
+
+    const snap = await require('firebase-admin').firestore()
+      .collection('assignments').where('status','==','completed').get();
+    const allCompleted = snap.docs.map(d => d.data());
+
+    let sent = 0, skipped = 0;
+    for (const partner of partners) {
+      if (!partner.email) { skipped++; continue; }
+      const records = allCompleted
+        .filter(a => a.accepted_by === partner.id && (a.completed_at || '').startsWith(prefix))
+        .sort((a, b) => (a.completed_at || '').localeCompare(b.completed_at || ''));
+      if (!records.length) { skipped++; continue; }
+      const total = records.reduce((s, a) => s + (a.total_price || 0), 0);
+      const rows = records.map((a, i) => `
+        <tr style="background:${i%2===0?'#f9f9f9':'#fff'}">
+          <td style="padding:8px 12px;border:1px solid #e0e0e0">${a.task_name}</td>
+          <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:center">${a.quantity}</td>
+          <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:right">$${(a.unit_price||0).toLocaleString()}</td>
+          <td style="padding:8px 12px;border:1px solid #e0e0e0;text-align:right;font-weight:700;color:#c87000">$${(a.total_price||0).toLocaleString()}</td>
+          <td style="padding:8px 12px;border:1px solid #e0e0e0;color:#888;font-size:12px">${a.completed_at||'—'}</td>
+        </tr>`).join('');
+      const html = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"></head>
+<body style="font-family:'Noto Sans TC',Arial,sans-serif;background:#f5f7fa;margin:0;padding:24px">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+    <div style="background:linear-gradient(135deg,#1a6fa0,#48B4E8);padding:28px 32px;color:#fff">
+      <div style="font-size:22px;font-weight:700;margin-bottom:4px">💰 ${monthLabel}薪資通知</div>
+      <div style="font-size:14px;opacity:.85">希絆雲作所 — 工作夥伴薪資明細</div>
+    </div>
+    <div style="padding:28px 32px">
+      <p style="margin:0 0 20px;font-size:15px;color:#333">親愛的 <strong>${partner.real_name}</strong> 夥伴，您好：</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#555">以下是您 ${monthLabel} 的任務完成紀錄與薪資明細：</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px">
+        <thead>
+          <tr style="background:#1a6fa0;color:#fff">
+            <th style="padding:10px 12px;text-align:left;border:1px solid #1a6fa0">任務名稱</th>
+            <th style="padding:10px 12px;text-align:center;border:1px solid #1a6fa0">數量</th>
+            <th style="padding:10px 12px;text-align:right;border:1px solid #1a6fa0">單價</th>
+            <th style="padding:10px 12px;text-align:right;border:1px solid #1a6fa0">小計</th>
+            <th style="padding:10px 12px;text-align:left;border:1px solid #1a6fa0">完成時間</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr style="background:#fff8e8">
+            <td colspan="3" style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:700;text-align:right">本月總計</td>
+            <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:700;color:#c87000;font-size:16px;text-align:right">$${total.toLocaleString()}</td>
+            <td style="border:1px solid #e0e0e0"></td>
+          </tr>
+        </tfoot>
+      </table>
+      <p style="margin:0;font-size:13px;color:#888">如有疑問請聯繫您的督導人員。感謝您的辛勤付出！</p>
+    </div>
+    <div style="background:#f5f7fa;padding:16px 32px;font-size:12px;color:#aaa;text-align:center">
+      © 希絆雲作所 · 此信件由系統自動發送，請勿直接回覆
+    </div>
+  </div>
+</body></html>`;
+      await mailer.sendMail({
+        from: `"希絆雲作所" <${process.env.GMAIL_USER}>`,
+        to: partner.email,
+        subject: `【希絆雲作所】${monthLabel}薪資通知 — ${partner.real_name}`,
+        html
+      });
+      sent++;
+    }
+    res.json({ ok: true, sent, skipped, message: `已寄送 ${sent} 位，${skipped} 位略過` });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

@@ -292,10 +292,7 @@ textarea.form-input{resize:none}
           <select id="payroll-month" onchange="renderPayroll()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;background:var(--bg);cursor:pointer"></select>
           <span style="font-size:.8rem;color:var(--text-s)">共 <span id="payroll-partner-count">0</span> 位夥伴</span>
           <button onclick="exportPayrollExcel()" style="margin-left:auto;padding:.35rem .85rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">📥 匯出 Excel</button>
-        </div>
-        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem">
-          個人信箱：<span id="payroll-my-email" style="color:var(--text-m)">未設定</span>
-          <button onclick="openPayrollEmailModal()" style="margin-left:.5rem;padding:.2rem .55rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;font-size:.72rem;cursor:pointer;color:var(--text-s)">設定信箱</button>
+          <button onclick="sendAllPayroll(this)" style="padding:.35rem .85rem;background:linear-gradient(135deg,#1a6fa0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">📧 寄送目前資料</button>
         </div>
         <div id="payroll-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
       </div>
@@ -477,19 +474,6 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
-<!-- 薪資管理個人信箱設定 modal -->
-<div id="payroll-email-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:16px;padding:1.5rem;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-    <div style="font-size:1rem;font-weight:700;margin-bottom:1rem">📧 設定個人信箱</div>
-    <div style="display:flex;flex-direction:column;gap:.65rem">
-      <div><label class="form-label">新信箱</label><input class="form-input" type="email" id="pe-email" placeholder="輸入 Email"></div>
-      <div><label class="form-label">確認密碼</label><input class="form-input" type="password" id="pe-pw" placeholder="輸入登入密碼"></div>
-      <div id="pe-err" style="display:none;color:var(--red);font-size:.82rem"></div>
-      <button onclick="savePayrollEmail()" style="padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">儲存</button>
-      <button onclick="closePayrollEmailModal()" style="padding:.6rem;background:none;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;cursor:pointer;color:var(--text-s)">取消</button>
-    </div>
-  </div>
-</div>
 
 <script src="shared.js"></script>
 <script>
@@ -1081,30 +1065,26 @@ async function saveSettingsEmail() {
   } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
 }
 
-// ── 薪資頁個人信箱設定 modal ──────────────────────────────────
-function openPayrollEmailModal() {
-  document.getElementById('payroll-email-modal').style.display = 'flex';
-  document.getElementById('pe-err').style.display = 'none';
-  document.getElementById('pe-email').value = '';
-  document.getElementById('pe-pw').value = '';
-}
-function closePayrollEmailModal() {
-  document.getElementById('payroll-email-modal').style.display = 'none';
-}
-async function savePayrollEmail() {
-  const email = document.getElementById('pe-email').value.trim();
-  const pw    = document.getElementById('pe-pw').value;
-  const errEl = document.getElementById('pe-err');
-  errEl.style.display = 'none';
-  if (!email) { errEl.textContent = '請填寫信箱'; errEl.style.display = 'block'; return; }
-  if (!pw)    { errEl.textContent = '請輸入密碼'; errEl.style.display = 'block'; return; }
+
+// ── 寄送目前資料給自己（登入中的管理員）────────────────────────
+async function sendAllPayroll(btn) {
+  const sel = document.getElementById('payroll-month');
+  const ym  = sel ? sel.value : '';
+  if (!ym) return;
+  const [y, m] = ym.split('-');
+  const monthLabel = `${y} 年 ${parseInt(m)} 月`;
+  if (!confirm(`確定要將 ${monthLabel} 薪資彙整寄送至您的信箱？`)) return;
+  btn.disabled = true;
+  btn.textContent = '寄送中…';
   try {
-    await API.post('/api/staff/set-email', { email, password: pw });
-    _meCache = null;
-    closePayrollEmailModal();
-    showToast('信箱已儲存 ✅', 'success');
-    loadPayroll();
-  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+    const res = await API.post('/api/admin/payroll/send-me', { year_month: ym });
+    showToast(res.message || '寄送完成 ✅', 'success');
+  } catch(e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📧 寄送目前資料';
+  }
 }
 
 // ── Excel 匯出 ─────────────────────────────────────────────────
@@ -1115,16 +1095,6 @@ function exportPayrollExcel() {
   window.open(url, '_blank');
 }
 
-// ── 更新薪資頁個人信箱顯示 ───────────────────────────────────
-const _origLoadPayroll = loadPayroll;
-loadPayroll = async function() {
-  await _origLoadPayroll();
-  try {
-    if (!_meCache) _meCache = await API.get('/api/me');
-    const el = document.getElementById('payroll-my-email');
-    if (el) el.textContent = _meCache.email || '未設定';
-  } catch {}
-};
 
 init();
 </script>

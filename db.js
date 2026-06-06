@@ -9,8 +9,8 @@ const bcrypt = require('bcryptjs');
 
 // ── 初始化 Firebase ──────────────────────────────────────────
 let serviceAccount;
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+if (process.env.FIREBASE_KEY) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
   if (serviceAccount.private_key)
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 } else {

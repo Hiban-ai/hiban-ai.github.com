@@ -181,16 +181,18 @@ app.post('/api/register', async (req, res) => {
     if (!birthday)  return res.status(400).json({ error: 'Missing birthday' });
     if (!phone)     return res.status(400).json({ error: 'Missing phone' });
     if (!address)   return res.status(400).json({ error: 'Missing address' });
-    const { email, nickname, identity, bank_name, bank_branch, bank_account, bank_holder } = req.body;
+    const { email, gender, nickname, identity, bank_type, bank_name, bank_branch, bank_account, bank_holder, post_office_code } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
     const base     = real_name.charCodeAt(0).toString(36);
     const username = await generateUsername('user_' + base);
     await Users.create({
       username, real_name, id_number, birthday, phone, address,
-      email: email || null,
+      email: email || null, gender: gender || null,
       nickname: nickname || null, identity: identity || null,
+      bank_type: bank_type || null,
       bank_name: bank_name || null, bank_branch: bank_branch || null,
       bank_account: bank_account || null, bank_holder: bank_holder || null,
+      post_office_code: post_office_code || null,
       role: 'partner', status: 'pending', is_first_login: true,
       password_hash: bcrypt.hashSync('0000', 10),
     });
@@ -1090,9 +1092,15 @@ app.post('/api/gemini/extract-bank', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
 
-    const prompt = `請從這張存摺封面圖片中提取資料，以 JSON 格式回傳，只回傳 JSON 不要其他文字：
-{"bank_name":"銀行名稱(例:台灣銀行)","bank_branch":"分行名稱(例:板橋分行)","bank_account":"帳號(只有數字)","bank_holder":"戶名"}
-如果某欄位看不清楚請填空字串。`;
+    const prompt = `請從這張存摺或存簿封面圖片中提取資料。
+
+首先判斷是「中華郵政（郵局）」還是「一般銀行」：
+- 如果是中華郵政/郵局，請回傳 type=post：
+{"type":"post","bank_holder":"戶名","post_branch":"郵局名稱(例:臺北松江路郵局)","post_office_code":"郵局局號(只有數字,例:0001557)","bank_account":"郵局帳號(只有數字,例:0966527)"}
+- 如果是一般銀行，請回傳 type=bank：
+{"type":"bank","bank_holder":"戶名","bank_name":"銀行名稱(例:台北富邦銀行)","bank_code":"銀行代號(3位數字,例:012)","bank_branch":"分行名稱(例:板橋分行)","bank_account":"帳號(只有數字)"}
+
+只回傳 JSON，不要其他文字，看不清楚的欄位填空字串。`;
 
     const body = JSON.stringify({
       contents: [{ parts: [

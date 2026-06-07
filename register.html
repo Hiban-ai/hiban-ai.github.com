@@ -68,7 +68,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .sum-val{color:var(--text);font-weight:500;word-break:break-all}
 
 /* 上傳區 */
-.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:0;text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden;height:195px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:0;text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
 .upload-zone:hover{border-color:var(--blue);background:var(--blue-p)}
 .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .uz-icon{font-size:1.5rem}
@@ -77,7 +77,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 /* 上傳槽 wrapper */
 .upload-slot{width:100%;overflow:hidden;display:block}
 /* 縮圖預覽：用 background-image，不用 img，永遠不超出格子 */
-.thumb-preview{border-radius:var(--rs);border:2px solid var(--green);position:relative;display:none;height:195px;background-size:cover;background-position:center;background-repeat:no-repeat;background-color:var(--green-p)}
+.thumb-preview{border-radius:var(--rs);border:2px solid var(--green);position:relative;display:none;height:220px;background-size:contain;background-position:center;background-repeat:no-repeat;background-color:var(--green-p)}
 .thumb-delete{position:absolute;top:.4rem;right:.4rem;width:28px;height:28px;background:rgba(30,30,30,.72);color:#fff;border:none;border-radius:50%;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;backdrop-filter:blur(2px)}
 .thumb-delete:hover{background:rgba(224,85,85,.9)}
 
@@ -129,30 +129,33 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="card-desc">上傳後點「下一步辨識」，AI 將自動抓取姓名、身分證字號、生日、地址</div>
     <div class="error-msg" id="err1"></div>
 
-    <div class="form-group">
-      <label class="form-label">身分證正面<span class="req-mark">＊</span></label>
-      <div class="upload-slot">
-        <div class="upload-zone" id="uz-id-front">
-          <input type="file" accept="image/*" onchange="handleCropUpload(this,'front')">
-          <div class="uz-icon">🪪</div>
-          <div class="uz-text">點擊選擇身分證正面<br><span style="font-size:.7rem">JPG / PNG，建議在明亮處拍攝</span></div>
-        </div>
-        <div class="thumb-preview" id="thumb-front">
-          <button class="thumb-delete" onclick="deleteUpload('front')" title="刪除重新上傳">✕</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      <!-- 正面 -->
+      <div>
+        <label class="form-label">身分證正面<span class="req-mark">＊</span></label>
+        <div class="upload-slot">
+          <div class="upload-zone" id="uz-id-front">
+            <input type="file" accept="image/*" onchange="handleCropUpload(this,'front')">
+            <div class="uz-icon">🪪</div>
+            <div class="uz-text">點擊上傳正面<br><span style="font-size:.7rem">JPG / PNG</span></div>
+          </div>
+          <div class="thumb-preview" id="thumb-front">
+            <button class="thumb-delete" onclick="deleteUpload('front')" title="刪除重新上傳">✕</button>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">身分證反面<span class="req-mark">＊</span></label>
-      <div class="upload-slot">
-        <div class="upload-zone" id="uz-id-back">
-          <input type="file" accept="image/*" onchange="handleCropUpload(this,'back')">
-          <div class="uz-icon">🪪</div>
-          <div class="uz-text">點擊選擇身分證反面</div>
-        </div>
-        <div class="thumb-preview" id="thumb-back">
-          <button class="thumb-delete" onclick="deleteUpload('back')" title="刪除重新上傳">✕</button>
+      <!-- 反面 -->
+      <div>
+        <label class="form-label">身分證反面<span class="req-mark">＊</span></label>
+        <div class="upload-slot">
+          <div class="upload-zone" id="uz-id-back">
+            <input type="file" accept="image/*" onchange="handleCropUpload(this,'back')">
+            <div class="uz-icon">🪪</div>
+            <div class="uz-text">點擊上傳反面<br><span style="font-size:.7rem">JPG / PNG</span></div>
+          </div>
+          <div class="thumb-preview" id="thumb-back">
+            <button class="thumb-delete" onclick="deleteUpload('back')" title="刪除重新上傳">✕</button>
+          </div>
         </div>
       </div>
     </div>

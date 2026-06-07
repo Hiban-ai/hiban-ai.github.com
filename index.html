@@ -308,7 +308,6 @@ async function submitFirstLogin() {
   const newPw   = document.getElementById('fl-new').value;
   const confirm = document.getElementById('fl-confirm').value;
   if (newPw.length < 6 || newPw.length > 12) { err.textContent='新密碼須為 6～12 位（可含英文、數字、符號）'; err.style.display='block'; return; }
-  if (newPw === '0000') { err.textContent='新密碼不能與預設密碼相同'; err.style.display='block'; return; }
   if (newPw !== confirm) { err.textContent='兩次輸入不一致'; err.style.display='block'; return; }
   try {
     await API.post('/api/change-password', { current_password: current, new_password: newPw });

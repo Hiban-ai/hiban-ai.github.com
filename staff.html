@@ -83,6 +83,7 @@ tr:hover td{background:var(--blue-p)}
 .sb-active{background:var(--green-p);color:var(--green)}
 .sb-pending{background:var(--blue-p);color:var(--blue-d)}
 .sb-inactive{background:var(--bg);color:var(--text-s)}
+.sb-rejected{background:#fff0f0;color:var(--red)}
 .role-tag{display:inline-block;padding:.15rem .45rem;border-radius:4px;font-size:.68rem;font-weight:700}
 .rt-partner{background:var(--blue-p);color:var(--blue-d)}
 .rt-supervisor{background:var(--purple-p);color:#6A3FAA}
@@ -535,8 +536,8 @@ function switchPage(name, el) {
 // ── 帳號管理 ──
 const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' };
 const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
-const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用' };
-const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive' };
+const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用', rejected:'已退回' };
+const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive', rejected:'sb-rejected' };
 
 let usersCache = [];
 let curAccTab  = 'partner';
@@ -773,6 +774,7 @@ function roleActions(u) {
 
   if (u.role === 'partner') {
     if (u.status === 'pending')  return approveBtn + delBtn;
+    if (u.status === 'rejected') return detail + delBtn;
     if (u.status === 'active')   return detail + stopBtn + resetBtn + delBtn;
     if (u.status === 'inactive') return detail + startBtn + delBtn;
   }

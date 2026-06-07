@@ -196,7 +196,40 @@ app.post('/api/register', async (req, res) => {
       role: 'partner', status: 'pending', is_first_login: true,
       password_hash: bcrypt.hashSync('0000', 10),
     });
+
+    // 寄通知信給所有 staff（背景執行，不阻塞回應）
     res.json({ ok: true, username });
+    (async () => {
+      try {
+        const staffList = await Users.findAll({ role: 'staff', status: 'active' });
+        const staffEmails = staffList.map(u => u.email).filter(Boolean);
+        if (!staffEmails.length) return;
+        const genderLabel = gender === 'M' ? '男性' : gender === 'F' ? '女性' : gender === 'X' ? '多元性' : gender || '—';
+        const bankInfo = bank_type === 'post'
+          ? `郵局：${bank_name || ''} ${bank_branch || ''}<br>局號：${post_office_code || ''}<br>帳號：${bank_account || ''}<br>戶名：${bank_holder || ''}`
+          : `銀行：${bank_name || ''} ${bank_branch || ''}<br>帳號：${bank_account || ''}<br>戶名：${bank_holder || ''}`;
+        const html = `
+<h2 style="color:#1A8AC0">【希絆雲作所】新夥伴申請通知</h2>
+<table style="border-collapse:collapse;width:100%;max-width:500px;font-size:14px">
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600;width:100px">系統帳號</td><td style="padding:6px 12px;font-weight:700;color:#1A8AC0">${username}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">姓名</td><td style="padding:6px 12px">${real_name}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">性別</td><td style="padding:6px 12px">${genderLabel}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">身分證</td><td style="padding:6px 12px">${id_number}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">生日</td><td style="padding:6px 12px">${birthday}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">電話</td><td style="padding:6px 12px">${phone}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">信箱</td><td style="padding:6px 12px">${email || '—'}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">地址</td><td style="padding:6px 12px">${address}</td></tr>
+  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">身份別</td><td style="padding:6px 12px">${identity || '—'}</td></tr>
+  <tr><td style="padding:6px 12px;background:#EBF7FD;font-weight:600">收款資訊</td><td style="padding:6px 12px">${bankInfo}</td></tr>
+</table>
+<p style="margin-top:16px;font-size:13px;color:#7A9AAF">請至管理後台審核此帳號</p>`;
+        await sendMail({
+          to: staffEmails.join(','),
+          subject: `【希絆雲作所】新夥伴申請通知 — ${real_name}（${username}）`,
+          html
+        });
+      } catch(e) { console.error('[register notify]', e.message); }
+    })();
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

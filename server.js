@@ -286,15 +286,41 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
       await Users.update(id, { status: 'active' });
     }
     res.json({ ok: true });
-    // 背景上傳 Google Drive
-    if (user.role === 'partner') {
-      (async () => {
-        try {
+    // 背景：Drive 上傳 + 寄歡迎信
+    (async () => {
+      try {
+        // Google Drive 上傳
+        if (user.role === 'partner') {
           const imgs = await UserImages.get(id);
           if (imgs) await uploadUserToDrive(user, imgs);
-        } catch(e) { console.error('[Drive approve]', e.message); }
-      })();
-    }
+        }
+        // 寄歡迎信給申請人
+        if (user.email) {
+          let svLine = '';
+          if (user.role === 'partner') {
+            const { supervisor_id } = req.body;
+            if (supervisor_id) {
+              const sv = await Users.byId(parseInt(supervisor_id));
+              if (sv) svLine = `<p>您的負責督導人員為 <strong>${sv.real_name}</strong>，如有任何問題歡迎與督導聯繫。</p>`;
+            }
+          }
+          await sendMail({
+            to: user.email,
+            subject: `【希絆雲作所】歡迎加入！您的帳號已通過審核`,
+            html: `
+<div style="font-family:'Noto Sans TC',sans-serif;max-width:520px;margin:auto">
+  <h2 style="color:#1A8AC0;margin-bottom:.5rem">🎉 歡迎加入希絆雲作所！</h2>
+  <p>您好，<strong>${user.real_name}</strong>，</p>
+  <p>恭喜您的帳號申請已通過審核，您現在可以使用系統帳號登入平台。</p>
+  ${svLine}
+  <p>登入後請依照系統提示完成後續設定，期待與您一起創造美好的工作體驗。</p>
+  <p>若有任何問題，請隨時聯繫管理人員。</p>
+  <p style="margin-top:1.5rem;color:#7A9AAF;font-size:13px">希絆雲作所　敬上</p>
+</div>`
+          }).catch(e => console.error('[approve mail]', e.message));
+        }
+      } catch(e) { console.error('[approve background]', e.message); }
+    })();
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -320,12 +346,15 @@ app.put('/api/admin/users/:id/reject', requireRole('staff'), async (req, res) =>
       sendMail({
         to: user.email,
         subject: `【希絆雲作所】您的申請未通過審核`,
-        html: `<h2 style="color:#E05555">申請未通過</h2>
-<p>您好，${user.real_name}，</p>
-<p>很遺憾，您的加入申請（帳號：<strong>${user.username}</strong>）未能通過審核。</p>
-${reason ? `<p><strong>退回原因：</strong>${reason}</p>` : ''}
-<p>如有疑問請聯繫管理人員。</p>
-<p style="color:#7A9AAF;font-size:13px">希絆雲作所</p>`
+        html: `
+<div style="font-family:'Noto Sans TC',sans-serif;max-width:520px;margin:auto">
+  <h2 style="color:#E05555;margin-bottom:.5rem">申請審核結果通知</h2>
+  <p>您好，<strong>${user.real_name}</strong>，</p>
+  <p>很遺憾，您的加入申請未能通過本次審核。</p>
+  ${reason ? `<p><strong>退回原因：</strong>${reason}</p>` : ''}
+  <p>如有疑問或需要重新申請，歡迎再次聯繫管理人員。</p>
+  <p style="margin-top:1.5rem;color:#7A9AAF;font-size:13px">希絆雲作所　敬上</p>
+</div>`
       }).catch(e => console.error('[reject mail]', e.message));
     }
   } catch(e) { res.status(500).json({ error: e.message }); }

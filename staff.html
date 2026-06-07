@@ -453,11 +453,15 @@ textarea.form-input{resize:none}
     <input type="hidden" id="detail-user-id">
     <input type="hidden" id="detail-user-name">
     <input type="hidden" id="detail-user-role">
-    <!-- 按鈕 -->
+    <!-- 按鈕：預設狀態（核可 + 退回申請） -->
     <div id="detail-pending-btns" style="display:none;gap:.5rem;flex-wrap:wrap">
-      <button onclick="toggleRejectRow()" style="flex:1;padding:.72rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✕ 退回申請</button>
-      <button onclick="confirmRejectFromDetail()" id="detail-reject-confirm-btn" style="display:none;flex:1;padding:.72rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">確認退回</button>
-      <button onclick="approveFromDetail()" style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✓ 核可</button>
+      <button id="detail-btn-reject-open" onclick="toggleRejectRow(true)"  style="flex:1;padding:.72rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✕ 退回申請</button>
+      <button id="detail-btn-approve"     onclick="approveFromDetail()"     style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✓ 核可</button>
+    </div>
+    <!-- 按鈕：退回確認狀態（退回 + 取消） -->
+    <div id="detail-reject-btns" style="display:none;gap:.5rem;flex-wrap:wrap">
+      <button onclick="confirmRejectFromDetail()" style="flex:1;padding:.72rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✕ 退回</button>
+      <button onclick="toggleRejectRow(false)" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">取消</button>
     </div>
   </div>
 </div>
@@ -676,9 +680,10 @@ async function openDetail(id) {
       svs.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
   } else { svRow.style.display = 'none'; }
 
-  // 核可/退回按鈕
-  const btnBar = document.getElementById('detail-pending-btns');
-  btnBar.style.display = isPending ? 'flex' : 'none';
+  // 核可/退回按鈕（重置為預設狀態）
+  document.getElementById('detail-reject-row').style.display  = 'none';
+  document.getElementById('detail-reject-btns').style.display = 'none';
+  document.getElementById('detail-pending-btns').style.display = isPending ? 'flex' : 'none';
 
   document.getElementById('detail-overlay').classList.add('open');
 }
@@ -691,12 +696,23 @@ function closeDetail() {
   document.getElementById('detail-overlay').classList.remove('open');
 }
 
-function toggleRejectRow() {
-  const r = document.getElementById('detail-reject-row');
-  const c = document.getElementById('detail-reject-confirm-btn');
-  const show = r.style.display === 'none';
-  r.style.display = show ? 'block' : 'none';
-  c.style.display = show ? 'inline-block' : 'none';
+function toggleRejectRow(open) {
+  const r    = document.getElementById('detail-reject-row');
+  const btns = document.getElementById('detail-pending-btns');
+  const rBtns= document.getElementById('detail-reject-btns');
+  if (open) {
+    r.style.display     = 'block';
+    btns.style.display  = 'none';
+    rBtns.style.display = 'flex';
+    document.getElementById('detail-reject-reason').value = '';
+  } else {
+    r.style.display     = 'none';
+    btns.style.display  = 'flex';
+    rBtns.style.display = 'none';
+  }
+}
+function _noop() {
+  // removed
 }
 
 async function confirmRejectFromDetail() {

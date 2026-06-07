@@ -103,6 +103,11 @@ textarea.form-input{resize:none}
 .action-btn:hover{border-color:var(--blue);color:var(--blue)}
 .action-btn.approve{border-color:var(--green);color:var(--green)}
 .action-btn.approve:hover{background:var(--green-p)}
+.det-img-cell{border:1.5px solid var(--border);border-radius:8px;overflow:hidden;cursor:zoom-in;background:var(--bg);min-height:80px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--text-s)}
+.det-img-cell img{width:100%;height:100%;object-fit:cover;display:block}
+.det-row{display:flex;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #F0F8FE;font-size:.82rem}
+.det-label{color:var(--text-s);flex-shrink:0;width:82px}
+.det-val{color:var(--text);font-weight:500;word-break:break-all}
 .action-btn.danger{border-color:var(--red);color:var(--red)}
 .action-btn.danger:hover{background:var(--red-p)}
 .action-btn.warn{border-color:var(--orange);color:var(--orange)}
@@ -345,16 +350,7 @@ textarea.form-input{resize:none}
 </div>
 
 <!-- 詳細資料 overlay -->
-<div class="detail-overlay" id="detail-overlay">
-  <div class="detail-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">📋 帳號詳細資料</div>
-      <button onclick="closeDetail()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
-    </div>
-    <div id="detail-content"></div>
-    <div style="margin-top:1rem;display:flex;gap:.5rem" id="detail-actions"></div>
-  </div>
-</div>
+<!-- old detail overlay removed, replaced by new one below -->
 
 <!-- 新增帳號 overlay -->
 <div class="detail-overlay" id="create-user-overlay">
@@ -411,6 +407,48 @@ textarea.form-input{resize:none}
       <button onclick="submitChgSv()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認更換</button>
     </div>
   </div>
+</div>
+
+<!-- 申請人詳細 Modal -->
+<div class="confirm-overlay" id="detail-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
+  <div class="confirm-box" style="width:min(600px,96vw);text-align:left;border-top-color:var(--blue);max-height:90vh;overflow-y:auto;padding:1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-size:1.05rem;font-family:'Noto Serif TC',serif;font-weight:700">📋 申請人詳細資料</div>
+      <button onclick="closeDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
+    </div>
+    <div id="detail-info"></div>
+    <!-- 圖片區 -->
+    <div style="font-size:.82rem;font-weight:700;color:var(--text-m);margin:1rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)">🖼️ 上傳圖片</div>
+    <div id="detail-imgs" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem">
+      <div id="di-front" class="det-img-cell">載入中…</div>
+      <div id="di-back"  class="det-img-cell">載入中…</div>
+      <div id="di-bank"  class="det-img-cell">載入中…</div>
+    </div>
+    <!-- 督導選擇 -->
+    <div id="detail-sv-row" style="display:none;margin-bottom:.75rem">
+      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">指定督導人員</label>
+      <select class="form-input" id="detail-sv-sel"><option value="">請選擇督導人員</option></select>
+    </div>
+    <div id="detail-approve-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+    <!-- 退回原因 -->
+    <div id="detail-reject-row" style="display:none;margin-bottom:.75rem">
+      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">退回原因（選填，會寄給申請人）</label>
+      <textarea id="detail-reject-reason" style="width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.65rem .9rem;font-size:.88rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:70px" placeholder="例：資料不清晰，請重新上傳"></textarea>
+    </div>
+    <input type="hidden" id="detail-user-id">
+    <input type="hidden" id="detail-user-name">
+    <input type="hidden" id="detail-user-role">
+    <!-- 按鈕 -->
+    <div id="detail-pending-btns" style="display:none;gap:.5rem;flex-wrap:wrap">
+      <button onclick="toggleRejectRow()" style="flex:1;padding:.72rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✕ 退回申請</button>
+      <button onclick="confirmRejectFromDetail()" id="detail-reject-confirm-btn" style="display:none;flex:1;padding:.72rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">確認退回</button>
+      <button onclick="approveFromDetail()" style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✓ 核可</button>
+    </div>
+  </div>
+</div>
+<!-- 圖片放大 lightbox -->
+<div id="img-lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;align-items:center;justify-content:center;cursor:zoom-out">
+  <img id="img-lightbox-img" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
 </div>
 
 <!-- 核准夥伴 - 指定督導 overlay -->
@@ -538,41 +576,157 @@ function renderAccounts() {
   badge.textContent = pending; badge.style.display = pending ? 'inline-flex' : 'none';
 }
 
-// ── 詳細資料 ──
-function openDetail(id) {
+// ── 詳細資料（新版含圖片 + 核可/退回）──
+const genderLabel = { M:'男性（M）', F:'女性（F）', X:'多元性（LGBTQI+）' };
+
+async function openDetail(id) {
   const u = usersCache.find(x => x.id === id);
   if (!u) return;
+  const isPending = u.status === 'pending';
+  const isPartner = u.role === 'partner';
 
-  // 依角色決定顯示哪些欄位
-  const isPartner    = u.role === 'partner';
-  const isSvOrStaff  = u.role === 'supervisor' || u.role === 'staff';
+  document.getElementById('detail-user-id').value   = id;
+  document.getElementById('detail-user-name').value = u.real_name;
+  document.getElementById('detail-user-role').value = u.role;
+  document.getElementById('detail-approve-err').style.display = 'none';
+  document.getElementById('detail-reject-row').style.display  = 'none';
+  document.getElementById('detail-reject-confirm-btn').style.display = 'none';
+  document.getElementById('detail-reject-reason').value = '';
 
-  const rows = [
-    ['姓名',     u.real_name],
-    ...(isPartner ? [['負責督導', u.supervisor_id ? (usersCache.find(x=>x.id===u.supervisor_id)?.real_name||'—') : '未指派']] : []),
-    ['角色',     roleMap[u.role] || u.role],
-    ['身分證',   u.id_number || '—'],
-    ['生日',     u.birthday  || '—'],
-    ['電話',     u.phone     || '—'],
-    ['電子信箱', u.email     || '—'],
-    ['聯絡地址', u.address   || '—'],
-    ...(isPartner ? [
-      ['身份別',   u.identity  || '—'],
-      ['銀行名稱', u.bank_name || '—'],
-      ['銀行帳號', u.bank_account || '—'],
-    ] : []),
-    ['狀態',     statusLabel[u.status] || u.status],
-    ['申請時間', u.created_at || '—'],
-  ];
+  // 基本資料列
+  const svName = u.supervisor_id ? (usersCache.find(x=>x.id===u.supervisor_id)?.real_name||'—') : '未指派';
+  const bankBlock = isPartner ? `
+    <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin:.75rem 0 .3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">🏦 收款資訊</div>
+    ${row('類型', u.bank_type==='post'?'中華郵政':'一般銀行')}
+    ${row('戶名', u.bank_holder)}
+    ${row('銀行/郵局', u.bank_name)}
+    ${row('分行', u.bank_branch)}
+    ${row('帳號', u.bank_account)}
+    ${u.post_office_code ? row('郵局局號', u.post_office_code) : ''}
+  ` : '';
 
-  document.getElementById('detail-content').innerHTML = rows.map(([l,v]) =>
-    `<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`
-  ).join('');
-  document.getElementById('detail-actions').innerHTML = ''; // 按鈕已移至操作欄
+  document.getElementById('detail-info').innerHTML = `
+    <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">👤 基本資料</div>
+    ${row('帳號', u.username)}
+    ${row('姓名', u.real_name)}
+    ${row('性別', genderLabel[u.gender]||u.gender||'—')}
+    ${row('身分證', u.id_number)}
+    ${row('生日', u.birthday)}
+    ${row('電話', u.phone)}
+    ${row('信箱', u.email)}
+    ${row('地址', u.address)}
+    ${row('身份別', u.identity||'—')}
+    ${isPartner ? row('負責督導', svName) : ''}
+    ${row('狀態', statusLabel[u.status]||u.status)}
+    ${row('申請時間', u.created_at)}
+    ${bankBlock}
+  `;
+
+  // 圖片（只有 partner 才有）
+  const imgSection = document.getElementById('detail-imgs').parentElement;
+  if (isPartner) {
+    imgSection.style.display = 'block';
+    ['front','back','bank'].forEach(k => {
+      const el = document.getElementById('di-'+k);
+      el.innerHTML = '<span style="font-size:.7rem">載入中…</span>';
+    });
+    API.get(`/api/admin/users/${id}/images`).then(r => {
+      const d = r.data || {};
+      const labels = { front:'身分證正面', back:'身分證反面', bank: u.bank_type==='post'?'郵局存簿':'銀行存摺' };
+      ['front','back','bank'].forEach(k => {
+        const el = document.getElementById('di-'+k);
+        if (d[k]) {
+          el.innerHTML = `<img src="data:image/jpeg;base64,${d[k]}" alt="${labels[k]}" onclick="openLightbox(this.src)" title="${labels[k]}" style="cursor:zoom-in">`;
+        } else {
+          el.innerHTML = `<span style="font-size:.7rem;padding:.5rem;text-align:center">${labels[k]}<br>無圖片</span>`;
+        }
+      });
+    }).catch(() => {
+      ['front','back','bank'].forEach(k => {
+        document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">無法載入</span>';
+      });
+    });
+  } else {
+    imgSection.style.display = 'none';
+  }
+
+  // 督導選擇（pending partner 才顯示）
+  const svRow = document.getElementById('detail-sv-row');
+  if (isPending && isPartner) {
+    svRow.style.display = 'block';
+    const svs = usersCache.filter(u => u.role==='supervisor' && u.status==='active');
+    document.getElementById('detail-sv-sel').innerHTML =
+      '<option value="">請選擇督導人員</option>' +
+      svs.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
+  } else { svRow.style.display = 'none'; }
+
+  // 核可/退回按鈕
+  const btnBar = document.getElementById('detail-pending-btns');
+  btnBar.style.display = isPending ? 'flex' : 'none';
+
   document.getElementById('detail-overlay').classList.add('open');
 }
+
+function row(label, val) {
+  return `<div class="det-row"><span class="det-label">${label}</span><span class="det-val">${val||'—'}</span></div>`;
+}
+
 function closeDetail() {
   document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function toggleRejectRow() {
+  const r = document.getElementById('detail-reject-row');
+  const c = document.getElementById('detail-reject-confirm-btn');
+  const show = r.style.display === 'none';
+  r.style.display = show ? 'block' : 'none';
+  c.style.display = show ? 'inline-block' : 'none';
+}
+
+async function confirmRejectFromDetail() {
+  const id     = parseInt(document.getElementById('detail-user-id').value);
+  const name   = document.getElementById('detail-user-name').value;
+  const reason = document.getElementById('detail-reject-reason').value.trim();
+  if (!confirm(`確定退回「${name}」的申請？${reason?'\n退回原因：'+reason:''}`)) return;
+  try {
+    await API.put(`/api/admin/users/${id}/reject`, { reason });
+    showToast(`已退回 ${name} 的申請`, 'warn');
+    closeDetail();
+    await loadUsers();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function approveFromDetail() {
+  const id   = parseInt(document.getElementById('detail-user-id').value);
+  const name = document.getElementById('detail-user-name').value;
+  const role = document.getElementById('detail-user-role').value;
+  const err  = document.getElementById('detail-approve-err');
+  err.style.display = 'none';
+  if (role === 'partner') {
+    const svId = document.getElementById('detail-sv-sel').value;
+    if (!svId) { err.textContent = '請先選擇督導人員'; err.style.display = 'block'; return; }
+    try {
+      await API.put(`/api/admin/users/${id}/approve`, { supervisor_id: parseInt(svId) });
+      showToast(`已核可 ${name}，已指派督導`, 'success');
+      closeDetail(); await loadUsers();
+    } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+  } else {
+    try {
+      await API.put(`/api/admin/users/${id}/approve`, {});
+      showToast(`已核可 ${name}`, 'success');
+      closeDetail(); await loadUsers();
+    } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+  }
+}
+
+// lightbox
+function openLightbox(src) {
+  const lb = document.getElementById('img-lightbox');
+  document.getElementById('img-lightbox-img').src = src;
+  lb.style.display = 'flex';
+}
+function closeLightbox() {
+  document.getElementById('img-lightbox').style.display = 'none';
 }
 
 function roleActions(u) {
@@ -582,11 +736,11 @@ function roleActions(u) {
   const delBtn    = !isSelf ? `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">刪除</button>` : '';
   const stopBtn   = `<button class="action-btn warn" onclick="deactivateUser(${u.id},'${u.real_name}')">停用</button>`;
   const startBtn  = `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">啟用</button>`;
-  const approveBtn= `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">核可</button>`;
+  const approveBtn= `<button class="action-btn approve" onclick="openDetail(${u.id})">審核</button>`;
   const resetBtn  = `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">密碼重設</button>`;
 
   if (u.role === 'partner') {
-    if (u.status === 'pending')  return detail + approveBtn + delBtn;
+    if (u.status === 'pending')  return approveBtn + delBtn;
     if (u.status === 'active')   return detail + stopBtn + resetBtn + delBtn;
     if (u.status === 'inactive') return detail + startBtn + delBtn;
   }

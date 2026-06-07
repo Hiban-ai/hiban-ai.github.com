@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages } = require('./db');
 
 // ── Google Apps Script 寄件設定 ───────────────────────────
 const GAS_URL    = process.env.GAS_URL;
@@ -181,11 +181,12 @@ app.post('/api/register', async (req, res) => {
     if (!birthday)  return res.status(400).json({ error: 'Missing birthday' });
     if (!phone)     return res.status(400).json({ error: 'Missing phone' });
     if (!address)   return res.status(400).json({ error: 'Missing address' });
-    const { email, gender, nickname, identity, bank_type, bank_name, bank_branch, bank_account, bank_holder, post_office_code } = req.body;
+    const { email, gender, nickname, identity, bank_type, bank_name, bank_branch, bank_account, bank_holder, post_office_code,
+            id_front_b64, id_back_b64, bank_b64 } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
     const base     = real_name.charCodeAt(0).toString(36);
     const username = await generateUsername('user_' + base);
-    await Users.create({
+    const newUser = await Users.create({
       username, real_name, id_number, birthday, phone, address,
       email: email || null, gender: gender || null,
       nickname: nickname || null, identity: identity || null,
@@ -197,11 +198,18 @@ app.post('/api/register', async (req, res) => {
       password_hash: bcrypt.hashSync('0000', 10),
     });
 
+    // 儲存圖片（背景，不阻塞）
+    if (id_front_b64 || id_back_b64 || bank_b64) {
+      UserImages.save(newUser.id, { front: id_front_b64||'', back: id_back_b64||'', bank: bank_b64||'' })
+        .catch(e => console.error('[UserImages.save]', e.message));
+    }
+
     // 寄通知信給所有 staff（背景執行，不阻塞回應）
     res.json({ ok: true, username });
     (async () => {
       try {
-        const staffList = await Users.findAll({ role: 'staff', status: 'active' });
+        const allUsers  = await Users.all();
+        const staffList = allUsers.filter(u => u.role === 'staff' && u.status === 'active');
         const staffEmails = staffList.map(u => u.email).filter(Boolean);
         if (!staffEmails.length) return;
         const genderLabel = gender === 'M' ? '男性' : gender === 'F' ? '女性' : gender === 'X' ? '多元性' : gender || '—';
@@ -278,6 +286,39 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
       await Users.update(id, { status: 'active' });
     }
     res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 取得申請人圖片
+app.get('/api/admin/users/:id/images', requireRole('staff'), async (req, res) => {
+  try {
+    const imgs = await UserImages.get(parseInt(req.params.id));
+    res.json({ ok: true, data: imgs || {} });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 退回申請（寄信給申請人）
+app.put('/api/admin/users/:id/reject', requireRole('staff'), async (req, res) => {
+  try {
+    const id   = parseInt(req.params.id);
+    const user = await Users.byId(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const { reason } = req.body;
+    await Users.update(id, { status: 'rejected', rejected_at: new Date().toISOString(), rejected_reason: reason || '' });
+    res.json({ ok: true });
+    // 寄信給申請人
+    if (user.email) {
+      sendMail({
+        to: user.email,
+        subject: `【希絆雲作所】您的申請未通過審核`,
+        html: `<h2 style="color:#E05555">申請未通過</h2>
+<p>您好，${user.real_name}，</p>
+<p>很遺憾，您的加入申請（帳號：<strong>${user.username}</strong>）未能通過審核。</p>
+${reason ? `<p><strong>退回原因：</strong>${reason}</p>` : ''}
+<p>如有疑問請聯繫管理人員。</p>
+<p style="color:#7A9AAF;font-size:13px">希絆雲作所</p>`
+      }).catch(e => console.error('[reject mail]', e.message));
+    }
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

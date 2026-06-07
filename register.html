@@ -426,8 +426,8 @@ function closeCropModal() {
 
 async function confirmCrop() {
   if (!cropperInstance || !cropTarget) return;
-  const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 1400, maxHeight: 1400 });
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 });
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
   const target = cropTarget;
   console.log('[Crop] target:', target, 'dataUrl length:', dataUrl.length);
   closeCropModal();
@@ -696,6 +696,9 @@ async function submitRegister() {
       bank_account: isPost ? `${v('reg-post-office-code')}-${v('reg-post-account')}` : v('reg-account'),
       bank_holder:  isPost ? v('reg-post-holder') : v('reg-holder'),
       post_office_code: isPost ? v('reg-post-office-code') : '',
+      id_front_b64: uploads.front?.b64 || '',
+      id_back_b64:  uploads.back?.b64  || '',
+      bank_b64:     uploads.bank?.b64  || '',
     });
     document.getElementById('result-username').textContent = res.username;
 

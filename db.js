@@ -207,4 +207,21 @@ const WorklogReports = {
   },
 };
 
-module.exports = { Users, ForgotReqs, Assignments, WorklogReports };
+// ── UserImages（申請圖片，壓縮 base64 分開存）─────────────────
+const UserImages = {
+  async save(userId, { front, back, bank }) {
+    await db.collection('user_images').doc(String(userId)).set({
+      user_id: userId, front: front||'', back: back||'', bank: bank||'',
+      saved_at: now()
+    });
+  },
+  async get(userId) {
+    const doc = await db.collection('user_images').doc(String(userId)).get();
+    return doc.exists ? doc.data() : null;
+  },
+  async delete(userId) {
+    await db.collection('user_images').doc(String(userId)).delete();
+  }
+};
+
+module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages };

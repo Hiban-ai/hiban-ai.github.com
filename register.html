@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>申請加入 — 希絆雲作所</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <style>
 :root{
   --blue:#48B4E8;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
@@ -18,12 +19,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem}
 .container{max-width:500px;margin:0 auto}
-
 .top-bar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
 .back-btn{background:none;border:1.5px solid var(--border);border-radius:20px;padding:.35rem .9rem;font-size:.82rem;color:var(--blue-d);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s;white-space:nowrap}
 .back-btn:hover{background:var(--blue-p);border-color:var(--blue)}
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700}
-
 .steps{display:flex;align-items:center;margin-bottom:1.5rem}
 .si{display:flex;align-items:center;gap:.4rem;flex:1}
 .si-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--text-s);flex-shrink:0;transition:all .3s}
@@ -33,38 +32,40 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .si.active .si-label{color:var(--blue-d);font-weight:600}
 .si-line{flex:1;height:1px;background:var(--border);margin:0 .3rem;transition:background .3s}
 .si-line.done{background:var(--green)}
-
 .card{background:#fff;border-radius:var(--r);padding:1.5rem;box-shadow:0 8px 28px rgba(72,180,232,.10);margin-bottom:1rem;border-top:4px solid var(--blue)}
 .card-title{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.2rem}
 .card-desc{font-size:.82rem;color:var(--text-s);margin-bottom:1.25rem;line-height:1.6}
 .req-hint{font-size:.72rem;color:var(--text-s);margin-bottom:1rem;padding:.5rem .75rem;background:var(--blue-p);border-radius:8px;border-left:3px solid var(--blue)}
-
 .form-group{margin-bottom:1rem}
 .form-label{display:block;font-size:.82rem;font-weight:600;color:var(--text-m);margin-bottom:.4rem}
 .req-mark{color:var(--red);font-size:.7rem;margin-left:.2rem}
 .opt-mark{color:var(--text-s);font-size:.7rem;margin-left:.2rem;font-weight:400}
-
-.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
-  padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;
-  outline:none;transition:all .2s;background:var(--bg);color:var(--text)}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;outline:none;transition:all .2s;background:var(--bg);color:var(--text)}
 .form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15);background:#fff}
 .form-input.has-error{border-color:var(--red)!important;background:var(--red-p)!important}
-
-.form-select{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
-  padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;
-  outline:none;background:var(--bg);color:var(--text);cursor:pointer;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9AAF' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 1rem center}
+.form-input.ai-filled{border-color:var(--green);background:var(--green-p)}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.75rem 1rem;font-size:.95rem;font-family:'Noto Sans TC',sans-serif;outline:none;background:var(--bg);color:var(--text);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9AAF' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center}
 .form-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.15)}
-.form-select.has-error{border-color:var(--red)!important;background-color:var(--red-p)!important}
-
-/* 生日三欄 */
 .birthday-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:.5rem}
 .birthday-row .form-select{padding:.75rem .5rem .75rem .75rem}
+.error-msg{background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.6rem .9rem;font-size:.82rem;color:var(--red);margin-bottom:.9rem;display:none;line-height:1.5}
+.btn-primary{width:100%;padding:.88rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3);transition:all .3s;margin-top:.25rem}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(72,180,232,.5)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{width:100%;padding:.72rem;background:transparent;color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:.4rem;transition:all .2s}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+.success-box{text-align:center;padding:1.5rem 1rem 2rem}
+.success-icon{font-size:4rem;margin-bottom:.75rem;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.success-title{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:var(--blue-d);margin-bottom:.5rem}
+.success-desc{font-size:.85rem;color:var(--text-s);line-height:1.8}
+.account-box{background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.9rem 1.1rem;margin:.75rem 0 1.25rem;text-align:left}
+.account-label{font-size:.75rem;color:var(--text-s);margin-bottom:.3rem}
+.account-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d);letter-spacing:.05em}
+.account-hint{font-size:.72rem;color:var(--text-s);margin-top:.25rem}
 
-/* Upload */
-.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:1.1rem;
-  text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden}
+/* 上傳區 */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:1.1rem;text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden}
 .upload-zone:hover{border-color:var(--blue);background:var(--blue-p)}
 .upload-zone.has-file{border-color:var(--green);background:var(--green-p);border-style:solid}
 .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -72,102 +73,129 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .uz-text{font-size:.78rem;color:var(--text-s);line-height:1.6}
 .uz-name{font-size:.78rem;color:var(--green);font-weight:600;margin-top:.2rem}
 
-.error-msg{background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);
-  padding:.6rem .9rem;font-size:.82rem;color:var(--red);margin-bottom:.9rem;display:none;line-height:1.5}
+/* 縮圖 */
+.thumb-box{margin-top:.75rem;display:none;position:relative}
+.thumb-box img{width:100%;border-radius:var(--rs);border:2px solid var(--green);display:block}
+.thumb-retake{position:absolute;top:.4rem;right:.4rem;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:6px;padding:.25rem .6rem;font-size:.72rem;cursor:pointer}
 
-.btn-primary{width:100%;padding:.88rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
-  color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;
-  cursor:pointer;font-family:'Noto Sans TC',sans-serif;
-  box-shadow:0 6px 20px rgba(72,180,232,.3);transition:all .3s;margin-top:.25rem}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(72,180,232,.5)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.btn-secondary{width:100%;padding:.72rem;background:transparent;color:var(--text-s);
-  border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;
-  cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:.4rem;transition:all .2s}
-.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+/* AI 辨識狀態 */
+.ai-status{display:none;align-items:center;gap:.6rem;padding:.7rem 1rem;background:var(--blue-p);border-radius:var(--rs);margin-top:.75rem;font-size:.82rem;color:var(--blue-d);font-weight:600}
+.ai-status.show{display:flex}
+.ai-spinner{width:18px;height:18px;border:3px solid var(--blue-pp);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-badge{display:inline-block;background:var(--green-p);color:var(--green);border:1px solid var(--green);border-radius:20px;padding:.15rem .55rem;font-size:.7rem;font-weight:700;margin-left:.3rem}
 
-.success-box{text-align:center;padding:1.5rem 1rem 2rem}
-.success-icon{font-size:4rem;margin-bottom:.75rem;animation:pulse 2s ease infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.success-title{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:var(--blue-d);margin-bottom:.5rem}
-.success-desc{font-size:.85rem;color:var(--text-s);line-height:1.8}
-.account-box{background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);
-  padding:.9rem 1.1rem;margin:.75rem 0 1.25rem;text-align:left}
-.account-label{font-size:.75rem;color:var(--text-s);margin-bottom:.3rem}
-.account-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d);letter-spacing:.05em}
-.account-hint{font-size:.72rem;color:var(--text-s);margin-top:.25rem}
+/* 裁切 Modal */
+.crop-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
+.crop-modal.show{display:flex}
+.crop-box{background:#fff;border-radius:var(--r);padding:1rem;width:100%;max-width:480px}
+.crop-title{font-weight:700;font-size:.95rem;margin-bottom:.75rem;color:var(--text)}
+.crop-canvas{max-height:55vh;overflow:hidden;border-radius:var(--rs)}
+.crop-canvas img{max-width:100%;display:block}
+.crop-actions{display:flex;gap:.5rem;margin-top:.75rem}
+.crop-actions button{flex:1;padding:.7rem;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+.btn-crop-ok{background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff}
+.btn-crop-cancel{background:var(--bg);color:var(--text-s);border:1.5px solid var(--border)!important}
 </style>
 </head>
 <body>
 <div class="container">
-
   <div class="top-bar">
     <button class="back-btn" onclick="location.href='index.html'">← 返回登入</button>
     <div class="page-title">✨ 申請加入希絆</div>
   </div>
 
   <div class="steps" id="steps">
-    <div class="si active" id="si1"><div class="si-num">1</div><span class="si-label">基本資料</span></div>
+    <div class="si active" id="si1"><div class="si-num">1</div><span class="si-label">身分證掃描</span></div>
     <div class="si-line" id="sl1"></div>
-    <div class="si" id="si2"><div class="si-num">2</div><span class="si-label">身份文件</span></div>
+    <div class="si" id="si2"><div class="si-num">2</div><span class="si-label">基本資料</span></div>
     <div class="si-line" id="sl2"></div>
-    <div class="si" id="si3"><div class="si-num">3</div><span class="si-label">匯款資料</span></div>
+    <div class="si" id="si3"><div class="si-num">3</div><span class="si-label">銀行資料</span></div>
     <div class="si-line" id="sl3"></div>
-    <div class="si" id="si4"><div class="si-num">4</div><span class="si-label">等待審核</span></div>
+    <div class="si" id="si4"><div class="si-num">4</div><span class="si-label">完成</span></div>
   </div>
 
-  <!-- Step 1 基本資料 -->
+  <!-- Step 1：身分證上傳 -->
   <div class="card" id="step1">
-    <div class="card-title">基本資料</div>
-    <div class="card-desc">請填寫真實資訊，用於身份核實與聯絡</div>
-    <div class="req-hint">＊ 標示為必填欄位</div>
+    <div class="card-title">🪪 上傳身分證正面</div>
+    <div class="card-desc">AI 將自動辨識姓名、身分證字號、生日、地址，節省手動填寫時間</div>
     <div class="error-msg" id="err1"></div>
+
+    <div class="form-group">
+      <label class="form-label">身分證正面<span class="req-mark">＊</span></label>
+      <div class="upload-zone" id="uz-id-front">
+        <input type="file" accept="image/*" onchange="handleIdUpload(this)">
+        <div class="uz-icon">🪪</div>
+        <div class="uz-text">點擊上傳身分證正面<br><span style="font-size:.7rem">支援 JPG、PNG，建議在明亮處拍攝</span></div>
+        <div class="uz-name"></div>
+      </div>
+      <div class="thumb-box" id="thumb-id">
+        <img id="thumb-id-img" src="" alt="身分證預覽">
+        <button class="thumb-retake" onclick="retakeId()">重新上傳</button>
+      </div>
+    </div>
+
+    <div class="ai-status" id="ai-status-id">
+      <div class="ai-spinner"></div>
+      <span id="ai-status-text">AI 辨識中，請稍候…</span>
+    </div>
+
+    <div class="form-group" style="margin-top:.75rem">
+      <label class="form-label">身分證反面<span class="req-mark">＊</span></label>
+      <div class="upload-zone" id="uz-id-back">
+        <input type="file" accept="image/*" onchange="handleBackUpload(this)">
+        <div class="uz-icon">🪪</div>
+        <div class="uz-text">點擊上傳身分證反面</div>
+        <div class="uz-name"></div>
+      </div>
+      <div class="thumb-box" id="thumb-id-back">
+        <img id="thumb-id-back-img" src="" alt="身分證反面預覽">
+        <button class="thumb-retake" onclick="retakeIdBack()">重新上傳</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-step1" onclick="goStep(2)">繼續 →</button>
+  </div>
+
+  <!-- Step 2：基本資料 -->
+  <div class="card" id="step2" style="display:none">
+    <div class="card-title">📋 確認基本資料</div>
+    <div class="card-desc">以下資料由 AI 自動填入，請確認並補充剩餘欄位</div>
+    <div class="req-hint">＊ 標示為必填欄位</div>
+    <div class="error-msg" id="err2"></div>
 
     <div class="form-group">
       <label class="form-label">真實姓名<span class="req-mark">＊</span></label>
       <input class="form-input" id="reg-realname" type="text" placeholder="請輸入身份證上的姓名">
     </div>
-
     <div class="form-group">
       <label class="form-label">身分證字號<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-idnum" type="text" placeholder="例：A123456789" maxlength="10"
-        oninput="this.value=this.value.toUpperCase()">
+      <input class="form-input" id="reg-idnum" type="text" placeholder="例：A123456789" maxlength="10" oninput="this.value=this.value.toUpperCase()">
     </div>
-
     <div class="form-group">
       <label class="form-label">生日<span class="req-mark">＊</span></label>
       <div class="birthday-row">
-        <select class="form-select" id="bday-year">
-          <option value="">年</option>
-        </select>
-        <select class="form-select" id="bday-month">
-          <option value="">月</option>
-        </select>
-        <select class="form-select" id="bday-day">
-          <option value="">日</option>
-        </select>
+        <select class="form-select" id="bday-year"><option value="">年</option></select>
+        <select class="form-select" id="bday-month"><option value="">月</option></select>
+        <select class="form-select" id="bday-day"><option value="">日</option></select>
       </div>
       <input type="hidden" id="reg-birthday">
     </div>
-
-    <div class="form-group">
-      <label class="form-label">聯絡電話<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-phone" type="tel" placeholder="例：0912345678" maxlength="10">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">電子信箱<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-email" type="email" placeholder="例：example@gmail.com">
-    </div>
-
     <div class="form-group">
       <label class="form-label">聯絡地址<span class="req-mark">＊</span></label>
       <input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址">
     </div>
-
+    <div class="form-group">
+      <label class="form-label">聯絡電話<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-phone" type="tel" placeholder="例：0912345678" maxlength="10">
+    </div>
+    <div class="form-group">
+      <label class="form-label">電子信箱<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-email" type="email" placeholder="例：example@gmail.com">
+    </div>
     <div class="form-group">
       <label class="form-label">身份別<span class="opt-mark">（選填）</span></label>
-      <select class="form-select" id="reg-identity">
+      <select class="form-select" id="reg-identity" onchange="toggleDisabilityDoc()">
         <option value="">請選擇</option>
         <option>身心障礙者</option>
         <option>單親家庭</option>
@@ -177,42 +205,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       </select>
     </div>
 
-    <button class="btn-primary" onclick="goStep(2)">繼續 →</button>
-  </div>
-
-  <!-- Step 2 身份文件 -->
-  <div class="card" id="step2" style="display:none">
-    <div class="card-title">📋 上傳身份文件</div>
-    <div class="card-desc">確認身份，保護每一位夥伴的權益</div>
-    <div class="error-msg" id="err2"></div>
-
-    <div class="form-group">
-      <label class="form-label">身份證正面<span class="req-mark">＊</span></label>
-      <div class="upload-zone" id="uz-id-front">
-        <input type="file" accept="image/*" onchange="handleUpload(this,'uz-id-front','id_front')">
-        <div class="uz-icon">🪪</div>
-        <div class="uz-text">點擊上傳身份證正面</div>
-        <div class="uz-name"></div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">身份證反面<span class="req-mark">＊</span></label>
-      <div class="upload-zone" id="uz-id-back">
-        <input type="file" accept="image/*" onchange="handleUpload(this,'uz-id-back','id_back')">
-        <div class="uz-icon">🪪</div>
-        <div class="uz-text">點擊上傳身份證反面</div>
-        <div class="uz-name"></div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">相關證明文件<span class="opt-mark">（選填）</span></label>
-      <div class="upload-zone" id="uz-cert">
-        <input type="file" accept="image/*,.pdf" onchange="handleUpload(this,'uz-cert','cert')">
-        <div class="uz-icon">📄</div>
-        <div class="uz-text">手冊、證書等，支援圖片或 PDF</div>
-        <div class="uz-name"></div>
+    <!-- 身心障礙手冊（條件顯示） -->
+    <div id="disability-doc-section" style="display:none">
+      <div class="form-group">
+        <label class="form-label">身心障礙手冊<span class="req-mark">＊</span></label>
+        <div class="upload-zone" id="uz-disability">
+          <input type="file" accept="image/*,.pdf" onchange="handleDisabilityUpload(this)">
+          <div class="uz-icon">📄</div>
+          <div class="uz-text">點擊上傳身心障礙手冊<br><span style="font-size:.7rem">支援圖片或 PDF</span></div>
+          <div class="uz-name"></div>
+        </div>
+        <div class="thumb-box" id="thumb-disability">
+          <img id="thumb-disability-img" src="" alt="手冊預覽">
+          <button class="thumb-retake" onclick="retakeDisability()">重新上傳</button>
+        </div>
       </div>
     </div>
 
@@ -220,12 +226,30 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <button class="btn-secondary" onclick="goStep(1)">← 上一步</button>
   </div>
 
-  <!-- Step 3 匯款資料 -->
+  <!-- Step 3：銀行資料 -->
   <div class="card" id="step3" style="display:none">
     <div class="card-title">🏦 收款資料</div>
-    <div class="card-desc">你賺到的款項將匯入此帳戶，請確認資料正確</div>
+    <div class="card-desc">上傳存摺封面，AI 自動辨識銀行資訊</div>
     <div class="req-hint">＊ 匯款資料為必填，請確實填寫以利後續撥款</div>
     <div class="error-msg" id="err3"></div>
+
+    <div class="form-group">
+      <label class="form-label">存摺封面<span class="req-mark">＊</span></label>
+      <div class="upload-zone" id="uz-passbook">
+        <input type="file" accept="image/*" onchange="handleBankUpload(this)">
+        <div class="uz-icon">📒</div>
+        <div class="uz-text">點擊上傳存摺封面<br><span style="font-size:.7rem">需清楚顯示：銀行名稱、完整帳號、戶名</span></div>
+        <div class="uz-name"></div>
+      </div>
+      <div class="thumb-box" id="thumb-bank">
+        <img id="thumb-bank-img" src="" alt="存摺預覽">
+        <button class="thumb-retake" onclick="retakeBank()">重新上傳</button>
+      </div>
+      <div class="ai-status" id="ai-status-bank">
+        <div class="ai-spinner"></div>
+        <span>AI 辨識存摺資訊中…</span>
+      </div>
+    </div>
 
     <div class="form-group">
       <label class="form-label">銀行名稱<span class="req-mark">＊</span></label>
@@ -240,41 +264,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <input class="form-input" id="reg-account" placeholder="請輸入完整帳號">
     </div>
     <div class="form-group">
-      <label class="form-label">戶名<span class="req-mark">＊</span>
-        <span class="opt-mark">（須與身份證姓名相同）</span>
-      </label>
+      <label class="form-label">戶名<span class="req-mark">＊</span><span class="opt-mark">（須與身份證姓名相同）</span></label>
       <input class="form-input" id="reg-holder" placeholder="戶名">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">存摺封面<span class="req-mark">＊</span></label>
-      <div class="upload-zone" id="uz-passbook">
-        <input type="file" accept="image/*" onchange="handleUpload(this,'uz-passbook','passbook')">
-        <div class="uz-icon">📒</div>
-        <div class="uz-text">
-          點擊上傳存摺封面照片<br>
-          <span style="font-size:.7rem">需清楚顯示：銀行名稱、完整帳號、戶名</span>
-        </div>
-        <div class="uz-name"></div>
-      </div>
-      <div style="margin-top:.55rem;padding:.55rem .8rem;background:var(--yellow-p);border-radius:8px;border-left:3px solid var(--yellow);font-size:.72rem;color:#7A5010;line-height:1.6">
-        💡 拍攝存摺封面時，請確保帳號數字清晰可辨，光線充足無反光
-      </div>
     </div>
 
     <button class="btn-primary" onclick="submitRegister()" id="submit-btn">送出申請 ✓</button>
     <button class="btn-secondary" onclick="goStep(2)">← 上一步</button>
   </div>
 
-  <!-- Step 4 完成 -->
+  <!-- Step 4：完成 -->
   <div class="card" id="step4" style="display:none">
     <div class="success-box">
       <div class="success-icon">⏳</div>
       <div class="success-title">申請已送出！</div>
-      <div class="success-desc">
-        管理人員將在 1–3 個工作天內審核<br>
-        通過後請使用以下帳號登入，<br>預設密碼為 <strong>0000</strong>，首次登入需修改
-      </div>
+      <div class="success-desc">管理人員將在 1–3 個工作天內審核<br>通過後請使用以下帳號登入，<br>預設密碼為 <strong>0000</strong>，首次登入需修改</div>
       <div class="account-box">
         <div class="account-label">你的系統帳號</div>
         <div class="account-val" id="result-username">—</div>
@@ -283,15 +286,29 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <button class="btn-primary" onclick="location.href='index.html'">返回登入頁</button>
     </div>
   </div>
-
 </div>
 
+<!-- 裁切 Modal -->
+<div class="crop-modal" id="crop-modal">
+  <div class="crop-box">
+    <div class="crop-title">✂️ 裁切圖片</div>
+    <div class="crop-canvas"><img id="crop-img" src=""></div>
+    <div class="crop-actions">
+      <button class="btn-crop-cancel" onclick="closeCropModal()">取消</button>
+      <button class="btn-crop-ok" onclick="confirmCrop()">確認裁切</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script src="shared.js"></script>
 <script>
-// ── 步驟切換 ─────────────────────────────────────────────────
 let curStep = 1;
 const uploads = {};
+let cropperInstance = null;
+let cropCallback = null;
 
+// ── 步驟切換 ──────────────────────────────────────────────
 function goStep(n) {
   if (n > curStep) {
     const errMsg = validate(curStep);
@@ -313,66 +330,286 @@ function updateSteps() {
   }
 }
 
-// ── 生日下拉 ─────────────────────────────────────────────────
+// ── 裁切 Modal ────────────────────────────────────────────
+function openCropModal(src, callback) {
+  cropCallback = callback;
+  const modal = document.getElementById('crop-modal');
+  const img   = document.getElementById('crop-img');
+  img.src = src;
+  modal.classList.add('show');
+  setTimeout(() => {
+    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+    cropperInstance = new Cropper(img, { viewMode: 1, autoCropArea: 0.9, movable: true, zoomable: true });
+  }, 100);
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').classList.remove('show');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+  cropCallback = null;
+}
+
+function confirmCrop() {
+  if (!cropperInstance || !cropCallback) return;
+  const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 });
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  closeCropModal();
+  cropCallback(dataUrl);
+}
+
+// ── 圖片讀取 helper ───────────────────────────────────────
+function readFile(file) {
+  return new Promise(resolve => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.readAsDataURL(file);
+  });
+}
+
+function dataUrlToBase64(dataUrl) {
+  return dataUrl.split(',')[1];
+}
+
+function showThumb(thumbBoxId, imgId, dataUrl) {
+  const box = document.getElementById(thumbBoxId);
+  const img = document.getElementById(imgId);
+  img.src = dataUrl;
+  box.style.display = 'block';
+}
+
+// ── 身分證正面 ────────────────────────────────────────────
+async function handleIdUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const dataUrl = await readFile(file);
+  openCropModal(dataUrl, async (croppedUrl) => {
+    showThumb('thumb-id', 'thumb-id-img', croppedUrl);
+    document.getElementById('uz-id-front').classList.add('has-file');
+    uploads.id_front_b64 = dataUrlToBase64(croppedUrl);
+    uploads.id_front = true;
+    // AI 辨識
+    await extractIdData(croppedUrl);
+  });
+}
+
+function retakeId() {
+  document.getElementById('thumb-id').style.display = 'none';
+  document.getElementById('uz-id-front').classList.remove('has-file');
+  document.getElementById('uz-id-front').querySelector('input').value = '';
+  uploads.id_front = false;
+  uploads.id_front_b64 = null;
+}
+
+async function extractIdData(croppedUrl) {
+  const status = document.getElementById('ai-status-id');
+  const statusText = document.getElementById('ai-status-text');
+  status.classList.add('show');
+  statusText.textContent = 'AI 辨識中，請稍候…';
+  try {
+    const res = await fetch('/api/gemini/extract-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: dataUrlToBase64(croppedUrl), mime_type: 'image/jpeg' })
+    });
+    const json = await res.json();
+    if (json.ok && json.data) {
+      const d = json.data;
+      if (d.real_name)  fillAI('reg-realname', d.real_name);
+      if (d.id_number)  fillAI('reg-idnum', d.id_number);
+      if (d.address)    fillAI('reg-address', d.address);
+      if (d.birthday)   fillBirthdayFromAI(d.birthday);
+      statusText.innerHTML = 'AI 辨識完成 <span class="ai-badge">✓ 已自動填入</span>';
+      setTimeout(() => status.classList.remove('show'), 3000);
+    } else {
+      statusText.textContent = '辨識完成，請手動確認填寫';
+    }
+  } catch(e) {
+    statusText.textContent = '辨識失敗，請手動填寫';
+    setTimeout(() => status.classList.remove('show'), 2000);
+  }
+}
+
+function fillAI(id, val) {
+  const el = document.getElementById(id);
+  if (!el || !val) return;
+  el.value = val;
+  el.classList.add('ai-filled');
+  el.addEventListener('input', () => el.classList.remove('ai-filled'), { once: true });
+}
+
+function fillBirthdayFromAI(bday) {
+  // bday: YYYY/MM/DD 或 YYYY-MM-DD
+  const parts = bday.replace(/-/g,'/').split('/');
+  if (parts.length !== 3) return;
+  const [y, m, d] = parts.map(Number);
+  const ySel = document.getElementById('bday-year');
+  const mSel = document.getElementById('bday-month');
+  const dSel = document.getElementById('bday-day');
+  // 設年
+  for (const o of ySel.options) if (parseInt(o.value) === y) { o.selected = true; break; }
+  // 設月
+  for (const o of mSel.options) if (parseInt(o.value) === m) { o.selected = true; break; }
+  updateDays();
+  setTimeout(() => {
+    for (const o of dSel.options) if (parseInt(o.value) === d) { o.selected = true; break; }
+    syncBirthday();
+  }, 50);
+}
+
+// ── 身分證反面 ────────────────────────────────────────────
+async function handleBackUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const dataUrl = await readFile(file);
+  openCropModal(dataUrl, (croppedUrl) => {
+    showThumb('thumb-id-back', 'thumb-id-back-img', croppedUrl);
+    document.getElementById('uz-id-back').classList.add('has-file');
+    uploads.id_back = true;
+  });
+}
+
+function retakeIdBack() {
+  document.getElementById('thumb-id-back').style.display = 'none';
+  document.getElementById('uz-id-back').classList.remove('has-file');
+  document.getElementById('uz-id-back').querySelector('input').value = '';
+  uploads.id_back = false;
+}
+
+// ── 身心障礙手冊 ──────────────────────────────────────────
+function toggleDisabilityDoc() {
+  const val = document.getElementById('reg-identity').value;
+  const sec = document.getElementById('disability-doc-section');
+  sec.style.display = val === '身心障礙者' ? 'block' : 'none';
+}
+
+async function handleDisabilityUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.type === 'application/pdf') {
+    uploads.disability = true;
+    document.getElementById('uz-disability').classList.add('has-file');
+    document.getElementById('uz-disability').querySelector('.uz-name').textContent = '✓ ' + file.name;
+    return;
+  }
+  const dataUrl = await readFile(file);
+  openCropModal(dataUrl, (croppedUrl) => {
+    showThumb('thumb-disability', 'thumb-disability-img', croppedUrl);
+    document.getElementById('uz-disability').classList.add('has-file');
+    uploads.disability = true;
+  });
+}
+
+function retakeDisability() {
+  document.getElementById('thumb-disability').style.display = 'none';
+  document.getElementById('uz-disability').classList.remove('has-file');
+  document.getElementById('uz-disability').querySelector('input').value = '';
+  uploads.disability = false;
+}
+
+// ── 存摺 ──────────────────────────────────────────────────
+async function handleBankUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const dataUrl = await readFile(file);
+  openCropModal(dataUrl, async (croppedUrl) => {
+    showThumb('thumb-bank', 'thumb-bank-img', croppedUrl);
+    document.getElementById('uz-passbook').classList.add('has-file');
+    uploads.passbook = true;
+    // AI 辨識
+    await extractBankData(croppedUrl);
+  });
+}
+
+function retakeBank() {
+  document.getElementById('thumb-bank').style.display = 'none';
+  document.getElementById('uz-passbook').classList.remove('has-file');
+  document.getElementById('uz-passbook').querySelector('input').value = '';
+  uploads.passbook = false;
+}
+
+async function extractBankData(croppedUrl) {
+  const status = document.getElementById('ai-status-bank');
+  status.classList.add('show');
+  try {
+    const res = await fetch('/api/gemini/extract-bank', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: dataUrlToBase64(croppedUrl), mime_type: 'image/jpeg' })
+    });
+    const json = await res.json();
+    if (json.ok && json.data) {
+      const d = json.data;
+      if (d.bank_name)    fillAI('reg-bank', d.bank_name);
+      if (d.bank_branch)  fillAI('reg-branch', d.bank_branch);
+      if (d.bank_account) fillAI('reg-account', d.bank_account);
+      if (d.bank_holder)  fillAI('reg-holder', d.bank_holder);
+    }
+    setTimeout(() => status.classList.remove('show'), 2500);
+  } catch(e) {
+    setTimeout(() => status.classList.remove('show'), 1500);
+  }
+}
+
+// ── 生日下拉 ──────────────────────────────────────────────
 function initBirthdaySelects() {
   const yearSel  = document.getElementById('bday-year');
   const monthSel = document.getElementById('bday-month');
   const daySel   = document.getElementById('bday-day');
-
-  // 年：當年往前 80 年
   const thisYear = new Date().getFullYear();
   for (let y = thisYear; y >= thisYear - 80; y--) {
     const opt = document.createElement('option');
     opt.value = y; opt.textContent = y + ' 年';
     yearSel.appendChild(opt);
   }
-
-  // 月：1–12
   for (let m = 1; m <= 12; m++) {
     const opt = document.createElement('option');
     opt.value = m; opt.textContent = m + ' 月';
     monthSel.appendChild(opt);
   }
-
-  // 日：1–31（預設），年月變動時更新
-  function updateDays() {
-    const y = parseInt(yearSel.value)  || 2000;
-    const m = parseInt(monthSel.value) || 1;
-    const cur = parseInt(daySel.value) || 0;
-    const maxDay = new Date(y, m, 0).getDate();
-    daySel.innerHTML = '<option value="">日</option>';
-    for (let d = 1; d <= maxDay; d++) {
-      const opt = document.createElement('option');
-      opt.value = d; opt.textContent = d + ' 日';
-      if (d === cur) opt.selected = true;
-      daySel.appendChild(opt);
-    }
-    syncBirthday();
-  }
-
-  function syncBirthday() {
-    const y = yearSel.value;
-    const m = monthSel.value;
-    const d = daySel.value;
-    if (y && m && d) {
-      const val = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-      document.getElementById('reg-birthday').value = val;
-    } else {
-      document.getElementById('reg-birthday').value = '';
-    }
-  }
-
+  updateDays();
   yearSel.addEventListener('change', updateDays);
   monthSel.addEventListener('change', updateDays);
   daySel.addEventListener('change', syncBirthday);
-  updateDays();
 }
 
-// ── 驗證 ─────────────────────────────────────────────────────
+function updateDays() {
+  const yearSel  = document.getElementById('bday-year');
+  const monthSel = document.getElementById('bday-month');
+  const daySel   = document.getElementById('bday-day');
+  const y = parseInt(yearSel.value) || 2000;
+  const m = parseInt(monthSel.value) || 1;
+  const cur = parseInt(daySel.value) || 0;
+  const maxDay = new Date(y, m, 0).getDate();
+  daySel.innerHTML = '<option value="">日</option>';
+  for (let d = 1; d <= maxDay; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d + ' 日';
+    if (d === cur) opt.selected = true;
+    daySel.appendChild(opt);
+  }
+  syncBirthday();
+}
+
+function syncBirthday() {
+  const y = document.getElementById('bday-year').value;
+  const m = document.getElementById('bday-month').value;
+  const d = document.getElementById('bday-day').value;
+  if (y && m && d) {
+    document.getElementById('reg-birthday').value = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  } else {
+    document.getElementById('reg-birthday').value = '';
+  }
+}
+
+// ── 驗證 ──────────────────────────────────────────────────
 function v(id) { return (document.getElementById(id).value || '').trim(); }
 
 function validate(step) {
   if (step === 1) {
+    if (!uploads.id_front) return '請上傳並裁切身分證正面';
+    if (!uploads.id_back)  return '請上傳身分證反面';
+  }
+  if (step === 2) {
     if (!v('reg-realname'))  return '請填寫真實姓名';
     if (!v('reg-idnum'))     return '請填寫身分證字號';
     if (!/^[A-Z][12]\d{8}$/.test(v('reg-idnum'))) return '身分證字號格式不正確（例：A123456789）';
@@ -382,42 +619,26 @@ function validate(step) {
     if (!v('reg-email'))     return '請填寫電子信箱';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('reg-email'))) return '電子信箱格式不正確';
     if (!v('reg-address'))   return '請填寫聯絡地址';
-  }
-  if (step === 2) {
-    if (!uploads.id_front) return '請上傳身份證正面';
-    if (!uploads.id_back)  return '請上傳身份證反面';
+    if (v('reg-identity') === '身心障礙者' && !uploads.disability) return '請上傳身心障礙手冊';
   }
   if (step === 3) {
-    if (!v('reg-bank'))    return '請填寫銀行名稱';
-    if (!v('reg-branch'))  return '請填寫分行名稱';
-    if (!v('reg-account')) return '請填寫帳號';
-    if (!v('reg-holder'))  return '請填寫戶名';
-    if (!uploads.passbook) return '請上傳存摺封面';
+    if (!uploads.passbook)  return '請上傳存摺封面';
+    if (!v('reg-bank'))     return '請填寫銀行名稱';
+    if (!v('reg-branch'))   return '請填寫分行名稱';
+    if (!v('reg-account'))  return '請填寫帳號';
+    if (!v('reg-holder'))   return '請填寫戶名';
   }
   return null;
 }
 
-// ── 上傳 ─────────────────────────────────────────────────────
-function handleUpload(input, zoneId, key) {
-  const file = input.files[0];
-  if (!file) return;
-  uploads[key] = file.name;
-  const zone = document.getElementById(zoneId);
-  zone.classList.add('has-file');
-  zone.querySelector('.uz-icon').textContent = '✅';
-  zone.querySelector('.uz-name').textContent = '✓ ' + file.name;
-}
-
-// ── 送出 ─────────────────────────────────────────────────────
+// ── 送出 ──────────────────────────────────────────────────
 async function submitRegister() {
   const err = document.getElementById('err3');
   err.style.display = 'none';
   const errMsg = validate(3);
   if (errMsg) { err.textContent = errMsg; err.style.display = 'block'; return; }
-
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = '送出中...';
-
   try {
     const res = await API.post('/api/register', {
       real_name:    v('reg-realname'),
@@ -440,7 +661,6 @@ async function submitRegister() {
   }
 }
 
-// 初始化
 initBirthdaySelects();
 </script>
 </body>

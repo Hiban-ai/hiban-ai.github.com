@@ -1047,6 +1047,77 @@ cron.schedule('0 8 1 * *', () => {
   autoSendPayroll(lastMonth.year, lastMonth.month).catch(console.error);
 }, { timezone: 'Asia/Taipei' });
 
+// ── Gemini 圖片辨識 ──────────────────────────────────────────
+app.post('/api/gemini/extract-id', async (req, res) => {
+  try {
+    const { image_base64, mime_type } = req.body;
+    if (!image_base64) return res.status(400).json({ error: '缺少圖片' });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
+
+    const prompt = `請從這張中華民國身分證正面圖片中提取資料，以 JSON 格式回傳，只回傳 JSON 不要其他文字：
+{"real_name":"姓名","id_number":"身分證字號(10碼英數)","birthday":"生日(YYYY/MM/DD格式)","gender":"性別(男或女)","address":"戶籍地址"}
+如果某欄位看不清楚請填空字串。`;
+
+    const body = JSON.stringify({
+      contents: [{ parts: [
+        { text: prompt },
+        { inline_data: { mime_type: mime_type || 'image/jpeg', data: image_base64 } }
+      ]}],
+      generationConfig: { temperature: 0.1 }
+    });
+
+    const result = await new Promise((resolve, reject) => {
+      const req2 = https.request(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } },
+        r => { let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(JSON.parse(d))); }
+      );
+      req2.on('error', reject); req2.write(body); req2.end();
+    });
+
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const jsonStr = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    const data = JSON.parse(jsonStr);
+    res.json({ ok: true, data });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/gemini/extract-bank', async (req, res) => {
+  try {
+    const { image_base64, mime_type } = req.body;
+    if (!image_base64) return res.status(400).json({ error: '缺少圖片' });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
+
+    const prompt = `請從這張存摺封面圖片中提取資料，以 JSON 格式回傳，只回傳 JSON 不要其他文字：
+{"bank_name":"銀行名稱(例:台灣銀行)","bank_branch":"分行名稱(例:板橋分行)","bank_account":"帳號(只有數字)","bank_holder":"戶名"}
+如果某欄位看不清楚請填空字串。`;
+
+    const body = JSON.stringify({
+      contents: [{ parts: [
+        { text: prompt },
+        { inline_data: { mime_type: mime_type || 'image/jpeg', data: image_base64 } }
+      ]}],
+      generationConfig: { temperature: 0.1 }
+    });
+
+    const result = await new Promise((resolve, reject) => {
+      const req2 = https.request(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } },
+        r => { let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(JSON.parse(d))); }
+      );
+      req2.on('error', reject); req2.write(body); req2.end();
+    });
+
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const jsonStr = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    const data = JSON.parse(jsonStr);
+    res.json({ ok: true, data });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('\nServer started: http://localhost:' + PORT);

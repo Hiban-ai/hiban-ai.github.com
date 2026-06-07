@@ -835,6 +835,10 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
     const monthLabel = `${fy} 年 ${parseInt(fm)} 月`;
     const p2 = n => String(n).padStart(2,'0');
     const prefix = `${fy}/${p2(parseInt(fm))}`;
+    // 手動寄送日期範圍 MM/01～今天
+    const now = new Date();
+    const todayStr = `${p2(now.getMonth()+1)}/${p2(now.getDate())}`;
+    const rangeLabel = `（${p2(parseInt(fm))}/01～${todayStr}）`;
 
     // 取所有活躍夥伴
     const allUsers = await Users.all();
@@ -913,7 +917,7 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
 
     // 先回應，背景寄信避免逾時
     res.json({ ok: true, message: `寄送中，稍後請至 ${me.email} 收信 ✅` });
-    sendMail({ to: me.email, subject: `【希絆雲作所】${monthLabel}薪資彙整 — ${me.real_name}`, html })
+    sendMail({ to: me.email, subject: `【希絆雲作所】${monthLabel}薪資彙整${rangeLabel} — ${me.real_name}`, html })
       .then(() => console.log('[send-me] 寄信成功 →', me.email))
       .catch(e => console.error('[send-me] 寄信失敗:', e.message));
   } catch(e) { res.status(500).json({ error: e.message }); }

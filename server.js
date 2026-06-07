@@ -1050,6 +1050,29 @@ cron.schedule('0 8 1 * *', () => {
 }, { timezone: 'Asia/Taipei' });
 
 // ── Gemini 圖片辨識 ──────────────────────────────────────────
+// 共用 Gemini POST helper（不設 Content-Length，用 chunked encoding）
+function geminiPost(apiKey, bodyStr) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`);
+    const options = {
+      hostname: url.hostname, path: url.pathname + url.search,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Transfer-Encoding': 'chunked' }
+    };
+    const req2 = https.request(options, r => {
+      let d = '';
+      r.on('data', c => d += c);
+      r.on('end', () => {
+        try { resolve(JSON.parse(d)); }
+        catch(e) { reject(new Error('Gemini 回傳非 JSON：' + d.slice(0,200))); }
+      });
+    });
+    req2.on('error', reject);
+    req2.write(bodyStr);
+    req2.end();
+  });
+}
+
 app.post('/api/gemini/extract-id', async (req, res) => {
   try {
     const { image_base64, mime_type } = req.body;
@@ -1069,21 +1092,15 @@ app.post('/api/gemini/extract-id', async (req, res) => {
       generationConfig: { temperature: 0.1 }
     });
 
-    const result = await new Promise((resolve, reject) => {
-      const req2 = https.request(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } },
-        r => { let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(JSON.parse(d))); }
-      );
-      req2.on('error', reject); req2.write(body); req2.end();
-    });
-
+    const result = await geminiPost(apiKey, body);
+    if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
     const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('[Gemini ID raw]', raw.slice(0, 300));
     const start = raw.indexOf('{'); const end = raw.lastIndexOf('}');
-    if (start === -1 || end === -1) return res.json({ ok: false, error: 'AI 無法辨識圖片內容', raw: raw.slice(0,200) });
+    if (start === -1 || end === -1) return res.json({ ok: false, error: 'Gemini 未回傳 JSON：' + raw.slice(0,150) });
     const data = JSON.parse(raw.slice(start, end + 1));
     res.json({ ok: true, data });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { console.error('[extract-id]', e); res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/gemini/extract-bank', async (req, res) => {
@@ -1111,21 +1128,15 @@ app.post('/api/gemini/extract-bank', async (req, res) => {
       generationConfig: { temperature: 0.1 }
     });
 
-    const result = await new Promise((resolve, reject) => {
-      const req2 = https.request(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } },
-        r => { let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(JSON.parse(d))); }
-      );
-      req2.on('error', reject); req2.write(body); req2.end();
-    });
-
+    const result = await geminiPost(apiKey, body);
+    if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
     const raw2 = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('[Gemini Bank raw]', raw2.slice(0, 300));
     const s2 = raw2.indexOf('{'); const e2 = raw2.lastIndexOf('}');
-    if (s2 === -1 || e2 === -1) return res.json({ ok: false, error: 'AI 無法辨識圖片內容', raw: raw2.slice(0,200) });
+    if (s2 === -1 || e2 === -1) return res.json({ ok: false, error: 'Gemini 未回傳 JSON：' + raw2.slice(0,150) });
     const data = JSON.parse(raw2.slice(s2, e2 + 1));
     res.json({ ok: true, data });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { console.error('[extract-bank]', e); res.status(500).json({ error: e.message }); }
 });
 
 const PORT = process.env.PORT || 3000;

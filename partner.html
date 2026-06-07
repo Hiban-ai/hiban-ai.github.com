@@ -147,6 +147,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
 .ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
 .ann-target-tag{display:inline-block;padding:.1rem .45rem;border-radius:8px;font-size:.65rem;font-weight:700;background:var(--blue-p);color:var(--blue-d)}
+.att-dl-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .75rem;background:var(--blue-p);border:1.5px solid var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;color:var(--blue-d);cursor:pointer;text-decoration:none;font-family:'Noto Sans TC',sans-serif}
+.att-dl-btn:hover{background:var(--blue);color:#fff}
 .notice-card.nc-urgent{--nc:var(--red);background:var(--red-p)}.notice-card.nc-good{--nc:var(--green);background:var(--green-p)}
 .notice-tag{display:inline-block;padding:.12rem .4rem;border-radius:4px;font-size:.62rem;font-weight:700;margin-bottom:.35rem}
 .nt-urgent{background:var(--red-p);color:var(--red)}.nt-info{background:var(--blue-p);color:var(--blue-d)}.nt-good{background:var(--green-p);color:var(--green)}
@@ -1133,15 +1135,21 @@ function renderAnnList() {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
     return (b.created_at||'').localeCompare(a.created_at||'');
   });
-  wrap.innerHTML = sorted.map(a => `
+  wrap.innerHTML = sorted.map(a => {
+    const attHtml = a.attachment_name
+      ? `<div style="margin-top:.45rem"><a class="att-dl-btn" href="/api/announcements/${a.id}/attachment" download="${a.attachment_name}">📎 ${a.attachment_name}</a></div>`
+      : '';
+    return `
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}">
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
         ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
         <span style="font-weight:700;font-size:.95rem">${a.title}</span>
       </div>
       <div style="font-size:.88rem;color:var(--text-m);white-space:pre-wrap">${a.content}</div>
+      ${attHtml}
       <div class="ann-meta">發布：${(a.created_at||'').slice(0,16)}${a.expires_at ? ` ｜ 到期：${a.expires_at}` : ''}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function init() {

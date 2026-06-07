@@ -60,6 +60,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
 .ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
+.att-dl-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .75rem;background:var(--blue-p);border:1.5px solid var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;color:var(--blue-d);cursor:pointer;text-decoration:none;font-family:'Noto Sans TC',sans-serif}
+.att-dl-btn:hover{background:var(--blue);color:#fff}
 
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
 .stat-card{background:#fff;border-radius:var(--r);padding:1.1rem;box-shadow:0 6px 20px rgba(72,180,232,.1);border-top:4px solid var(--sc,var(--blue));border:1px solid var(--border-l);border-top-width:4px}
@@ -802,15 +804,21 @@ function renderAnnList() {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
     return (b.created_at||'').localeCompare(a.created_at||'');
   });
-  wrap.innerHTML = sorted.map(a => `
+  wrap.innerHTML = sorted.map(a => {
+    const attHtml = a.attachment_name
+      ? `<div style="margin-top:.45rem"><a class="att-dl-btn" href="/api/announcements/${a.id}/attachment" download="${a.attachment_name}">📎 ${a.attachment_name}</a></div>`
+      : '';
+    return `
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}">
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
         ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
         <span style="font-weight:700;font-size:.95rem">${a.title}</span>
       </div>
       <div style="font-size:.88rem;color:var(--text-m);white-space:pre-wrap">${a.content}</div>
+      ${attHtml}
       <div class="ann-meta">發布：${(a.created_at||'').slice(0,16)}${a.expires_at ? ` ｜ 到期：${a.expires_at}` : ''}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function init() {

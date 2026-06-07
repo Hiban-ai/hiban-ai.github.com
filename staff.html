@@ -181,6 +181,11 @@ textarea.form-input{resize:none}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
 .ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
 .ann-target-tag{display:inline-block;padding:.1rem .45rem;border-radius:8px;font-size:.65rem;font-weight:700;background:var(--blue-p);color:var(--blue-d)}
+.att-zone{border:1.5px dashed var(--border);border-radius:var(--rs);padding:.65rem .9rem;font-size:.82rem;color:var(--text-s);cursor:pointer;transition:border-color .2s;display:flex;align-items:center;gap:.5rem}
+.att-zone:hover{border-color:var(--blue);color:var(--blue-d)}
+.att-chip{display:inline-flex;align-items:center;gap:.4rem;background:var(--blue-p);border:1px solid var(--blue);border-radius:20px;padding:.22rem .7rem;font-size:.78rem;font-weight:600;color:var(--blue-d)}
+.att-dl-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .75rem;background:var(--blue-p);border:1.5px solid var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;color:var(--blue-d);cursor:pointer;text-decoration:none;font-family:'Noto Sans TC',sans-serif}
+.att-dl-btn:hover{background:var(--blue);color:#fff}
 </style>
 </head>
 <body>
@@ -531,10 +536,23 @@ textarea.form-input{resize:none}
         <input type="checkbox" id="ann-pinned" style="width:16px;height:16px;cursor:pointer">
         📌 置頂公告
       </label>
+      <!-- 附件 -->
+      <div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">📎 附件（選填，最大 15 MB）</label>
+        <div id="ann-att-current" style="display:none;margin-bottom:.45rem;display:flex;align-items:center;gap:.5rem">
+          <span class="att-chip" id="ann-att-name-chip">—</span>
+          <button onclick="removeAnnAttachment()" style="background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:0">✕ 移除</button>
+        </div>
+        <input type="hidden" id="ann-att-keep"><!-- 'keep' 表示舊附件保留 -->
+        <input type="file" id="ann-att-file" style="display:none" onchange="onAnnFileChange(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.txt">
+        <div class="att-zone" id="ann-att-zone" onclick="document.getElementById('ann-att-file').click()">
+          <span>📁</span><span id="ann-att-zone-label">點擊選擇附件</span>
+        </div>
+      </div>
       <div id="ann-form-err" style="color:var(--red);font-size:.82rem;display:none"></div>
       <div style="display:flex;gap:.5rem;margin-top:.25rem">
         <button onclick="closeAnnForm()" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
-        <button onclick="saveAnn()" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存公告</button>
+        <button onclick="saveAnn()" id="ann-save-btn" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存公告</button>
       </div>
     </div>
   </div>
@@ -1376,8 +1394,11 @@ function renderAnnList() {
   wrap.innerHTML = sorted.map(a => {
     const expired = a.expires_at && a.expires_at < now;
     const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[a.target||'all'] || '全部角色';
+    const attHtml = a.attachment_name
+      ? `<a class="att-dl-btn" href="/api/announcements/${a.id}/attachment" download="${a.attachment_name}">📎 ${a.attachment_name}</a>`
+      : '';
     return `
-    <div class="ann-card${a.is_pinned ? ' pinned' : ''}${expired ? '" style="opacity:.5' : ''}">
+    <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="${expired ? 'opacity:.55' : ''}">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
           ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
@@ -1386,6 +1407,7 @@ function renderAnnList() {
           <span style="font-weight:700;font-size:.92rem">${a.title}</span>
         </div>
         <div style="font-size:.85rem;color:var(--text-m);margin:.4rem 0;white-space:pre-wrap">${a.content}</div>
+        ${attHtml ? `<div style="margin-top:.4rem">${attHtml}</div>` : ''}
         <div class="ann-meta">
           發布：${(a.created_at||'').slice(0,16)}
           ${a.expires_at ? ` &nbsp;｜&nbsp; 到期：${a.expires_at}` : ''}
@@ -1393,7 +1415,7 @@ function renderAnnList() {
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
         <button onclick="editAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">編輯</button>
-        <button onclick="deleteAnn('${a.id}','${a.title.replace(/'/g,'')}')" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
+        <button onclick="deleteAnn('${a.id}','${a.title.replace(/'/g,'\\'')}' )" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
       </div>
     </div>`;
   }).join('');
@@ -1408,6 +1430,11 @@ function openAnnForm(id) {
   document.getElementById('ann-expires').value = '';
   document.getElementById('ann-pinned').checked = false;
   document.getElementById('ann-form-err').style.display = 'none';
+  // 附件重置
+  document.getElementById('ann-att-file').value = '';
+  document.getElementById('ann-att-keep').value = '';
+  document.getElementById('ann-att-zone-label').textContent = '點擊選擇附件';
+  document.getElementById('ann-att-current').style.display = 'none';
   if (id) {
     const a = annList.find(x => x.id === id);
     if (a) {
@@ -1416,11 +1443,36 @@ function openAnnForm(id) {
       document.getElementById('ann-target').value = a.target || 'all';
       document.getElementById('ann-expires').value = a.expires_at || '';
       document.getElementById('ann-pinned').checked = !!a.is_pinned;
+      // 若有舊附件，顯示
+      if (a.attachment_name) {
+        document.getElementById('ann-att-name-chip').textContent = a.attachment_name;
+        document.getElementById('ann-att-current').style.display = 'flex';
+        document.getElementById('ann-att-keep').value = 'keep';
+      }
     }
   }
   const overlay = document.getElementById('ann-form-overlay');
   overlay.style.display = 'flex';
   overlay.style.pointerEvents = 'auto';
+}
+
+function onAnnFileChange(input) {
+  if (!input.files || !input.files[0]) return;
+  const f = input.files[0];
+  if (f.size > 15 * 1024 * 1024) {
+    showToast('附件大小不得超過 15 MB', 'error');
+    input.value = '';
+    return;
+  }
+  document.getElementById('ann-att-zone-label').textContent = '📄 ' + f.name;
+  document.getElementById('ann-att-keep').value = '';  // 新檔案，不保留舊的
+}
+
+function removeAnnAttachment() {
+  document.getElementById('ann-att-current').style.display = 'none';
+  document.getElementById('ann-att-keep').value = 'remove';
+  document.getElementById('ann-att-zone-label').textContent = '點擊選擇附件';
+  document.getElementById('ann-att-file').value = '';
 }
 
 function closeAnnForm() {
@@ -1439,23 +1491,55 @@ async function saveAnn() {
   const expires_at = document.getElementById('ann-expires').value;
   const is_pinned = document.getElementById('ann-pinned').checked;
   const errEl = document.getElementById('ann-form-err');
+  const saveBtn = document.getElementById('ann-save-btn');
   if (!title) { errEl.textContent = '請輸入公告標題'; errEl.style.display = 'block'; return; }
   if (!content) { errEl.textContent = '請輸入公告內容'; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
+  saveBtn.disabled = true; saveBtn.textContent = '儲存中…';
   try {
     const body = { title, content, target, expires_at: expires_at || null, is_pinned };
+    let annId = id;
     if (id) {
       await API.put(`/api/admin/announcements/${id}`, body);
-      showToast('公告已更新 ✅', 'success');
     } else {
-      await API.post('/api/admin/announcements', body);
-      showToast('公告已發布 ✅', 'success');
+      const r = await API.post('/api/admin/announcements', body);
+      annId = r.id;
     }
+
+    // 附件處理
+    const attKeep = document.getElementById('ann-att-keep').value;
+    const attFile = document.getElementById('ann-att-file').files[0];
+
+    if (attKeep === 'remove') {
+      // 移除舊附件
+      await API.delete(`/api/admin/announcements/${annId}/attachment`).catch(() => {});
+    } else if (attFile) {
+      // 上傳新附件
+      saveBtn.textContent = '上傳附件中…';
+      const b64 = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = e => res(e.target.result.split(',')[1]);  // 只取 base64 部分
+        reader.onerror = rej;
+        reader.readAsDataURL(attFile);
+      });
+      await fetch(`/api/admin/announcements/${annId}/attachment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ name: attFile.name, mime: attFile.type || 'application/octet-stream', data: b64 }),
+      }).then(async r => {
+        if (!r.ok) { const d = await r.json(); throw new Error(d.error || '附件上傳失敗'); }
+      });
+    }
+
+    showToast(id ? '公告已更新 ✅' : '公告已發布 ✅', 'success');
     closeAnnForm();
     await loadAnnouncements();
   } catch(e) {
     errEl.textContent = e.message;
     errEl.style.display = 'block';
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = '儲存公告';
   }
 }
 

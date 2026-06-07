@@ -371,6 +371,7 @@ function updateSteps() {
 
 // ── Step1 下一步：先跳頁再辨識 ───────────────────────────
 async function doStep1Next() {
+  console.log('[Step1] uploads:', JSON.stringify({ front: !!uploads.front, back: !!uploads.back }));
   const errEl = document.getElementById('err1');
   if (!uploads.front) { errEl.textContent = '請上傳身分證正面'; errEl.style.display = 'block'; return; }
   if (!uploads.back)  { errEl.textContent = '請上傳身分證反面'; errEl.style.display = 'block'; return; }
@@ -418,9 +419,11 @@ async function confirmCrop() {
   const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 1400, maxHeight: 1400 });
   const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
   const target = cropTarget;
+  console.log('[Crop] target:', target, 'dataUrl length:', dataUrl.length);
   closeCropModal();
   showThumb(target, dataUrl);
   uploads[target] = { dataUrl, b64: dataUrl.split(',')[1] };
+  console.log('[Crop] uploads set:', Object.keys(uploads));
   // 存摺上傳後立即 AI 辨識
   if (target === 'bank') await extractBankData(dataUrl);
 }

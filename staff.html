@@ -128,8 +128,8 @@ textarea.form-input{resize:none}
   align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;box-shadow:0 4px 16px rgba(13,74,114,.3)}
 
 /* Confirm dialog */
-.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
-.confirm-overlay.open{display:flex}
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem;pointer-events:none}
+.confirm-overlay.open{display:flex;pointer-events:auto}
 .confirm-box{background:#fff;border-radius:20px;width:340px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;animation:fadeUp .3s ease;border-top:4px solid var(--red)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .confirm-title{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
@@ -148,8 +148,8 @@ textarea.form-input{resize:none}
 .add-inline-btn:hover{opacity:.85}
 
 /* 詳細資料 overlay */
-.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
-.detail-overlay.open{display:flex}
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;pointer-events:none}
+.detail-overlay.open{display:flex;pointer-events:auto}
 .detail-box{background:#fff;border-radius:var(--r);width:520px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);border-top:4px solid var(--blue);animation:fadeUp .3s ease;margin:auto}
 .detail-row{display:flex;align-items:flex-start;gap:.5rem;padding:.55rem 0;border-bottom:1px solid var(--border-l)}
 .detail-label{font-size:.8rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.1rem}

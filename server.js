@@ -1078,9 +1078,10 @@ app.post('/api/gemini/extract-id', async (req, res) => {
       req2.on('error', reject); req2.write(body); req2.end();
     });
 
-    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    const jsonStr = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    const data = JSON.parse(jsonStr);
+    const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const start = raw.indexOf('{'); const end = raw.lastIndexOf('}');
+    if (start === -1 || end === -1) return res.json({ ok: false, error: 'AI 無法辨識圖片內容', raw: raw.slice(0,200) });
+    const data = JSON.parse(raw.slice(start, end + 1));
     res.json({ ok: true, data });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1119,9 +1120,10 @@ app.post('/api/gemini/extract-bank', async (req, res) => {
       req2.on('error', reject); req2.write(body); req2.end();
     });
 
-    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    const jsonStr = text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    const data = JSON.parse(jsonStr);
+    const raw2 = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const s2 = raw2.indexOf('{'); const e2 = raw2.lastIndexOf('}');
+    if (s2 === -1 || e2 === -1) return res.json({ ok: false, error: 'AI 無法辨識圖片內容', raw: raw2.slice(0,200) });
+    const data = JSON.parse(raw2.slice(s2, e2 + 1));
     res.json({ ok: true, data });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

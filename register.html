@@ -65,17 +65,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .account-hint{font-size:.72rem;color:var(--text-s);margin-top:.25rem}
 
 /* 上傳區 */
-.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:0;text-align:center;cursor:pointer;transition:all .25s;background:var(--bg);position:relative;overflow:hidden;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
 .upload-zone:hover{border-color:var(--blue);background:var(--blue-p)}
 .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .uz-icon{font-size:1.5rem}
 .uz-text{font-size:.78rem;color:var(--text-s);line-height:1.6}
 
-/* 縮圖預覽（取代上傳區） */
-.thumb-preview{border-radius:var(--rs);border:2px solid var(--green);background:var(--green-p);position:relative;overflow:hidden;display:none}
-.thumb-preview img{width:100%;display:block;max-height:160px;object-fit:cover}
-.thumb-delete{position:absolute;top:.4rem;right:.4rem;width:26px;height:26px;background:rgba(224,85,85,.88);color:#fff;border:none;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700}
-.thumb-delete:hover{background:var(--red)}
+/* 縮圖預覽（完全貼合格子） */
+.thumb-preview{border-radius:var(--rs);border:2px solid var(--green);position:relative;overflow:hidden;display:none;height:130px}
+.thumb-preview img{width:100%;height:100%;display:block;object-fit:cover}
+.thumb-delete{position:absolute;top:.4rem;right:.4rem;width:28px;height:28px;background:rgba(30,30,30,.72);color:#fff;border:none;border-radius:50%;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;backdrop-filter:blur(2px)}
+.thumb-delete:hover{background:rgba(224,85,85,.9)}
 
 /* AI 狀態 */
 .ai-status{display:none;align-items:center;gap:.6rem;padding:.7rem 1rem;background:var(--blue-p);border-radius:var(--rs);margin-top:.5rem;font-size:.82rem;color:var(--blue-d);font-weight:600}
@@ -220,7 +220,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <div class="form-group">
         <label class="form-label">身心障礙手冊<span class="req-mark">＊</span></label>
         <div class="upload-zone" id="uz-disability">
-          <input type="file" accept="image/*,.pdf" onchange="handleDisabilityUpload(this)">
+          <input type="file" accept="image/*" onchange="handleCropUpload(this,'disability')">
           <div class="uz-icon">📄</div>
           <div class="uz-text">點擊上傳身心障礙手冊<br><span style="font-size:.7rem">支援圖片或 PDF</span></div>
         </div>
@@ -451,33 +451,6 @@ function deleteUpload(target) {
   }
 }
 
-// ── 身心障礙手冊（不裁切，直接顯示縮圖） ──────────────────
-function handleDisabilityUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  uploads.disability = { name: file.name };
-  if (file.type === 'application/pdf') {
-    // PDF：用文字顯示
-    const thumb = document.getElementById('thumb-disability');
-    const zone  = document.getElementById('uz-disability');
-    zone.style.display = 'none';
-    thumb.style.display = 'block';
-    thumb.querySelector('img').style.display = 'none';
-    // 用文字替代
-    let pdfMsg = thumb.querySelector('.pdf-msg');
-    if (!pdfMsg) { pdfMsg = document.createElement('div'); pdfMsg.className = 'pdf-msg'; pdfMsg.style.cssText='padding:1rem;font-size:.88rem;color:var(--green);font-weight:600'; thumb.insertBefore(pdfMsg, thumb.querySelector('.thumb-delete')); }
-    pdfMsg.textContent = '📄 ' + file.name;
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = e => {
-    const dataUrl = e.target.result;
-    uploads.disability.dataUrl = dataUrl;
-    showThumb('disability', dataUrl);
-  };
-  reader.readAsDataURL(file);
-}
-
 function toggleDisabilityDoc() {
   const val = document.getElementById('reg-identity').value;
   document.getElementById('disability-doc-section').style.display = val === '身心障礙者' ? 'block' : 'none';
@@ -490,48 +463,59 @@ async function extractIdData(dataUrl) {
   status.classList.add('show');
   statusT.textContent = '身分證辨識中，請稍候…';
   try {
+    const b64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
     const res = await fetch('/api/gemini/extract-id', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_base64: dataUrl.split(',')[1], mime_type: 'image/jpeg' })
+      body: JSON.stringify({ image_base64: b64, mime_type: 'image/jpeg' })
     });
     const json = await res.json();
+    console.log('[AI-ID]', json);
     if (json.ok && json.data) {
       const d = json.data;
-      if (d.real_name)  fillAI('reg-realname', d.real_name);
-      if (d.id_number)  fillAI('reg-idnum', d.id_number);
-      if (d.address)    fillAI('reg-address', d.address);
+      let filled = 0;
+      if (d.real_name)  { fillAI('reg-realname', d.real_name); filled++; }
+      if (d.id_number)  { fillAI('reg-idnum', d.id_number); filled++; }
+      if (d.address)    { fillAI('reg-address', d.address); filled++; }
       if (d.gender) {
-        const g = d.gender === '男' ? 'M' : d.gender === '女' ? 'F' : '';
-        if (g) fillSelectAI('reg-gender', g);
+        const g = d.gender.includes('男') ? 'M' : d.gender.includes('女') ? 'F' : '';
+        if (g) { fillSelectAI('reg-gender', g); filled++; }
       }
-      if (d.birthday)   fillBirthdayFromAI(d.birthday);
-      statusT.innerHTML = '辨識完成 <span class="ai-badge">✓ 已自動填入</span>';
-      setTimeout(() => status.classList.remove('show'), 3000);
+      if (d.birthday)   { fillBirthdayFromAI(d.birthday); filled++; }
+      if (filled > 0) {
+        statusT.innerHTML = `辨識完成，填入 ${filled} 個欄位 <span class="ai-badge">✓ AI 填入</span>`;
+      } else {
+        statusT.textContent = '辨識完成，未能抓取資料，請手動填寫';
+      }
+      setTimeout(() => status.classList.remove('show'), 3500);
     } else {
-      statusT.textContent = '辨識完成，請手動確認資料';
-      setTimeout(() => status.classList.remove('show'), 2500);
+      statusT.textContent = '辨識完成，請手動確認資料（' + (json.error || '無法解析') + '）';
+      setTimeout(() => status.classList.remove('show'), 3000);
     }
   } catch(e) {
-    statusT.textContent = '辨識失敗，請手動填寫';
-    setTimeout(() => status.classList.remove('show'), 2000);
+    console.error('[AI-ID error]', e);
+    statusT.textContent = '辨識失敗，請手動填寫（' + e.message + '）';
+    setTimeout(() => status.classList.remove('show'), 3000);
   }
 }
 
 // ── AI：存摺辨識 ──────────────────────────────────────────
 async function extractBankData(dataUrl) {
   const status = document.getElementById('ai-status-bank');
+  status.querySelector('span').textContent = 'AI 辨識存摺資訊中…';
   status.classList.add('show');
   try {
+    const b64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
     const res = await fetch('/api/gemini/extract-bank', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_base64: dataUrl.split(',')[1], mime_type: 'image/jpeg' })
+      body: JSON.stringify({ image_base64: b64, mime_type: 'image/jpeg' })
     });
     const json = await res.json();
+    console.log('[AI-Bank]', json);
     if (json.ok && json.data) {
       const d = json.data;
-      bankType = d.type === 'post' ? 'post' : 'bank';
+      bankType = (d.type === 'post') ? 'post' : 'bank';
       if (bankType === 'post') {
         document.getElementById('bank-fields').style.display = 'none';
         document.getElementById('post-fields').style.display = 'block';
@@ -550,10 +534,15 @@ async function extractBankData(dataUrl) {
         if (d.bank_branch)  fillAI('reg-branch', d.bank_branch);
         if (d.bank_account) fillAI('reg-account', d.bank_account);
       }
+      status.querySelector('span').innerHTML = `辨識完成（${bankType === 'post' ? '郵局' : '銀行'}）<span class="ai-badge">✓</span>`;
+    } else {
+      status.querySelector('span').textContent = '辨識失敗：' + (json.error || '請手動填寫');
     }
-    setTimeout(() => status.classList.remove('show'), 2500);
+    setTimeout(() => status.classList.remove('show'), 3500);
   } catch(e) {
-    setTimeout(() => status.classList.remove('show'), 1500);
+    console.error('[AI-Bank error]', e);
+    status.querySelector('span').textContent = '辨識失敗：' + e.message;
+    setTimeout(() => status.classList.remove('show'), 3000);
   }
 }
 

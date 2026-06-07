@@ -3,23 +3,37 @@ const session    = require('express-session');
 const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
-const { Resend } = require('resend');
+const https = require('https');
 const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 
-// ── Resend 寄件設定 ──────────────────────────────────────
-let resendClient = null;
-if (process.env.RESEND_API_KEY) {
-  resendClient = new Resend(process.env.RESEND_API_KEY);
-  console.log('✅ Resend mailer 已設定');
-} else {
-  console.log('⚠️  RESEND_API_KEY 未設定，寄信功能停用');
-}
+// ── Google Apps Script 寄件設定 ───────────────────────────
+const GAS_URL    = process.env.GAS_URL;
+const GAS_SECRET = process.env.GAS_SECRET || 'hiban2026';
+if (GAS_URL) console.log('✅ Google Apps Script mailer 已設定');
+else         console.log('⚠️  GAS_URL 未設定，寄信功能停用');
 
 async function sendMail({ to, subject, html }) {
-  if (!resendClient) throw new Error('寄件服務未設定');
-  const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
-  const { error } = await resendClient.emails.send({ from, to, subject, html });
-  if (error) throw new Error(error.message);
+  if (!GAS_URL) throw new Error('寄件服務未設定，請聯絡管理員配置 GAS_URL');
+  const body = JSON.stringify({ secret: GAS_SECRET, to, subject, html });
+  await new Promise((resolve, reject) => {
+    const req = https.request(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+    }, res => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.error) reject(new Error(json.error));
+          else resolve(json);
+        } catch(e) { resolve(); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }
 
 // 統一日期格式：YYYY/MM/DD hh:mm:ss（台北時區）
@@ -723,7 +737,7 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
 // 薪資通知寄信：POST /api/admin/payroll/send-email
 app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
+    if (!GAS_URL) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 GAS_URL' });
     const { partner_id, year_month } = req.body; // year_month = "2026-06"
     if (!partner_id || !year_month) return res.status(400).json({ error: '缺少必要參數' });
 
@@ -809,7 +823,7 @@ app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res)
 // 薪資彙整寄給登入管理員自己：POST /api/admin/payroll/send-me
 app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
+    if (!GAS_URL) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 GAS_URL' });
     const { year_month } = req.body;
     if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
 
@@ -908,7 +922,7 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
 // 薪資通知寄信（全體）：POST /api/admin/payroll/send-all
 app.post('/api/admin/payroll/send-all', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
+    if (!GAS_URL) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 GAS_URL' });
     const { year_month } = req.body;
     if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
 
@@ -985,7 +999,7 @@ app.post('/api/admin/payroll/send-all', requireRole('staff'), async (req, res) =
 
 // ── 每月1號自動寄送薪資通知 ──────────────────────────────────
 async function autoSendPayroll(year, month) {
-  if (!resendClient) return console.log('[cron] 寄件服務未設定，跳過自動寄送');
+  if (!GAS_URL) return console.log('[cron] 寄件服務未設定，跳過自動寄送');
   const ym = `${year}-${String(month).padStart(2,'0')}`;
   const allUsers = await Users.all();
   const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active' && u.email);

@@ -438,9 +438,11 @@ function showThumb(target, dataUrl) {
   const thumb = document.getElementById(thumbMap[target]);
   const img   = document.getElementById(imgMap[target]);
   if (!zone || !thumb || !img) return;
-  zone.style.display  = 'none';
+  const w = zone.offsetWidth; // 先抓實際寬度再隱藏
+  zone.style.display = 'none';
   img.src = dataUrl;
-  thumb.style.display = 'block';
+  thumb.style.cssText = `display:block; width:${w}px; height:195px;`;
+  img.style.cssText   = 'width:100%; height:100%; object-fit:cover; display:block;';
 }
 
 function deleteUpload(target) {

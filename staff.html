@@ -239,8 +239,8 @@ textarea.form-input{resize:none}
       <!-- 三個角色分頁 -->
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem;overflow-x:auto">
         <button class="acc-tab active" id="atab-partner"    onclick="switchAccTab('partner')"   >⚔️ 工作夥伴</button>
-        <button class="acc-tab"        id="atab-supervisor" onclick="switchAccTab('supervisor')" >📖 督導人員 <button onclick="openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</button></button>
-        <button class="acc-tab"        id="atab-staff"      onclick="switchAccTab('staff')"      >🧹 管理人員 <button onclick="openCreateUser('staff')"      class="add-inline-btn">＋ 新增</button></button>
+        <div class="acc-tab" id="atab-supervisor" onclick="switchAccTab('supervisor')" style="display:flex;align-items:center;gap:.4rem;cursor:pointer">📖 督導人員 <span onclick="event.stopPropagation();openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</span></div>
+        <div class="acc-tab" id="atab-staff"      onclick="switchAccTab('staff')"      style="display:flex;align-items:center;gap:.4rem;cursor:pointer">🧹 管理人員 <span onclick="event.stopPropagation();openCreateUser('staff')"      class="add-inline-btn">＋ 新增</span></div>
       </div>
 
       <!-- 工作夥伴 -->

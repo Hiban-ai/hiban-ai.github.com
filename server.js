@@ -1053,7 +1053,7 @@ cron.schedule('0 8 1 * *', () => {
 // 共用 Gemini POST helper（不設 Content-Length，用 chunked encoding）
 function geminiPost(apiKey, bodyStr) {
   return new Promise((resolve, reject) => {
-    const url = new URL(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`);
+    const url = new URL(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`);
     const options = {
       hostname: url.hostname, path: url.pathname + url.search,
       method: 'POST',

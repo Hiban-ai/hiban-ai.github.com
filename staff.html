@@ -737,7 +737,7 @@ async function confirmRejectFromDetail() {
     await API.put(`/api/admin/users/${id}/reject`, { reason });
     showToast(`已退回 ${name} 的申請`, 'warn');
     closeDetail();
-    await loadUsers();
+    await loadAccounts();
   } catch(e) { showToast(e.message, 'error'); }
 }
 

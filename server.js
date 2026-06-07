@@ -210,32 +210,29 @@ app.post('/api/register', async (req, res) => {
       try {
         const allUsers  = await Users.all();
         const staffList = allUsers.filter(u => u.role === 'staff' && u.status === 'active');
-        const staffEmails = staffList.map(u => u.email).filter(Boolean);
-        if (!staffEmails.length) return;
-        const genderLabel = gender === 'M' ? '男性' : gender === 'F' ? '女性' : gender === 'X' ? '多元性' : gender || '—';
-        const bankInfo = bank_type === 'post'
-          ? `郵局：${bank_name || ''} ${bank_branch || ''}<br>局號：${post_office_code || ''}<br>帳號：${bank_account || ''}<br>戶名：${bank_holder || ''}`
-          : `銀行：${bank_name || ''} ${bank_branch || ''}<br>帳號：${bank_account || ''}<br>戶名：${bank_holder || ''}`;
-        const html = `
-<h2 style="color:#1A8AC0">【希絆雲作所】新夥伴申請通知</h2>
-<table style="border-collapse:collapse;width:100%;max-width:500px;font-size:14px">
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600;width:100px">系統帳號</td><td style="padding:6px 12px;font-weight:700;color:#1A8AC0">${username}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">姓名</td><td style="padding:6px 12px">${real_name}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">性別</td><td style="padding:6px 12px">${genderLabel}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">身分證</td><td style="padding:6px 12px">${id_number}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">生日</td><td style="padding:6px 12px">${birthday}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">電話</td><td style="padding:6px 12px">${phone}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">信箱</td><td style="padding:6px 12px">${email || '—'}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">地址</td><td style="padding:6px 12px">${address}</td></tr>
-  <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">身份別</td><td style="padding:6px 12px">${identity || '—'}</td></tr>
-  <tr><td style="padding:6px 12px;background:#EBF7FD;font-weight:600">收款資訊</td><td style="padding:6px 12px">${bankInfo}</td></tr>
-</table>
-<p style="margin-top:16px;font-size:13px;color:#7A9AAF">請至管理後台審核此帳號</p>`;
-        await sendMail({
-          to: staffEmails.join(','),
-          subject: `【希絆雲作所】新夥伴申請通知 — ${real_name}（${username}）`,
-          html
-        });
+        const staffWithEmail = staffList.filter(u => u.email);
+        if (!staffWithEmail.length) return;
+        for (const staff of staffWithEmail) {
+          const html = `
+<div style="font-family:'Noto Sans TC',sans-serif;max-width:520px;margin:auto">
+  <h2 style="color:#1A8AC0;margin-bottom:.5rem">📋 新夥伴申請通知</h2>
+  <p>${staff.real_name} 管理人員您好：</p>
+  <p><strong>${real_name}</strong> 已完成線上申請，請至網站進行審核。</p>
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:1rem 0">
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600;width:90px">姓名</td><td style="padding:6px 12px">${real_name}</td></tr>
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">電話</td><td style="padding:6px 12px">${phone}</td></tr>
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">信箱</td><td style="padding:6px 12px">${email || '—'}</td></tr>
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">身份別</td><td style="padding:6px 12px">${identity || '—'}</td></tr>
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">申請時間</td><td style="padding:6px 12px">${new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei'})}</td></tr>
+  </table>
+  <p style="margin-top:1rem;color:#7A9AAF;font-size:13px">希絆雲作所　敬上</p>
+</div>`;
+          await sendMail({
+            to: staff.email,
+            subject: `【希絆雲作所】${real_name} 已完成線上申請，待審核`,
+            html
+          }).catch(e => console.error(`[register notify ${staff.username}]`, e.message));
+        }
       } catch(e) { console.error('[register notify]', e.message); }
     })();
   } catch(e) { res.status(500).json({ error: e.message }); }

@@ -313,6 +313,11 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
   <p>您好，<strong>${user.real_name}</strong>，</p>
   <p>恭喜您的帳號申請已通過審核，您現在可以使用系統帳號登入平台。</p>
   ${svLine}
+  <p>登入資訊如下：</p>
+  <table style="border-collapse:collapse;font-size:14px;margin:.5rem 0">
+    <tr><td style="padding:6px 16px 6px 0;color:#555;font-weight:600">預設密碼</td><td style="padding:6px 0;font-weight:700;color:#1A8AC0;letter-spacing:.15em">0000</td></tr>
+  </table>
+  <p style="color:#E05555;font-size:13px">⚠️ 首次登入後系統將要求您立即變更密碼，請妥善保管新密碼。</p>
   <p>登入後請依照系統提示完成後續設定，期待與您一起創造美好的工作體驗。</p>
   <p>若有任何問題，請隨時聯繫管理人員。</p>
   <p style="margin-top:1.5rem;color:#7A9AAF;font-size:13px">希絆雲作所　敬上</p>

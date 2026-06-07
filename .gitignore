@@ -4,3 +4,5 @@ hiban_db.json
 .env
 .claude/
 firebase-key.json
+移交說明.md
+*.json.bak

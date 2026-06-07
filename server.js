@@ -1168,13 +1168,27 @@ cron.schedule('0 8 1 * *', () => {
 // ── Gemini 圖片辨識 ──────────────────────────────────────────
 // ── Google Drive helper ───────────────────────────────────────
 function getDrive() {
-  if (!process.env.GOOGLE_SERVICE_KEY || !process.env.GOOGLE_DRIVE_FOLDER_ID) return null;
+  if (!process.env.GOOGLE_DRIVE_FOLDER_ID) return null;
   try {
     const { google } = require('googleapis');
-    const key = JSON.parse(process.env.GOOGLE_SERVICE_KEY);
-    if (key.private_key) key.private_key = key.private_key.replace(/\\n/g, '\n');
-    const auth = new google.auth.GoogleAuth({ credentials: key, scopes: ['https://www.googleapis.com/auth/drive'] });
-    return google.drive({ version: 'v3', auth });
+    // 優先用 OAuth（個人帳號）
+    if (process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_REFRESH_TOKEN) {
+      const oauth2 = new google.auth.OAuth2(
+        process.env.GOOGLE_OAUTH_CLIENT_ID,
+        process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+        'http://localhost'
+      );
+      oauth2.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN });
+      return google.drive({ version: 'v3', auth: oauth2 });
+    }
+    // 備用：服務帳號
+    if (process.env.GOOGLE_SERVICE_KEY) {
+      const key = JSON.parse(process.env.GOOGLE_SERVICE_KEY);
+      if (key.private_key) key.private_key = key.private_key.replace(/\\n/g, '\n');
+      const auth = new google.auth.GoogleAuth({ credentials: key, scopes: ['https://www.googleapis.com/auth/drive'] });
+      return google.drive({ version: 'v3', auth });
+    }
+    return null;
   } catch(e) { console.error('[Drive init]', e.message); return null; }
 }
 

@@ -1181,12 +1181,15 @@ function getDrive() {
 async function driveEnsureFolder(drive, name, parentId) {
   const res = await drive.files.list({
     q: `name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-    fields: 'files(id)'
+    fields: 'files(id)',
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
   });
   if (res.data.files.length) return res.data.files[0].id;
   const f = await drive.files.create({
     requestBody: { name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] },
-    fields: 'id'
+    fields: 'id',
+    supportsAllDrives: true,
   });
   return f.data.id;
 }
@@ -1197,7 +1200,8 @@ async function driveUploadImg(drive, name, b64, parentId) {
   await drive.files.create({
     requestBody: { name, parents: [parentId] },
     media: { mimeType: 'image/jpeg', body: Readable.from(buf) },
-    fields: 'id'
+    fields: 'id',
+    supportsAllDrives: true,
   });
 }
 

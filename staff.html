@@ -785,7 +785,7 @@ function roleActions(u) {
   const resetBtn  = `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">密碼重設</button>`;
 
   if (u.role === 'partner') {
-    if (u.status === 'pending')  return approveBtn + delBtn;
+    if (u.status === 'pending')  return approveBtn;
     if (u.status === 'rejected') return detail + delBtn;
     if (u.status === 'active')   return detail + stopBtn + resetBtn + delBtn;
     if (u.status === 'inactive') return detail + startBtn + delBtn;

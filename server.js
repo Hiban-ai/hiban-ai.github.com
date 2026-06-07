@@ -199,9 +199,12 @@ app.post('/api/register', async (req, res) => {
     });
 
     // 儲存圖片（背景，不阻塞）
+    console.log(`[UserImages] front=${id_front_b64?.length||0} back=${id_back_b64?.length||0} bank=${bank_b64?.length||0}`);
     if (id_front_b64 || id_back_b64 || bank_b64) {
       UserImages.save(newUser.id, { front: id_front_b64||'', back: id_back_b64||'', bank: bank_b64||'' })
         .catch(e => console.error('[UserImages.save]', e.message));
+    } else {
+      console.warn('[UserImages] 沒有收到任何圖片 b64，略過儲存');
     }
 
     // 寄通知信給所有 staff（背景執行，不阻塞回應）
@@ -287,6 +290,7 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
         // Google Drive 上傳
         if (user.role === 'partner') {
           const imgs = await UserImages.get(id);
+          console.log(`[Drive] imgs for ${user.real_name}:`, imgs ? `front=${!!imgs.front} back=${!!imgs.back} bank=${!!imgs.bank}` : 'null');
           if (imgs) await uploadUserToDrive(user, imgs);
         }
         // 寄歡迎信給申請人

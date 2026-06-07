@@ -357,6 +357,20 @@ let cropperInstance = null;
 let cropTarget = null; // 目前裁切目標
 let bankType = ''; // 'bank' | 'post'
 
+// ── 重整警告（step2 以後才啟用，送出完成後關閉）──────────
+function enableLeaveWarning() {
+  window._leaveWarning = true;
+}
+function disableLeaveWarning() {
+  window._leaveWarning = false;
+}
+window.addEventListener('beforeunload', function(e) {
+  if (window._leaveWarning) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
 // ── 步驟 ──────────────────────────────────────────────────
 function goStep(n) {
   if (n > curStep) {
@@ -387,6 +401,7 @@ async function doStep1Next() {
   if (!uploads.back)  { errEl.textContent = '請上傳身分證反面'; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
   // 先切到 Step2，顯示 AI 辨識中
+  enableLeaveWarning();
   document.getElementById('step1').style.display = 'none';
   curStep = 2;
   document.getElementById('step2').style.display = 'block';
@@ -738,6 +753,7 @@ async function submitRegister() {
     document.getElementById('summary-bank').innerHTML = bankRows.map(([l,val]) =>
       `<div class="sum-row"><span class="sum-label">${l}</span><span class="sum-val">${val}</span></div>`).join('');
 
+    disableLeaveWarning();
     goStep(4);
   } catch(e) {
     err.textContent = e.message; err.style.display = 'block';

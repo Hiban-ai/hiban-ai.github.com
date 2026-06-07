@@ -1075,20 +1075,24 @@ function geminiPost(apiKey, bodyStr) {
 
 app.post('/api/gemini/extract-id', async (req, res) => {
   try {
-    const { image_base64, mime_type } = req.body;
+    const { image_base64, image_base64_back, mime_type } = req.body;
     if (!image_base64) return res.status(400).json({ error: '缺少圖片' });
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
 
-    const prompt = `請從這張中華民國身分證正面圖片中提取資料，以 JSON 格式回傳，只回傳 JSON 不要其他文字：
-{"real_name":"姓名","id_number":"身分證字號(10碼英數)","birthday":"生日(YYYY/MM/DD格式)","gender":"性別(男或女)","address":"戶籍地址"}
+    const prompt = `這是一張中華民國身分證的正面和反面圖片。請提取以下資料，以 JSON 格式回傳，只回傳 JSON 不要其他文字：
+{"real_name":"姓名(從正面)","id_number":"身分證字號10碼英數(從正面)","birthday":"生日YYYY/MM/DD格式(從正面民國年轉換為西元)","gender":"性別男或女(從正面)","address":"完整戶籍地址(從反面)"}
 如果某欄位看不清楚請填空字串。`;
 
+    const parts = [
+      { text: prompt },
+      { inline_data: { mime_type: mime_type || 'image/jpeg', data: image_base64 } }
+    ];
+    if (image_base64_back) {
+      parts.push({ inline_data: { mime_type: mime_type || 'image/jpeg', data: image_base64_back } });
+    }
     const body = JSON.stringify({
-      contents: [{ parts: [
-        { text: prompt },
-        { inline_data: { mime_type: mime_type || 'image/jpeg', data: image_base64 } }
-      ]}],
+      contents: [{ parts }],
       generationConfig: { temperature: 0.1 }
     });
 

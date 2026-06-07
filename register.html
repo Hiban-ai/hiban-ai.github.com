@@ -471,11 +471,12 @@ async function extractIdData(dataUrl) {
   statusT.textContent = '身分證辨識中，請稍候…';
   try {
     const b64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    const b64back = uploads.back?.dataUrl?.includes(',') ? uploads.back.dataUrl.split(',')[1] : uploads.back?.b64;
     console.log('[AI-ID] b64 length:', b64.length);
     const res = await fetch('/api/gemini/extract-id', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_base64: b64, mime_type: 'image/jpeg' })
+      body: JSON.stringify({ image_base64: b64, image_base64_back: b64back, mime_type: 'image/jpeg' })
     });
     const json = await res.json();
     console.log('[AI-ID]', json);

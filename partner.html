@@ -136,6 +136,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 
 /* ── Notices ── */
 .notice-card{background:#fff;border-radius:var(--r);border-left:5px solid var(--nc,var(--blue));padding:1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.6rem;border:1px solid var(--border-l);border-left-width:5px}
+.marquee-bar{background:linear-gradient(90deg,#0D4A72,#1A8AC0);color:#fff;font-size:.82rem;font-weight:600;padding:.42rem 1rem;display:flex;align-items:center;gap:.75rem;overflow:hidden;flex-shrink:0;font-family:'Noto Sans TC',sans-serif}
+.mq-label{white-space:nowrap;font-size:.72rem;background:rgba(255,255,255,.2);padding:.15rem .55rem;border-radius:10px;flex-shrink:0}
+.mq-wrap{flex:1;overflow:hidden;position:relative}
+.mq-track{display:inline-flex;align-items:center;white-space:nowrap;animation:marquee 22s linear infinite}
+.mq-track:hover{animation-play-state:paused}
+.mq-item:hover{text-decoration:underline;opacity:.85}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem}
+.ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
+.ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
+.ann-target-tag{display:inline-block;padding:.1rem .45rem;border-radius:8px;font-size:.65rem;font-weight:700;background:var(--blue-p);color:var(--blue-d)}
 .notice-card.nc-urgent{--nc:var(--red);background:var(--red-p)}.notice-card.nc-good{--nc:var(--green);background:var(--green-p)}
 .notice-tag{display:inline-block;padding:.12rem .4rem;border-radius:4px;font-size:.62rem;font-weight:700;margin-bottom:.35rem}
 .nt-urgent{background:var(--red-p);color:var(--red)}.nt-info{background:var(--blue-p);color:var(--blue-d)}.nt-good{background:var(--green-p);color:var(--green)}
@@ -234,7 +245,7 @@ textarea.form-input{resize:none}
       </div>
       <div class="pt-menu-item" onclick="switchPage('notices',this)">
         <span class="mi-icon">📢</span>公告
-        <span class="pt-badge" id="badge-notices">2</span>
+        <span class="pt-badge" id="badge-notices" style="display:none">0</span>
       </div>
       <div class="pt-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
     </div>
@@ -243,6 +254,12 @@ textarea.form-input{resize:none}
   </div>
 
   <!-- Main -->
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+  <!-- 跑馬燈 -->
+  <div class="marquee-bar" id="ann-marquee-bar" style="display:none">
+    <span class="mq-label">📢 公告</span>
+    <div class="mq-wrap"><div id="ann-marquee"></div></div>
+  </div>
   <div class="pt-main">
 
     <!-- 總覽 -->
@@ -372,20 +389,8 @@ textarea.form-input{resize:none}
     <!-- 公告 -->
     <div class="page-section" id="page-notices">
       <div class="page-title">📢 公告</div>
-      <div class="notice-card nc-urgent">
-        <span class="notice-tag nt-urgent">緊急</span>
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700">⚠️ 本週任務截止提醒</div>
-        <div style="font-size:.85rem;color:var(--text-m);margin-top:.2rem">本週口碑任務批次將於 3/22（五）23:59 截止。</div>
-      </div>
-      <div class="notice-card nc-good">
-        <span class="notice-tag nt-good">好消息</span>
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700">🎉 新任務上架：社群貼文系列</div>
-        <div style="font-size:.85rem;color:var(--text-m);margin-top:.2rem">本週新增 Facebook 貼文撰寫任務，每則 $150，每人最多接 3 則。</div>
-      </div>
-      <div class="notice-card">
-        <span class="notice-tag nt-info">資訊</span>
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700">📅 3月薪資匯款時程</div>
-        <div style="font-size:.85rem;color:var(--text-m);margin-top:.2rem">3月份薪資將於 4/5 統一匯款，請確認銀行帳號資料正確。</div>
+      <div id="ann-list-wrap">
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
     </div>
 
@@ -441,8 +446,9 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- pt-main -->
+  </div><!-- main wrapper -->
+</div><!-- pt-layout -->
 
 
 <!-- 任務回報 overlay -->
@@ -527,6 +533,13 @@ function switchPage(name, el) {
   if (el) el.classList.add('active');
   if (name === 'tasks' || name === 'quests') loadTasks();
   if (name === 'tasks') renderQuests();
+  if (name === 'notices' && meId) {
+    const now2 = new Date().toISOString().slice(0,10);
+    const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
+    markAllRead(meId, ids);
+    const badge = document.getElementById('badge-notices');
+    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+  }
 }
 
 // ── 日期格式化 ────────────────────────────────────────────────
@@ -1079,6 +1092,58 @@ function uploadAvatar(input) {
   input.value = '';
 }
 
+// ── 公告 ───────────────────────────────────────────────────────
+let annList = [];
+
+async function loadAnnouncements() {
+  try { annList = await API.get('/api/announcements'); } catch { annList = []; }
+  renderAnnList();
+  syncMarquee();
+}
+
+function syncMarquee() {
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  const marqueeEl = document.getElementById('ann-marquee');
+  const bar = document.getElementById('ann-marquee-bar');
+  if (visible.length && marqueeEl) {
+    const sorted = [...visible].sort((a,b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    const items = sorted.slice(0, 6);
+    const html = items.map(a =>
+      `<span class="mq-item" style="padding:0 2rem;cursor:pointer" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">${a.is_pinned ? '📌 ' : ''}${a.title}</span>`
+    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
+    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
+    bar.style.display = 'flex';
+  } else if (bar) { bar.style.display = 'none'; }
+  if (meId) {
+    const readIds = getReadIds(meId);
+    const unread = visible.filter(a => !readIds.includes(a.id)).length;
+    const badge = document.getElementById('badge-notices');
+    if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  }
+}
+
+function renderAnnList() {
+  const wrap = document.getElementById('ann-list-wrap');
+  if (!wrap) return;
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
+  const sorted = [...visible].sort((a,b) => {
+    if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
+    return (b.created_at||'').localeCompare(a.created_at||'');
+  });
+  wrap.innerHTML = sorted.map(a => `
+    <div class="ann-card${a.is_pinned ? ' pinned' : ''}">
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
+        ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
+        <span style="font-weight:700;font-size:.95rem">${a.title}</span>
+      </div>
+      <div style="font-size:.88rem;color:var(--text-m);white-space:pre-wrap">${a.content}</div>
+      <div class="ann-meta">發布：${(a.created_at||'').slice(0,16)}${a.expires_at ? ` ｜ 到期：${a.expires_at}` : ''}</div>
+    </div>`).join('');
+}
+
 async function init() {
   const me = await requireAuth(['partner']);
   if (!me) return;
@@ -1087,6 +1152,7 @@ async function init() {
   loadAvatar(me.id);
   const p = await API.get('/api/profile');
   fillProfile(p);
+  await loadAnnouncements();
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
   if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }

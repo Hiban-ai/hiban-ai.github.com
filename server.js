@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports, UserImages } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements } = require('./db');
 
 // ── Google Apps Script 寄件設定 ───────────────────────────
 const GAS_URL    = process.env.GAS_URL;
@@ -103,6 +103,80 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
 
 app.get('/api/me', requireAuth, (req, res) => res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin }));
+
+// ── 公告 API ─────────────────────────────────────────────────
+// 取得公告（依角色過濾、過期自動排除）
+app.get('/api/announcements', requireAuth, async (req, res) => {
+  try {
+    const role = req.session.user.role;
+    const now  = new Date();
+    let list = await Announcements.all();
+    list = list.filter(a => {
+      if (a.target !== 'all' && a.target !== role) return false;
+      if (a.expires_at && new Date(a.expires_at) < now) return false;
+      return true;
+    });
+    // 置頂優先，再依建立時間排序
+    list.sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+    res.json(list);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 取得所有公告（staff 管理用）
+app.get('/api/admin/announcements', requireRole('staff'), async (req, res) => {
+  try {
+    const list = await Announcements.all();
+    list.sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+    res.json(list);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 新增公告
+app.post('/api/admin/announcements', requireRole('staff'), async (req, res) => {
+  try {
+    const { title, content, target, is_pinned, expires_at } = req.body;
+    if (!title || !content) return res.status(400).json({ error: '標題和內容為必填' });
+    const id = await Announcements.create({
+      title, content,
+      target: target || 'all',
+      is_pinned: !!is_pinned,
+      expires_at: expires_at || null,
+      created_by: req.session.user.real_name,
+      created_by_id: req.session.user.id,
+    });
+    res.json({ ok: true, id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 編輯公告
+app.put('/api/admin/announcements/:id', requireRole('staff'), async (req, res) => {
+  try {
+    const { title, content, target, is_pinned, expires_at } = req.body;
+    await Announcements.update(req.params.id, {
+      title, content,
+      target: target || 'all',
+      is_pinned: !!is_pinned,
+      expires_at: expires_at || null,
+    });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 刪除公告
+app.delete('/api/admin/announcements/:id', requireRole('staff'), async (req, res) => {
+  try {
+    await Announcements.delete(req.params.id);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 app.get('/api/profile', requireAuth, async (req, res) => {
   try {

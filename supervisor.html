@@ -50,6 +50,16 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
 .page-section{display:none}
 .page-section.active{display:block}
+.marquee-bar{background:linear-gradient(90deg,#0D4A72,#1A8AC0);color:#fff;font-size:.82rem;font-weight:600;padding:.42rem 1rem;display:flex;align-items:center;gap:.75rem;overflow:hidden;flex-shrink:0;font-family:'Noto Sans TC',sans-serif}
+.mq-label{white-space:nowrap;font-size:.72rem;background:rgba(255,255,255,.2);padding:.15rem .55rem;border-radius:10px;flex-shrink:0}
+.mq-wrap{flex:1;overflow:hidden;position:relative}
+.mq-track{display:inline-flex;align-items:center;white-space:nowrap;animation:marquee 22s linear infinite}
+.mq-track:hover{animation-play-state:paused}
+.mq-item:hover{text-decoration:underline;opacity:.85}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem}
+.ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
+.ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
 
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
 .stat-card{background:#fff;border-radius:var(--r);padding:1.1rem;box-shadow:0 6px 20px rgba(72,180,232,.1);border-top:4px solid var(--sc,var(--blue));border:1px solid var(--border-l);border-top-width:4px}
@@ -149,12 +159,19 @@ textarea.form-input{resize:none}
         </div>
         <div class="sv-menu-item" onclick="switchPage('task-records',this)"><span class="mi-icon">📁</span>任務紀錄</div>
         <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
+        <div class="sv-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告<span class="sv-badge" id="badge-notices" style="display:none">0</span></div>
         <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
     </div>
     <div class="sv-logout" onclick="signOut()"><span>🚪</span>登出</div>
   </div>
 
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+  <!-- 跑馬燈 -->
+  <div class="marquee-bar" id="ann-marquee-bar" style="display:none">
+    <span class="mq-label">📢 公告</span>
+    <div class="mq-wrap"><div id="ann-marquee"></div></div>
+  </div>
   <div class="sv-main">
 
     <!-- Dashboard -->
@@ -331,8 +348,17 @@ textarea.form-input{resize:none}
       <div id="assign-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
-  </div>
-</div>
+    <!-- 公告 -->
+    <div class="page-section" id="page-notices">
+      <div class="page-title">📢 公告</div>
+      <div id="ann-list-wrap">
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
+      </div>
+    </div>
+
+  </div><!-- sv-main -->
+  </div><!-- main wrapper -->
+</div><!-- sv-layout -->
 
 
 <!-- 公司管理 overlay -->
@@ -441,6 +467,13 @@ function switchPage(name, el) {
   if (name === 'tasks-sv')      loadAssignHistory();
   if (name === 'worklog-review') loadTaskReviews();
   if (name === 'task-records')  loadTaskRecords();
+  if (name === 'notices' && svMe) {
+    const now2 = new Date().toISOString().slice(0,10);
+    const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
+    markAllRead(svMe.id, ids);
+    const badge = document.getElementById('badge-notices');
+    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+  }
 }
 
 // 日期格式化：YYYY/MM/DD hh:mm:ss
@@ -727,15 +760,70 @@ async function changePassword() {
   }catch(e){err.textContent=e.message;err.style.display='block';}
 }
 
+// ── 公告 ───────────────────────────────────────────────────────
+let annList = [];
+let svMe = null;
+
+async function loadAnnouncements() {
+  try { annList = await API.get('/api/announcements'); } catch { annList = []; }
+  renderAnnList();
+  syncMarquee();
+}
+
+function syncMarquee() {
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  const marqueeEl = document.getElementById('ann-marquee');
+  const bar = document.getElementById('ann-marquee-bar');
+  if (visible.length && marqueeEl) {
+    const sorted = [...visible].sort((a,b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    const items = sorted.slice(0, 6);
+    const html = items.map(a =>
+      `<span class="mq-item" style="padding:0 2rem;cursor:pointer" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">${a.is_pinned ? '📌 ' : ''}${a.title}</span>`
+    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
+    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
+    bar.style.display = 'flex';
+  } else if (bar) { bar.style.display = 'none'; }
+  if (svMe) {
+    const readIds = getReadIds(svMe.id);
+    const unread = visible.filter(a => !readIds.includes(a.id)).length;
+    const badge = document.getElementById('badge-notices');
+    if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  }
+}
+
+function renderAnnList() {
+  const wrap = document.getElementById('ann-list-wrap');
+  if (!wrap) return;
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
+  const sorted = [...visible].sort((a,b) => {
+    if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
+    return (b.created_at||'').localeCompare(a.created_at||'');
+  });
+  wrap.innerHTML = sorted.map(a => `
+    <div class="ann-card${a.is_pinned ? ' pinned' : ''}">
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
+        ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
+        <span style="font-weight:700;font-size:.95rem">${a.title}</span>
+      </div>
+      <div style="font-size:.88rem;color:var(--text-m);white-space:pre-wrap">${a.content}</div>
+      <div class="ann-meta">發布：${(a.created_at||'').slice(0,16)}${a.expires_at ? ` ｜ 到期：${a.expires_at}` : ''}</div>
+    </div>`).join('');
+}
+
 async function init() {
   const me = await requireAuth(['supervisor']);
   if (!me) return;
+  svMe = me;
   document.getElementById('sv-user-label').textContent = me.real_name;
   const p = await API.get('/api/profile');
   fillSvProfile(p);
   loadPartners();
   loadTaskTypes();
   loadCompanies();
+  await loadAnnouncements();
 }
 init();
 

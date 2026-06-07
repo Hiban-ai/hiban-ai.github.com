@@ -39,6 +39,44 @@ async function signOut() {
   location.href = '/index.html';
 }
 
+// ── 公告跑馬燈 ────────────────────────────────────────────────
+// 讀取已讀清單（localStorage，per user）
+function getReadIds(userId) {
+  try { return JSON.parse(localStorage.getItem(`ann_read_${userId}`) || '[]'); } catch { return []; }
+}
+function markRead(userId, id) {
+  const ids = getReadIds(userId);
+  if (!ids.includes(id)) { ids.push(id); localStorage.setItem(`ann_read_${userId}`, JSON.stringify(ids)); }
+}
+function markAllRead(userId, ids) {
+  localStorage.setItem(`ann_read_${userId}`, JSON.stringify(ids));
+}
+
+async function initAnnouncements(userId, { navBadgeId, marqueeContainerId, onClickAnn } = {}) {
+  let anns = [];
+  try { anns = await API.get('/api/announcements'); } catch { return; }
+
+  // 未讀紅點
+  const readIds = getReadIds(userId);
+  const unread  = anns.filter(a => !readIds.includes(a.id)).length;
+  const badge   = navBadgeId ? document.getElementById(navBadgeId) : null;
+  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+
+  // 跑馬燈（取最新 5 則）
+  const marqueeEl = marqueeContainerId ? document.getElementById(marqueeContainerId) : null;
+  if (marqueeEl && anns.length) {
+    const items = anns.slice(0, 5);
+    const html  = items.map(a =>
+      `<span class="mq-item" onclick="(${onClickAnn ? onClickAnn.toString() : 'function(){}'})()" data-id="${a.id}" style="cursor:pointer;padding:0 2rem">
+        ${a.is_pinned ? '📌 ' : ''}${a.title}
+      </span>`
+    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
+    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
+  }
+
+  return anns;
+}
+
 // 顯示 toast 通知
 function showToast(msg, type = 'info') {
   let el = document.getElementById('_toast');

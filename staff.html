@@ -168,6 +168,19 @@ textarea.form-input{resize:none}
   .impact-grid{grid-template-columns:1fr 1fr}
   .mobile-topbar{display:flex}
 }
+/* 跑馬燈 */
+.marquee-bar{background:linear-gradient(90deg,#0D4A72,#1A8AC0);color:#fff;font-size:.82rem;font-weight:600;padding:.42rem 1rem;display:flex;align-items:center;gap:.75rem;overflow:hidden;flex-shrink:0;font-family:'Noto Sans TC',sans-serif}
+.mq-label{white-space:nowrap;font-size:.72rem;background:rgba(255,255,255,.2);padding:.15rem .55rem;border-radius:10px;flex-shrink:0}
+.mq-wrap{flex:1;overflow:hidden;position:relative}
+.mq-track{display:inline-flex;align-items:center;white-space:nowrap;animation:marquee 22s linear infinite}
+.mq-track:hover{animation-play-state:paused}
+.mq-item:hover{text-decoration:underline;opacity:.85}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+/* 公告列表 */
+.ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem;display:flex;gap:.75rem;align-items:flex-start}
+.ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
+.ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
+.ann-target-tag{display:inline-block;padding:.1rem .45rem;border-radius:8px;font-size:.65rem;font-weight:700;background:var(--blue-p);color:var(--blue-d)}
 </style>
 </head>
 <body>
@@ -203,7 +216,7 @@ textarea.form-input{resize:none}
         </div>
         <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
         <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
-        <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理</div>
+        <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理<span class="st-badge" id="badge-notices" style="display:none">0</span></div>
         <div class="st-menu-group">帳號</div>
         <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
@@ -212,6 +225,12 @@ textarea.form-input{resize:none}
   </div>
 
   <!-- Main -->
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+  <!-- 跑馬燈 -->
+  <div class="marquee-bar" id="ann-marquee-bar" style="display:none">
+    <span class="mq-label">📢 公告</span>
+    <div class="mq-wrap"><div id="ann-marquee"></div></div>
+  </div>
   <div class="st-main">
 
     <!-- Dashboard -->
@@ -310,8 +329,12 @@ textarea.form-input{resize:none}
 
     <!-- 公告管理 -->
     <div class="page-section" id="page-notices">
-      <div class="page-title">📢 公告管理</div>
-      <div class="card"><p style="color:var(--text-s);font-size:.88rem">公告管理功能開發中</p></div>
+      <div class="page-title" style="margin-bottom:.75rem">📢 公告管理
+        <button onclick="openAnnForm()" style="margin-left:auto;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增公告</button>
+      </div>
+      <div id="ann-list-wrap">
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
+      </div>
     </div>
 
     <!-- 個人資料 -->
@@ -347,8 +370,9 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- st-main -->
+  </div><!-- main wrapper -->
+</div><!-- st-layout -->
 
 <!-- 詳細資料 overlay -->
 <!-- old detail overlay removed, replaced by new one below -->
@@ -471,6 +495,51 @@ textarea.form-input{resize:none}
   <img id="img-lightbox-img" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
 </div>
 
+<!-- 公告新增/編輯 Modal -->
+<div class="confirm-overlay" id="ann-form-overlay">
+  <div class="confirm-box" style="width:min(560px,96vw);text-align:left;border-top-color:var(--blue);padding:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem">
+      <div style="font-size:1.05rem;font-weight:700;font-family:'Noto Serif TC',serif" id="ann-form-title">📢 新增公告</div>
+      <button onclick="closeAnnForm()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
+    </div>
+    <input type="hidden" id="ann-edit-id">
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">標題 <span style="color:var(--red)">＊</span></label>
+        <input class="form-input" id="ann-title" placeholder="公告標題" maxlength="50">
+      </div>
+      <div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">內容 <span style="color:var(--red)">＊</span></label>
+        <textarea class="form-input" id="ann-content" rows="5" placeholder="公告內容…" style="resize:vertical"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div>
+          <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">對象</label>
+          <select class="form-input" id="ann-target">
+            <option value="all">全部角色</option>
+            <option value="partner">工作夥伴</option>
+            <option value="supervisor">督導人員</option>
+            <option value="staff">管理人員</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">到期日（選填）</label>
+          <input class="form-input" id="ann-expires" type="date">
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer">
+        <input type="checkbox" id="ann-pinned" style="width:16px;height:16px;cursor:pointer">
+        📌 置頂公告
+      </label>
+      <div id="ann-form-err" style="color:var(--red);font-size:.82rem;display:none"></div>
+      <div style="display:flex;gap:.5rem;margin-top:.25rem">
+        <button onclick="closeAnnForm()" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        <button onclick="saveAnn()" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存公告</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 核准夥伴 - 指定督導 overlay -->
 <div class="confirm-overlay" id="approve-overlay">
   <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
@@ -517,7 +586,7 @@ async function init() {
   initCuBday();
   const p = await API.get('/api/profile');
   fillStProfile(p);
-  await Promise.all([loadAccounts(), loadForgotRequests()]);
+  await Promise.all([loadAccounts(), loadForgotRequests(), loadAnnouncements()]);
   updateDashboard();
   // 重整後還原上次頁面
   const hash = location.hash.replace('#','');
@@ -544,6 +613,15 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
+  if (name === 'notices') {
+    if (me) {
+      const now2 = new Date().toISOString().slice(0,10);
+      const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
+      markAllRead(me.id, ids);
+      const badge = document.getElementById('badge-notices');
+      if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+    }
+  }
 }
 
 // ── 帳號管理 ──
@@ -1243,6 +1321,154 @@ function exportPayrollExcel() {
   window.open(url, '_blank');
 }
 
+
+// ── 公告管理 ───────────────────────────────────────────────────
+let annList = [];
+
+async function loadAnnouncements() {
+  try {
+    annList = await API.get('/api/admin/announcements');
+  } catch(e) {
+    annList = [];
+  }
+  renderAnnList();
+  // 同步更新跑馬燈與未讀數
+  syncMarquee();
+}
+
+function syncMarquee() {
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  // 跑馬燈
+  const marqueeEl = document.getElementById('ann-marquee');
+  const bar = document.getElementById('ann-marquee-bar');
+  if (visible.length && marqueeEl) {
+    const sorted = [...visible].sort((a,b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    const items = sorted.slice(0, 6);
+    const html = items.map(a =>
+      `<span class="mq-item" style="padding:0 2rem;cursor:pointer" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">${a.is_pinned ? '📌 ' : ''}${a.title}</span>`
+    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
+    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
+    bar.style.display = 'flex';
+  } else if (bar) {
+    bar.style.display = 'none';
+  }
+  // 未讀數
+  if (me) {
+    const readIds = getReadIds(me.id);
+    const unread = visible.filter(a => !readIds.includes(a.id)).length;
+    const badge = document.getElementById('badge-notices');
+    if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  }
+}
+
+function renderAnnList() {
+  const wrap = document.getElementById('ann-list-wrap');
+  if (!annList.length) {
+    wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>';
+    return;
+  }
+  const now = new Date().toISOString().slice(0,10);
+  const sorted = [...annList].sort((a,b) => {
+    if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
+    return (b.created_at||'').localeCompare(a.created_at||'');
+  });
+  wrap.innerHTML = sorted.map(a => {
+    const expired = a.expires_at && a.expires_at < now;
+    const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[a.target||'all'] || '全部角色';
+    return `
+    <div class="ann-card${a.is_pinned ? ' pinned' : ''}${expired ? '" style="opacity:.5' : ''}">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
+          ${expired ? '<span style="font-size:.72rem;background:var(--text-s);color:#fff;padding:.1rem .4rem;border-radius:8px">已到期</span>' : ''}
+          <span class="ann-target-tag">${targetLabel}</span>
+          <span style="font-weight:700;font-size:.92rem">${a.title}</span>
+        </div>
+        <div style="font-size:.85rem;color:var(--text-m);margin:.4rem 0;white-space:pre-wrap">${a.content}</div>
+        <div class="ann-meta">
+          發布：${(a.created_at||'').slice(0,16)}
+          ${a.expires_at ? ` &nbsp;｜&nbsp; 到期：${a.expires_at}` : ''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+        <button onclick="editAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">編輯</button>
+        <button onclick="deleteAnn('${a.id}','${a.title.replace(/'/g,'')}')" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAnnForm(id) {
+  document.getElementById('ann-form-title').textContent = id ? '✏️ 編輯公告' : '📢 新增公告';
+  document.getElementById('ann-edit-id').value = id || '';
+  document.getElementById('ann-title').value = '';
+  document.getElementById('ann-content').value = '';
+  document.getElementById('ann-target').value = 'all';
+  document.getElementById('ann-expires').value = '';
+  document.getElementById('ann-pinned').checked = false;
+  document.getElementById('ann-form-err').style.display = 'none';
+  if (id) {
+    const a = annList.find(x => x.id === id);
+    if (a) {
+      document.getElementById('ann-title').value = a.title || '';
+      document.getElementById('ann-content').value = a.content || '';
+      document.getElementById('ann-target').value = a.target || 'all';
+      document.getElementById('ann-expires').value = a.expires_at || '';
+      document.getElementById('ann-pinned').checked = !!a.is_pinned;
+    }
+  }
+  const overlay = document.getElementById('ann-form-overlay');
+  overlay.style.display = 'flex';
+  overlay.style.pointerEvents = 'auto';
+}
+
+function closeAnnForm() {
+  const overlay = document.getElementById('ann-form-overlay');
+  overlay.style.display = 'none';
+  overlay.style.pointerEvents = 'none';
+}
+
+function editAnn(id) { openAnnForm(id); }
+
+async function saveAnn() {
+  const id = document.getElementById('ann-edit-id').value;
+  const title = document.getElementById('ann-title').value.trim();
+  const content = document.getElementById('ann-content').value.trim();
+  const target = document.getElementById('ann-target').value;
+  const expires_at = document.getElementById('ann-expires').value;
+  const is_pinned = document.getElementById('ann-pinned').checked;
+  const errEl = document.getElementById('ann-form-err');
+  if (!title) { errEl.textContent = '請輸入公告標題'; errEl.style.display = 'block'; return; }
+  if (!content) { errEl.textContent = '請輸入公告內容'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  try {
+    const body = { title, content, target, expires_at: expires_at || null, is_pinned };
+    if (id) {
+      await API.put(`/api/admin/announcements/${id}`, body);
+      showToast('公告已更新 ✅', 'success');
+    } else {
+      await API.post('/api/admin/announcements', body);
+      showToast('公告已發布 ✅', 'success');
+    }
+    closeAnnForm();
+    await loadAnnouncements();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function deleteAnn(id, title) {
+  if (!confirm(`確定刪除公告「${title}」？`)) return;
+  try {
+    await API.delete(`/api/admin/announcements/${id}`);
+    showToast('公告已刪除', 'success');
+    await loadAnnouncements();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
 
 init();
 </script>

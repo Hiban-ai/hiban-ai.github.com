@@ -224,4 +224,26 @@ const UserImages = {
   }
 };
 
-module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages };
+// ── Announcements（公告）─────────────────────────────────────
+const Announcements = {
+  async all() {
+    const snap = await db.collection('announcements').orderBy('created_at','desc').get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+  async byId(id) {
+    const doc = await db.collection('announcements').doc(String(id)).get();
+    return doc.exists ? { id: doc.id, ...doc.data() } : null;
+  },
+  async create(data) {
+    const ref = await db.collection('announcements').add({ ...data, created_at: now() });
+    return ref.id;
+  },
+  async update(id, data) {
+    await db.collection('announcements').doc(String(id)).update({ ...data, updated_at: now() });
+  },
+  async delete(id) {
+    await db.collection('announcements').doc(String(id)).delete();
+  }
+};
+
+module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements };

@@ -767,9 +767,9 @@ let annList = [];
 let svMe = null;
 
 async function loadAnnouncements() {
-  try { annList = await API.get('/api/announcements'); } catch { annList = []; }
-  renderAnnList();
-  syncMarquee();
+  try { annList = await API.get('/api/announcements'); } catch(e) { annList = []; console.warn('[ann]', e.message); }
+  try { renderAnnList(); } catch(e) { console.warn('[renderAnnList]', e.message); }
+  try { syncMarquee();  } catch(e) { console.warn('[syncMarquee]',   e.message); }
 }
 
 function syncMarquee() {
@@ -831,7 +831,7 @@ async function init() {
   loadPartners();
   loadTaskTypes();
   loadCompanies();
-  await loadAnnouncements();
+  loadAnnouncements(); // 背景載入，不阻塞
 }
 init();
 

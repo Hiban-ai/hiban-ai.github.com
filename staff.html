@@ -539,7 +539,7 @@ textarea.form-input{resize:none}
       <!-- 附件 -->
       <div>
         <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">📎 附件（選填，最大 15 MB）</label>
-        <div id="ann-att-current" style="display:none;margin-bottom:.45rem;display:flex;align-items:center;gap:.5rem">
+        <div id="ann-att-current" style="display:none;margin-bottom:.45rem;align-items:center;gap:.5rem">
           <span class="att-chip" id="ann-att-name-chip">—</span>
           <button onclick="removeAnnAttachment()" style="background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:0">✕ 移除</button>
         </div>
@@ -604,8 +604,9 @@ async function init() {
   initCuBday();
   const p = await API.get('/api/profile');
   fillStProfile(p);
-  await Promise.all([loadAccounts(), loadForgotRequests(), loadAnnouncements()]);
+  await Promise.all([loadAccounts(), loadForgotRequests()]);
   updateDashboard();
+  loadAnnouncements(); // 背景載入，不阻塞主流程
   // 重整後還原上次頁面
   const hash = location.hash.replace('#','');
   const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','profile'];
@@ -1348,10 +1349,10 @@ async function loadAnnouncements() {
     annList = await API.get('/api/admin/announcements');
   } catch(e) {
     annList = [];
+    console.warn('[announcements]', e.message);
   }
-  renderAnnList();
-  // 同步更新跑馬燈與未讀數
-  syncMarquee();
+  try { renderAnnList(); } catch(e) { console.warn('[renderAnnList]', e.message); }
+  try { syncMarquee(); }  catch(e) { console.warn('[syncMarquee]',   e.message); }
 }
 
 function syncMarquee() {

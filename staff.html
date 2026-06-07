@@ -580,7 +580,7 @@ function getSvName(svId) {
 function renderAccounts() {
   ['partner','supervisor','staff'].forEach(role => {
     const tbody   = document.getElementById('tbody-'+role);
-    const list    = usersCache.filter(u => u.role === role);
+    const list    = usersCache.filter(u => u.role === role && u.status !== 'rejected');
     const isPartner = role === 'partner';
     const colspan   = isPartner ? 8 : 7;
     if (!list.length) {

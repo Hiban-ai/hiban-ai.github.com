@@ -1416,7 +1416,7 @@ function renderAnnList() {
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
         <button onclick="editAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">編輯</button>
-        <button onclick="deleteAnn('${a.id}','${a.title.replace(/'/g,'\\'')}' )" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
+        <button onclick="deleteAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
       </div>
     </div>`;
   }).join('');
@@ -1544,7 +1544,8 @@ async function saveAnn() {
   }
 }
 
-async function deleteAnn(id, title) {
+async function deleteAnn(id) {
+  const title = (annList.find(a => a.id === id) || {}).title || '此公告';
   if (!confirm(`確定刪除公告「${title}」？`)) return;
   try {
     await API.delete(`/api/admin/announcements/${id}`);

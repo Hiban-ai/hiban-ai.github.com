@@ -210,13 +210,12 @@ app.post('/api/register', async (req, res) => {
       try {
         const allUsers  = await Users.all();
         const staffList = allUsers.filter(u => u.role === 'staff' && u.status === 'active');
-        const staffWithEmail = staffList.filter(u => u.email);
-        if (!staffWithEmail.length) return;
-        for (const staff of staffWithEmail) {
-          const html = `
+        const staffEmails = staffList.map(u => u.email).filter(Boolean);
+        if (!staffEmails.length) return;
+        const html = `
 <div style="font-family:'Noto Sans TC',sans-serif;max-width:520px;margin:auto">
   <h2 style="color:#1A8AC0;margin-bottom:.5rem">📋 新夥伴申請通知</h2>
-  <p>${staff.real_name} 管理人員您好：</p>
+  <p>管理人員您好：</p>
   <p><strong>${real_name}</strong> 已完成線上申請，請至網站進行審核。</p>
   <table style="border-collapse:collapse;width:100%;font-size:14px;margin:1rem 0">
     <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600;width:90px">姓名</td><td style="padding:6px 12px">${real_name}</td></tr>
@@ -227,12 +226,11 @@ app.post('/api/register', async (req, res) => {
   </table>
   <p style="margin-top:1rem;color:#7A9AAF;font-size:13px">希絆雲作所　敬上</p>
 </div>`;
-          await sendMail({
-            to: staff.email,
-            subject: `【希絆雲作所】${real_name} 已完成線上申請，待審核`,
-            html
-          }).catch(e => console.error(`[register notify ${staff.username}]`, e.message));
-        }
+        await sendMail({
+          to: staffEmails.join(','),
+          subject: `【希絆雲作所】${real_name} 已完成線上申請，待審核`,
+          html
+        });
       } catch(e) { console.error('[register notify]', e.message); }
     })();
   } catch(e) { res.status(500).json({ error: e.message }); }

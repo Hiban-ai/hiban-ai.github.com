@@ -286,6 +286,15 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
       await Users.update(id, { status: 'active' });
     }
     res.json({ ok: true });
+    // 背景上傳 Google Drive
+    if (user.role === 'partner') {
+      (async () => {
+        try {
+          const imgs = await UserImages.get(id);
+          if (imgs) await uploadUserToDrive(user, imgs);
+        } catch(e) { console.error('[Drive approve]', e.message); }
+      })();
+    }
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1124,6 +1133,56 @@ cron.schedule('0 8 1 * *', () => {
 }, { timezone: 'Asia/Taipei' });
 
 // ── Gemini 圖片辨識 ──────────────────────────────────────────
+// ── Google Drive helper ───────────────────────────────────────
+function getDrive() {
+  if (!process.env.GOOGLE_SERVICE_KEY || !process.env.GOOGLE_DRIVE_FOLDER_ID) return null;
+  try {
+    const { google } = require('googleapis');
+    const key = JSON.parse(process.env.GOOGLE_SERVICE_KEY);
+    if (key.private_key) key.private_key = key.private_key.replace(/\\n/g, '\n');
+    const auth = new google.auth.GoogleAuth({ credentials: key, scopes: ['https://www.googleapis.com/auth/drive'] });
+    return google.drive({ version: 'v3', auth });
+  } catch(e) { console.error('[Drive init]', e.message); return null; }
+}
+
+async function driveEnsureFolder(drive, name, parentId) {
+  const res = await drive.files.list({
+    q: `name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    fields: 'files(id)'
+  });
+  if (res.data.files.length) return res.data.files[0].id;
+  const f = await drive.files.create({
+    requestBody: { name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] },
+    fields: 'id'
+  });
+  return f.data.id;
+}
+
+async function driveUploadImg(drive, name, b64, parentId) {
+  const { Readable } = require('stream');
+  const buf = Buffer.from(b64, 'base64');
+  await drive.files.create({
+    requestBody: { name, parents: [parentId] },
+    media: { mimeType: 'image/jpeg', body: Readable.from(buf) },
+    fields: 'id'
+  });
+}
+
+async function uploadUserToDrive(user, images) {
+  const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  const drive  = getDrive();
+  if (!drive || !rootId) { console.log('[Drive] 未設定，略過'); return; }
+  try {
+    const staffDirId = await driveEnsureFolder(drive, '人員資料', rootId);
+    const personId   = await driveEnsureFolder(drive, user.real_name, staffDirId);
+    const bankLabel  = user.bank_type === 'post' ? '郵局存簿' : '銀行存摺';
+    if (images.front) await driveUploadImg(drive, '身分證正面.jpg', images.front, personId);
+    if (images.back)  await driveUploadImg(drive, '身分證反面.jpg', images.back,  personId);
+    if (images.bank)  await driveUploadImg(drive, `${bankLabel}.jpg`, images.bank, personId);
+    console.log(`[Drive] ${user.real_name} 資料上傳完成`);
+  } catch(e) { console.error('[Drive upload]', e.message); }
+}
+
 // 共用 Gemini POST helper（不設 Content-Length，用 chunked encoding）
 function geminiPost(apiKey, bodyStr) {
   return new Promise((resolve, reject) => {

@@ -416,13 +416,28 @@ textarea.form-input{resize:none}
       <div style="font-size:1.05rem;font-family:'Noto Serif TC',serif;font-weight:700">📋 申請人詳細資料</div>
       <button onclick="closeDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
     </div>
-    <div id="detail-info"></div>
-    <!-- 圖片區 -->
-    <div style="font-size:.82rem;font-weight:700;color:var(--text-m);margin:1rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)">🖼️ 上傳圖片</div>
-    <div id="detail-imgs" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem">
-      <div id="di-front" class="det-img-cell">載入中…</div>
-      <div id="di-back"  class="det-img-cell">載入中…</div>
-      <div id="di-bank"  class="det-img-cell">載入中…</div>
+    <!-- 雙欄：左文字 右圖片 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start">
+      <!-- 左：文字資料 -->
+      <div id="detail-info"></div>
+      <!-- 右：圖片 -->
+      <div id="detail-imgs-col">
+        <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">🖼️ 上傳圖片</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <div>
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">身分證正面</div>
+            <div id="di-front" class="det-img-cell" style="height:110px"></div>
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">身分證反面</div>
+            <div id="di-back" class="det-img-cell" style="height:110px"></div>
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem" id="di-bank-label">存摺封面</div>
+            <div id="di-bank" class="det-img-cell" style="height:110px"></div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- 督導選擇 -->
     <div id="detail-sv-row" style="display:none;margin-bottom:.75rem">
@@ -623,31 +638,32 @@ async function openDetail(id) {
   `;
 
   // 圖片（只有 partner 才有）
-  const imgSection = document.getElementById('detail-imgs').parentElement;
+  const imgCol = document.getElementById('detail-imgs-col');
   if (isPartner) {
-    imgSection.style.display = 'block';
+    imgCol.style.display = 'block';
+    const bankLabel = u.bank_type === 'post' ? '郵局存簿' : '銀行存摺';
+    document.getElementById('di-bank-label').textContent = bankLabel;
     ['front','back','bank'].forEach(k => {
-      const el = document.getElementById('di-'+k);
-      el.innerHTML = '<span style="font-size:.7rem">載入中…</span>';
+      document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">載入中…</span>';
     });
     API.get(`/api/admin/users/${id}/images`).then(r => {
       const d = r.data || {};
-      const labels = { front:'身分證正面', back:'身分證反面', bank: u.bank_type==='post'?'郵局存簿':'銀行存摺' };
       ['front','back','bank'].forEach(k => {
-        const el = document.getElementById('di-'+k);
+        const el  = document.getElementById('di-'+k);
+        const lbl = { front:'身分證正面', back:'身分證反面', bank: bankLabel }[k];
         if (d[k]) {
-          el.innerHTML = `<img src="data:image/jpeg;base64,${d[k]}" alt="${labels[k]}" onclick="openLightbox(this.src)" title="${labels[k]}" style="cursor:zoom-in">`;
+          el.innerHTML = `<img src="data:image/jpeg;base64,${d[k]}" alt="${lbl}" onclick="openLightbox(this.src)" style="cursor:zoom-in;width:100%;height:100%;object-fit:cover;display:block">`;
         } else {
-          el.innerHTML = `<span style="font-size:.7rem;padding:.5rem;text-align:center">${labels[k]}<br>無圖片</span>`;
+          el.innerHTML = `<span style="font-size:.68rem;padding:.4rem;text-align:center;color:var(--text-s)">無圖片</span>`;
         }
       });
     }).catch(() => {
       ['front','back','bank'].forEach(k => {
-        document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">無法載入</span>';
+        document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">載入失敗</span>';
       });
     });
   } else {
-    imgSection.style.display = 'none';
+    imgCol.style.display = 'none';
   }
 
   // 督導選擇（pending partner 才顯示）

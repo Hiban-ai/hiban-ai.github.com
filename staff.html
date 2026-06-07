@@ -519,6 +519,10 @@ async function init() {
   fillStProfile(p);
   await Promise.all([loadAccounts(), loadForgotRequests()]);
   updateDashboard();
+  // 重整後還原上次頁面
+  const hash = location.hash.replace('#','');
+  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','profile'];
+  if (hash && pages.includes(hash)) switchPage(hash);
 }
 
 // 頁面切換
@@ -526,11 +530,20 @@ function switchPage(name, el) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.st-menu-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+  } else {
+    // 找對應的 menu item 並標記
+    document.querySelectorAll('.st-menu-item').forEach(i => {
+      if (i.getAttribute('onclick') && i.getAttribute('onclick').includes(`'${name}'`)) {
+        i.classList.add('active');
+      }
+    });
+  }
+  location.hash = name;
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
-
 }
 
 // ── 帳號管理 ──

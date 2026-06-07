@@ -138,7 +138,7 @@ app.put('/api/profile/bank', requireAuth, async (req, res) => {
 app.post('/api/change-password', requireAuth, async (req, res) => {
   try {
     const { current_password, new_password } = req.body;
-    if (!new_password || new_password.length < 4) return res.status(400).json({ error: 'Password too short' });
+    if (!new_password || new_password.length < 6 || new_password.length > 12) return res.status(400).json({ error: '密碼須為 6～12 位' });
     const user = await Users.byId(req.session.user.id);
     if (!bcrypt.compareSync(current_password, user.password_hash)) return res.status(401).json({ error: 'Wrong current password' });
     await Users.update(user.id, { password_hash: bcrypt.hashSync(new_password, 10), is_first_login: false });

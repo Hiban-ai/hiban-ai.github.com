@@ -192,8 +192,8 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
       <input class="form-input" type="password" id="fl-current" value="0000">
     </div>
     <div class="form-group">
-      <label class="form-label">新密碼（至少4碼）</label>
-      <input class="form-input" type="password" id="fl-new" placeholder="請輸入新密碼">
+      <label class="form-label">新密碼（6～12 位，可含英文、數字、符號）</label>
+      <input class="form-input" type="password" id="fl-new" placeholder="請輸入新密碼" maxlength="12">
     </div>
     <div class="form-group">
       <label class="form-label">確認新密碼</label>
@@ -307,7 +307,7 @@ async function submitFirstLogin() {
   const current = document.getElementById('fl-current').value;
   const newPw   = document.getElementById('fl-new').value;
   const confirm = document.getElementById('fl-confirm').value;
-  if (newPw.length < 4) { err.textContent='新密碼至少4碼'; err.style.display='block'; return; }
+  if (newPw.length < 6 || newPw.length > 12) { err.textContent='新密碼須為 6～12 位（可含英文、數字、符號）'; err.style.display='block'; return; }
   if (newPw === '0000') { err.textContent='新密碼不能與預設密碼相同'; err.style.display='block'; return; }
   if (newPw !== confirm) { err.textContent='兩次輸入不一致'; err.style.display='block'; return; }
   try {

@@ -254,7 +254,7 @@ textarea.form-input{resize:none}
         <div id="cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="cpw-new" placeholder="至少 4 碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="cpw-new" placeholder="6～12 位" maxlength="12" style="flex:1"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
         </div>
         <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,112,160,.3);transition:all .25s">更新密碼</button>
@@ -716,7 +716,7 @@ async function changePassword() {
   const current=document.getElementById('cpw-current').value;
   const newPw=document.getElementById('cpw-new').value;
   const confirm=document.getElementById('cpw-confirm').value;
-  if(newPw.length<4){err.textContent='新密碼至少4碼';err.style.display='block';return;}
+  if(newPw.length<6||newPw.length>12){err.textContent='新密碼須為 6～12 位（可含英文、數字、符號）';err.style.display='block';return;}
   if(newPw!==confirm){err.textContent='兩次輸入不一致';err.style.display='block';return;}
   try{
     await API.post('/api/change-password',{current_password:current,new_password:newPw});

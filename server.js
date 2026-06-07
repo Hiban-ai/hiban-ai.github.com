@@ -3,29 +3,23 @@ const session    = require('express-session');
 const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
-const Mailjet = require('node-mailjet');
+const { Resend } = require('resend');
 const { Users, ForgotReqs, Assignments, WorklogReports } = require('./db');
 
-// ── Mailjet 寄件設定 ──────────────────────────────────────
+// ── Resend 寄件設定 ──────────────────────────────────────
 let resendClient = null;
-if (process.env.MAILJET_API_KEY && process.env.MAILJET_SECRET_KEY) {
-  resendClient = Mailjet.apiConnect(process.env.MAILJET_API_KEY, process.env.MAILJET_SECRET_KEY);
-  console.log('✅ Mailjet mailer 已設定');
+if (process.env.RESEND_API_KEY) {
+  resendClient = new Resend(process.env.RESEND_API_KEY);
+  console.log('✅ Resend mailer 已設定');
 } else {
-  console.log('⚠️  MAILJET_API_KEY / MAILJET_SECRET_KEY 未設定，寄信功能停用');
+  console.log('⚠️  RESEND_API_KEY 未設定，寄信功能停用');
 }
 
 async function sendMail({ to, subject, html }) {
   if (!resendClient) throw new Error('寄件服務未設定');
-  const from = process.env.MAILJET_FROM || '';
-  await resendClient.post('send', { version: 'v3.1' }).request({
-    Messages: [{
-      From: { Email: from, Name: '希絆雲作所' },
-      To:   [{ Email: to }],
-      Subject: subject,
-      HTMLPart: html,
-    }]
-  });
+  const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
+  const { error } = await resendClient.emails.send({ from, to, subject, html });
+  if (error) throw new Error(error.message);
 }
 
 // 統一日期格式：YYYY/MM/DD hh:mm:ss（台北時區）
@@ -729,7 +723,7 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
 // 薪資通知寄信：POST /api/admin/payroll/send-email
 app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 MAILJET_API_KEY / MAILJET_SECRET_KEY' });
+    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
     const { partner_id, year_month } = req.body; // year_month = "2026-06"
     if (!partner_id || !year_month) return res.status(400).json({ error: '缺少必要參數' });
 
@@ -815,7 +809,7 @@ app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res)
 // 薪資彙整寄給登入管理員自己：POST /api/admin/payroll/send-me
 app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 MAILJET_API_KEY / MAILJET_SECRET_KEY' });
+    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
     const { year_month } = req.body;
     if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
 
@@ -914,7 +908,7 @@ app.post('/api/admin/payroll/send-me', requireRole('staff'), async (req, res) =>
 // 薪資通知寄信（全體）：POST /api/admin/payroll/send-all
 app.post('/api/admin/payroll/send-all', requireRole('staff'), async (req, res) => {
   try {
-    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 MAILJET_API_KEY / MAILJET_SECRET_KEY' });
+    if (!resendClient) return res.status(503).json({ error: '寄件服務未設定，請聯絡管理員配置 RESEND_API_KEY' });
     const { year_month } = req.body;
     if (!year_month) return res.status(400).json({ error: '缺少 year_month 參數' });
 

@@ -243,7 +243,6 @@ textarea.form-input{resize:none}
         <span class="mi-icon">📝</span>回報
         <span class="pt-badge" id="badge-worklog">1</span>
       </div>
-      <div class="pt-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">🚩</span>問題回報<span class="pt-badge" id="badge-issues" style="display:none">0</span></div>
       <div class="pt-menu-item" onclick="switchPage('notices',this)">
         <span class="mi-icon">📢</span>公告
         <span class="pt-badge" id="badge-notices" style="display:none">0</span>
@@ -257,7 +256,7 @@ textarea.form-input{resize:none}
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
   <!-- 通知條（公告 + 問題回報合併） -->
-  <div id="ann-notify-bar" id="ann-notify-bar" style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem" onclick="notifyBarClick()">
+  <div id="ann-notify-bar" style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
   </div>
@@ -467,52 +466,6 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <!-- 問題回報 -->
-    <div class="page-section" id="page-issues">
-      <div class="page-title">🚩 問題回報</div>
-      <div>
-        <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(72,180,232,.10);border-top:3px solid var(--blue)">
-          <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
-          <div id="issue-sv-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
-          <div style="display:flex;flex-direction:column;gap:.55rem">
-            <input type="hidden" id="issue-sv-target" value="">
-            <div id="issue-sv-target-display" class="form-input" style="width:100%;background:var(--bg);color:var(--text-s);cursor:default">督導人員載入中…</div>
-            <input id="issue-sv-title" class="form-input" placeholder="問題標題＊" style="width:100%">
-            <textarea id="issue-sv-content" class="form-input" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
-            <select id="issue-sv-task" class="form-input" style="width:100%">
-              <option value="">關聯任務（選填）</option>
-            </select>
-          </div>
-          <div style="margin-top:.65rem">
-            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'sv-report')">
-                <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-                <img id="issue-sv-report-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
-              </label>
-              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'sv-report')">
-                <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-                <img id="issue-sv-report-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
-              </label>
-              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'sv-report')">
-                <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-                <img id="issue-sv-report-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
-              </label>
-            </div>
-          </div>
-          <button onclick="submitIssueSv()" style="margin-top:.9rem;width:100%;padding:.78rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,138,192,.3)">送出回報</button>
-        </div>
-        <div style="font-size:.85rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">我的回報紀錄</div>
-        <div id="issues-pt-sv-list" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="font-size:.82rem;color:var(--text-s)">載入中...</div>
-        </div>
-      </div>
-
-    </div>
-
   </div><!-- pt-main -->
   </div><!-- main wrapper -->
 </div><!-- pt-layout -->
@@ -604,7 +557,6 @@ function switchPage(name, el) {
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
-  if (name === 'issues') loadIssuesPt();
 }
 
 // ── 日期格式化 ────────────────────────────────────────────────
@@ -1169,29 +1121,19 @@ async function loadAnnouncements() {
   try { syncNotifyBar();   } catch(e) { console.warn('[syncNotifyBar]',   e.message); }
 }
 
-let _issueUnread = 0; // 由 syncPtIssueNotifyBar 更新
-
 function syncNotifyBar() {
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
   const readIds = meId ? getReadIds(meId) : [];
-  const annUnread = visible.filter(a => !readIds.includes(String(a.id))).length;
+  const unread  = visible.filter(a => !readIds.includes(String(a.id))).length;
   const badge = document.getElementById('badge-notices');
-  if (badge) { badge.textContent = annUnread; badge.style.display = annUnread ? 'inline-flex' : 'none'; }
+  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
   const bar  = document.getElementById('ann-notify-bar');
   const text = document.getElementById('ann-notify-text');
   if (bar) {
-    const parts = [];
-    if (annUnread > 0)    parts.push(`${annUnread} 則公告`);
-    if (_issueUnread > 0) parts.push(`${_issueUnread} 則回覆`);
-    if (parts.length > 0) { text.textContent = '您有　' + parts.join('　'); bar.style.display = 'flex'; }
+    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.style.display = 'flex'; }
     else { bar.style.display = 'none'; }
   }
-}
-
-function notifyBarClick() {
-  if (_issueUnread > 0) switchPage('issues', document.querySelector('[onclick*=issues]'));
-  else switchPage('notices', document.querySelector('[onclick*=notices]'));
 }
 
 function renderAnnList() {
@@ -1325,7 +1267,6 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   loadAnnouncements(); // 背景載入，不阻塞
-  syncPtIssueNotifyBar();
   loadGrabZone();      // 背景載入搶單
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
@@ -1335,211 +1276,6 @@ async function init() {
 }
 init();
 
-// ── 問題回報（partner）───────────────────────────────────────
-let ptIssueSvImgs = [null, null, null];
-
-async function loadIssuesPt() {
-  await loadMyIssuesSv();
-  await populateIssueSvDropdowns();
-  syncPtIssueNotifyBar();
-}
-
-async function populateIssueSvDropdowns() {
-  try {
-    const me = await API.get('/api/me');
-    const hiddenSv = document.getElementById('issue-sv-target');
-    const dispSv   = document.getElementById('issue-sv-target-display');
-    if (me.supervisor_id) {
-      if (hiddenSv) hiddenSv.value = me.supervisor_id;
-      try {
-        const svs = await API.get('/api/users-list?role=supervisor');
-        const sv = svs.find(u => String(u.id) === String(me.supervisor_id));
-        if (dispSv) dispSv.textContent = sv ? '督導：' + sv.real_name : '已指派督導';
-      } catch(e2) { if (dispSv) dispSv.textContent = '已指派督導'; }
-    } else {
-      if (dispSv) dispSv.textContent = '（尚未指派督導）';
-    }
-  } catch(e){}
-  // populate task dropdown
-  try {
-    const tasks = await API.get('/api/assignments/active');
-    const active = (tasks || []).filter(t => t.status === 'active' || t.status === 'accepted');
-    const tsel = document.getElementById('issue-sv-task');
-    if (tsel) {
-      tsel.innerHTML = '<option value="">關聯任務（選填）</option>' +
-        active.map(t => `<option value="${t.id}">${t.task_name || t.id}</option>`).join('');
-    }
-  } catch(e){}
-}
-
-async function loadMyIssuesSv() {
-  try {
-    const all = await API.get('/api/issues/mine');
-    const list = all.filter(r => r.report_type === 'supervisor');
-    const el = document.getElementById('issues-pt-sv-list');
-    if (!el) return;
-    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">尚無回報紀錄</div>'; return; }
-    el.innerHTML = list.map(r => ptIssueCard(r, 'mine-pt')).join('');
-  } catch(e){ console.error(e); }
-}
-
-
-function ptIssueCard(r, viewer) {
-  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
-  const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
-  const unread = r.unread_reporter;
-  return `<div style="background:#fff;border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10)" onclick="togglePtIssue(${r.id},'${viewer}')">
-    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem">
-      ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>' : ''}
-      <span style="font-weight:700;font-size:.9rem;flex:1;color:var(--text)">${r.title}</span>
-      <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
-    </div>
-    <div style="font-size:.75rem;color:var(--text-s)">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
-    <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
-      <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
-      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
-      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
-      <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
-        ${ptIssueRepliesHtml(r.replies||[])}
-      </div>
-      <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
-        <input id="pt-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1">
-        <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
-      </div>
-      ${r.status !== 'resolved' ? `<div style="margin-top:.5rem" onclick="event.stopPropagation()"><button onclick="setPtIssueResolved(${r.id},'${viewer}')" style="padding:.38rem .9rem;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✅ 標記已解決</button></div>` : ''}
-    </div>
-  </div>`;
-}
-
-function ptIssueRepliesHtml(replies) {
-  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
-  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
-  return replies.map(rp => `
-    <div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem">
-      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
-      <div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div>
-    </div>`).join('');
-}
-
-async function togglePtIssue(id, viewer) {
-  const el = document.getElementById('pt-issue-detail-' + id);
-  if (!el) return;
-  const isOpen = el.style.display !== 'none';
-  document.querySelectorAll('[id^="pt-issue-detail-"]').forEach(e => e.style.display = 'none');
-  if (!isOpen) {
-    el.style.display = 'block';
-    try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
-    await loadMyIssuesSv();
-    const el2 = document.getElementById('pt-issue-detail-' + id);
-    if (el2) el2.style.display = 'block';
-    syncPtIssueNotifyBar();
-  }
-}
-
-async function setPtIssueResolved(id, viewer) {
-  if (!confirm('確定將此問題標記為已解決？')) return;
-  try {
-    await API.put('/api/issues/'+id+'/status', { status: 'resolved' });
-    showToast('已標記為解決 ✅', 'success');
-    await loadMyIssuesSv();
-  } catch(e) { showToast(e.message, 'error'); }
-}
-
-async function submitPtIssueReply(id, viewer) {
-  const input = document.getElementById('pt-issue-reply-input-' + id);
-  const text = input && input.value && input.value.trim();
-  if (!text) return;
-  try {
-    await API.post('/api/issues/'+id+'/reply', { text });
-    input.value = '';
-    showToast('回覆已送出', 'success');
-    await loadMyIssuesSv();
-    const el2 = document.getElementById('pt-issue-detail-' + id);
-    if (el2) el2.style.display = 'block';
-  } catch(e) { showToast(e.message, 'error'); }
-}
-
-function ptIssueImgPreview(input, idx, ns) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const max = 600;
-      let w = img.width, h = img.height;
-      if (w > max) { h = Math.round(h * max / w); w = max; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      if (ns === 'sv-report') ptIssueSvImgs[idx] = { data: dataUrl, mime: 'image/jpeg' };
-      const prevEl = document.getElementById('issue-'+ns+'-img-prev-'+idx);
-      const iconEl = document.getElementById('issue-'+ns+'-img-icon-'+idx);
-      if (prevEl) { prevEl.src = dataUrl; prevEl.style.display = 'block'; }
-      if (iconEl) iconEl.style.display = 'none';
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function submitIssueSv() {
-  const sel     = document.getElementById('issue-sv-target');
-  const titleEl = document.getElementById('issue-sv-title');
-  const contEl  = document.getElementById('issue-sv-content');
-  const taskSel = document.getElementById('issue-sv-task');
-  const errEl   = document.getElementById('issue-sv-err');
-  errEl.style.display = 'none';
-  const title   = titleEl && titleEl.value.trim();
-  const content = contEl && contEl.value.trim();
-  const svId    = sel && sel.value;
-  const dispDiv = document.getElementById('issue-sv-target-display');
-  const svName  = dispDiv ? dispDiv.textContent.replace(/^督導：/, '') : '';
-  const taskId  = taskSel && taskSel.value;
-  const taskName = taskSel && taskSel.options[taskSel.selectedIndex] && taskSel.selectedIndex > 0 ? taskSel.options[taskSel.selectedIndex].textContent : null;
-  if (!svId) { errEl.textContent='尚未指派督導人員，無法送出'; errEl.style.display='block'; return; }
-  if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
-  try {
-    const r = await API.post('/api/issues', {
-      report_type: 'supervisor', title, content,
-      supervisor_id: svId, supervisor_name: svName,
-      assignment_id: taskId || null, assignment_name: taskName || null,
-    });
-    const id = r.id;
-    let imgIdx = 0;
-    for (const img of ptIssueSvImgs) {
-      if (img) await API.post('/api/issues/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
-      imgIdx++;
-    }
-    titleEl.value = '';
-    contEl.value = '';
-    ptIssueSvImgs = [null,null,null];
-    for (let i=0;i<3;i++) {
-      const prev = document.getElementById('issue-sv-report-img-prev-'+i);
-      const icon = document.getElementById('issue-sv-report-img-icon-'+i);
-      if (prev) { prev.style.display='none'; prev.src=''; }
-      if (icon) icon.style.display='';
-    }
-    showToast('回報已送出！', 'success');
-    await loadMyIssuesSv();
-  } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
-}
-
-
-async function syncPtIssueNotifyBar() {
-  try {
-    const data = await API.get('/api/issues/unread');
-    const badge = document.getElementById('badge-issues');
-    const total = (data.from_handler||0);
-    _issueUnread = total;
-    syncNotifyBar(); // 合併重繪
-    if (badge) {
-      badge.style.display = total > 0 ? 'inline' : 'none';
-      badge.textContent = total;
-    }
-  } catch(e){}
-}
 </script>
 </body>
 </html>

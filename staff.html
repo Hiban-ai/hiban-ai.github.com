@@ -1138,10 +1138,11 @@ function renderForgotRequests() {
 
 // ── Dashboard 統計 ──
 function updateDashboard() {
-  const total      = usersCache.length;
-  const cntPartner    = usersCache.filter(u => u.role === 'partner').length;
-  const cntSupervisor = usersCache.filter(u => u.role === 'supervisor').length;
-  const cntStaff      = usersCache.filter(u => u.role === 'staff').length;
+  const active = usersCache.filter(u => u.status === 'active' || u.status === 'pending');
+  const total      = active.length;
+  const cntPartner    = active.filter(u => u.role === 'partner').length;
+  const cntSupervisor = active.filter(u => u.role === 'supervisor').length;
+  const cntStaff      = active.filter(u => u.role === 'staff').length;
   document.getElementById('dash-total').textContent       = total || '—';
   document.getElementById('dash-cnt-partner').textContent    = cntPartner;
   document.getElementById('dash-cnt-supervisor').textContent = cntSupervisor;

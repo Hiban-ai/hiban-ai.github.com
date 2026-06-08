@@ -475,87 +475,90 @@ textarea.form-input{resize:none}
 
     <!-- 問題回報 -->
     <div class="page-section" id="page-issues">
-      <div class="page-title" style="color:#fff;font-family:'Noto Serif TC',serif">🚩 問題回報</div>
-      <div style="display:flex;gap:0;border-bottom:2px solid rgba(255,255,255,.15);margin-bottom:1rem">
-        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:#FFD166;font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid #FFD166;font-weight:700">回報督導</button>
-        <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:rgba(255,255,255,.55);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
+      <div class="page-title">🚩 問題回報</div>
+      <!-- 分頁切換 -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
+        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">回報督導</button>
+        <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--text-s);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
       </div>
-      <!-- Tab: report to supervisor -->
+
+      <!-- Tab：回報督導 -->
       <div id="pt-issue-tab-sv">
-        <div style="background:rgba(255,255,255,.08);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,.12)">
-          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">📝 新增回報</div>
-          <div id="issue-sv-err" style="display:none;background:rgba(224,85,85,.15);border:1px solid #E05555;border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:#ffaaaa;margin-bottom:.5rem"></div>
+        <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(72,180,232,.10);border-top:3px solid var(--blue)">
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
+          <div id="issue-sv-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
           <div style="display:flex;flex-direction:column;gap:.55rem">
-            <select id="issue-sv-target" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+            <select id="issue-sv-target" class="form-input" style="width:100%">
               <option value="">選擇督導人員＊</option>
             </select>
-            <input id="issue-sv-title" placeholder="問題標題＊" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
-            <textarea id="issue-sv-content" placeholder="詳細說明＊" rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
-            <select id="issue-sv-task" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+            <input id="issue-sv-title" class="form-input" placeholder="問題標題＊" style="width:100%">
+            <textarea id="issue-sv-content" class="form-input" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
+            <select id="issue-sv-task" class="form-input" style="width:100%">
               <option value="">關聯任務（選填）</option>
             </select>
           </div>
-          <div style="margin-top:.55rem">
-            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">附圖（最多 3 張）</div>
+          <div style="margin-top:.65rem">
+            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'sv-report')">
-                <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;color:var(--text-s)">📷</span>
                 <img id="issue-sv-report-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
-              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'sv-report')">
-                <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;color:var(--text-s)">📷</span>
                 <img id="issue-sv-report-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
-              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'sv-report')">
-                <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;color:var(--text-s)">📷</span>
                 <img id="issue-sv-report-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
             </div>
           </div>
-          <button onclick="submitIssueSv()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+          <button onclick="submitIssueSv()" style="margin-top:.9rem;width:100%;padding:.78rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,138,192,.3)">送出回報</button>
         </div>
-        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">我的回報紀錄</div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">我的回報紀錄</div>
         <div id="issues-pt-sv-list" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="font-size:.82rem;opacity:.55;color:#fff">載入中...</div>
+          <div style="font-size:.82rem;color:var(--text-s)">載入中...</div>
         </div>
       </div>
-      <!-- Tab: report to admin -->
+
+      <!-- Tab：回報管理人員 -->
       <div id="pt-issue-tab-admin" style="display:none">
-        <div style="background:rgba(255,255,255,.08);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,.12)">
-          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">📝 新增回報</div>
-          <div id="issue-pt-admin-err" style="display:none;background:rgba(224,85,85,.15);border:1px solid #E05555;border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:#ffaaaa;margin-bottom:.5rem"></div>
+        <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(72,180,232,.10);border-top:3px solid var(--blue)">
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
+          <div id="issue-pt-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
           <div style="display:flex;flex-direction:column;gap:.55rem">
-            <input id="issue-pt-admin-title" placeholder="問題標題＊" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
-            <textarea id="issue-pt-admin-content" placeholder="詳細說明＊" rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
+            <input id="issue-pt-admin-title" class="form-input" placeholder="問題標題＊" style="width:100%">
+            <textarea id="issue-pt-admin-content" class="form-input" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
           </div>
-          <div style="margin-top:.55rem">
-            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">附圖（最多 3 張）</div>
+          <div style="margin-top:.65rem">
+            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'pt-admin')">
-                <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;color:var(--text-s)">📷</span>
                 <img id="issue-pt-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
-              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'pt-admin')">
-                <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;color:var(--text-s)">📷</span>
                 <img id="issue-pt-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
-              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'pt-admin')">
-                <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;color:var(--text-s)">📷</span>
                 <img id="issue-pt-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
             </div>
           </div>
-          <button onclick="submitPtIssueAdmin()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+          <button onclick="submitPtIssueAdmin()" style="margin-top:.9rem;width:100%;padding:.78rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,138,192,.3)">送出回報</button>
         </div>
-        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">我的回報紀錄</div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">我的回報紀錄</div>
         <div id="issues-pt-admin-list" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="font-size:.82rem;opacity:.55;color:#fff">載入中...</div>
+          <div style="font-size:.82rem;color:var(--text-s)">載入中...</div>
         </div>
       </div>
     </div>
@@ -1445,37 +1448,37 @@ async function loadMyIssuesAdmin() {
 
 function ptIssueCard(r, viewer) {
   const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
-  const statusColor = { pending:'#FFB830', processing:'#48B4E8', resolved:'#2EAA7A' };
+  const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
   const unread = r.unread_reporter;
-  return `<div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer" onclick="togglePtIssue(${r.id},'${viewer}')">
+  return `<div style="background:#fff;border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10)" onclick="togglePtIssue(${r.id},'${viewer}')">
     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem">
-      ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:#E05555;flex-shrink:0;display:inline-block"></span>' : ''}
-      <span style="font-weight:700;font-size:.9rem;flex:1;color:#fff">${r.title}</span>
-      <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}33;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
+      ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>' : ''}
+      <span style="font-weight:700;font-size:.9rem;flex:1;color:var(--text)">${r.title}</span>
+      <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
     </div>
-    <div style="font-size:.75rem;opacity:.55;color:#fff">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
-    <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid rgba(255,255,255,.12);padding-top:.75rem">
-      <div style="font-size:.85rem;line-height:1.7;color:rgba(255,255,255,.85);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
+    <div style="font-size:.75rem;color:var(--text-s)">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
+      <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
       ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
-      <div style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:.4rem">回覆紀錄</div>
+      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
       <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
         ${ptIssueRepliesHtml(r.replies||[])}
       </div>
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
-        <input id="pt-issue-reply-input-${r.id}" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-family:'Noto Sans TC',sans-serif">
-        <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--orange);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
+        <input id="pt-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1">
+        <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
       </div>
     </div>
   </div>`;
 }
 
 function ptIssueRepliesHtml(replies) {
-  if (!replies.length) return '<div style="font-size:.8rem;color:rgba(255,255,255,.4);font-style:italic">尚無回覆</div>';
+  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
   const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
   return replies.map(rp => `
-    <div style="background:rgba(0,0,0,.2);border-radius:var(--rs);padding:.45rem .75rem">
-      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
-      <div style="font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.55">${rp.text}</div>
+    <div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem">
+      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
+      <div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div>
     </div>`).join('');
 }
 

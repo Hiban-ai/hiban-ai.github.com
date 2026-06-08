@@ -846,7 +846,7 @@ app.put('/api/system/contract', requireRole('staff'), async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 
 // 建立問題回報
-app.post('/api/reports', requireAuth, async (req, res) => {
+app.post('/api/issues', requireAuth, async (req, res) => {
   try {
     const { report_type, title, content, supervisor_id, supervisor_name, assignment_id, assignment_name } = req.body;
     const user = req.session.user;
@@ -871,7 +871,7 @@ app.post('/api/reports', requireAuth, async (req, res) => {
 });
 
 // 我送出的問題
-app.get('/api/reports/mine', requireAuth, async (req, res) => {
+app.get('/api/issues/mine', requireAuth, async (req, res) => {
   try {
     const list = await Reports.forReporter(req.session.user.id);
     res.json(list);
@@ -879,7 +879,7 @@ app.get('/api/reports/mine', requireAuth, async (req, res) => {
 });
 
 // 未讀數量
-app.get('/api/reports/unread', requireAuth, async (req, res) => {
+app.get('/api/issues/unread', requireAuth, async (req, res) => {
   try {
     const user = req.session.user;
     let from_handler = 0, from_reporter = 0;
@@ -900,21 +900,21 @@ app.get('/api/reports/unread', requireAuth, async (req, res) => {
 });
 
 // 督導收到的問題
-app.get('/api/reports/inbox/supervisor', requireRole('supervisor'), async (req, res) => {
+app.get('/api/issues/inbox/supervisor', requireRole('supervisor'), async (req, res) => {
   try {
     res.json(await Reports.forSupervisor(req.session.user.id));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // 管理員收到的所有問題
-app.get('/api/reports/inbox/admin', requireRole('staff'), async (req, res) => {
+app.get('/api/issues/inbox/admin', requireRole('staff'), async (req, res) => {
   try {
     res.json(await Reports.forAdmin());
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // 新增回覆
-app.post('/api/reports/:id/reply', requireAuth, async (req, res) => {
+app.post('/api/issues/:id/reply', requireAuth, async (req, res) => {
   try {
     const reportId = parseInt(req.params.id);
     const { text } = req.body;
@@ -950,7 +950,7 @@ app.post('/api/reports/:id/reply', requireAuth, async (req, res) => {
 });
 
 // 更新狀態
-app.put('/api/reports/:id/status', requireAuth, async (req, res) => {
+app.put('/api/issues/:id/status', requireAuth, async (req, res) => {
   try {
     const reportId = parseInt(req.params.id);
     const { status } = req.body;
@@ -969,7 +969,7 @@ app.put('/api/reports/:id/status', requireAuth, async (req, res) => {
 });
 
 // 上傳圖片
-app.post('/api/reports/:id/image', requireAuth, async (req, res) => {
+app.post('/api/issues/:id/image', requireAuth, async (req, res) => {
   try {
     const reportId = parseInt(req.params.id);
     const { index, data, mime } = req.body;
@@ -982,7 +982,7 @@ app.post('/api/reports/:id/image', requireAuth, async (req, res) => {
 });
 
 // 取得圖片
-app.get('/api/reports/:id/image/:index', requireAuth, async (req, res) => {
+app.get('/api/issues/:id/image/:index', requireAuth, async (req, res) => {
   try {
     const img = await ReportImages.get(parseInt(req.params.id), parseInt(req.params.index));
     if (!img) return res.status(404).end();
@@ -993,7 +993,7 @@ app.get('/api/reports/:id/image/:index', requireAuth, async (req, res) => {
 });
 
 // 標記已讀
-app.put('/api/reports/:id/read', requireAuth, async (req, res) => {
+app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
   try {
     const reportId = parseInt(req.params.id);
     const user = req.session.user;

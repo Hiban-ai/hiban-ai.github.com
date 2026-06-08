@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>管理人員 — 希絆雲作所</title>
+<title>蝞∠?鈭箏 ??撣??脖??</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -46,7 +46,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
   font-size:.78rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:color .2s}
 .st-logout:hover{color:rgba(255,255,255,.8)}
 
-/* 左側捲軸 */
+/* 撌血?脰遘 */
 .st-sidebar-nav::-webkit-scrollbar{width:4px}
 .st-sidebar-nav::-webkit-scrollbar-track{background:transparent}
 .st-sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
@@ -55,7 +55,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 /* Main */
 .st-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
 
-/* 右側捲軸 */
+/* ?喳?脰遘 */
 .st-main::-webkit-scrollbar{width:6px}
 .st-main::-webkit-scrollbar-track{background:transparent}
 .st-main::-webkit-scrollbar-thumb{background:#B8D9EE;border-radius:6px}
@@ -140,14 +140,14 @@ textarea.form-input{resize:none}
 .btn-cancel{flex:1;padding:.75rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
 .btn-cancel:hover{border-color:var(--blue);color:var(--blue)}
 
-/* 帳號管理分頁 */
+/* 撣唾?蝞∠??? */
 .acc-tab{padding:.6rem 1.1rem;background:none;border:none;font-size:.88rem;font-weight:600;color:var(--text-s);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}
 .acc-tab:hover{color:var(--blue-d);background:var(--blue-p)}
 .acc-tab.active{color:var(--blue-d);border-bottom-color:var(--blue);background:var(--blue-p)}
 .add-inline-btn{margin-left:.4rem;padding:.15rem .5rem;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;vertical-align:middle}
 .add-inline-btn:hover{opacity:.85}
 
-/* 詳細資料 overlay */
+/* 閰喟敦鞈? overlay */
 .detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;pointer-events:none}
 .detail-overlay.open{display:flex;pointer-events:auto}
 .detail-box{background:#fff;border-radius:var(--r);width:520px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);border-top:4px solid var(--blue);animation:fadeUp .3s ease;margin:auto}
@@ -169,8 +169,8 @@ textarea.form-input{resize:none}
   .impact-grid{grid-template-columns:1fr 1fr}
   .mobile-topbar{display:flex}
 }
-/* 跑馬燈 */
-/* 公告列表 */
+/* 頝收??*/
+/* ?砍??” */
 .ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem;display:flex;gap:.75rem;align-items:flex-start}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
 .ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
@@ -180,7 +180,7 @@ textarea.form-input{resize:none}
 .att-chip{display:inline-flex;align-items:center;gap:.4rem;background:var(--blue-p);border:1px solid var(--blue);border-radius:20px;padding:.22rem .7rem;font-size:.78rem;font-weight:600;color:var(--blue-d)}
 .att-dl-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .75rem;background:var(--blue-p);border:1.5px solid var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;color:var(--blue-d);cursor:pointer;text-decoration:none;font-family:'Noto Sans TC',sans-serif}
 .att-dl-btn:hover{background:var(--blue);color:#fff}
-/* 日期選擇器 */
+/* ?交??豢???*/
 .dp-wrap{border:1.5px solid var(--border);border-radius:var(--rs);padding:.75rem;background:var(--blue-p)}
 .dp-selects{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem}
 .dp-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.2rem}
@@ -199,256 +199,256 @@ textarea.form-input{resize:none}
 <!-- Mobile topbar -->
 <div class="mobile-topbar">
   <div style="display:flex;align-items:center;gap:.5rem">
-    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
-    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
+    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">? ?餃</button>
+    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">撣??脖??</span>
   </div>
-  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">🧹 管理人員</span>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">?完 蝞∠?鈭箏</span>
 </div>
 
 <div class="st-layout">
   <!-- Sidebar -->
   <div class="st-sidebar">
     <div class="st-sidebar-logo">
-      <div class="st-logo-name">希絆雲作所</div>
-      <div class="st-logo-role">🧹 管理人員</div>
-      <div class="st-user-label" id="st-user-label">—</div>
+      <div class="st-logo-name">撣??脖??</div>
+      <div class="st-logo-role">?完 蝞∠?鈭箏</div>
+      <div class="st-user-label" id="st-user-label">??/div>
     </div>
     <div class="st-sidebar-nav">
       <div class="st-menu">
-        <div class="st-menu-group">管理</div>
-        <div class="st-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+        <div class="st-menu-group">蝞∠?</div>
+        <div class="st-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">??</span>蝮質汗?銵冽</div>
         <div class="st-menu-item" onclick="switchPage('accounts',this)">
-          <span class="mi-icon">👤</span>帳號管理
+          <span class="mi-icon">?</span>撣唾?蝞∠?
           <span class="st-badge" id="badge-accounts" style="display:none">0</span>
         </div>
         <div class="st-menu-item" onclick="switchPage('forgot',this)">
-          <span class="mi-icon">🔑</span>忘記密碼
+          <span class="mi-icon">??</span>敹?撖Ⅳ
           <span class="st-badge" id="badge-forgot" style="display:none">0</span>
         </div>
-        <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
-        <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
-        <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理<span class="st-badge" id="badge-notices" style="display:none">0</span></div>
-        <div class="st-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">📝</span>問題管理<span class="st-badge" id="badge-issues" style="display:none">0</span></div>
-        <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">⚙️</span>系統設定</div>
-        <div class="st-menu-group">帳號</div>
-        <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
+        <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">?</span>?芾?蝞∠?</div>
+        <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">??</span>隞餃?蝞∠?</div>
+        <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">?</span>?砍?蝞∠?<span class="st-badge" id="badge-notices" style="display:none">0</span></div>
+        <div class="st-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">??</span>??蝞∠?<span class="st-badge" id="badge-issues" style="display:none">0</span></div>
+        <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">??</span>蝟餌絞閮剖?</div>
+        <div class="st-menu-group">撣唾?</div>
+        <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">??</span>?犖鞈?</div>
       </div>
     </div>
-    <div class="st-logout" onclick="signOut()"><span>🚪</span>登出</div>
+    <div class="st-logout" onclick="signOut()"><span>?</span>?餃</div>
   </div>
 
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- 新公告通知條 -->
+  <!-- ?啣?璇?-->
   <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
        style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
-    <span>📢</span><span id="ann-notify-text">您有新公告</span>
-    <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
+    <span>?</span><span id="ann-notify-text">?冽??啣??/span>
+    <span style="margin-left:auto;font-size:.72rem;opacity:.65">???亦? ??/span>
   </div>
   <div id="issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
        style="display:none;background:linear-gradient(90deg,#FFF7E6,#FFE4A0);border-bottom:1.5px solid #FFB830;padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#7A5800;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
-    <span style="flex-shrink:0">📝</span>
-    <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有新的問題回報待處理</span></div>
+    <span style="flex-shrink:0">??</span>
+    <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">???憿??勗???</span></div>
   </div>
   <div class="st-main">
 
     <!-- Dashboard -->
     <div class="page-section active" id="page-dashboard">
-      <div class="page-title">📊 總覽儀表板</div>
+      <div class="page-title">?? 蝮質汗?銵冽</div>
       <div class="impact-grid">
-        <div class="impact-card" style="--ic:var(--blue)"><div class="ic-val" id="dash-active">—</div><div class="ic-label">活躍工作夥伴</div></div>
-        <div class="impact-card" style="--ic:var(--orange)"><div class="ic-val" id="dash-pending">—</div><div class="ic-label">待審核帳號</div></div>
+        <div class="impact-card" style="--ic:var(--blue)"><div class="ic-val" id="dash-active">??/div><div class="ic-label">瘣餉?撌乩?憭乩撈</div></div>
+        <div class="impact-card" style="--ic:var(--orange)"><div class="ic-val" id="dash-pending">??/div><div class="ic-label">敺祟?詨董??/div></div>
         <div class="impact-card" style="--ic:var(--green);cursor:default">
-          <div class="ic-val" id="dash-total">—</div>
-          <div class="ic-label">總帳號數</div>
+          <div class="ic-val" id="dash-total">??/div>
+          <div class="ic-label">蝮賢董?</div>
           <div style="display:flex;justify-content:space-between;margin-top:.55rem;padding-top:.45rem;border-top:1px solid rgba(0,0,0,.07);gap:.25rem">
             <div style="flex:1;text-align:center">
-              <div style="font-size:.78rem;font-weight:700;color:var(--blue-d)" id="dash-cnt-partner">—</div>
-              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">夥伴</div>
+              <div style="font-size:.78rem;font-weight:700;color:var(--blue-d)" id="dash-cnt-partner">??/div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">憭乩撈</div>
             </div>
             <div style="width:1px;background:rgba(0,0,0,.07)"></div>
             <div style="flex:1;text-align:center">
-              <div style="font-size:.78rem;font-weight:700;color:#7B5EA7" id="dash-cnt-supervisor">—</div>
-              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">督導</div>
+              <div style="font-size:.78rem;font-weight:700;color:#7B5EA7" id="dash-cnt-supervisor">??/div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">???</div>
             </div>
             <div style="width:1px;background:rgba(0,0,0,.07)"></div>
             <div style="flex:1;text-align:center">
-              <div style="font-size:.78rem;font-weight:700;color:var(--green)" id="dash-cnt-staff">—</div>
-              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">管理</div>
+              <div style="font-size:.78rem;font-weight:700;color:var(--green)" id="dash-cnt-staff">??/div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">蝞∠?</div>
             </div>
           </div>
         </div>
-        <div class="impact-card" style="--ic:var(--purple)"><div class="ic-val" id="dash-forgot">—</div><div class="ic-label">待處理忘記密碼</div></div>
+        <div class="impact-card" style="--ic:var(--purple)"><div class="ic-val" id="dash-forgot">??/div><div class="ic-label">敺???閮?蝣?/div></div>
       </div>
       <div class="card">
-        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">快速操作</div>
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">敹恍?雿?/div>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-          <button class="action-btn" onclick="switchPage('accounts',document.querySelector('[onclick*=accounts]'))">👤 帳號管理</button>
-          <button class="action-btn warn" onclick="switchPage('forgot',document.querySelector('[onclick*=forgot]'))">🔑 處理忘記密碼</button>
+          <button class="action-btn" onclick="switchPage('accounts',document.querySelector('[onclick*=accounts]'))">? 撣唾?蝞∠?</button>
+          <button class="action-btn warn" onclick="switchPage('forgot',document.querySelector('[onclick*=forgot]'))">?? ??敹?撖Ⅳ</button>
         </div>
       </div>
     </div>
 
-    <!-- 帳號管理 -->
+    <!-- 撣唾?蝞∠? -->
     <div class="page-section" id="page-accounts">
-      <div class="page-title" style="margin-bottom:.75rem">👤 帳號管理</div>
+      <div class="page-title" style="margin-bottom:.75rem">? 撣唾?蝞∠?</div>
 
-      <!-- 三個角色分頁 -->
+      <!-- 銝??脣???-->
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem;overflow-x:auto">
-        <button class="acc-tab active" id="atab-partner"    onclick="switchAccTab('partner')"   >⚔️ 工作夥伴</button>
-        <div class="acc-tab" id="atab-supervisor" onclick="switchAccTab('supervisor')" style="display:flex;align-items:center;gap:.4rem;cursor:pointer">📖 督導人員 <span onclick="event.stopPropagation();openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</span></div>
-        <div class="acc-tab" id="atab-staff"      onclick="switchAccTab('staff')"      style="display:flex;align-items:center;gap:.4rem;cursor:pointer">🧹 管理人員 <span onclick="event.stopPropagation();openCreateUser('staff')"      class="add-inline-btn">＋ 新增</span></div>
+        <button class="acc-tab active" id="atab-partner"    onclick="switchAccTab('partner')"   >?? 撌乩?憭乩撈</button>
+        <div class="acc-tab" id="atab-supervisor" onclick="switchAccTab('supervisor')" style="display:flex;align-items:center;gap:.4rem;cursor:pointer">?? ???鈭箏 <span onclick="event.stopPropagation();openCreateUser('supervisor')" class="add-inline-btn">嚗??啣?</span></div>
+        <div class="acc-tab" id="atab-staff"      onclick="switchAccTab('staff')"      style="display:flex;align-items:center;gap:.4rem;cursor:pointer">?完 蝞∠?鈭箏 <span onclick="event.stopPropagation();openCreateUser('staff')"      class="add-inline-btn">嚗??啣?</span></div>
       </div>
 
-      <!-- 工作夥伴 -->
+      <!-- 撌乩?憭乩撈 -->
       <div id="acc-panel-partner">
         <div class="card" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>督導人員</th><th>操作</th></tr></thead>
-              <tbody id="tbody-partner"><tr><td colspan="8" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+              <thead><tr><th>憪?</th><th>閫</th><th>頨怠?霅?/th><th>?</th><th>???/th><th>?唾???</th><th>???鈭箏</th><th>??</th></tr></thead>
+              <tbody id="tbody-partner"><tr><td colspan="8" style="text-align:center;color:var(--text-s);padding:1.5rem">頛銝?..</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- 督導人員 -->
+      <!-- ???鈭箏 -->
       <div id="acc-panel-supervisor" style="display:none">
         <div class="card" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>
-              <tbody id="tbody-supervisor"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+              <thead><tr><th>憪?</th><th>閫</th><th>頨怠?霅?/th><th>?</th><th>???/th><th>?唾???</th><th>??</th></tr></thead>
+              <tbody id="tbody-supervisor"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">頛銝?..</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- 管理人員 -->
+      <!-- 蝞∠?鈭箏 -->
       <div id="acc-panel-staff" style="display:none">
         <div class="card" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>
-              <tbody id="tbody-staff"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+              <thead><tr><th>憪?</th><th>閫</th><th>頨怠?霅?/th><th>?</th><th>???/th><th>?唾???</th><th>??</th></tr></thead>
+              <tbody id="tbody-staff"><tr><td colspan="7" style="text-align:center;color:var(--text-s);padding:1.5rem">頛銝?..</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 忘記密碼申請 -->
+    <!-- 敹?撖Ⅳ?唾? -->
     <div class="page-section" id="page-forgot">
-      <div class="page-title">🔑 忘記密碼申請</div>
+      <div class="page-title">?? 敹?撖Ⅳ?唾?</div>
       <div id="forgot-list">
-        <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
+        <div style="color:var(--text-s);font-size:.85rem">頛銝?..</div>
       </div>
     </div>
 
-    <!-- 薪資管理 -->
+    <!-- ?芾?蝞∠? -->
     <div class="page-section" id="page-payroll">
-      <div class="page-title">💰 薪資管理</div>
+      <div class="page-title">? ?芾?蝞∠?</div>
       <div class="card" style="padding:1rem 1.2rem">
         <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;flex-wrap:wrap">
           <select id="payroll-month" onchange="renderPayroll()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;background:var(--bg);cursor:pointer"></select>
-          <span style="font-size:.8rem;color:var(--text-s)">共 <span id="payroll-partner-count">0</span> 位夥伴</span>
-          <button onclick="exportPayrollExcel()" style="margin-left:auto;padding:.35rem .85rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">📥 匯出 Excel</button>
-          <button onclick="sendAllPayroll(this)" style="padding:.35rem .85rem;background:linear-gradient(135deg,#1a6fa0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">📧 寄送目前資料</button>
+          <span style="font-size:.8rem;color:var(--text-s)">??<span id="payroll-partner-count">0</span> 雿丰隡?/span>
+          <button onclick="exportPayrollExcel()" style="margin-left:auto;padding:.35rem .85rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">? ?臬 Excel</button>
+          <button onclick="sendAllPayroll(this)" style="padding:.35rem .85rem;background:linear-gradient(135deg,#1a6fa0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">? 撖????/button>
         </div>
-        <div id="payroll-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+        <div id="payroll-list"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
       </div>
     </div>
 
-    <!-- 任務管理 -->
+    <!-- 隞餃?蝞∠? -->
     <div class="page-section" id="page-tasks">
-      <div class="page-title">⚔️ 任務管理</div>
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">🎯 搶單任務統計</div>
-      <div id="staff-grab-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
+      <div class="page-title">?? 隞餃?蝞∠?</div>
+      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">? ?嗅隞餃?蝯梯?</div>
+      <div id="staff-grab-wrap"><div style="color:var(--text-s);font-size:.85rem">頛銝凌?/div></div>
     </div>
 
-    <!-- 公告管理 -->
+    <!-- ?砍?蝞∠? -->
     <div class="page-section" id="page-notices">
-      <div class="page-title" style="margin-bottom:.75rem">📢 公告管理
-        <button onclick="openAnnForm()" style="margin-left:auto;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增公告</button>
+      <div class="page-title" style="margin-bottom:.75rem">? ?砍?蝞∠?
+        <button onclick="openAnnForm()" style="margin-left:auto;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">嚗??啣??砍?</button>
       </div>
       <div id="ann-list-wrap">
-        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">頛銝凌?/div>
       </div>
     </div>
 
-    <!-- 個人資料 -->
+    <!-- ?犖鞈? -->
     <div class="page-section" id="page-profile">
-      <div class="page-title">🧑 個人資料</div>
+      <div class="page-title">?? ?犖鞈?</div>
       <div class="card" style="max-width:520px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
-          <button id="st-prof-edit-btn" onclick="toggleStProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">? ?犖鞈?</div>
+          <button id="st-prof-edit-btn" onclick="toggleStProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">靽格</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名</label><input class="form-input" id="st-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="st-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="st-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="st-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="st-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">Email</label><input class="form-input" type="email" id="st-prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="設定後可接收薪資彙整"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">憪?</label><input class="form-input" id="st-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">頨怠?霅?/label><input class="form-input" id="st-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?</label><input class="form-input" id="st-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?餉店</label><input class="form-input" id="st-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?舐窗?啣?</label><input class="form-input" id="st-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">Email</label><input class="form-input" type="email" id="st-prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="閮剖?敺?交?芾?敶"></div>
         </div>
         <div id="st-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
-          <button onclick="saveStProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
-          <button onclick="cancelStProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+          <button onclick="saveStProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?脣?</button>
+          <button onclick="cancelStProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
         </div>
       </div>
       <div class="card" style="max-width:520px">
-        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">?? 靽格撖Ⅳ</div>
         <div id="prof-cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="prof-cpw-new" placeholder="至少 4 碼" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?桀?撖Ⅳ</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="頛詨?桀?撖Ⅳ" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?啣?蝣?/label><input class="form-input" type="password" id="prof-cpw-new" placeholder="?喳? 4 蝣? style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">蝣箄??啣?蝣?/label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="?撓?乩?甈? style="flex:1"></div>
         </div>
-        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">更新密碼</button>
+        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">?湔撖Ⅳ</button>
       </div>
     </div>
 
-    <!-- 系統設定 -->
+    <!-- 蝟餌絞閮剖? -->
     <div class="page-section" id="page-settings">
-      <div class="page-title">⚙️ 系統設定</div>
+      <div class="page-title">?? 蝟餌絞閮剖?</div>
       <div class="card" style="max-width:600px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">📄 合約設定</div>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">?? ??閮剖?</div>
         </div>
-        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.6">設定申請加入時顯示的合約條款，夥伴需捲動至底部並勾選同意後才能繼續申請。</div>
+        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.6">閮剖??唾???＊蝷箇???璇狡嚗丰隡湧??脣??喳??其蒂?暸??敺??賜匱蝥隢?/div>
         <div id="contract-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem"></div>
         <textarea id="contract-text"
-          placeholder="請輸入合約條款內容..."
+          placeholder="隢撓?亙?蝝?甈曉摰?.."
           style="width:100%;min-height:320px;padding:.85rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);line-height:1.8;resize:vertical;background:#fff;transition:border .2s;outline:none"
           onfocus="this.style.borderColor='var(--blue)'"
           onblur="this.style.borderColor='var(--border)'"></textarea>
         <div style="display:flex;gap:.5rem;margin-top:.85rem">
-          <button onclick="saveContract()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.25);transition:all .25s">儲存合約</button>
-          <button onclick="cancelContract()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+          <button onclick="saveContract()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.25);transition:all .25s">?脣???</button>
+          <button onclick="cancelContract()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
         </div>
       </div>
     </div>
 
-    <!-- 問題管理 -->
+    <!-- ??蝞∠? -->
     <div class="page-section" id="page-issues">
-      <div class="page-title">📝 問題管理</div>
+      <div class="page-title">?? ??蝞∠?</div>
       <div id="issues-staff-unread" style="display:none;background:var(--yellow-p);border:1.5px solid var(--yellow);border-radius:var(--rs);padding:.5rem .9rem;font-size:.82rem;color:#7A5800;margin-bottom:.85rem"></div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.85rem">
         <select id="issues-filter-status" class="form-input" style="max-width:140px;padding:.4rem .7rem;font-size:.82rem" onchange="renderIssueList()">
-          <option value="">全部狀態</option>
-          <option value="pending">待處理</option>
-          <option value="processing">處理中</option>
-          <option value="resolved">已解決</option>
+          <option value="">?券???/option>
+          <option value="pending">敺???/option>
+          <option value="processing">??銝?/option>
+          <option value="resolved">撌脰圾瘙?/option>
         </select>
         <select id="issues-filter-role" class="form-input" style="max-width:160px;padding:.4rem .7rem;font-size:.82rem" onchange="renderIssueList()">
-          <option value="">全部來源</option>
-          <option value="partner">工作夥伴</option>
-          <option value="supervisor">督導人員</option>
+          <option value="">?券靘?</option>
+          <option value="partner">撌乩?憭乩撈</option>
+          <option value="supervisor">???鈭箏</option>
         </select>
       </div>
       <div id="issues-staff-list" style="display:flex;flex-direction:column;gap:.75rem">
-        <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
+        <div style="color:var(--text-s);font-size:.85rem">頛銝?..</div>
       </div>
     </div>
 
@@ -456,24 +456,24 @@ textarea.form-input{resize:none}
   </div><!-- main wrapper -->
 </div><!-- st-layout -->
 
-<!-- 詳細資料 overlay -->
+<!-- 閰喟敦鞈? overlay -->
 <!-- old detail overlay removed, replaced by new one below -->
 
-<!-- 新增帳號 overlay -->
+<!-- ?啣?撣唾? overlay -->
 <div class="detail-overlay" id="create-user-overlay">
   <div class="detail-box" style="border-top-color:var(--green)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700" id="create-user-title">新增督導人員</div>
-      <button onclick="closeCreateUser()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700" id="create-user-title">?啣????鈭箏</div>
+      <button onclick="closeCreateUser()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">??/button>
     </div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">建立後帳號立即啟用，預設密碼 <strong>0000</strong>，首次登入需修改。</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">撱箇?敺董???喳??剁??身撖Ⅳ <strong>0000</strong>嚗?甈∠?仿?靽格??/div>
     <input type="hidden" id="create-user-role">
     <div id="cu-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
     <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem">
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-name" placeholder="真實姓名" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-id" placeholder="例：A123456789" style="flex:1" oninput="this.value=this.value.toUpperCase()"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">憪? <span style="color:var(--red)">嚗?/span></label><input class="form-input" id="cu-name" placeholder="?祕憪?" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">頨怠?霅?<span style="color:var(--red)">嚗?/span></label><input class="form-input" id="cu-id" placeholder="靘?A123456789" style="flex:1" oninput="this.value=this.value.toUpperCase()"></div>
       <div style="display:flex;align-items:flex-start;gap:.75rem">
-        <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.7rem">生日 <span style="color:var(--red)">＊</span></label>
+        <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.7rem">? <span style="color:var(--red)">嚗?/span></label>
         <div style="flex:1;display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:.35rem">
           <select class="form-input" id="cu-bday-year" style="padding:.72rem .5rem .72rem .75rem"></select>
           <select class="form-input" id="cu-bday-month" style="padding:.72rem .5rem .72rem .75rem"></select>
@@ -481,194 +481,193 @@ textarea.form-input{resize:none}
         </div>
         <input type="hidden" id="cu-birthday">
       </div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" id="cu-email" placeholder="選填" type="email" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?餉店 <span style="color:var(--red)">嚗?/span></label><input class="form-input" id="cu-phone" placeholder="靘?0912345678" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?餃?靽∠拳</label><input class="form-input" id="cu-email" placeholder="?詨‵" type="email" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?舐窗?啣?</label><input class="form-input" id="cu-address" placeholder="?詨‵" style="flex:1"></div>
       <div id="cu-admin-row" style="display:none;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow)">
         <input type="checkbox" id="cu-is-admin" style="width:16px;height:16px;cursor:pointer">
-        <label for="cu-is-admin" style="font-size:.88rem;font-weight:600;color:#7A5010;cursor:pointer">設定成系統管理者（可管理 admin 帳號）</label>
+        <label for="cu-is-admin" style="font-size:.88rem;font-weight:600;color:#7A5010;cursor:pointer">閮剖??頂蝯梁恣???舐恣??admin 撣唾?嚗?/label>
       </div>
     </div>
     <div style="display:flex;gap:.5rem">
-      <button class="btn-cancel" onclick="closeCreateUser()" style="flex:1">取消</button>
-      <button onclick="submitCreateUser()" style="flex:2;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">建立帳號</button>
+      <button class="btn-cancel" onclick="closeCreateUser()" style="flex:1">??</button>
+      <button onclick="submitCreateUser()" style="flex:2;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">撱箇?撣唾?</button>
     </div>
   </div>
 </div>
 
-<!-- 更換督導 overlay -->
+<!-- ?湔???? overlay -->
 <div class="confirm-overlay" id="chgsv-overlay">
   <div class="confirm-box" style="width:360px;text-align:left;border-top-color:var(--blue)">
-    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">🔄 更換督導人員</div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem" id="chgsv-name-label">—</div>
+    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">?? ?湔????鈭箏</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem" id="chgsv-name-label">??/div>
     <input type="hidden" id="chgsv-user-id">
     <div id="chgsv-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
     <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
-      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">督導人員</label>
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">???鈭箏</label>
       <select class="form-input" id="chgsv-sel" style="flex:1">
-        <option value="">請選擇督導人員</option>
+        <option value="">隢?撠犖??/option>
       </select>
     </div>
     <div style="display:flex;gap:.5rem">
-      <button class="btn-cancel" onclick="closeChgSv()">取消</button>
-      <button onclick="submitChgSv()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認更換</button>
+      <button class="btn-cancel" onclick="closeChgSv()">??</button>
+      <button onclick="submitChgSv()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">蝣箄??湔?</button>
     </div>
   </div>
 </div>
 
-<!-- 申請人詳細 Modal -->
+<!-- ?唾?鈭箄底蝝?Modal -->
 <div class="confirm-overlay" id="detail-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
   <div class="confirm-box" style="width:min(600px,96vw);text-align:left;border-top-color:var(--blue);max-height:90vh;overflow-y:auto;padding:1.25rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div style="font-size:1.05rem;font-family:'Noto Serif TC',serif;font-weight:700">📋 申請人詳細資料</div>
-      <button onclick="closeDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
+      <div style="font-size:1.05rem;font-family:'Noto Serif TC',serif;font-weight:700">?? ?唾?鈭箄底蝝啗???/div>
+      <button onclick="closeDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">??/button>
     </div>
-    <!-- 雙欄：左文字 右圖片 -->
+    <!-- ??嚗椰?? ?喳???-->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start">
-      <!-- 左：文字資料 -->
+      <!-- 撌佗???鞈? -->
       <div id="detail-info"></div>
-      <!-- 右：圖片 -->
+      <!-- ?喉??? -->
       <div id="detail-imgs-col">
-        <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">🖼️ 上傳圖片</div>
+        <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">?儭?銝??</div>
         <div style="display:flex;flex-direction:column;gap:.5rem">
           <div>
-            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">身分證正面</div>
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">頨怠?霅迤??/div>
             <div id="di-front" class="det-img-cell" style="height:110px"></div>
           </div>
           <div>
-            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">身分證反面</div>
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">頨怠?霅???/div>
             <div id="di-back" class="det-img-cell" style="height:110px"></div>
           </div>
           <div>
-            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem" id="di-bank-label">存摺封面</div>
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem" id="di-bank-label">摮撠</div>
             <div id="di-bank" class="det-img-cell" style="height:110px"></div>
           </div>
         </div>
       </div>
     </div>
-    <!-- 督導選擇 -->
+    <!-- ????豢? -->
     <div id="detail-sv-row" style="display:none;margin-bottom:.75rem">
-      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">指定督導人員</label>
-      <select class="form-input" id="detail-sv-sel"><option value="">請選擇督導人員</option></select>
+      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">?????鈭箏</label>
+      <select class="form-input" id="detail-sv-sel"><option value="">隢?撠犖??/option></select>
     </div>
     <div id="detail-approve-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
-    <!-- 退回原因 -->
+    <!-- ?????-->
     <div id="detail-reject-row" style="display:none;margin-bottom:.75rem">
-      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">退回原因（選填，會寄給申請人）</label>
-      <textarea id="detail-reject-reason" style="width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.65rem .9rem;font-size:.88rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:70px" placeholder="例：資料不清晰，請重新上傳"></textarea>
+      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">??????詨‵嚗?撖策?唾?鈭綽?</label>
+      <textarea id="detail-reject-reason" style="width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.65rem .9rem;font-size:.88rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:70px" placeholder="靘?鞈?銝??堆?隢??唬???></textarea>
     </div>
     <input type="hidden" id="detail-user-id">
     <input type="hidden" id="detail-user-name">
     <input type="hidden" id="detail-user-role">
-    <!-- 按鈕：預設狀態（核可 + 退回申請） -->
+    <!-- ??嚗?閮剔????詨 + ??隢? -->
     <div id="detail-pending-btns" style="display:none;gap:.5rem;flex-wrap:wrap">
-      <button id="detail-btn-reject-open" onclick="toggleRejectRow(true)"  style="flex:1;padding:.72rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✕ 退回申請</button>
-      <button id="detail-btn-approve"     onclick="approveFromDetail()"     style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✓ 核可</button>
+      <button id="detail-btn-reject-open" onclick="toggleRejectRow(true)"  style="flex:1;padding:.72rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">????隢?/button>
+      <button id="detail-btn-approve"     onclick="approveFromDetail()"     style="flex:1;padding:.72rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">???詨</button>
     </div>
-    <!-- 按鈕：退回確認狀態（退回 + 取消） -->
+    <!-- ??嚗?Ⅱ隤??????+ ??嚗?-->
     <div id="detail-reject-btns" style="display:none;gap:.5rem;flex-wrap:wrap">
-      <button onclick="confirmRejectFromDetail()" style="flex:1;padding:.72rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">✕ 退回</button>
-      <button onclick="toggleRejectRow(false)" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">取消</button>
+      <button onclick="confirmRejectFromDetail()" style="flex:1;padding:.72rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">?????/button>
+      <button onclick="toggleRejectRow(false)" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;min-width:100px">??</button>
     </div>
   </div>
 </div>
-<!-- 圖片放大 lightbox -->
+<!-- ???曉之 lightbox -->
 <div id="img-lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;align-items:center;justify-content:center;cursor:zoom-out">
   <img id="img-lightbox-img" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
 </div>
 
-<!-- 公告新增/編輯 Modal -->
+<!-- ?砍??啣?/蝺刻摩 Modal -->
 <div class="confirm-overlay" id="ann-form-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
   <div class="confirm-box" style="width:min(580px,96vw);text-align:left;border-top-color:var(--blue);padding:1.5rem;max-height:90vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem">
-      <div style="font-size:1.05rem;font-weight:700;font-family:'Noto Serif TC',serif" id="ann-form-heading">📢 新增公告</div>
-      <button onclick="closeAnnForm()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
+      <div style="font-size:1.05rem;font-weight:700;font-family:'Noto Serif TC',serif" id="ann-form-heading">? ?啣??砍?</div>
+      <button onclick="closeAnnForm()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">??/button>
     </div>
     <input type="hidden" id="ann-edit-id">
     <div style="display:flex;flex-direction:column;gap:.85rem">
       <div>
-        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">標題 <span style="color:var(--red)">＊</span></label>
-        <input class="form-input" id="ann-title" placeholder="公告標題" maxlength="50">
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">璅? <span style="color:var(--red)">嚗?/span></label>
+        <input class="form-input" id="ann-title" placeholder="?砍?璅?" maxlength="50">
       </div>
       <div>
-        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">內容 <span style="color:var(--red)">＊</span></label>
-        <textarea class="form-input" id="ann-content" rows="5" placeholder="公告內容…" style="resize:vertical"></textarea>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">?批捆 <span style="color:var(--red)">嚗?/span></label>
+        <textarea class="form-input" id="ann-content" rows="5" placeholder="?砍??批捆?? style="resize:vertical"></textarea>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
         <div>
-          <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">對象</label>
+          <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">撠情</label>
           <select class="form-input" id="ann-target">
-            <option value="all">全部角色</option>
-            <option value="partner">工作夥伴</option>
-            <option value="supervisor">督導人員</option>
-            <option value="staff">管理人員</option>
+            <option value="all">?券閫</option>
+            <option value="partner">撌乩?憭乩撈</option>
+            <option value="supervisor">???鈭箏</option>
+            <option value="staff">蝞∠?鈭箏</option>
           </select>
         </div>
         <div style="display:flex;flex-direction:column;gap:.5rem;justify-content:flex-end">
           <label style="display:flex;align-items:center;gap:.45rem;font-size:.82rem;cursor:pointer">
             <input type="checkbox" id="ann-permanent" onchange="togglePermanent()" style="width:15px;height:15px;cursor:pointer">
-            🔒 永久公告（不下架）
-          </label>
+            ?? 瘞訾??砍?嚗?銝嚗?          </label>
           <label style="display:flex;align-items:center;gap:.45rem;font-size:.88rem;cursor:pointer">
             <input type="checkbox" id="ann-pinned" style="width:15px;height:15px;cursor:pointer">
-            📌 置頂公告
+            ?? 蝵桅??砍?
           </label>
         </div>
       </div>
-      <!-- 到期日（自訂日期選擇器） -->
+      <!-- ?唳??伐??芾??交??豢??剁? -->
       <div id="ann-expires-wrap">
-        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">到期日（選填）</label>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">?唳??伐??詨‵嚗?/label>
         <div class="dp-wrap">
           <div class="dp-selects">
-            <select class="form-input" id="dp-ann-year"  onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">選擇年份</option></select>
-            <select class="form-input" id="dp-ann-month" onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">選擇月份</option></select>
+            <select class="form-input" id="dp-ann-year"  onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">?豢?撟港遢</option></select>
+            <select class="form-input" id="dp-ann-month" onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">?豢??遢</option></select>
           </div>
           <div id="dp-ann-grid" style="display:none">
             <div class="dp-grid-header">
-              <span style="color:var(--red)">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:#2EAA7A">六</span>
+              <span style="color:var(--red)">??/span><span>銝</span><span>鈭?/span><span>銝?/span><span>??/span><span>鈭?/span><span style="color:#2EAA7A">??/span>
             </div>
             <div class="dp-grid-body" id="dp-ann-days"></div>
           </div>
-          <div class="dp-hint" id="dp-ann-hint">尚未選擇到期日</div>
+          <div class="dp-hint" id="dp-ann-hint">撠?豢??唳???/div>
         </div>
         <input type="hidden" id="ann-expires">
       </div>
-      <!-- 附件（多個） -->
+      <!-- ?辣嚗??? -->
       <div>
-        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">📎 附件（可多個，每個最大 15 MB）</label>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">?? ?辣嚗憭?瘥?憭?15 MB嚗?/label>
         <div id="ann-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem"></div>
         <input type="file" id="ann-att-file" style="display:none" onchange="onAnnFileAdd(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.txt">
         <button type="button" onclick="document.getElementById('ann-att-file').click()"
                 style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">
-          ＋ 新增附件
+          嚗??啣??辣
         </button>
       </div>
       <div id="ann-form-err" style="color:var(--red);font-size:.82rem;display:none"></div>
       <div style="display:flex;gap:.5rem;margin-top:.1rem">
-        <button onclick="closeAnnForm()" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
-        <button onclick="saveAnn()" id="ann-save-btn" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">發布公告</button>
+        <button onclick="closeAnnForm()" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
+        <button onclick="saveAnn()" id="ann-save-btn" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?澆??砍?</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 核准夥伴 - 指定督導 overlay -->
+<!-- ?詨?憭乩撈 - ????? overlay -->
 <div class="confirm-overlay" id="approve-overlay">
   <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
-    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">✓ 核准工作夥伴</div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">請選擇負責此夥伴的督導人員</div>
+    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">???詨?撌乩?憭乩撈</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">隢??鞎祆迨憭乩撈?撠犖??/div>
     <input type="hidden" id="approve-user-id">
     <input type="hidden" id="approve-user-name">
     <div id="approve-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
     <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
-      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">督導人員</label>
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">???鈭箏</label>
       <select class="form-input" id="approve-supervisor-sel" style="flex:1">
-        <option value="">請選擇督導人員</option>
+        <option value="">隢?撠犖??/option>
       </select>
     </div>
     <div style="display:flex;gap:.5rem">
-      <button class="btn-cancel" onclick="closeApprove()">取消</button>
-      <button onclick="submitApprove()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認核准</button>
+      <button class="btn-cancel" onclick="closeApprove()">??</button>
+      <button onclick="submitApprove()" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">蝣箄??詨?</button>
     </div>
   </div>
 </div>
@@ -676,12 +675,12 @@ textarea.form-input{resize:none}
 <!-- Confirm dialog -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
-    <div style="font-size:2.5rem;margin-bottom:.5rem" id="confirm-icon">⚠️</div>
-    <div class="confirm-title" id="confirm-title">確認操作</div>
-    <div class="confirm-desc" id="confirm-desc">確定要執行此操作嗎？</div>
+    <div style="font-size:2.5rem;margin-bottom:.5rem" id="confirm-icon">??</div>
+    <div class="confirm-title" id="confirm-title">蝣箄???</div>
+    <div class="confirm-desc" id="confirm-desc">蝣箏?閬銵迨????</div>
     <div class="confirm-btns">
-      <button class="btn-cancel" onclick="closeConfirm()">取消</button>
-      <button class="btn-danger" id="confirm-ok-btn">確認</button>
+      <button class="btn-cancel" onclick="closeConfirm()">??</button>
+      <button class="btn-danger" id="confirm-ok-btn">蝣箄?</button>
     </div>
   </div>
 </div>
@@ -689,35 +688,35 @@ textarea.form-input{resize:none}
 
 <script src="shared.js"></script>
 <script>
-// ── 搶單統計（管理員）──────────────────────────────────────
+// ?? ?嗅蝯梯?嚗恣?嚗??????????????????????????????????????
 async function loadStaffGrab() {
   const wrap = document.getElementById('staff-grab-wrap');
   if (!wrap) return;
   try {
     const list = await API.get('/api/grab-tasks/all');
-    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無搶單任務</div>'; return; }
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">撠?嗅隞餃?</div>'; return; }
     wrap.innerHTML = list.map(t => {
       const remaining = t.total_slots - t.grabbed_count;
       const pct       = Math.round((t.grabbed_count / t.total_slots) * 100);
       const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
-      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
+      const statusLabel = t.status === 'closed' ? '撌脤??? : expired ? '撌脫甇? : '?銝?;
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem">${t.company ? t.company+'嚗?+t.task_name : t.task_name}</div>
           <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem .75rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">
-          <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
-          <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
-          <div>名額<br><strong>${t.grabbed_count}/${t.total_slots}</strong></div>
-          <div>截止<br><strong>${(t.deadline||'').slice(0,10)}</strong></div>
+          <div>???<br><strong>${t.supervisor_name||'??}</strong></div>
+          <div>?桀<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
+          <div>??<br><strong>${t.grabbed_count}/${t.total_slots}</strong></div>
+          <div>?芣迫<br><strong>${(t.deadline||'').slice(0,10)}</strong></div>
         </div>
         <div style="height:5px;background:#e5edf3;border-radius:4px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--red)':'var(--blue)'};border-radius:4px"></div>
         </div>
-        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">已搶 ${t.grabbed_count} 人，剩餘 ${remaining} 個名額</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">撌脫 ${t.grabbed_count} 鈭綽??拚? ${remaining} ??憿?/div>
       </div>`;
     }).join('');
   } catch(e) { console.error('[staffGrab]', e.message); }
@@ -729,7 +728,7 @@ async function init() {
   me = await requireAuth(['staff']);
   if (!me) return;
   document.getElementById('st-user-label').textContent = me.real_name;
-  // 系統設定僅 is_admin 可見
+  // 蝟餌絞閮剖???is_admin ?航?
   const isAdmin = me.username === 'admin' || me.is_admin === true;
   const menuSettings = document.querySelector('[onclick*="\'settings\'"]');
   if (menuSettings) menuSettings.style.display = isAdmin ? '' : 'none';
@@ -742,15 +741,13 @@ async function init() {
   fillStProfile(p);
   await Promise.all([loadAccounts(), loadForgotRequests()]);
   updateDashboard();
-  loadAnnouncements(); // 背景載入，不阻塞主流程
-  syncIssueNotifyBar();
-  // 重整後還原上次頁面
-  const hash = location.hash.replace('#','');
+  loadAnnouncements(); // ?頛嚗??餃?銝餅?蝔?  syncIssueNotifyBar();
+  // ?敺???甈⊿???  const hash = location.hash.replace('#','');
   const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','settings','profile','issues'];
   if (hash && pages.includes(hash)) switchPage(hash);
 }
 
-// 頁面切換
+// ???
 function switchPage(name, el) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
@@ -758,8 +755,7 @@ function switchPage(name, el) {
   if (el) {
     el.classList.add('active');
   } else {
-    // 找對應的 menu item 並標記
-    document.querySelectorAll('.st-menu-item').forEach(i => {
+    // ?曉??? menu item 銝行?閮?    document.querySelectorAll('.st-menu-item').forEach(i => {
       if (i.getAttribute('onclick') && i.getAttribute('onclick').includes(`'${name}'`)) {
         i.classList.add('active');
       }
@@ -777,10 +773,10 @@ function switchPage(name, el) {
   if (name === 'issues') loadIssuesStaff();
 }
 
-// ── 帳號管理 ──
-const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' };
+// ?? 撣唾?蝞∠? ??
+const roleMap   = { partner:'撌乩?憭乩撈', supervisor:'???鈭箏', staff:'蝞∠?鈭箏' };
 const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
-const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用', rejected:'已退回' };
+const statusLabel = { active:'?', pending:'敺祟??, inactive:'?', rejected:'撌脤?? };
 const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive', rejected:'sb-rejected' };
 
 let usersCache = [];
@@ -803,9 +799,9 @@ async function loadAccounts() {
 }
 
 function getSvName(svId) {
-  if (!svId) return '<span style="color:var(--text-s);font-size:.78rem">未指派</span>';
+  if (!svId) return '<span style="color:var(--text-s);font-size:.78rem">?芣?瘣?/span>';
   const sv = usersCache.find(u => u.id === svId);
-  return sv ? sv.real_name : '—';
+  return sv ? sv.real_name : '??;
 }
 
 function renderAccounts() {
@@ -815,21 +811,21 @@ function renderAccounts() {
     const isPartner = role === 'partner';
     const colspan   = isPartner ? 8 : 7;
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無資料</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-s);padding:1.5rem">撠鞈?</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map(u => `
       <tr>
         <td style="white-space:nowrap;font-weight:600">${u.real_name}</td>
         <td style="white-space:nowrap"><span class="role-tag ${roleClass[u.role]||''}">${roleMap[u.role]||u.role}</span></td>
-        <td style="white-space:nowrap;font-size:.82rem;font-family:monospace">${u.id_number||'—'}</td>
-        <td style="white-space:nowrap;font-size:.82rem;color:var(--text-m)">${u.birthday||'—'}</td>
+        <td style="white-space:nowrap;font-size:.82rem;font-family:monospace">${u.id_number||'??}</td>
+        <td style="white-space:nowrap;font-size:.82rem;color:var(--text-m)">${u.birthday||'??}</td>
         <td style="white-space:nowrap"><span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span></td>
-        <td style="font-size:.78rem;color:var(--text-s);line-height:1.6">${u.created_at ? (s=>s[0]+'<br>'+(s[1]||''))(u.created_at.split(' ')) : '—'}</td>
+        <td style="font-size:.78rem;color:var(--text-s);line-height:1.6">${u.created_at ? (s=>s[0]+'<br>'+(s[1]||''))(u.created_at.split(' ')) : '??}</td>
         ${isPartner ? `
         <td style="white-space:nowrap">
           <span style="font-size:.85rem">${getSvName(u.supervisor_id)}</span>
-          ${u.status !== 'pending' ? `<button class="action-btn" onclick="openChgSv(${u.id},'${u.real_name}')" style="margin-left:.25rem;padding:.18rem .45rem;font-size:.68rem">更換</button>` : ''}
+          ${u.status !== 'pending' ? `<button class="action-btn" onclick="openChgSv(${u.id},'${u.real_name}')" style="margin-left:.25rem;padding:.18rem .45rem;font-size:.68rem">?湔?</button>` : ''}
         </td>` : ''}
         <td style="white-space:nowrap">${roleActions(u)}</td>
       </tr>
@@ -840,8 +836,8 @@ function renderAccounts() {
   badge.textContent = pending; badge.style.display = pending ? 'inline-flex' : 'none';
 }
 
-// ── 詳細資料（新版含圖片 + 核可/退回）──
-const genderLabel = { M:'男性（M）', F:'女性（F）', X:'多元性（LGBTQI+）' };
+// ?? 閰喟敦鞈?嚗??? + ?詨/?????
+const genderLabel = { M:'?瑟改?M嚗?, F:'憟單改?F嚗?, X:'憭??改?LGBTQI+嚗? };
 
 async function openDetail(id) {
   const u = usersCache.find(x => x.id === id);
@@ -856,75 +852,73 @@ async function openDetail(id) {
   document.getElementById('detail-reject-row').style.display  = 'none';
   document.getElementById('detail-reject-reason').value = '';
 
-  // 基本資料列
-  const svName = u.supervisor_id ? (usersCache.find(x=>x.id===u.supervisor_id)?.real_name||'—') : '未指派';
+  // ?箸鞈???  const svName = u.supervisor_id ? (usersCache.find(x=>x.id===u.supervisor_id)?.real_name||'??) : '?芣?瘣?;
   const bankBlock = isPartner ? `
-    <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin:.75rem 0 .3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">🏦 收款資訊</div>
-    ${row('類型', u.bank_type==='post'?'中華郵政':'一般銀行')}
-    ${row('戶名', u.bank_holder)}
-    ${row('銀行/郵局', u.bank_name)}
-    ${row('分行', u.bank_branch)}
-    ${row('帳號', u.bank_account)}
-    ${u.post_office_code ? row('郵局局號', u.post_office_code) : ''}
+    <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin:.75rem 0 .3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">? ?嗆狡鞈?</div>
+    ${row('憿?', u.bank_type==='post'?'銝剛?菜':'銝?祇?銵?)}
+    ${row('?嗅?', u.bank_holder)}
+    ${row('?銵??萄?', u.bank_name)}
+    ${row('??', u.bank_branch)}
+    ${row('撣唾?', u.bank_account)}
+    ${u.post_office_code ? row('?萄?撅??, u.post_office_code) : ''}
   ` : '';
 
   document.getElementById('detail-info').innerHTML = `
-    <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">👤 基本資料</div>
-    ${row('帳號', u.username)}
-    ${row('姓名', u.real_name)}
-    ${row('性別', genderLabel[u.gender]||u.gender||'—')}
-    ${row('身分證', u.id_number)}
-    ${row('生日', u.birthday)}
-    ${row('電話', u.phone)}
-    ${row('信箱', u.email)}
-    ${row('地址', u.address)}
-    ${row('身份別', u.identity||'—')}
-    ${isPartner ? row('負責督導', svName) : ''}
-    ${row('狀態', statusLabel[u.status]||u.status)}
-    ${row('申請時間', u.created_at)}
+    <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin-bottom:.3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">? ?箸鞈?</div>
+    ${row('撣唾?', u.username)}
+    ${row('憪?', u.real_name)}
+    ${row('?批', genderLabel[u.gender]||u.gender||'??)}
+    ${row('頨怠?霅?, u.id_number)}
+    ${row('?', u.birthday)}
+    ${row('?餉店', u.phone)}
+    ${row('靽∠拳', u.email)}
+    ${row('?啣?', u.address)}
+    ${row('頨思遢??, u.identity||'??)}
+    ${isPartner ? row('鞎痊???', svName) : ''}
+    ${row('???, statusLabel[u.status]||u.status)}
+    ${row('?唾???', u.created_at)}
     ${bankBlock}
   `;
 
-  // 圖片（只有 partner 才有）
-  const imgCol = document.getElementById('detail-imgs-col');
+  // ??嚗??partner ??嚗?  const imgCol = document.getElementById('detail-imgs-col');
   if (isPartner) {
     imgCol.style.display = 'block';
-    const bankLabel = u.bank_type === 'post' ? '郵局存簿' : '銀行存摺';
+    const bankLabel = u.bank_type === 'post' ? '?萄?摮倏' : '?銵???;
     document.getElementById('di-bank-label').textContent = bankLabel;
     ['front','back','bank'].forEach(k => {
-      document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">載入中…</span>';
+      document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">頛銝凌?/span>';
     });
     API.get(`/api/admin/users/${id}/images`).then(r => {
       const d = r.data || {};
       ['front','back','bank'].forEach(k => {
         const el  = document.getElementById('di-'+k);
-        const lbl = { front:'身分證正面', back:'身分證反面', bank: bankLabel }[k];
+        const lbl = { front:'頨怠?霅迤??, back:'頨怠?霅???, bank: bankLabel }[k];
         if (d[k]) {
           el.innerHTML = `<img src="data:image/jpeg;base64,${d[k]}" alt="${lbl}" onclick="openLightbox(this.src)" style="cursor:zoom-in;width:100%;height:100%;object-fit:cover;display:block">`;
         } else {
-          el.innerHTML = `<span style="font-size:.68rem;padding:.4rem;text-align:center;color:var(--text-s)">無圖片</span>`;
+          el.innerHTML = `<span style="font-size:.68rem;padding:.4rem;text-align:center;color:var(--text-s)">?∪???/span>`;
         }
       });
     }).catch(() => {
       ['front','back','bank'].forEach(k => {
-        document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">載入失敗</span>';
+        document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">頛憭望?</span>';
       });
     });
   } else {
     imgCol.style.display = 'none';
   }
 
-  // 督導選擇（pending partner 才顯示）
+  // ????豢?嚗ending partner ?＊蝷綽?
   const svRow = document.getElementById('detail-sv-row');
   if (isPending && isPartner) {
     svRow.style.display = 'block';
     const svs = usersCache.filter(u => u.role==='supervisor' && u.status==='active');
     document.getElementById('detail-sv-sel').innerHTML =
-      '<option value="">請選擇督導人員</option>' +
+      '<option value="">隢?撠犖??/option>' +
       svs.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
   } else { svRow.style.display = 'none'; }
 
-  // 核可/退回按鈕（重置為預設狀態）
+  // ?詨/??????蔭?粹?閮剔???
   document.getElementById('detail-reject-row').style.display  = 'none';
   document.getElementById('detail-reject-btns').style.display = 'none';
   document.getElementById('detail-pending-btns').style.display = isPending ? 'flex' : 'none';
@@ -933,7 +927,7 @@ async function openDetail(id) {
 }
 
 function row(label, val) {
-  return `<div class="det-row"><span class="det-label">${label}</span><span class="det-val">${val||'—'}</span></div>`;
+  return `<div class="det-row"><span class="det-label">${label}</span><span class="det-val">${val||'??}</span></div>`;
 }
 
 function closeDetail() {
@@ -963,10 +957,10 @@ async function confirmRejectFromDetail() {
   const id     = parseInt(document.getElementById('detail-user-id').value);
   const name   = document.getElementById('detail-user-name').value;
   const reason = document.getElementById('detail-reject-reason').value.trim();
-  if (!confirm(`確定退回「${name}」的申請？${reason?'\n退回原因：'+reason:''}`)) return;
+  if (!confirm(`蝣箏????{name}???唾?嚗?{reason?'\n?????'+reason:''}`)) return;
   try {
     await API.put(`/api/admin/users/${id}/reject`, { reason });
-    showToast(`已退回 ${name} 的申請`, 'warn');
+    showToast(`撌脤??${name} ?隢, 'warn');
     closeDetail();
     await loadAccounts();
   } catch(e) { showToast(e.message, 'error'); }
@@ -980,16 +974,16 @@ async function approveFromDetail() {
   err.style.display = 'none';
   if (role === 'partner') {
     const svId = document.getElementById('detail-sv-sel').value;
-    if (!svId) { err.textContent = '請先選擇督導人員'; err.style.display = 'block'; return; }
+    if (!svId) { err.textContent = '隢??豢????鈭箏'; err.style.display = 'block'; return; }
     try {
       await API.put(`/api/admin/users/${id}/approve`, { supervisor_id: parseInt(svId) });
-      showToast(`已核可 ${name}，已指派督導`, 'success');
+      showToast(`撌脫??${name}嚗歇?晷???`, 'success');
       closeDetail(); await loadUsers();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
   } else {
     try {
       await API.put(`/api/admin/users/${id}/approve`, {});
-      showToast(`已核可 ${name}`, 'success');
+      showToast(`撌脫??${name}`, 'success');
       closeDetail(); await loadUsers();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
   }
@@ -1008,12 +1002,12 @@ function closeLightbox() {
 function roleActions(u) {
   const isAdmin   = me.username === 'admin' || me.is_admin === true;
   const isSelf    = u.id === me.id;
-  const detail    = `<button class="action-btn" onclick="openDetail(${u.id})">詳細</button>`;
-  const delBtn    = !isSelf ? `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">刪除</button>` : '';
-  const stopBtn   = `<button class="action-btn warn" onclick="deactivateUser(${u.id},'${u.real_name}')">停用</button>`;
-  const startBtn  = `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">啟用</button>`;
-  const approveBtn= `<button class="action-btn approve" onclick="openDetail(${u.id})">審核</button>`;
-  const resetBtn  = `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">密碼重設</button>`;
+  const detail    = `<button class="action-btn" onclick="openDetail(${u.id})">閰喟敦</button>`;
+  const delBtn    = !isSelf ? `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">?芷</button>` : '';
+  const stopBtn   = `<button class="action-btn warn" onclick="deactivateUser(${u.id},'${u.real_name}')">?</button>`;
+  const startBtn  = `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">?</button>`;
+  const approveBtn= `<button class="action-btn approve" onclick="openDetail(${u.id})">撖拇</button>`;
+  const resetBtn  = `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">撖Ⅳ?身</button>`;
 
   if (u.role === 'partner') {
     if (u.status === 'pending')  return approveBtn;
@@ -1027,8 +1021,7 @@ function roleActions(u) {
   }
   if (u.role === 'staff') {
     if (isSelf) return detail;
-    // 系統管理員只有 admin 本身能管，其他人只能看詳細
-    if (u.username === 'admin' && !isAdmin) return detail;
+    // 蝟餌絞蝞∠??∪??admin ?祈澈?賜恣嚗隞犖?芾?底蝝?    if (u.username === 'admin' && !isAdmin) return detail;
     const reset = isAdmin ? resetBtn : '';
     if (u.status === 'active')   return detail + stopBtn + reset + delBtn;
     if (u.status === 'inactive') return detail + startBtn + reset + delBtn;
@@ -1036,7 +1029,7 @@ function roleActions(u) {
   return detail;
 }
 
-function accountActions(u) { return ''; } // 保留相容
+function accountActions(u) { return ''; } // 靽??詨捆
 
 let svListCache = [];
 async function loadSvList() {
@@ -1046,15 +1039,15 @@ async function loadSvList() {
   return svListCache;
 }
 
-// ── 更換督導 ──
+// ?? ?湔???? ??
 async function openChgSv(id, name) {
   document.getElementById('chgsv-user-id').value = id;
-  document.getElementById('chgsv-name-label').textContent = `夥伴：${name}`;
+  document.getElementById('chgsv-name-label').textContent = `憭乩撈嚗?{name}`;
   document.getElementById('chgsv-err').style.display = 'none';
   const svs = await loadSvList();
   const cur  = usersCache.find(u => u.id === id)?.supervisor_id;
   document.getElementById('chgsv-sel').innerHTML =
-    '<option value="">請選擇督導人員</option>' +
+    '<option value="">隢?撠犖??/option>' +
     svs.map(sv => `<option value="${sv.id}"${sv.id===cur?' selected':''}>${sv.real_name}</option>`).join('');
   document.getElementById('chgsv-overlay').classList.add('open');
 }
@@ -1066,34 +1059,31 @@ async function submitChgSv() {
   err.style.display = 'none';
   const id   = parseInt(document.getElementById('chgsv-user-id').value);
   const svId = document.getElementById('chgsv-sel').value;
-  if (!svId) { err.textContent = '請選擇督導人員'; err.style.display = 'block'; return; }
+  if (!svId) { err.textContent = '隢?撠犖??; err.style.display = 'block'; return; }
   try {
     await API.put(`/api/admin/users/${id}/set-supervisor`, { supervisor_id: parseInt(svId) });
     closeChgSv();
-    showToast('督導人員已更換', 'success');
-    svListCache = []; // 清快取
-    loadAccounts();
+    showToast('???鈭箏撌脫??, 'success');
+    svListCache = []; // 皜翰??    loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 async function approveUser(id, name) {
   const user = usersCache.find(u => u.id === id);
-  // 工作夥伴需選督導
-  if (user && user.role === 'partner') {
+  // 撌乩?憭乩撈??貊撠?  if (user && user.role === 'partner') {
     document.getElementById('approve-user-id').value   = id;
     document.getElementById('approve-user-name').value = name;
     document.getElementById('approve-err').style.display = 'none';
-    // 載入督導清單
+    // 頛???皜
     if (!svListCache.length) {
       svListCache = (await API.get('/api/admin/users')).filter(u => u.role === 'supervisor' && u.status === 'active');
     }
     const sel = document.getElementById('approve-supervisor-sel');
-    sel.innerHTML = '<option value="">請選擇督導人員</option>' +
+    sel.innerHTML = '<option value="">隢?撠犖??/option>' +
       svListCache.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
     document.getElementById('approve-overlay').classList.add('open');
   } else {
-    // 非夥伴直接核准
-    await API.put(`/api/admin/users/${id}/approve`, {});
-    showToast(`已核准 ${name}`, 'success');
+    // ?丰隡渡?交??    await API.put(`/api/admin/users/${id}/approve`, {});
+    showToast(`撌脫??${name}`, 'success');
     loadAccounts();
   }
 }
@@ -1106,37 +1096,37 @@ async function submitApprove() {
   const id   = parseInt(document.getElementById('approve-user-id').value);
   const name = document.getElementById('approve-user-name').value;
   const svId = document.getElementById('approve-supervisor-sel').value;
-  if (!svId) { err.textContent = '請選擇督導人員'; err.style.display = 'block'; return; }
+  if (!svId) { err.textContent = '隢?撠犖??; err.style.display = 'block'; return; }
   try {
     await API.put(`/api/admin/users/${id}/approve`, { supervisor_id: parseInt(svId) });
     closeApprove();
-    showToast(`已核准 ${name}，已指派督導`, 'success');
+    showToast(`撌脫??${name}嚗歇?晷???`, 'success');
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 async function deactivateUser(id, name) {
-  openConfirm('⏸', '停用帳號', `確定要停用「${name}」的帳號？停用後無法登入。`, async () => {
+  openConfirm('??, '?撣唾?', `蝣箏?閬??具?{name}??撣唾?嚗??典??⊥??餃?, async () => {
     await API.put(`/api/admin/users/${id}/deactivate`);
-    showToast(`已停用 ${name}`, 'warn');
+    showToast(`撌脣???${name}`, 'warn');
     loadAccounts();
   });
 }
 async function resetPassword(id, name) {
-  openConfirm('🔑', '重設密碼', `確定要將「${name}」的密碼重設為 0000？\n下次登入需要修改密碼。`, async () => {
+  openConfirm('??', '?身撖Ⅳ', `蝣箏?閬???{name}??撖Ⅳ?身??0000嚗n銝活?餃?閬耨?孵?蝣潦, async () => {
     await API.put(`/api/admin/users/${id}/reset-password`);
-    showToast(`已重設 ${name} 的密碼為 0000`, 'success');
+    showToast(`撌脤?閮?${name} ??蝣潛 0000`, 'success');
     loadForgotRequests();
   });
 }
 async function deleteUser(id, name) {
-  openConfirm('🗑', '刪除帳號', `確定要永久刪除「${name}」？\n此操作無法復原，所有相關資料將一併移除。`, async () => {
+  openConfirm('??', '?芷撣唾?', `蝣箏?閬偶銋?扎?{name}??\n甇斗?雿瘜儔????????銝雿萇宏?扎, async () => {
     await API.delete(`/api/admin/users/${id}`);
-    showToast(`已刪除 ${name}`, 'info');
+    showToast(`撌脣??${name}`, 'info');
     loadAccounts();
   });
 }
 
-// ── 忘記密碼 ──
+// ?? 敹?撖Ⅳ ??
 let forgotCache = [];
 async function loadForgotRequests() {
   try {
@@ -1153,28 +1143,28 @@ function renderForgotRequests() {
   badge.style.display = forgotCache.length ? 'inline-flex' : 'none';
 
   if (!forgotCache.length) {
-    el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-s);padding:2rem">目前沒有忘記密碼申請</div>';
+    el.innerHTML = '<div class="card" style="text-align:center;color:var(--text-s);padding:2rem">?桀?瘝?敹?撖Ⅳ?唾?</div>';
     return;
   }
   el.innerHTML = forgotCache.map(r => `
     <div class="forgot-card">
       <div class="forgot-info">
         <div class="forgot-name">${r.real_name}</div>
-        <div class="forgot-meta">帳號：${r.username} · 申請時間：${r.created_at.slice(0,16)}</div>
+        <div class="forgot-meta">撣唾?嚗?{r.username} 繚 ?唾???嚗?{r.created_at.slice(0,16)}</div>
       </div>
-      <button class="action-btn warn" onclick="resetPassword(${r.user_id},'${r.real_name}')">🔑 重設密碼為 0000</button>
+      <button class="action-btn warn" onclick="resetPassword(${r.user_id},'${r.real_name}')">?? ?身撖Ⅳ??0000</button>
     </div>
   `).join('');
 }
 
-// ── Dashboard 統計 ──
+// ?? Dashboard 蝯梯? ??
 function updateDashboard() {
   const active = usersCache.filter(u => u.status === 'active' || u.status === 'pending');
   const total      = active.length;
   const cntPartner    = active.filter(u => u.role === 'partner').length;
   const cntSupervisor = active.filter(u => u.role === 'supervisor').length;
   const cntStaff      = active.filter(u => u.role === 'staff').length;
-  document.getElementById('dash-total').textContent       = total || '—';
+  document.getElementById('dash-total').textContent       = total || '??;
   document.getElementById('dash-cnt-partner').textContent    = cntPartner;
   document.getElementById('dash-cnt-supervisor').textContent = cntSupervisor;
   document.getElementById('dash-cnt-staff').textContent      = cntStaff;
@@ -1183,22 +1173,22 @@ function updateDashboard() {
   document.getElementById('dash-forgot').textContent  = forgotCache.length || '0';
 }
 
-// ── 新增帳號 ──
+// ?? ?啣?撣唾? ??
 function initCuBday() {
   const y = document.getElementById('cu-bday-year');
   const m = document.getElementById('cu-bday-month');
   const d = document.getElementById('cu-bday-day');
   const thisYear = new Date().getFullYear();
-  y.innerHTML = '<option value="">年</option>';
-  m.innerHTML = '<option value="">月</option>';
-  d.innerHTML = '<option value="">日</option>';
-  for (let i = thisYear; i >= thisYear-80; i--) y.innerHTML += `<option value="${i}">${i} 年</option>`;
-  for (let i = 1; i <= 12; i++) m.innerHTML += `<option value="${i}">${i} 月</option>`;
+  y.innerHTML = '<option value="">撟?/option>';
+  m.innerHTML = '<option value="">??/option>';
+  d.innerHTML = '<option value="">??/option>';
+  for (let i = thisYear; i >= thisYear-80; i--) y.innerHTML += `<option value="${i}">${i} 撟?/option>`;
+  for (let i = 1; i <= 12; i++) m.innerHTML += `<option value="${i}">${i} ??/option>`;
   function updateDays() {
     const yv = parseInt(y.value)||2000, mv = parseInt(m.value)||1, dv = parseInt(d.value)||0;
     const max = new Date(yv, mv, 0).getDate();
-    d.innerHTML = '<option value="">日</option>';
-    for (let i = 1; i <= max; i++) d.innerHTML += `<option value="${i}"${i===dv?' selected':''}>${i} 日</option>`;
+    d.innerHTML = '<option value="">??/option>';
+    for (let i = 1; i <= max; i++) d.innerHTML += `<option value="${i}"${i===dv?' selected':''}>${i} ??/option>`;
     syncBday();
   }
   function syncBday() {
@@ -1211,15 +1201,14 @@ function initCuBday() {
 }
 
 function openCreateUser(role) {
-  const titles = { supervisor:'新增督導人員', staff:'新增管理人員' };
+  const titles = { supervisor:'?啣????鈭箏', staff:'?啣?蝞∠?鈭箏' };
   document.getElementById('create-user-title').textContent = titles[role];
   document.getElementById('create-user-role').value = role;
   ['cu-name','cu-id','cu-phone','cu-email','cu-address'].forEach(id => document.getElementById(id).value = '');
   ['cu-bday-year','cu-bday-month','cu-bday-day'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('cu-birthday').value = '';
   document.getElementById('cu-err').style.display = 'none';
-  // 只有 system admin 新增管理人員時顯示「設定成系統管理者」
-  const adminRow = document.getElementById('cu-admin-row');
+  // ?芣? system admin ?啣?蝞∠?鈭箏?＊蝷箝身摰?蝟餌絞蝞∠???  const adminRow = document.getElementById('cu-admin-row');
   const isSystemAdmin = me.username === 'admin' || me.is_admin === true;
   adminRow.style.display = (role === 'staff' && isSystemAdmin) ? 'flex' : 'none';
   document.getElementById('cu-is-admin').checked = false;
@@ -1239,19 +1228,19 @@ async function submitCreateUser() {
   const email    = document.getElementById('cu-email').value.trim();
   const address  = document.getElementById('cu-address').value.trim();
   const is_admin = document.getElementById('cu-is-admin')?.checked || false;
-  if (!real_name) { err.textContent='請填寫姓名'; err.style.display='block'; return; }
-  if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
-  if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
-  if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
+  if (!real_name) { err.textContent='隢‵撖怠???; err.style.display='block'; return; }
+  if (!id_number) { err.textContent='隢‵撖怨澈??'; err.style.display='block'; return; }
+  if (!birthday)  { err.textContent='隢????; err.style.display='block'; return; }
+  if (!phone)     { err.textContent='隢‵撖恍閰?; err.style.display='block'; return; }
   try {
     const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, is_admin });
     closeCreateUser();
-    showToast(`帳號已建立：${res.username}`, 'success');
+    showToast(`撣唾?撌脣遣蝡?${res.username}`, 'success');
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
-// ── 系統設定 ──────────────────────────────────────────────────
+// ?? 蝟餌絞閮剖? ??????????????????????????????????????????????????
 let contractOriginal = '';
 async function loadSystemSettings() {
   try {
@@ -1268,7 +1257,7 @@ async function saveContract() {
   try {
     await API.put('/api/system/contract', { text });
     contractOriginal = text;
-    showToast('合約已儲存', 'success');
+    showToast('??撌脣摮?, 'success');
   } catch(e) {
     errEl.textContent = e.message;
     errEl.style.display = 'block';
@@ -1279,7 +1268,7 @@ function cancelContract() {
   document.getElementById('contract-err').style.display = 'none';
 }
 
-// ── 個人資料 — 基本資料 ──
+// ?? ?犖鞈? ???箸鞈? ??
 let stProfData = {};
 
 function fillStProfile(p) {
@@ -1321,29 +1310,29 @@ async function saveStProfile() {
     stProfData.address = document.getElementById('st-prof-address').value;
     stProfData.email   = document.getElementById('st-prof-email').value.trim();
     cancelStProfEdit();
-    showToast('個人資料已儲存', 'success');
+    showToast('?犖鞈?撌脣摮?, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ── 個人資料 — 修改密碼 ──
+// ?? ?犖鞈? ??靽格撖Ⅳ ??
 async function changePassword() {
   const err = document.getElementById('prof-cpw-err');
   err.style.display='none';
   const current=document.getElementById('prof-cpw-current').value;
   const newPw=document.getElementById('prof-cpw-new').value;
   const confirm=document.getElementById('prof-cpw-confirm').value;
-  if(newPw.length<4){err.textContent='新密碼至少4碼';err.style.display='block';return;}
-  if(newPw!==confirm){err.textContent='兩次輸入不一致';err.style.display='block';return;}
+  if(newPw.length<4){err.textContent='?啣?蝣潸撠?蝣?;err.style.display='block';return;}
+  if(newPw!==confirm){err.textContent='?拇活頛詨銝???;err.style.display='block';return;}
   try{
     await API.post('/api/change-password',{current_password:current,new_password:newPw});
-    showToast('密碼已修改','success');
+    showToast('撖Ⅳ撌脖耨??,'success');
     document.getElementById('prof-cpw-current').value='';
     document.getElementById('prof-cpw-new').value='';
     document.getElementById('prof-cpw-confirm').value='';
   }catch(e){err.textContent=e.message;err.style.display='block';}
 }
 
-// ── Confirm dialog ──
+// ?? Confirm dialog ??
 let confirmCallback = null;
 function openConfirm(icon, title, desc, cb) {
   document.getElementById('confirm-icon').textContent = icon;
@@ -1363,7 +1352,7 @@ document.getElementById('confirm-ok-btn').onclick = async () => {
   closeConfirm();
 };
 
-// ── 薪資管理 ──────────────────────────────────────────
+// ?? ?芾?蝞∠? ??????????????????????????????????????????
 let payrollCache = [];
 
 function last3Months() {
@@ -1404,8 +1393,7 @@ function renderPayroll() {
   const ym = sel ? sel.value : '';
   const [filterY, filterM] = ym ? ym.split('-') : ['',''];
 
-  // 每位夥伴篩選出該月記錄
-  const filtered = payrollCache.map(p => {
+  // 瘥?憭乩撈蝭拚?箄府????  const filtered = payrollCache.map(p => {
     const records = p.records.filter(a => {
       const d = a.completed_at || '';
       return d.startsWith(`${filterY}/${filterM}`);
@@ -1416,7 +1404,7 @@ function renderPayroll() {
   if (countEl) countEl.textContent = filtered.length;
 
   if (!filtered.length) {
-    listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">本月無薪資紀錄</div>';
+    listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">?祆??∟鞈???/div>';
     return;
   }
 
@@ -1425,8 +1413,8 @@ function renderPayroll() {
     const rows = p.records.map(a => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">
         <div>
-          <div style="font-size:.85rem;font-weight:600;color:var(--text-m)">${a.company ? a.company+'：'+a.task_name : a.task_name}</div>
-          <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${a.completed_at || '—'}</div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text-m)">${a.company ? a.company+'嚗?+a.task_name : a.task_name}</div>
+          <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${a.completed_at || '??}</div>
         </div>
         <div style="font-weight:700;color:var(--yellow);font-size:.92rem;white-space:nowrap">+$${(a.total_price||0).toLocaleString()}</div>
       </div>`).join('');
@@ -1438,12 +1426,12 @@ function renderPayroll() {
             <div style="width:32px;height:32px;border-radius:50%;background:var(--blue-p);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--blue-d)">${p.real_name.slice(-1)}</div>
             <div>
               <div style="font-size:.9rem;font-weight:700">${p.real_name}</div>
-              <div style="font-size:.72rem;color:var(--text-s)">完成 ${p.records.length} 筆</div>
+              <div style="font-size:.72rem;color:var(--text-s)">摰? ${p.records.length} 蝑?/div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:.6rem">
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1rem">$${total.toLocaleString()}</div>
-            <span class="pp-arrow-wrap" style="font-size:.75rem;color:var(--text-s);cursor:pointer" onclick="togglePayrollPanel('pp-${p.id}',this)">▼</span>
+            <span class="pp-arrow-wrap" style="font-size:.75rem;color:var(--text-s);cursor:pointer" onclick="togglePayrollPanel('pp-${p.id}',this)">??/span>
           </div>
         </div>
         <div id="pp-${p.id}" style="padding:.25rem 1rem .5rem;display:none">${rows}</div>
@@ -1456,7 +1444,7 @@ function togglePayrollPanel(panelId, arrowEl) {
   if (!panel) return;
   const open = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : '';
-  if (arrowEl) arrowEl.textContent = open ? '▼' : '▲';
+  if (arrowEl) arrowEl.textContent = open ? '?? : '??;
 }
 
 async function sendPayrollEmail(partnerId, btn) {
@@ -1464,45 +1452,45 @@ async function sendPayrollEmail(partnerId, btn) {
   const ym  = sel ? sel.value : '';
   if (!ym) return;
   const [y, m] = ym.split('-');
-  const monthLabel = `${y} 年 ${parseInt(m)} 月`;
-  if (!confirm(`確定要寄送 ${monthLabel} 薪資通知給此夥伴？`)) return;
+  const monthLabel = `${y} 撟?${parseInt(m)} ?;
+  if (!confirm(`蝣箏?閬???${monthLabel} ?芾??蝯行迨憭乩撈嚗)) return;
   btn.disabled = true;
-  btn.textContent = '寄送中…';
+  btn.textContent = '撖葉??;
   try {
     const res = await API.post('/api/admin/payroll/send-email', { partner_id: partnerId, year_month: ym });
-    showToast(res.message || '寄送成功 ✅', 'success');
+    showToast(res.message || '撖?????, 'success');
   } catch(e) {
     showToast(e.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '📧 寄送通知';
+    btn.textContent = '? 撖';
   }
 }
 
 
 
-// ── 寄送目前資料給自己（登入中的管理員）────────────────────────
+// ?? 撖???策?芸楛嚗?乩葉?恣?嚗????????????????????????
 async function sendAllPayroll(btn) {
   const sel = document.getElementById('payroll-month');
   const ym  = sel ? sel.value : '';
   if (!ym) return;
   const [y, m] = ym.split('-');
-  const monthLabel = `${y} 年 ${parseInt(m)} 月`;
-  if (!confirm(`確定要將 ${monthLabel} 薪資彙整寄送至您的信箱？`)) return;
+  const monthLabel = `${y} 撟?${parseInt(m)} ?;
+  if (!confirm(`蝣箏?閬? ${monthLabel} ?芾?敶撖?函?靽∠拳嚗)) return;
   btn.disabled = true;
-  btn.textContent = '寄送中…';
+  btn.textContent = '撖葉??;
   try {
     const res = await API.post('/api/admin/payroll/send-me', { year_month: ym });
-    showToast(res.message || '寄送完成 ✅', 'success');
+    showToast(res.message || '撖?????, 'success');
   } catch(e) {
     showToast(e.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '📧 寄送目前資料';
+    btn.textContent = '? 撖????;
   }
 }
 
-// ── Excel 匯出 ─────────────────────────────────────────────────
+// ?? Excel ?臬 ?????????????????????????????????????????????????
 function exportPayrollExcel() {
   const sel = document.getElementById('payroll-month');
   const ym  = sel ? sel.value : '';
@@ -1511,36 +1499,34 @@ function exportPayrollExcel() {
 }
 
 
-// ══════════════════════════════════════════
-// 公告管理
-// ══════════════════════════════════════════
+// ??????????????????????????????????????????
+// ?砍?蝞∠?
+// ??????????????????????????????????????????
 let annList = [];
 
-// ── Modal 開關 ─────────────────────────────
+// ?? Modal ?? ?????????????????????????????
 function openAnnForm(editId) {
   const a = editId ? annList.find(x => x.id === editId) : null;
-  document.getElementById('ann-form-heading').textContent = editId ? '✏️ 編輯公告' : '📢 新增公告';
-  document.getElementById('ann-save-btn').textContent     = editId ? '更新公告' : '發布公告';
+  document.getElementById('ann-form-heading').textContent = editId ? '?? 蝺刻摩?砍?' : '? ?啣??砍?';
+  document.getElementById('ann-save-btn').textContent     = editId ? '?湔?砍?' : '?澆??砍?';
   document.getElementById('ann-edit-id').value  = editId || '';
   document.getElementById('ann-title').value    = a ? (a.title   || '') : '';
   document.getElementById('ann-content').value  = a ? (a.content || '') : '';
   document.getElementById('ann-target').value   = a ? (a.target  || 'all') : 'all';
   document.getElementById('ann-pinned').checked = a ? !!a.is_pinned : false;
   document.getElementById('ann-form-err').style.display = 'none';
-  // 永久公告
+  // 瘞訾??砍?
   const perm = a ? !a.expires_at : false;
   document.getElementById('ann-permanent').checked = perm;
   document.getElementById('ann-expires-wrap').style.display = perm ? 'none' : '';
-  // 日期選擇器
-  dpInit();
+  // ?交??豢???  dpInit();
   if (a && a.expires_at) dpSetDate(a.expires_at); else dpClear();
-  // 附件初始化
-  document.getElementById('ann-att-file').value = '';
+  // ?辣????  document.getElementById('ann-att-file').value = '';
   annAttExisting = [];
   annAttNew      = [];
   annAttRemove   = [];
   if (a) {
-    // 相容新 attachments 陣列與舊單一欄位
+    // ?詨捆??attachments ??????桐?甈?
     if (a.attachments && a.attachments.length) annAttExisting = [...a.attachments];
     else if (a.attachment_drive_id) annAttExisting = [{ drive_id: a.attachment_drive_id, name: a.attachment_name, mime: a.attachment_mime }];
   }
@@ -1556,7 +1542,7 @@ function closeAnnForm() {
   overlay.style.pointerEvents = 'none';
 }
 
-// ── 載入公告 ───────────────────────────────
+// ?? 頛?砍? ???????????????????????????????
 async function loadAnnouncements() {
   try { annList = await API.get('/api/admin/announcements'); }
   catch(e) { annList = []; console.warn('[announcements]', e.message); }
@@ -1564,22 +1550,21 @@ async function loadAnnouncements() {
   try { syncNotifyBar();  } catch(e) { console.warn('[syncNotifyBar]',  e.message); }
 }
 
-// ── 通知條 & 未讀數 ───────────────────────
+// ?? ?璇?& ?芾??????????????????????????
 function syncNotifyBar() {
   if (!me) return;
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
   const readIds = getReadIds(me.id);
   const unread  = visible.filter(a => !readIds.includes(String(a.id))).length;
-  // 導覽紅點
+  // 撠汗蝝?
   const badge = document.getElementById('badge-notices');
   if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
-  // 通知條
-  const bar  = document.getElementById('ann-notify-bar');
+  // ?璇?  const bar  = document.getElementById('ann-notify-bar');
   const text = document.getElementById('ann-notify-text');
   if (bar) {
     if (unread > 0) {
-      text.textContent = `您有 ${unread} 則新公告`;
+      text.textContent = `?冽? ${unread} ??砍?`;
       bar.style.display = 'flex';
     } else {
       bar.style.display = 'none';
@@ -1587,10 +1572,10 @@ function syncNotifyBar() {
   }
 }
 
-// ── 公告欄列表 ─────────────────────────────
+// ?? ?砍?甈?銵??????????????????????????????
 function renderAnnList() {
   const wrap = document.getElementById('ann-list-wrap');
-  if (!annList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
+  if (!annList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">?桀?瘝??砍?</div>'; return; }
   const now = new Date().toISOString().slice(0,10);
   const readIds = me ? getReadIds(me.id) : [];
   const sorted = [...annList].sort((a,b) => {
@@ -1601,39 +1586,39 @@ function renderAnnList() {
     const expired   = a.expires_at && a.expires_at < now;
     const permanent = !a.expires_at;
     const unread    = !readIds.includes(String(a.id));
-    const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[a.target||'all'] || '全部角色';
+    const targetLabel = { all:'?券閫', partner:'撌乩?憭乩撈', supervisor:'???鈭箏', staff:'蝞∠?鈭箏' }[a.target||'all'] || '?券閫';
     const annJson = JSON.stringify(a).replace(/'/g, '&#39;');
     return `
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="${expired ? 'opacity:.55' : ''}">
       <div style="flex:1;min-width:0;cursor:pointer" onclick='openAnnDetail(${annJson})'>
         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.2rem">
           ${unread    ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
-          ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
-          ${permanent ? '<span style="font-size:.68rem;background:var(--purple);color:#fff;padding:.1rem .4rem;border-radius:8px">🔒</span>' : ''}
-          ${expired   ? '<span style="font-size:.68rem;background:var(--text-s);color:#fff;padding:.1rem .4rem;border-radius:8px">到期</span>' : ''}
+          ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">??</span>' : ''}
+          ${permanent ? '<span style="font-size:.68rem;background:var(--purple);color:#fff;padding:.1rem .4rem;border-radius:8px">??</span>' : ''}
+          ${expired   ? '<span style="font-size:.68rem;background:var(--text-s);color:#fff;padding:.1rem .4rem;border-radius:8px">?唳?</span>' : ''}
           <span class="ann-target-tag">${targetLabel}</span>
           <span style="font-weight:700;font-size:.9rem">${a.title}</span>
         </div>
-        <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}
-          ${(()=>{ const n=(a.attachments&&a.attachments.length)||( a.attachment_drive_id?1:0); return n?` &nbsp;·&nbsp; 📎 ${n} 個附件`:''; })()}
+        <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;繚&nbsp; ${a.created_by||'??}
+          ${(()=>{ const n=(a.attachments&&a.attachments.length)||( a.attachment_drive_id?1:0); return n?` &nbsp;繚&nbsp; ?? ${n} ??隞跆:''; })()}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0;margin-left:.5rem">
-        <button onclick="editAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">編輯</button>
-        <button onclick="deleteAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
+        <button onclick="editAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">蝺刻摩</button>
+        <button onclick="deleteAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?芷</button>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── 點開公告詳細 ───────────────────────────
+// ?? 暺??砍?閰喟敦 ???????????????????????????
 function openAnnDetail(ann) {
   showAnnDetail(ann, me ? me.id : null);
-  // 讀後更新通知條與紅點
+  // 霈敺?圈璇?蝝?
   try { syncNotifyBar(); } catch(e) {}
 }
 
-// ── 永久公告 checkbox ──────────────────────
+// ?? 瘞訾??砍? checkbox ??????????????????????
 function togglePermanent() {
   const perm = document.getElementById('ann-permanent').checked;
   const wrap = document.getElementById('ann-expires-wrap');
@@ -1641,22 +1626,21 @@ function togglePermanent() {
   if (perm) { document.getElementById('ann-expires').value = ''; dpClear(); }
 }
 
-// ══════════════════════════════════════════
-// 日期選擇器（ann 專用）
-// ══════════════════════════════════════════
+// ??????????????????????????????????????????
+// ?交??豢??剁?ann 撠嚗?// ??????????????????????????????????????????
 function dpInit() {
   const yearSel  = document.getElementById('dp-ann-year');
   const monthSel = document.getElementById('dp-ann-month');
   const today    = new Date();
   const cy = today.getFullYear();
 
-  yearSel.innerHTML = '<option value="">選擇年份</option>';
+  yearSel.innerHTML = '<option value="">?豢?撟港遢</option>';
   for (let y = cy; y <= cy + 5; y++)
-    yearSel.innerHTML += `<option value="${y}">${y} 年</option>`;
+    yearSel.innerHTML += `<option value="${y}">${y} 撟?/option>`;
 
-  monthSel.innerHTML = '<option value="">選擇月份</option>';
+  monthSel.innerHTML = '<option value="">?豢??遢</option>';
   for (let m = 1; m <= 12; m++)
-    monthSel.innerHTML += `<option value="${m}">${m} 月</option>`;
+    monthSel.innerHTML += `<option value="${m}">${m} ??/option>`;
 }
 
 function dpUpdateGrid() {
@@ -1672,14 +1656,12 @@ function dpUpdateGrid() {
   const today       = new Date();
   const todayStr    = today.toISOString().slice(0,10);
   const daysInMonth = new Date(y, m, 0).getDate();
-  const firstDow    = new Date(y, m-1, 1).getDay(); // 0=日
-  const selDate     = document.getElementById('ann-expires').value;
+  const firstDow    = new Date(y, m-1, 1).getDay(); // 0=??  const selDate     = document.getElementById('ann-expires').value;
 
   let html = '';
-  // 空格填充
+  // 蝛箸憛怠?
   for (let i = 0; i < firstDow; i++) html += '<div class="dp-day dp-empty"></div>';
-  // 日期格
-  for (let d = 1; d <= daysInMonth; d++) {
+  // ?交???  for (let d = 1; d <= daysInMonth; d++) {
     const ds  = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dow = (firstDow + d - 1) % 7;
     const col = dow === 0 ? 'var(--red)' : dow === 6 ? '#2EAA7A' : 'var(--text)';
@@ -1691,19 +1673,18 @@ function dpUpdateGrid() {
   daysEl.innerHTML = html;
 
   if (!selDate || !hintEl) return;
-  hintEl.textContent = selDate ? `到期日：${selDate}` : '尚未選擇到期日';
+  hintEl.textContent = selDate ? `?唳??伐?${selDate}` : '撠?豢??唳???;
 }
 
 function dpSelectDay(ds) {
   document.getElementById('ann-expires').value = ds;
-  document.getElementById('dp-ann-hint').textContent = `到期日：${ds}`;
-  // 重繪格子以更新選中樣式
-  dpUpdateGrid();
+  document.getElementById('dp-ann-hint').textContent = `?唳??伐?${ds}`;
+  // ?鼓?澆?隞交?圈銝剜見撘?  dpUpdateGrid();
 }
 
 function dpClear() {
   document.getElementById('ann-expires').value = '';
-  document.getElementById('dp-ann-hint').textContent = '尚未選擇到期日';
+  document.getElementById('dp-ann-hint').textContent = '撠?豢??唳???;
   document.getElementById('dp-ann-year').value  = '';
   document.getElementById('dp-ann-month').value = '';
   document.getElementById('dp-ann-grid').style.display = 'none';
@@ -1716,13 +1697,11 @@ function dpSetDate(ds) {
   document.getElementById('dp-ann-month').value = parseInt(m);
   document.getElementById('ann-expires').value  = ds;
   dpUpdateGrid();
-  document.getElementById('dp-ann-hint').textContent = `到期日：${ds}`;
+  document.getElementById('dp-ann-hint').textContent = `?唳??伐?${ds}`;
 }
 
-// ── 附件狀態（多個）────────────────────────
-let annAttExisting = []; // [{drive_id, name, mime}] 已在 DB 的
-let annAttNew      = []; // [{file: File, name, mime}] 待上傳
-let annAttRemove   = []; // drive_id[] 待從 DB 刪除
+// ?? ?辣???憭?????????????????????????
+let annAttExisting = []; // [{drive_id, name, mime}] 撌脣 DB ??let annAttNew      = []; // [{file: File, name, mime}] 敺???let annAttRemove   = []; // drive_id[] 敺? DB ?芷
 
 function renderAttList() {
   const wrap = document.getElementById('ann-att-list');
@@ -1731,12 +1710,12 @@ function renderAttList() {
     ...annAttExisting.map((a, i) => `
       <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .55rem;background:#EBF7FD;border:1.5px solid #48B4E8;border-radius:20px;font-size:.75rem;color:#1A8AC0;max-width:180px">
         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.name}</span>
-        <button onclick="removeExistingAtt(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:.8rem;line-height:1;flex-shrink:0">✕</button>
+        <button onclick="removeExistingAtt(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:.8rem;line-height:1;flex-shrink:0">??/button>
       </span>`),
     ...annAttNew.map((a, i) => `
       <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .55rem;background:#F0F8E8;border:1.5px solid #7BC67E;border-radius:20px;font-size:.75rem;color:#3A8A3D;max-width:180px">
-        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">＋ ${a.name}</span>
-        <button onclick="removeNewAtt(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:.8rem;line-height:1;flex-shrink:0">✕</button>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">嚗?${a.name}</span>
+        <button onclick="removeNewAtt(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:.8rem;line-height:1;flex-shrink:0">??/button>
       </span>`),
   ];
   wrap.innerHTML = chips.join('');
@@ -1744,7 +1723,7 @@ function renderAttList() {
 function onAnnFileAdd(input) {
   if (!input.files || !input.files[0]) return;
   const f = input.files[0];
-  if (f.size > 15 * 1024 * 1024) { showToast('附件大小不得超過 15 MB', 'error'); input.value = ''; return; }
+  if (f.size > 15 * 1024 * 1024) { showToast('?辣憭批?銝?頞? 15 MB', 'error'); input.value = ''; return; }
   annAttNew.push({ file: f, name: f.name, mime: f.type || 'application/octet-stream' });
   input.value = '';
   renderAttList();
@@ -1759,10 +1738,10 @@ function removeNewAtt(i) {
   renderAttList();
 }
 
-// ── 編輯（從列表進入）─────────────────────
+// ?? 蝺刻摩嚗??”?脣嚗?????????????????????
 function editAnn(id) { openAnnForm(id); }
 
-// ── 儲存公告 ────────────────────────────────
+// ?? ?脣??砍? ????????????????????????????????
 async function saveAnn() {
   const id        = document.getElementById('ann-edit-id').value;
   const title     = document.getElementById('ann-title').value.trim();
@@ -1774,15 +1753,15 @@ async function saveAnn() {
   const errEl  = document.getElementById('ann-form-err');
   const saveBtn = document.getElementById('ann-save-btn');
 
-  // 驗證
-  if (!title)   { errEl.textContent = '請輸入公告標題'; errEl.style.display = 'block'; return; }
-  if (!content) { errEl.textContent = '請輸入公告內容'; errEl.style.display = 'block'; return; }
+  // 撽?
+  if (!title)   { errEl.textContent = '隢撓?亙??憿?; errEl.style.display = 'block'; return; }
+  if (!content) { errEl.textContent = '隢撓?亙?摰?; errEl.style.display = 'block'; return; }
   if (!permanent && expires_at) {
     const today = new Date().toISOString().slice(0,10);
-    if (expires_at < today) { errEl.textContent = '到期日不可早於今天'; errEl.style.display = 'block'; return; }
+    if (expires_at < today) { errEl.textContent = '?唳??乩??舀?潔?憭?; errEl.style.display = 'block'; return; }
   }
   errEl.style.display = 'none';
-  saveBtn.disabled = true; saveBtn.textContent = '儲存中…';
+  saveBtn.disabled = true; saveBtn.textContent = '?脣?銝凌?;
 
   try {
     const body = { title, content, target, is_pinned, expires_at };
@@ -1793,13 +1772,13 @@ async function saveAnn() {
       const r = await API.post('/api/admin/announcements', body);
       annId = r.id;
     }
-    // 附件 — 先刪要移除的，再上傳新的
+    // ?辣 ???閬宏?斤?嚗?銝?啁?
     for (const driveId of annAttRemove) {
       await API.delete(`/api/admin/announcements/${annId}/attachment/${driveId}`).catch(()=>{});
     }
     for (let i = 0; i < annAttNew.length; i++) {
       const att = annAttNew[i];
-      saveBtn.textContent = `上傳附件 ${i+1}/${annAttNew.length}…`;
+      saveBtn.textContent = `銝?辣 ${i+1}/${annAttNew.length}?圳;
       const b64 = await new Promise((res,rej) => {
         const reader = new FileReader();
         reader.onload = e => res(e.target.result.split(',')[1]);
@@ -1809,38 +1788,38 @@ async function saveAnn() {
       await fetch(`/api/admin/announcements/${annId}/attachment`, {
         method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
         body: JSON.stringify({ name: att.name, mime: att.mime, data: b64 }),
-      }).then(async r => { if (!r.ok) { const d=await r.json(); throw new Error(d.error||'附件上傳失敗'); } });
+      }).then(async r => { if (!r.ok) { const d=await r.json(); throw new Error(d.error||'?辣銝憭望?'); } });
     }
-    showToast(id ? '公告已更新 ✅' : '公告已發布 ✅', 'success');
+    showToast(id ? '?砍?撌脫???? : '?砍?撌脩撣???, 'success');
     closeAnnForm();
     await loadAnnouncements();
   } catch(e) {
     errEl.textContent = e.message; errEl.style.display = 'block';
   } finally {
     saveBtn.disabled = false;
-    saveBtn.textContent = document.getElementById('ann-edit-id').value ? '更新公告' : '發布公告';
+    saveBtn.textContent = document.getElementById('ann-edit-id').value ? '?湔?砍?' : '?澆??砍?';
   }
 }
 
-// ── 刪除公告 ────────────────────────────────
+// ?? ?芷?砍? ????????????????????????????????
 async function deleteAnn(id) {
-  const title = (annList.find(a => a.id === id) || {}).title || '此公告';
-  if (!confirm(`確定刪除公告「${title}」？`)) return;
+  const title = (annList.find(a => a.id === id) || {}).title || '甇文??;
+  if (!confirm(`蝣箏??芷?砍???{title}??`)) return;
   try {
     await API.delete(`/api/admin/announcements/${id}`);
-    showToast('公告已刪除', 'success');
+    showToast('?砍?撌脣??, 'success');
     await loadAnnouncements();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
 init();
 
-// ── 問題管理（staff）──────────────────────────────────────────
+// ?? ??蝞∠?嚗taff嚗??????????????????????????????????????????
 let issuesStaffCache = [];
 
 async function loadIssuesStaff() {
   try {
-    issuesStaffCache = await API.get('/api/reports/inbox/admin');
+    issuesStaffCache = await API.get('/api/issues/inbox/admin');
     renderIssueList();
     syncIssueNotifyBar();
   } catch(e) { console.error(e); }
@@ -1853,14 +1832,14 @@ function renderIssueList() {
   if (statusF) list = list.filter(r => r.status === statusF);
   if (roleF)   list = list.filter(r => r.reporter_role === roleF);
   const el = document.getElementById('issues-staff-list');
-  if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">目前無問題回報</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">?桀??∪?憿???/div>'; return; }
   el.innerHTML = list.map(r => issueCard(r, 'staff')).join('');
 }
 
 function issueCard(r, viewer) {
-  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
+  const statusMap = { pending:'敺???, processing:'??銝?, resolved:'撌脰圾瘙? };
   const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
-  const roleMap2 = { partner:'工作夥伴', supervisor:'督導人員' };
+  const roleMap2 = { partner:'撌乩?憭乩撈', supervisor:'???鈭箏' };
   const unread = viewer === 'staff' ? r.unread_handler : r.unread_reporter;
   return `<div class="card" style="padding:1rem 1.1rem;cursor:pointer;border-left:4px solid ${statusColor[r.status]}" onclick="toggleIssue(${r.id},'${viewer}')">
     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
@@ -1868,35 +1847,35 @@ function issueCard(r, viewer) {
       <span style="font-weight:700;font-size:.92rem;flex:1">${r.title}</span>
       <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
     </div>
-    <div style="font-size:.78rem;color:var(--text-s)">${r.reporter_name}（${roleMap2[r.reporter_role]||r.reporter_role}）· ${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div style="font-size:.78rem;color:var(--text-s)">${r.reporter_name}嚗?{roleMap2[r.reporter_role]||r.reporter_role}嚗?${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' 繚 ? '+r.replies.length+' ??閬? : ''}</div>
     <div id="issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
       <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
-      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/reports/${r.id}/image/${i}" style="height:80px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
-      ${r.assignment_name ? `<div style="font-size:.78rem;color:var(--text-s);margin-bottom:.5rem">📎 關聯任務：${r.assignment_name}</div>` : ''}
-      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:80px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      ${r.assignment_name ? `<div style="font-size:.78rem;color:var(--text-s);margin-bottom:.5rem">?? ?隞餃?嚗?{r.assignment_name}</div>` : ''}
+      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">??蝝??/div>
       <div id="issue-replies-${r.id}" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
         ${issueRepliesHtml(r.replies||[])}
       </div>
       ${viewer !== 'mine-pt' && viewer !== 'mine-sv' ? `
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
-        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">處理中</button>
-        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'resolved','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">已解決</button>
-        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'pending','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">重設待處理</button>
+        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??銝?/button>
+        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'resolved','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">撌脰圾瘙?/button>
+        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'pending','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?身敺???/button>
       </div>` : ''}
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
-        <input id="issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">
-        <button onclick="submitIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
+        <input id="issue-reply-input-${r.id}" class="form-input" placeholder="頛詨??..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">
+        <button onclick="submitIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">?</button>
       </div>
     </div>
   </div>`;
 }
 
 function issueRepliesHtml(replies) {
-  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
-  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">撠??</div>';
+  const rMap = { partner:'憭乩撈', supervisor:'???', staff:'蝞∠?' };
   return replies.map(rp => `
     <div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem">
-      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
+      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}嚗?{rMap[rp.author_role]||rp.author_role}嚗?${fmtDay(rp.created_at)}</div>
       <div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div>
     </div>`).join('');
 }
@@ -1908,7 +1887,7 @@ async function toggleIssue(id, viewer) {
   document.querySelectorAll('[id^="issue-detail-"]').forEach(e => e.style.display = 'none');
   if (!isOpen) {
     el.style.display = 'block';
-    try { await API.put('/api/reports/'+id+'/read', {}); } catch(e){}
+    try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
     if (viewer === 'staff') await loadIssuesStaff();
     const el2 = document.getElementById('issue-detail-' + id);
     if (el2) el2.style.display = 'block';
@@ -1917,8 +1896,8 @@ async function toggleIssue(id, viewer) {
 
 async function setIssueStatus(id, status, viewer) {
   try {
-    await API.put('/api/reports/'+id+'/status', { status });
-    showToast('狀態已更新', 'success');
+    await API.put('/api/issues/'+id+'/status', { status });
+    showToast('??歇?湔', 'success');
     if (viewer === 'staff') await loadIssuesStaff();
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -1928,9 +1907,9 @@ async function submitIssueReply(id, viewer) {
   const text = input && input.value && input.value.trim();
   if (!text) return;
   try {
-    await API.post('/api/reports/'+id+'/reply', { text });
+    await API.post('/api/issues/'+id+'/reply', { text });
     input.value = '';
-    showToast('回覆已送出', 'success');
+    showToast('??撌脤', 'success');
     if (viewer === 'staff') await loadIssuesStaff();
     const el2 = document.getElementById('issue-detail-' + id);
     if (el2) el2.style.display = 'block';
@@ -1939,7 +1918,7 @@ async function submitIssueReply(id, viewer) {
 
 async function syncIssueNotifyBar() {
   try {
-    const data = await API.get('/api/reports/unread');
+    const data = await API.get('/api/issues/unread');
     const bar   = document.getElementById('issue-notify-bar');
     const badge = document.getElementById('badge-issues');
     const total = (data.from_reporter||0) + (data.from_handler||0);
@@ -1948,9 +1927,9 @@ async function syncIssueNotifyBar() {
       const txt = document.getElementById('issue-notify-text');
       if (txt) {
         const msgs = [];
-        if (data.from_reporter > 0) msgs.push(data.from_reporter+' 件新問題回報待處理');
-        if (data.from_handler > 0)  msgs.push(data.from_handler+' 件問題有新回覆');
-        txt.textContent = msgs.join('　·　');
+        if (data.from_reporter > 0) msgs.push(data.from_reporter+' 隞嗆???敺???);
+        if (data.from_handler > 0)  msgs.push(data.from_handler+' 隞嗅?憿??啣?閬?);
+        txt.textContent = msgs.join('?繚?');
       }
     }
     if (badge) {
@@ -1961,7 +1940,7 @@ async function syncIssueNotifyBar() {
 }
 
 function fmtDay(s) {
-  if (!s || s === '—') return '—';
+  if (!s || s === '??) return '??;
   const datePart = s.replace(/-/g,'/').split(' ')[0];
   const [y,m,d] = datePart.split('/');
   return y+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');

@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作夥伴 — 希絆雲作所</title>
+<title>撌乩?憭乩撈 ??撣??脖??</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -23,21 +23,21 @@
 html,body{height:100%;overflow:hidden}
 body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F8FCFF 100%);color:var(--text);font-size:16px;line-height:1.7;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* ── Layout ── */
+/* ?? Layout ?? */
 .pt-layout{display:flex;flex:1;min-height:0;overflow:hidden}
 
-/* 左側捲軸 */
+/* 撌血?脰遘 */
 .pt-menu::-webkit-scrollbar{width:4px}
 .pt-menu::-webkit-scrollbar-track{background:transparent}
 .pt-menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
 .pt-menu::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.5)}
-/* 右側捲軸 */
+/* ?喳?脰遘 */
 .pt-main::-webkit-scrollbar{width:6px}
 .pt-main::-webkit-scrollbar-track{background:transparent}
 .pt-main::-webkit-scrollbar-thumb{background:#B8D9EE;border-radius:6px}
 .pt-main::-webkit-scrollbar-thumb:hover{background:#74CAEF}
 
-/* ── Sidebar ── */
+/* ?? Sidebar ?? */
 .pt-sidebar{width:230px;background:linear-gradient(180deg,#1260A0,#1A8AC0);color:#fff;
   display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 20px rgba(26,112,160,.25);overflow:hidden}
 .pt-sidebar-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -80,14 +80,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
   font-size:.78rem;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:color .2s}
 .pt-logout:hover{color:rgba(255,255,255,.8)}
 
-/* ── Main ── */
+/* ?? Main ?? */
 .pt-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:700;margin-bottom:1.25rem;
   color:var(--text);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
 .page-section{display:none}
 .page-section.active{display:block}
 
-/* ── Character stats card (in tasks section) ── */
+/* ?? Character stats card (in tasks section) ?? */
 .char-stats-card{background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(235,247,253,.8));
   border-radius:var(--r);padding:1rem 1.25rem;border-top:4px solid var(--blue);
   box-shadow:0 6px 24px rgba(72,180,232,.12);margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
@@ -96,7 +96,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .stat-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d)}
 .stat-label{font-size:.62rem;color:var(--text-s)}
 
-/* ── Quest cards ── */
+/* ?? Quest cards ?? */
 .active-task-item{background:linear-gradient(135deg,#EBF7FD,#fff);border:2px solid var(--blue-pp);
   border-radius:var(--r);padding:1rem;margin-bottom:.6rem;position:relative;box-shadow:0 4px 16px rgba(72,180,232,.08)}
 .active-task-item.revision{background:linear-gradient(135deg,var(--orange-p),#fff);border-color:var(--orange)}
@@ -126,7 +126,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .qtag{padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600}
 .qtag-cat{background:var(--blue-p);color:var(--blue-d)}.qtag-time{background:var(--green-p);color:var(--green)}.qtag-lvl{background:var(--yellow-p);color:#8A6010}
 
-/* ── Wallet ── */
+/* ?? Wallet ?? */
 .wallet-hero{background:linear-gradient(135deg,#1A8AC0,#48B4E8,#74CAEF);border-radius:var(--r);padding:1.5rem;text-align:center;color:#fff;margin-bottom:1rem;box-shadow:0 12px 36px rgba(72,180,232,.35)}
 .wh-amount{font-family:'Noto Serif TC',serif;font-size:3rem;font-weight:900;color:var(--yellow-l)}
 .txn-card{background:var(--bg-card);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow)}
@@ -134,7 +134,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .txn-p{font-family:'Noto Serif TC',serif;font-weight:700}
 .txn-p.plus{color:var(--green)}.txn-p.minus{color:var(--red)}
 
-/* ── Notices ── */
+/* ?? Notices ?? */
 .notice-card{background:#fff;border-radius:var(--r);border-left:5px solid var(--nc,var(--blue));padding:1rem;box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.6rem;border:1px solid var(--border-l);border-left-width:5px}
 .ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
@@ -146,7 +146,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .notice-tag{display:inline-block;padding:.12rem .4rem;border-radius:4px;font-size:.62rem;font-weight:700;margin-bottom:.35rem}
 .nt-urgent{background:var(--red-p);color:var(--red)}.nt-info{background:var(--blue-p);color:var(--blue-d)}.nt-good{background:var(--green-p);color:var(--green)}
 
-/* ── Card, Form ── */
+/* ?? Card, Form ?? */
 .card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);border:1px solid var(--border-l);margin-bottom:1rem}
 .form-group{margin-bottom:1rem}
 .form-label{display:block;font-size:.85rem;font-weight:600;color:var(--text-m);margin-bottom:.4rem}
@@ -156,7 +156,7 @@ textarea.form-input{resize:none}
 .btn-primary{width:100%;padding:.85rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.35);transition:all .3s;margin-top:.25rem}
 .btn-primary:hover{transform:translateY(-2px)}
 
-/* ── Mobile topbar ── */
+/* ?? Mobile topbar ?? */
 .mobile-topbar{display:none;background:linear-gradient(135deg,#1260A0,#1A8AC0);padding:.85rem 1rem;
   align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;
   box-shadow:0 4px 16px rgba(18,96,160,.3)}
@@ -192,10 +192,10 @@ textarea.form-input{resize:none}
 <!-- Mobile topbar -->
 <div class="mobile-topbar">
   <div style="display:flex;align-items:center;gap:.5rem">
-    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
-    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
+    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">? ?餃</button>
+    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">撣??脖??</span>
   </div>
-  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">⚔️ 工作夥伴</span>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">?? 撌乩?憭乩撈</span>
 </div>
 
 <div class="pt-layout">
@@ -203,145 +203,145 @@ textarea.form-input{resize:none}
   <!-- Sidebar -->
   <div class="pt-sidebar">
     <div class="pt-sidebar-logo">
-      <div class="pt-logo-name">希絆雲作所</div>
+      <div class="pt-logo-name">撣??脖??</div>
       <div class="pt-char-row">
-        <div class="pt-char-ava" onclick="document.getElementById('ava-input').click()" title="點擊更換頭像">
+        <div class="pt-char-ava" onclick="document.getElementById('ava-input').click()" title="暺??湔??剖?">
           <img id="ava-img">
-          <span id="ava-emoji">🧑</span>
-          <div class="ava-hover">換<br>頭像</div>
+          <span id="ava-emoji">??</span>
+          <div class="ava-hover">??br>?剖?</div>
         </div>
         <input type="file" id="ava-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
         <div>
-          <div class="pt-char-name" id="char-realname-sidebar">—</div>
-          <div class="pt-char-class">⚔️ 文字學徒</div>
+          <div class="pt-char-name" id="char-realname-sidebar">??/div>
+          <div class="pt-char-class">?? ??摮詨?</div>
         </div>
       </div>
       <div class="pt-wallet-chip" onclick="switchPage('wallet',document.querySelector('[onclick*=wallet]'))">
-        <span style="font-size:.8rem">💰</span>
+        <span style="font-size:.8rem">?</span>
         <span class="pt-wallet-amt" id="wallet-top">$0</span>
       </div>
     </div>
 
     <div class="pt-exp-wrap">
-      <div class="pt-exp-label"><span>文字學徒 → 文字劍士</span><span>35%</span></div>
+      <div class="pt-exp-label"><span>??摮詨? ?????ㄚ</span><span>35%</span></div>
       <div class="pt-exp-track"><div class="pt-exp-fill" style="width:35%"></div></div>
     </div>
 
     <div class="pt-menu">
-      <div class="pt-menu-item active" onclick="switchPage('quests',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+      <div class="pt-menu-item active" onclick="switchPage('quests',this)"><span class="mi-icon">??</span>蝮質汗?銵冽</div>
       <div class="pt-menu-item" onclick="switchPage('tasks',this)">
-        <span class="mi-icon">⚔️</span>任務
+        <span class="mi-icon">??</span>隞餃?
         <span class="pt-badge" id="badge-active-tasks" style="display:none">0</span>
       </div>
       <div class="pt-menu-item" onclick="switchPage('grab',this)">
-        <span class="mi-icon">🎯</span>搶單區
+        <span class="mi-icon">?</span>?嗅?
         <span class="pt-badge" id="badge-grab" style="display:none">0</span>
       </div>
-      <div class="pt-menu-item" onclick="switchPage('wallet',this)"><span class="mi-icon">💰</span>錢包</div>
-      <div class="pt-menu-item" onclick="switchPage('growth',this)"><span class="mi-icon">🏆</span>成長</div>
+      <div class="pt-menu-item" onclick="switchPage('wallet',this)"><span class="mi-icon">?</span>?Ｗ?</div>
+      <div class="pt-menu-item" onclick="switchPage('growth',this)"><span class="mi-icon">??</span>?</div>
       <div class="pt-menu-item" onclick="switchPage('worklog',this)">
-        <span class="mi-icon">📝</span>回報
+        <span class="mi-icon">??</span>?
         <span class="pt-badge" id="badge-worklog">1</span>
       </div>
-      <div class="pt-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">🚩</span>問題回報<span class="pt-badge" id="badge-issues" style="display:none">0</span></div>
+      <div class="pt-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">?</span>???<span class="pt-badge" id="badge-issues" style="display:none">0</span></div>
       <div class="pt-menu-item" onclick="switchPage('notices',this)">
-        <span class="mi-icon">📢</span>公告
+        <span class="mi-icon">?</span>?砍?
         <span class="pt-badge" id="badge-notices" style="display:none">0</span>
       </div>
-      <div class="pt-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
+      <div class="pt-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">??</span>?犖鞈?</div>
     </div>
 
-    <div class="pt-logout" onclick="signOut()"><span>🚪</span>登出</div>
+    <div class="pt-logout" onclick="signOut()"><span>?</span>?餃</div>
   </div>
 
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- 新公告通知條 -->
+  <!-- ?啣?璇?-->
   <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
        style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
-    <span>📢</span><span id="ann-notify-text">您有新公告</span>
-    <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
+    <span>?</span><span id="ann-notify-text">?冽??啣??/span>
+    <span style="margin-left:auto;font-size:.72rem;opacity:.65">???亦? ??/span>
   </div>
   <div id="pt-issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
        style="display:none;background:rgba(255,183,64,.18);border-bottom:1.5px solid rgba(255,183,64,.5);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#FFD166;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
-    <span style="flex-shrink:0">🚩</span>
-    <div style="overflow:hidden;flex:1"><span id="pt-issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有問題回報有新回覆</span></div>
+    <span style="flex-shrink:0">?</span>
+    <div style="overflow:hidden;flex:1"><span id="pt-issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">??憿??望??啣?閬?/span></div>
   </div>
   <div class="pt-main">
 
-    <!-- 總覽 -->
+    <!-- 蝮質汗 -->
     <div class="page-section active" id="page-quests">
-      <div class="page-title">📊 總覽儀表板</div>
+      <div class="page-title">?? 蝮質汗?銵冽</div>
 
-      <!-- 角色統計 -->
+      <!-- 閫蝯梯? -->
       <div class="char-stats-card">
         <div class="char-stats-inner">
-          <div class="stat-box"><div class="stat-val" id="overview-income">$0</div><div class="stat-label">收入</div></div>
-          <div class="stat-box"><div class="stat-val" id="overview-month-done">0件</div><div class="stat-label">本月完成</div></div>
-          <div class="stat-box"><div class="stat-val">5天</div><div class="stat-label">連續天數</div></div>
+          <div class="stat-box"><div class="stat-val" id="overview-income">$0</div><div class="stat-label">?嗅</div></div>
+          <div class="stat-box"><div class="stat-val" id="overview-month-done">0隞?/div><div class="stat-label">?祆?摰?</div></div>
+          <div class="stat-box"><div class="stat-val">5憭?/div><div class="stat-label">???憭拇</div></div>
         </div>
       </div>
 
-      <!-- 進行中任務 -->
+      <!-- ?脰?銝凋遙??-->
       <div style="margin-bottom:.75rem">
         <div class="active-task-item revision">
-          <span class="at-tag at-tag-revision">需要修改</span>
-          <div class="at-name">📣 口碑留言 × 5則</div>
-          <div style="font-size:.7rem;color:var(--orange);margin-bottom:.4rem">督導意見：語氣太正式，請用更口語的方式</div>
+          <span class="at-tag at-tag-revision">?閬耨??/span>
+          <div class="at-name">? ????? ? 5??/div>
+          <div style="font-size:.7rem;color:var(--orange);margin-bottom:.4rem">?????嚗?瘞?云甇??嚗??冽????撘?/div>
           <div class="at-prog"><div class="at-prog-fill revision" style="width:40%"></div></div>
-          <div class="at-btns"><button class="at-btn at-btn-p" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))" style="background:var(--orange)">查看意見並修改</button></div>
+          <div class="at-btns"><button class="at-btn at-btn-p" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))" style="background:var(--orange)">?亦???銝虫耨??/button></div>
         </div>
         <div class="active-task-item">
-          <span class="at-tag at-tag-active">進行中</span>
-          <div class="at-name">🎨 廣告圖設計</div>
-          <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.4rem">進度：已完成 1 / 2 張</div>
+          <span class="at-tag at-tag-active">?脰?銝?/span>
+          <div class="at-name">? 撱???身閮?/div>
+          <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.4rem">?脣漲嚗歇摰? 1 / 2 撘?/div>
           <div class="at-prog"><div class="at-prog-fill" style="width:50%"></div></div>
           <div class="at-btns">
-            <button class="at-btn at-btn-p">繼續任務</button>
-            <button class="at-btn at-btn-s" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))">回報進度</button>
+            <button class="at-btn at-btn-p">蝜潛?隞餃?</button>
+            <button class="at-btn at-btn-s" onclick="switchPage('worklog',document.querySelector('[onclick*=worklog]'))">??脣漲</button>
           </div>
         </div>
       </div>
 
-      <!-- 搶單區塊 -->
+      <!-- ?嗅?憛?-->
       <div id="overview-grab-block" style="display:none;margin-bottom:1rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
-          <div style="font-size:.88rem;font-weight:700">🎯 搶單區
+          <div style="font-size:.88rem;font-weight:700">? ?嗅?
             <span id="overview-grab-badge" style="background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
           </div>
           <button onclick="switchPage('grab',document.querySelector('[onclick*=grab]'))"
-                  style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">前往搶單 →</button>
+                  style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">???嗅 ??/button>
         </div>
         <div id="overview-grab-list"></div>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
         <div style="font-size:.88rem;font-weight:700">
-          📋 可接任務
+          ?? ?舀隞餃?
           <span id="overview-pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
         </div>
       </div>
       <div id="overview-quest-list"></div>
     </div>
 
-    <!-- 任務 -->
+    <!-- 隞餃? -->
     <div class="page-section" id="page-tasks">
-      <div class="page-title">⚔️ 任務</div>
+      <div class="page-title">?? 隞餃?</div>
 
-      <!-- 待回覆派案 -->
+      <!-- 敺?閬晷獢?-->
       <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
-        🔔 待回覆
+        ?? 敺?閬?
         <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
       </div>
-      <div id="pending-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+      <div id="pending-list"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
 
-      <!-- 進行中任務 -->
-      <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">⚔️ 進行中</div>
-      <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+      <!-- ?脰?銝凋遙??-->
+      <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">?? ?脰?銝?/div>
+      <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
 
-      <!-- 已完成任務 -->
+      <!-- 撌脣??遙??-->
       <div style="display:flex;align-items:center;gap:.6rem;margin:1.25rem 0 .6rem;flex-wrap:wrap">
-        <div style="font-size:.88rem;font-weight:700">✅ 已完成</div>
+        <div style="font-size:.88rem;font-weight:700">??撌脣???/div>
         <select id="filter-year"  onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
         <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
       </div>
@@ -349,213 +349,213 @@ textarea.form-input{resize:none}
 
     </div>
 
-    <!-- 錢包 -->
+    <!-- ?Ｗ? -->
     <div class="page-section" id="page-wallet">
-      <div class="page-title">💰 錢包</div>
+      <div class="page-title">? ?Ｗ?</div>
       <div class="wallet-hero">
-        <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">錢包總額</div>
+        <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">?Ｗ?蝮賡?</div>
         <div class="wh-amount" id="wallet-total">$0</div>
       </div>
       <div class="txn-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-          <div style="font-size:.8rem;font-weight:600;color:var(--text-m)">收入明細</div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--text-m)">?嗅?敦</div>
           <select id="wallet-month" onchange="renderWallet()" style="padding:.25rem .5rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.78rem;background:var(--bg);cursor:pointer"></select>
         </div>
-        <div id="wallet-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+        <div id="wallet-list"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
       </div>
     </div>
 
-    <!-- 成長 -->
+    <!-- ? -->
     <div class="page-section" id="page-growth">
-      <div class="page-title">🏆 成長</div>
+      <div class="page-title">?? ?</div>
       <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏆 職業成長</div>
-        <div style="font-size:.78rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem">升級路線（文字系）</div>
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">?? ?瑟平?</div>
+        <div style="font-size:.78rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem">??頝舐?嚗?摮頂嚗?/div>
         <div style="display:flex;align-items:center;overflow-x:auto;gap:0">
-          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">🌱</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">初心者</div></div>
+          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">?</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">????/div></div>
           <div style="flex:1;height:2px;background:var(--blue);min-width:16px"></div>
-          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">⚔️</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">文字學徒</div><div style="font-size:.52rem;color:var(--text-s)">$1,000</div></div>
+          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">??</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">??摮詨?</div><div style="font-size:.52rem;color:var(--text-s)">$1,000</div></div>
           <div style="flex:1;height:1px;background:var(--border);min-width:16px"></div>
-          <div style="text-align:center;min-width:64px;flex-shrink:0;opacity:.5"><div style="font-size:1.1rem">🗡️</div><div style="font-size:.65rem;font-weight:700">文字劍士</div><div style="font-size:.52rem;color:var(--text-s)">$10,000</div></div>
+          <div style="text-align:center;min-width:64px;flex-shrink:0;opacity:.5"><div style="font-size:1.1rem">?儭?/div><div style="font-size:.65rem;font-weight:700">???ㄚ</div><div style="font-size:.52rem;color:var(--text-s)">$10,000</div></div>
         </div>
       </div>
       <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 勳章</div>
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">?? ?喟?</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
-          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">🌅</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">早鳥</div></div>
-          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">⚔️</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">第一任務</div></div>
-          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">🔥</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">連續7天</div></div>
-          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">🛡️</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">鐵人30天</div></div>
+          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">??</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">?拚野</div></div>
+          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">??</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">蝚砌?隞餃?</div></div>
+          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">?</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">???7憭?/div></div>
+          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">?儭?/div><div style="font-size:.6rem;color:var(--text-s);text-align:center">?萎犖30憭?/div></div>
         </div>
       </div>
     </div>
 
-    <!-- 回報 -->
+    <!-- ? -->
     <div class="page-section" id="page-worklog">
-      <div class="page-title">📝 回報進度</div>
+      <div class="page-title">?? ??脣漲</div>
       <div style="background:var(--orange-p);border:1.5px solid var(--orange);border-radius:var(--r);padding:.9rem;margin-bottom:1rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem;margin-bottom:.35rem">⚠️ 督導退回修改意見</div>
-        <div style="font-size:.82rem;color:var(--text-m)">留言的語氣太正式了，試試看更口語的方式，像是朋友在推薦一樣。</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem;margin-bottom:.35rem">?? ?????耨?寞?閬?/div>
+        <div style="font-size:.82rem;color:var(--text-m)">????瘞?云甇??鈭?閰西岫?????撘?????冽?虫?璅??/div>
       </div>
       <div class="card">
-        <div style="font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:700;margin-bottom:.75rem">📝 回報進度</div>
-        <div class="form-group"><label class="form-label">今天完成了幾則？</label><input class="form-input" type="number" placeholder="請輸入數量" min="0"></div>
-        <div class="form-group"><label class="form-label">遇到什麼困難？（選填）</label><textarea class="form-input" rows="3" placeholder="有任何問題，告訴督導，我們一起想辦法"></textarea></div>
-        <button class="btn-primary" onclick="showToast('回報已送出！','success')">送出回報 ✓</button>
+        <div style="font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:700;margin-bottom:.75rem">?? ??脣漲</div>
+        <div class="form-group"><label class="form-label">隞予摰?鈭嗾??</label><input class="form-input" type="number" placeholder="隢撓?交?? min="0"></div>
+        <div class="form-group"><label class="form-label">?隞暻澆???嚗憛恬?</label><textarea class="form-input" rows="3" placeholder="?遙雿?憿??迄???嚗???韏瑟颲行?"></textarea></div>
+        <button class="btn-primary" onclick="showToast('?撌脤嚗?,'success')">?? ??/button>
       </div>
     </div>
 
-    <!-- 搶單區 -->
+    <!-- ?嗅? -->
     <div class="page-section" id="page-grab">
-      <div class="page-title">🎯 搶單區</div>
+      <div class="page-title">? ?嗅?</div>
       <div id="grab-zone-wrap">
-        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">頛銝凌?/div>
       </div>
     </div>
 
-    <!-- 公告 -->
+    <!-- ?砍? -->
     <div class="page-section" id="page-notices">
-      <div class="page-title">📢 公告</div>
+      <div class="page-title">? ?砍?</div>
       <div id="ann-list-wrap">
-        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">頛銝凌?/div>
       </div>
     </div>
 
-    <!-- 個人資料 -->
+    <!-- ?犖鞈? -->
     <div class="page-section" id="page-profile">
-      <div class="page-title">🧑 個人資料</div>
+      <div class="page-title">?? ?犖鞈?</div>
 
-      <!-- 區塊1：個人資料 -->
+      <!-- ?憛?嚗犖鞈? -->
       <div class="card" style="max-width:520px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
-          <button id="prof-edit-btn" onclick="toggleProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">? ?犖鞈?</div>
+          <button id="prof-edit-btn" onclick="toggleProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">靽格</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名</label><input class="form-input" id="prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">憪?</label><input class="form-input" id="prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">頨怠?霅?/label><input class="form-input" id="prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?</label><input class="form-input" id="prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?餉店</label><input class="form-input" id="prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?舐窗?啣?</label><input class="form-input" id="prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
         </div>
         <div id="prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
-          <button onclick="saveProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
-          <button onclick="cancelProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+          <button onclick="saveProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?脣?</button>
+          <button onclick="cancelProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
         </div>
       </div>
 
-      <!-- 區塊2：銀行資料 -->
+      <!-- ?憛?嚗?銵???-->
       <div class="card" style="max-width:520px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">🏦 銀行資料</div>
-          <button id="bank-edit-btn" onclick="toggleBankEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">? ?銵???/div>
+          <button id="bank-edit-btn" onclick="toggleBankEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">靽格</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行名稱</label><input class="form-input" id="prof-bank-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行帳號</label><input class="form-input" id="prof-bank-account" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?銵?蝔?/label><input class="form-input" id="prof-bank-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?銵董??/label><input class="form-input" id="prof-bank-account" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
         </div>
         <div id="bank-save-row" style="display:none;gap:.5rem;margin-top:1rem">
-          <button onclick="saveBank()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
-          <button onclick="cancelBankEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+          <button onclick="saveBank()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?脣?</button>
+          <button onclick="cancelBankEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
         </div>
       </div>
 
-      <!-- 區塊3：修改密碼 -->
+      <!-- ?憛?嚗耨?孵?蝣?-->
       <div class="card" style="max-width:520px">
-        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">?? 靽格撖Ⅳ</div>
         <div id="prof-cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="prof-cpw-new" placeholder="6～12 位" maxlength="12" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?桀?撖Ⅳ</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="頛詨?桀?撖Ⅳ" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?啣?蝣?/label><input class="form-input" type="password" id="prof-cpw-new" placeholder="6嚚?2 雿? maxlength="12" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">蝣箄??啣?蝣?/label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="?撓?乩?甈? style="flex:1"></div>
         </div>
-        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">更新密碼</button>
+        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">?湔撖Ⅳ</button>
       </div>
     </div>
 
-    <!-- 問題回報 -->
+    <!-- ??? -->
     <div class="page-section" id="page-issues">
-      <div class="page-title" style="color:#fff;font-family:'Noto Serif TC',serif">🚩 問題回報</div>
+      <div class="page-title" style="color:#fff;font-family:'Noto Serif TC',serif">? ???</div>
       <div style="display:flex;gap:0;border-bottom:2px solid rgba(255,255,255,.15);margin-bottom:1rem">
-        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:#FFD166;font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid #FFD166;font-weight:700">回報督導</button>
-        <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:rgba(255,255,255,.55);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
+        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:#FFD166;font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid #FFD166;font-weight:700">????</button>
+        <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:rgba(255,255,255,.55);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent">?蝞∠?鈭箏</button>
       </div>
       <!-- Tab: report to supervisor -->
       <div id="pt-issue-tab-sv">
         <div style="background:rgba(255,255,255,.08);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,.12)">
-          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">📝 新增回報</div>
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">?? ?啣??</div>
           <div id="issue-sv-err" style="display:none;background:rgba(224,85,85,.15);border:1px solid #E05555;border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:#ffaaaa;margin-bottom:.5rem"></div>
           <div style="display:flex;flex-direction:column;gap:.55rem">
             <select id="issue-sv-target" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
-              <option value="">選擇督導人員＊</option>
+              <option value="">?豢????鈭箏嚗?/option>
             </select>
-            <input id="issue-sv-title" placeholder="問題標題＊" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
-            <textarea id="issue-sv-content" placeholder="詳細說明＊" rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
+            <input id="issue-sv-title" placeholder="??璅?嚗? style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+            <textarea id="issue-sv-content" placeholder="閰喟敦隤芣?嚗? rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
             <select id="issue-sv-task" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
-              <option value="">關聯任務（選填）</option>
+              <option value="">?隞餃?嚗憛恬?</option>
             </select>
           </div>
           <div style="margin-top:.55rem">
-            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">附圖（最多 3 張）</div>
+            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">??嚗?憭?3 撘蛛?</div>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap">
               <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'sv-report')">
-                <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;opacity:.5">?</span>
                 <img id="issue-sv-report-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'sv-report')">
-                <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;opacity:.5">?</span>
                 <img id="issue-sv-report-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'sv-report')">
-                <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;opacity:.5">?</span>
                 <img id="issue-sv-report-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
             </div>
           </div>
-          <button onclick="submitIssueSv()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+          <button onclick="submitIssueSv()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
         </div>
-        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">我的回報紀錄</div>
+        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">???蝝??/div>
         <div id="issues-pt-sv-list" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="font-size:.82rem;opacity:.55;color:#fff">載入中...</div>
+          <div style="font-size:.82rem;opacity:.55;color:#fff">頛銝?..</div>
         </div>
       </div>
       <!-- Tab: report to admin -->
       <div id="pt-issue-tab-admin" style="display:none">
         <div style="background:rgba(255,255,255,.08);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,.12)">
-          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">📝 新增回報</div>
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">?? ?啣??</div>
           <div id="issue-pt-admin-err" style="display:none;background:rgba(224,85,85,.15);border:1px solid #E05555;border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:#ffaaaa;margin-bottom:.5rem"></div>
           <div style="display:flex;flex-direction:column;gap:.55rem">
-            <input id="issue-pt-admin-title" placeholder="問題標題＊" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
-            <textarea id="issue-pt-admin-content" placeholder="詳細說明＊" rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
+            <input id="issue-pt-admin-title" placeholder="??璅?嚗? style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+            <textarea id="issue-pt-admin-content" placeholder="閰喟敦隤芣?嚗? rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
           </div>
           <div style="margin-top:.55rem">
-            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">附圖（最多 3 張）</div>
+            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">??嚗?憭?3 撘蛛?</div>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap">
               <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'pt-admin')">
-                <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;opacity:.5">?</span>
                 <img id="issue-pt-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'pt-admin')">
-                <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;opacity:.5">?</span>
                 <img id="issue-pt-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'pt-admin')">
-                <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;opacity:.5">📷</span>
+                <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;opacity:.5">?</span>
                 <img id="issue-pt-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
             </div>
           </div>
-          <button onclick="submitPtIssueAdmin()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+          <button onclick="submitPtIssueAdmin()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
         </div>
-        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">我的回報紀錄</div>
+        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">???蝝??/div>
         <div id="issues-pt-admin-list" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="font-size:.82rem;opacity:.55;color:#fff">載入中...</div>
+          <div style="font-size:.82rem;opacity:.55;color:#fff">頛銝?..</div>
         </div>
       </div>
     </div>
@@ -565,44 +565,44 @@ textarea.form-input{resize:none}
 </div><!-- pt-layout -->
 
 
-<!-- 任務回報 overlay -->
+<!-- 隞餃?? overlay -->
 <div class="overlay" id="report-overlay">
   <div class="overlay-box" style="width:480px;max-height:90vh;overflow-y:auto">
-    <div class="overlay-title">📝 任務回報</div>
+    <div class="overlay-title">?? 隞餃??</div>
     <div class="overlay-desc" id="report-task-name" style="font-weight:600;color:var(--text)"></div>
 
     <div class="form-group" style="margin-top:.75rem">
-      <label class="form-label">完成數量</label>
+      <label class="form-label">摰??賊?</label>
       <input class="form-input" type="number" id="report-qty" min="1" value="1">
     </div>
 
     <div class="form-group">
-      <label class="form-label">網址 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
+      <label class="form-label">蝬脣? <span style="font-size:.72rem;color:var(--text-s)">嚗憛恬?</span></label>
       <input class="form-input" type="url" id="report-url" placeholder="https://...">
     </div>
 
     <div class="form-group">
-      <label class="form-label">上傳圖片 <span style="font-size:.72rem;color:var(--text-s)">（選填，可多張）</span></label>
+      <label class="form-label">銝?? <span style="font-size:.72rem;color:var(--text-s)">嚗憛恬??臬?撘蛛?</span></label>
       <div id="report-upload-zone" onclick="document.getElementById('report-img-input').click()"
            style="border:2px dashed var(--border);border-radius:var(--rs);padding:1rem;text-align:center;cursor:pointer;background:var(--bg);transition:all .2s">
-        <div style="font-size:1.4rem;margin-bottom:.3rem">🖼️</div>
-        <div style="font-size:.82rem;color:var(--text-s)">點擊選擇圖片（可選多張）</div>
+        <div style="font-size:1.4rem;margin-bottom:.3rem">?儭?/div>
+        <div style="font-size:.82rem;color:var(--text-s)">暺??豢???嚗?詨?撘蛛?</div>
       </div>
       <input type="file" id="report-img-input" accept="image/*" multiple style="display:none" onchange="handleReportImages(this)">
-      <!-- 縮圖列 -->
+      <!-- 蝮桀???-->
       <div id="report-thumbnails" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem"></div>
     </div>
 
     <div class="form-group">
-      <label class="form-label">補充說明 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
-      <textarea class="form-input" id="report-notes" rows="3" placeholder="說明本次完成內容或遇到的問題..."></textarea>
+      <label class="form-label">鋆?隤芣? <span style="font-size:.72rem;color:var(--text-s)">嚗憛恬?</span></label>
+      <textarea class="form-input" id="report-notes" rows="3" placeholder="隤芣??祆活摰??批捆???啁???..."></textarea>
     </div>
 
     <div id="report-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
 
     <div style="display:flex;gap:.5rem">
-      <button onclick="submitReport()" style="flex:2;padding:.8rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3)">送出</button>
-      <button onclick="closeReport()" style="flex:1;padding:.8rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.95rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+      <button onclick="submitReport()" style="flex:2;padding:.8rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3)">?</button>
+      <button onclick="closeReport()" style="flex:1;padding:.8rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.95rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
     </div>
   </div>
 </div>
@@ -610,10 +610,10 @@ textarea.form-input{resize:none}
 <script src="shared.js"></script>
 <script>
 const QUESTS = [
-  {name:'✍️ SEO 文案撰寫',reward:400,cat:'text',time:'7天',lvl:'學徒以上',desc:'撰寫一篇 800 字 SEO 文章'},
-  {name:'📣 口碑留言 × 3則',reward:150,cat:'social',time:'3天',lvl:'初心者',desc:'在指定平台留下自然口語的好評'},
-  {name:'🎨 社群貼文設計',reward:200,cat:'visual',time:'5天',lvl:'初心者',desc:'設計 2 張 Facebook 貼文圖片'},
-  {name:'📊 資料整理',reward:180,cat:'data',time:'3天',lvl:'初心者',desc:'整理 Excel 客戶資料並分類'},
+  {name:'?? SEO ???啣神',reward:400,cat:'text',time:'7憭?,lvl:'摮詨?隞乩?',desc:'?啣神銝蝭?800 摮?SEO ??'},
+  {name:'? ????? ? 3??,reward:150,cat:'social',time:'3憭?,lvl:'????,desc:'?冽?摰像?啁?銝?嗅隤?憟質?'},
+  {name:'? 蝷曄黎鞎潭?閮剛?',reward:200,cat:'visual',time:'5憭?,lvl:'????,desc:'閮剛? 2 撘?Facebook 鞎潭???'},
+  {name:'?? 鞈??渡?',reward:180,cat:'data',time:'3憭?,lvl:'????,desc:'?渡? Excel 摰Ｘ鞈?銝血?憿?},
 ];
 let filtered = 'all';
 
@@ -628,16 +628,16 @@ function renderQuests() {
   if (!list) return;
   const shown = filtered === 'all' ? QUESTS : QUESTS.filter(q => q.cat === filtered);
   list.innerHTML = shown.map(q => `
-    <div class="q-card cat-${q.cat}" onclick="showToast('任務接受功能開發中','info')">
+    <div class="q-card cat-${q.cat}" onclick="showToast('隞餃??亙???銝?,'info')">
       <div class="q-top"><div class="q-name">${q.name}</div><div class="q-reward">$${q.reward}</div></div>
       <div class="q-meta">
-        <span class="qtag qtag-cat">${q.cat==='text'?'文字':q.cat==='social'?'口碑':q.cat==='visual'?'視覺':'資料'}</span>
-        <span class="qtag qtag-time">⏰ ${q.time}</span>
-        <span class="qtag qtag-lvl">🌟 ${q.lvl}</span>
+        <span class="qtag qtag-cat">${q.cat==='text'?'??':q.cat==='social'?'???':q.cat==='visual'?'閬死':'鞈?'}</span>
+        <span class="qtag qtag-time">??${q.time}</span>
+        <span class="qtag qtag-lvl">?? ${q.lvl}</span>
       </div>
       <div style="font-size:.85rem;color:var(--text-s);margin-top:.4rem">${q.desc}</div>
     </div>
-  `).join('') || '<div style="text-align:center;color:var(--text-s);padding:1rem">此分類目前沒有任務</div>';
+  `).join('') || '<div style="text-align:center;color:var(--text-s);padding:1rem">甇文?憿???遙??/div>';
 }
 
 function switchPage(name, el) {
@@ -654,26 +654,26 @@ function switchPage(name, el) {
   if (name === 'issues') loadIssuesPt();
 }
 
-// ── 日期格式化 ────────────────────────────────────────────────
+// ?? ?交??澆???????????????????????????????????????????????????
 function taskLabel(a) {
-  return a.company ? `${a.company}：${a.task_name}` : a.task_name;
+  return a.company ? `${a.company}嚗?{a.task_name}` : a.task_name;
 }
 
 function fmtDate(s) {
-  if (!s || s === '—') return '—';
+  if (!s || s === '??) return '??;
   const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
   const [y,m,d] = datePart.split('/');
   const date = `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
   return timePart ? `${date} ${timePart}` : date;
 }
 function fmtDay(s) {
-  if (!s || s === '—') return '—';
+  if (!s || s === '??) return '??;
   const datePart = s.replace(/-/g,'/').split(' ')[0];
   const [y,m,d] = datePart.split('/');
   return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
 }
 
-// ── 派案接收 ──────────────────────────────────────────────────
+// ?? 瘣暹??交 ??????????????????????????????????????????????????
 let rejectId     = null;
 let pollInterval = null;
 
@@ -699,7 +699,7 @@ async function loadTasks() {
   }
 }
 
-// 產生最近3個月的 [{year,month}] 陣列，最新在前
+// ?Ｙ??餈?????[{year,month}] ???嚗??啣??
 function last3Months() {
   const now = new Date();
   const res = [];
@@ -717,12 +717,12 @@ function buildYearFilter() {
   if (!yearSel || !monthSel) return;
 
   const years = [...new Set(months.map(m => m.year))];
-  yearSel.innerHTML  = years.map(y => `<option value="${y}">${y} 年</option>`).join('');
+  yearSel.innerHTML  = years.map(y => `<option value="${y}">${y} 撟?/option>`).join('');
   monthSel.innerHTML = months.map(m =>
     `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
   ).join('');
 
-  // 預設本月
+  // ?身?祆?
   const now = new Date();
   const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   monthSel.value = defaultVal;
@@ -743,29 +743,29 @@ function filterCompleted() {
   renderCompleted(list);
 }
 
-// 同步錢包與總覽統計
+// ?郊?Ｗ??蜇閬賜絞閮?
 function syncWalletAndOverview(completed) {
   const fmt = v => '$' + v.toLocaleString();
   const now = new Date();
   const yy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
 
-  // 本月收入
+  // ?祆??嗅
   const thisMonthList = completed.filter(a => (a.completed_at || '').startsWith(`${yy}/${mm}`));
   const thisMonthTotal = thisMonthList.reduce((s, a) => s + (a.total_price || 0), 0);
 
-  // 總覽：本月收入
+  // 蝮質汗嚗???
   const overviewIncomeEl = document.getElementById('overview-income');
   if (overviewIncomeEl) overviewIncomeEl.textContent = fmt(thisMonthTotal);
 
-  // 側邊欄錢包金額 = 本月收入
+  // ?湧?甈??憿?= ?祆??嗅
   const walletTopEl = document.getElementById('wallet-top');
   if (walletTopEl) walletTopEl.textContent = fmt(thisMonthTotal);
 
-  // 本月完成件數
+  // ?祆?摰?隞嗆
   const monthDoneEl = document.getElementById('overview-month-done');
-  if (monthDoneEl) monthDoneEl.textContent = thisMonthList.length + ' 件';
+  if (monthDoneEl) monthDoneEl.textContent = thisMonthList.length + ' 隞?;
 
-  // 填充錢包年月下拉選單，再渲染（錢包總額在 renderWallet 內更新）
+  // 憛怠??Ｗ?撟湔?銝??詨嚗?皜脫?嚗?蜇憿 renderWallet ?扳?堆?
   buildWalletFilter();
   renderWallet();
 }
@@ -773,7 +773,7 @@ function syncWalletAndOverview(completed) {
 function buildWalletFilter() {
   const months = last3Months();
   const monthSel = document.getElementById('wallet-month');
-  if (!monthSel || monthSel.options.length) return; // 已建立就不重設
+  if (!monthSel || monthSel.options.length) return; // 撌脣遣蝡停銝?閮?
   const now = new Date();
   const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   monthSel.innerHTML = months.map(m =>
@@ -795,15 +795,15 @@ function renderWallet() {
       return d.startsWith(y + '/' + m);
     });
   }
-  // 按完成時間由新到舊
+  // ??????啣??
   list = [...list].sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''));
-  // 更新錢包總額 = 本月份加總
+  // ?湔?Ｗ?蝮賡? = ?祆?隞賢?蝮?
   const monthTotal = list.reduce((s, a) => s + (a.total_price || 0), 0);
   const walletTotalEl = document.getElementById('wallet-total');
   if (walletTotalEl) walletTotalEl.textContent = '$' + monthTotal.toLocaleString();
 
   if (!list.length) {
-    listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">本月無收入紀錄</div>';
+    listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">?祆??⊥?亦???/div>';
     return;
   }
   listEl.innerHTML = list.map(a => `
@@ -820,10 +820,10 @@ function renderCompleted(list) {
   const el = document.getElementById('completed-list');
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有已完成的任務</div>';
+    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">?桀?瘝?撌脣???隞餃?</div>';
     return;
   }
-  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
+  const taskColor = { '???隞餃?':'#9B6FD4', 'SEO???啣神':'#3A9CC0', '撱???身閮?:'#E07830' };
   el.innerHTML = list.map(a => {
     const color = taskColor[a.task_name] || 'var(--green)';
     return `
@@ -833,28 +833,28 @@ function renderCompleted(list) {
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">✅ 已完成</span>
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件</span>
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">??撌脣???/span>
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">? ${a.quantity} 隞?/span>
       </div>
-      <div style="font-size:.78rem;color:var(--text-s)">完成時間：${fmtDate(a.completed_at)}</div>
+      <div style="font-size:.78rem;color:var(--text-s)">摰???嚗?{fmtDate(a.completed_at)}</div>
     </div>`
   }).join('');
 }
 
 async function completeTask(id, btn) {
-  if (!confirm('確定要將此任務標記為已完成？')) return;
+  if (!confirm('蝣箏?閬?甇支遙??閮撌脣???')) return;
   btn.disabled = true;
   try {
     await API.put(`/api/assignments/${id}/complete`);
-    showToast('任務已完成 ✅', 'success');
+    showToast('隞餃?撌脣?????, 'success');
     loadTasks();
   } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
 
-// 完整卡片（含接案/拒絕按鈕）
+// 摰?∠?嚗?交?/????嚗?
 function buildTaskCards(list) {
-  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
-  if (!list.length) return '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有待回覆的派案</div>';
+  const taskColor = { '???隞餃?':'#9B6FD4', 'SEO???啣神':'#3A9CC0', '撱???身閮?:'#E07830' };
+  if (!list.length) return '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">?桀?瘝?敺?閬?瘣暹?</div>';
   return list.map(a => {
     const color = taskColor[a.task_name] || 'var(--blue)';
     return `
@@ -865,23 +865,23 @@ function buildTaskCards(list) {
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
-        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
-        ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
+        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">??摰???嚗?{fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">??${a.deadline_days} 憭?/span>` : ''}
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">? ${a.quantity} 隞嗚$${(a.unit_price||0).toLocaleString()}</span>
+        ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">? ?祇?</span>' : ''}
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'璅扑擃?,'DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">???嚗?{a.supervisor_name||'??}</div>`}
       <div style="display:flex;gap:.5rem">
-        <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
-        <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">❌ 拒絕</button>
+        <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">???交?</button>
+        <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">????</button>
       </div>
     </div>`
   }).join('');
 }
 
-// 僅顯示資訊（無按鈕，用於總覽）
+// ?＊蝷箄?閮??⊥????冽蝮質汗嚗?
 function buildTaskCardsReadonly(list) {
-  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
-  if (!list.length) return '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">目前沒有可接任務</div>';
+  const taskColor = { '???隞餃?':'#9B6FD4', 'SEO???啣神':'#3A9CC0', '撱???身閮?:'#E07830' };
+  if (!list.length) return '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">?桀?瘝??舀隞餃?</div>';
   return list.map(a => {
     const color = taskColor[a.task_name] || 'var(--blue)';
     return `
@@ -892,11 +892,11 @@ function buildTaskCardsReadonly(list) {
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
-        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
-        ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
+        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">??摰???嚗?{fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">??${a.deadline_days} 憭?/span>` : ''}
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">? ${a.quantity} 隞嗚$${(a.unit_price||0).toLocaleString()}</span>
+        ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">? ?祇?</span>' : ''}
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'璅扑擃?,'DFKai-SB',serif">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">???嚗?{a.supervisor_name||'??}</div>`}
     </div>`
   }).join('');
 }
@@ -908,7 +908,7 @@ function renderPending(list) {
   const tb = document.getElementById('badge-active-tasks');
   if (tb) { tb.textContent = list.length; tb.style.display = list.length ? '' : 'none'; }
 
-  // 總覽頁「可接任務」同步（無按鈕）
+  // 蝮質汗??乩遙??甇伐??⊥???
   const ovBadge = document.getElementById('overview-pending-badge');
   const ovList  = document.getElementById('overview-quest-list');
   if (ovBadge) { ovBadge.textContent = list.length; ovBadge.style.display = list.length ? '' : 'none'; }
@@ -916,7 +916,7 @@ function renderPending(list) {
 
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有待回覆的派案</div>';
+    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">?桀?瘝?敺?閬?瘣暹?</div>';
     return;
   }
   el.innerHTML = buildTaskCards(list);
@@ -927,50 +927,50 @@ function renderActive(list) {
   const el = document.getElementById('active-list');
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有進行中的任務</div>';
+    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">?桀?瘝??脰?銝剔?隞餃?</div>';
     return;
   }
-  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
+  const taskColor = { '???隞餃?':'#9B6FD4', 'SEO???啣神':'#3A9CC0', '撱???身閮?:'#E07830' };
   el.innerHTML = list.map(a => {
     const color     = taskColor[a.task_name] || 'var(--green)';
     const reviewing = a.review_status === 'reviewing';
     const statusTag = reviewing
-      ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">🔍 審核中</span>`
-      : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⚔️ 進行中</span>`;
+      ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">?? 撖拇銝?/span>`
+      : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">?? ?脰?銝?/span>`;
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
         <div>
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
-          ${a.grab_no ? `<div style="margin-top:.2rem"><span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span></div>` : ''}
+          ${a.grab_no ? `<div style="margin-top:.2rem"><span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">? ?嗅蝺刻? #${a.grab_no}</span></div>` : ''}
         </div>
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         ${statusTag}
-        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
-        ${a.accepted_at ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">📌 接案：${fmtDate(a.accepted_at)}</span>` : ''}
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
+        ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">??摰???嚗?{fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">??${a.deadline_days} 憭?/span>` : ''}
+        ${a.accepted_at ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">?? ?交?嚗?{fmtDate(a.accepted_at)}</span>` : ''}
+        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">? ${a.quantity} 隞嗚$${(a.unit_price||0).toLocaleString()}</span>
       </div>
       <div style="margin-bottom:.5rem">
-        <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
-        <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6">${a.notes || ''}</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">鋆?隤芣?</div>
+        <div style="font-size:14px;color:#000;font-family:'璅扑擃?,'DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6">${a.notes || ''}</div>
       </div>
       <div style="margin-bottom:.6rem">
-        <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">督導意見</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">?????</div>
         <div style="max-height:calc(1.6em * 4 + .8rem);overflow-y:auto;background:var(--orange-p);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid rgba(240,120,64,.25);min-height:2rem;line-height:1.6">
           ${(a.supervisor_comments && a.supervisor_comments.length)
             ? a.supervisor_comments.map(c =>
-                `<div style="font-size:.82rem;color:var(--text-m)">${c.date} ${c.time}　${c.text}</div>`
+                `<div style="font-size:.82rem;color:var(--text-m)">${c.date} ${c.time}?${c.text}</div>`
               ).join('')
-            : '<span style="font-size:.8rem;color:var(--text-s)">—</span>'}
+            : '<span style="font-size:.8rem;color:var(--text-s)">??/span>'}
         </div>
       </div>
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
       <button onclick="${reviewing ? '' : `openReport(${a.id},'${a.task_name}')`}"
         ${reviewing ? 'disabled' : ''}
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:'Noto Sans TC',sans-serif">
-        ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
+        ${reviewing ? '??撖拇銝? : '?? ?撌乩?'}
       </button>
     </div>`
   }).join('');
@@ -980,7 +980,7 @@ async function acceptTask(id, btn) {
   btn.disabled = true;
   try {
     await API.put(`/api/assignments/${id}/accept`);
-    showToast('✅ 已接案！任務加入進行中', 'success');
+    showToast('??撌脫獢?隞餃???脰?銝?, 'success');
     loadTasks();
   } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
@@ -989,12 +989,12 @@ async function rejectTask(id, btn) {
   btn.disabled = true;
   try {
     await API.put(`/api/assignments/${id}/reject`, { reason: '' });
-    showToast('已拒絕此派案', 'warn');
+    showToast('撌脫?蝯迨瘣暹?', 'warn');
     loadTasks();
   } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
 
-// ── 任務回報 ──────────────────────────────────────────────────
+// ?? 隞餃?? ??????????????????????????????????????????????????
 let reportAssignmentId = null;
 let reportImages = [];
 
@@ -1019,11 +1019,11 @@ function handleReportImages(input) {
   const files = Array.from(input.files);
   const thumbs = document.getElementById('report-thumbnails');
   files.forEach(file => {
-    if (reportImages.length >= 6) { showToast('最多上傳 6 張圖片', 'warn'); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} 超過 5MB，略過`, 'warn'); return; }
+    if (reportImages.length >= 6) { showToast('?憭???6 撘萄???, 'warn'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} 頞? 5MB嚗?, 'warn'); return; }
     const reader = new FileReader();
     reader.onload = e => {
-      // 壓縮圖片到最寬 900px、品質 0.75
+      // 憯葬???唳?撖?900px??鞈?0.75
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
@@ -1034,14 +1034,14 @@ function handleReportImages(input) {
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const base64 = canvas.toDataURL('image/jpeg', 0.75);
         reportImages.push({ name: file.name, data: base64 });
-        // 縮圖
+        // 蝮桀?
         const idx = reportImages.length - 1;
         const wrap = document.createElement('div');
         wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0';
         wrap.innerHTML = `
           <img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
           <button onclick="removeReportImg(${idx},this.closest('div'))"
-            style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">✕</button>
+            style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">??/button>
         `;
         thumbs.appendChild(wrap);
       };
@@ -1055,7 +1055,7 @@ function handleReportImages(input) {
 function removeReportImg(idx, el) {
   reportImages.splice(idx, 1);
   el.remove();
-  // 重新編號刪除按鈕
+  // ?蝺刻??芷??
   document.querySelectorAll('#report-thumbnails > div').forEach((wrap, i) => {
     wrap.querySelector('button').setAttribute('onclick', `removeReportImg(${i},this.closest('div'))`);
   });
@@ -1065,26 +1065,26 @@ async function submitReport() {
   const err = document.getElementById('report-err');
   err.style.display = 'none';
   const qty = document.getElementById('report-qty').value;
-  if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
+  if (!qty || parseInt(qty) < 1) { err.textContent='隢‵撖怠?????喳?1嚗?; err.style.display='block'; return; }
   const url   = document.getElementById('report-url').value.trim();
   const notes = document.getElementById('report-notes').value.trim();
   const imgData = reportImages.map(img => ({ name: img.name, data: img.data }));
   try {
-    await API.post('/api/reports', {
+    await API.post('/api/issues', {
       assignment_id: reportAssignmentId,
       completed_qty: parseInt(qty) || 0,
       url, notes,
       images: imgData,
     });
     closeReport();
-    showToast('回報已送出 ✓', 'success');
+    showToast('?撌脤 ??, 'success');
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(loadTasks, 3000);
-  // 切回分頁時立即更新
+  // ???????單??
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) loadTasks();
   });
@@ -1096,11 +1096,11 @@ async function changePassword() {
   const current = document.getElementById('prof-cpw-current').value;
   const newPw   = document.getElementById('prof-cpw-new').value;
   const confirm = document.getElementById('prof-cpw-confirm').value;
-  if (newPw.length < 6 || newPw.length > 12) { err.textContent = '新密碼須為 6～12 位（可含英文、數字、符號）'; err.style.display = 'block'; return; }
-  if (newPw !== confirm) { err.textContent = '兩次輸入不一致'; err.style.display = 'block'; return; }
+  if (newPw.length < 6 || newPw.length > 12) { err.textContent = '?啣?蝣潮???6嚚?2 雿??臬?望??摮泵??'; err.style.display = 'block'; return; }
+  if (newPw !== confirm) { err.textContent = '?拇活頛詨銝???; err.style.display = 'block'; return; }
   try {
     await API.post('/api/change-password', { current_password: current, new_password: newPw });
-    showToast('密碼已修改', 'success');
+    showToast('撖Ⅳ撌脖耨??, 'success');
     document.getElementById('prof-cpw-current').value = '';
     document.getElementById('prof-cpw-new').value = '';
     document.getElementById('prof-cpw-confirm').value = '';
@@ -1149,7 +1149,7 @@ async function saveProfile() {
     profData.phone   = document.getElementById('prof-phone').value;
     profData.address = document.getElementById('prof-address').value;
     cancelProfEdit();
-    showToast('個人資料已儲存', 'success');
+    showToast('?犖鞈?撌脣摮?, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1174,11 +1174,11 @@ async function saveBank() {
     profData.bank_name    = document.getElementById('prof-bank-name').value;
     profData.bank_account = document.getElementById('prof-bank-account').value;
     cancelBankEdit();
-    showToast('銀行資料已儲存', 'success');
+    showToast('?銵??歇?脣?', 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ── 頭像上傳 ─────────────────────────────────────────────────
+// ?? ?剖?銝 ?????????????????????????????????????????????????
 let meId = null;
 
 function loadAvatar(id) {
@@ -1193,7 +1193,7 @@ function loadAvatar(id) {
 function uploadAvatar(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 3 * 1024 * 1024) { showToast('圖片請小於 3MB', 'warn'); return; }
+  if (file.size > 3 * 1024 * 1024) { showToast('??隢???3MB', 'warn'); return; }
   const reader = new FileReader();
   reader.onload = e => {
     const base64 = e.target.result;
@@ -1201,13 +1201,13 @@ function uploadAvatar(input) {
     document.getElementById('ava-img').src = base64;
     document.getElementById('ava-img').style.display = 'block';
     document.getElementById('ava-emoji').style.display = 'none';
-    showToast('頭像已更新 ✓', 'success');
+    showToast('?剖?撌脫????, 'success');
   };
   reader.readAsDataURL(file);
   input.value = '';
 }
 
-// ── 公告 ───────────────────────────────────────────────────────
+// ?? ?砍? ???????????????????????????????????????????????????????
 let annList = [];
 
 async function loadAnnouncements() {
@@ -1226,7 +1226,7 @@ function syncNotifyBar() {
   const bar  = document.getElementById('ann-notify-bar');
   const text = document.getElementById('ann-notify-text');
   if (bar) {
-    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.style.display = 'flex'; }
+    if (unread > 0) { text.textContent = `?冽? ${unread} ??砍?`; bar.style.display = 'flex'; }
     else { bar.style.display = 'none'; }
   }
 }
@@ -1236,7 +1236,7 @@ function renderAnnList() {
   if (!wrap) return;
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
+  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">?桀?瘝??砍?</div>'; return; }
   const readIds = meId ? getReadIds(meId) : [];
   const sorted = [...visible].sort((a,b) => {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
@@ -1249,10 +1249,10 @@ function renderAnnList() {
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="cursor:pointer" onclick='openAnnDetail(${annJson})'>
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem">
         ${unread ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
-        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
+        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">??</span>' : ''}
         <span style="font-weight:700;font-size:.9rem">${a.title}</span>
       </div>
-      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}${(()=>{ const n=(a.attachments&&a.attachments.length)||(a.attachment_drive_id?1:0); return n?` &nbsp;·&nbsp; 📎 ${n} 個附件`:''; })()}</div>
+      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;繚&nbsp; ${a.created_by||'??}${(()=>{ const n=(a.attachments&&a.attachments.length)||(a.attachment_drive_id?1:0); return n?` &nbsp;繚&nbsp; ?? ${n} ??隞跆:''; })()}</div>
     </div>`;
   }).join('');
 }
@@ -1262,18 +1262,18 @@ function openAnnDetail(ann) {
   try { syncNotifyBar(); renderAnnList(); } catch(e) {}
 }
 
-// ── 搶單區 ────────────────────────────────────────────────────
+// ?? ?嗅? ????????????????????????????????????????????????????
 async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
   try {
     const list = await API.get('/api/grab-tasks');
     const available = list.filter(t => !t.my_grab_no && t.grabbed_count < t.total_slots);
 
-    // 側邊選單 badge
+    // ?湧??詨 badge
     const badge = document.getElementById('badge-grab');
     if (badge) { badge.textContent = available.length; badge.style.display = available.length ? 'inline-flex' : 'none'; }
 
-    // 總覽儀表板搶單區塊
+    // 蝮質汗?銵冽?嗅?憛?
     const ovBlock = document.getElementById('overview-grab-block');
     const ovBadge = document.getElementById('overview-grab-badge');
     const ovList  = document.getElementById('overview-grab-list');
@@ -1287,28 +1287,28 @@ async function loadGrabZone() {
           return `
           <div style="background:#fff;border-radius:var(--rs);padding:.65rem .9rem;margin-bottom:.5rem;border:1.5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'};display:flex;align-items:center;gap:.75rem">
             <div style="flex:1;min-width:0">
-              <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+              <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'嚗?+t.task_name : t.task_name}</div>
               <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
-                💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${(t.deadline||'').slice(0,10)} 截止
+                ? $${(t.unit_price||0).toLocaleString()} &nbsp;繚&nbsp; ??${remaining} ??憿?&nbsp;繚&nbsp; ${(t.deadline||'').slice(0,10)} ?芣迫
               </div>
             </div>
             <div style="flex-shrink:0">
               ${alreadyGrabbed
-                ? `<span style="font-size:.75rem;font-weight:700;color:var(--green)">已搶 #${t.my_grab_no}</span>`
+                ? `<span style="font-size:.75rem;font-weight:700;color:var(--green)">撌脫 #${t.my_grab_no}</span>`
                 : remaining === 0
-                  ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
-                  : `<button onclick="doGrab(${t.id},this)" style="padding:.3rem .75rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">搶單</button>`
+                  ? `<span style="font-size:.75rem;color:var(--text-s)">??撌脫遛</span>`
+                  : `<button onclick="doGrab(${t.id},this)" style="padding:.3rem .75rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?嗅</button>`
               }
             </div>
           </div>`;
-        }).join('') + (list.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${list.length-3} 個任務 →</div>` : '');
+        }).join('') + (list.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">?? ${list.length-3} ?遙????/div>` : '');
       } else {
         ovBlock.style.display = 'none';
       }
     }
 
     if (!wrap) return;
-    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放搶單的任務</div>'; return; }
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">?桀?瘝???嗅?遙??/div>'; return; }
     wrap.innerHTML = list.map(t => {
       const remaining  = t.total_slots - t.grabbed_count;
       const alreadyGrabbed = !!t.my_grab_no;
@@ -1317,26 +1317,26 @@ async function loadGrabZone() {
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
           <div>
-            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
-            ${alreadyGrabbed ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶到 <span style="font-size:.9rem">＃${t.my_grab_no}</span></div>` : ''}
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'嚗?+t.task_name : t.task_name}</div>
+            ${alreadyGrabbed ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">??撌脫??<span style="font-size:.9rem">嚗?{t.my_grab_no}</span></div>` : ''}
           </div>
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.1rem;color:var(--yellow)">$${(t.unit_price||0).toLocaleString()}</div>
         </div>
-        <!-- 名額進度 -->
+        <!-- ???脣漲 -->
         <div style="margin-bottom:.6rem">
           <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-s);margin-bottom:.25rem">
-            <span>名額 ${t.grabbed_count} / ${t.total_slots}</span><span>剩餘 ${remaining}</span>
+            <span>?? ${t.grabbed_count} / ${t.total_slots}</span><span>?拚? ${remaining}</span>
           </div>
           <div style="height:6px;background:#e5edf3;border-radius:4px;overflow:hidden">
             <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
           </div>
         </div>
-        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">⏰ 截止：${(t.deadline||'').slice(0,16)}</div>
+        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">???芣迫嚗?{(t.deadline||'').slice(0,16)}</div>
         ${alreadyGrabbed
-          ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`
+          ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">撌脣??仿脰?銝凋遙??/div>`
           : remaining === 0
-            ? `<div style="padding:.55rem 1rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">名額已滿</div>`
-            : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 搶單</button>`
+            ? `<div style="padding:.55rem 1rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">??撌脫遛</div>`
+            : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">? ?嗅</button>`
         }
       </div>`;
     }).join('');
@@ -1344,15 +1344,15 @@ async function loadGrabZone() {
 }
 
 async function doGrab(taskId, btn) {
-  btn.disabled = true; btn.textContent = '搶單中…';
+  btn.disabled = true; btn.textContent = '?嗅銝凌?;
   try {
     const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
-    showToast(`搶單成功！您的編號 #${r.grab_no} 🎉`, 'success');
+    showToast(`?嗅??嚗?楊??#${r.grab_no} ??`, 'success');
     loadGrabZone();
-    loadTasks(); // 更新進行中任務
+    loadTasks(); // ?湔?脰?銝凋遙??
   } catch(e) {
     showToast(e.message, 'error');
-    btn.disabled = false; btn.textContent = '🎯 搶單';
+    btn.disabled = false; btn.textContent = '? ?嗅';
   }
 }
 
@@ -1364,10 +1364,10 @@ async function init() {
   loadAvatar(me.id);
   const p = await API.get('/api/profile');
   fillProfile(p);
-  loadAnnouncements(); // 背景載入，不阻塞
+  loadAnnouncements(); // ?頛嚗??餃?
   syncPtIssueNotifyBar();
-  loadGrabZone();      // 背景載入搶單
-  // 重試直到成功，確保資料載入
+  loadGrabZone();      // ?頛?嗅
+  // ?岫?游??嚗Ⅱ靽?????
   let loaded = await loadTasks();
   if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }
   if (!loaded) { await new Promise(r => setTimeout(r, 1500)); await loadTasks(); }
@@ -1375,7 +1375,7 @@ async function init() {
 }
 init();
 
-// ── 問題回報（partner）───────────────────────────────────────
+// ?? ???嚗artner嚗???????????????????????????????????????
 let ptIssueSvImgs    = [null, null, null];
 let ptIssueAdminImgs = [null, null, null];
 let ptIssueTab = 'sv';
@@ -1404,7 +1404,7 @@ async function populateIssueSvDropdowns() {
     const sel = document.getElementById('issue-sv-target');
     if (sel) {
       const cur = sel.value;
-      sel.innerHTML = '<option value="">選擇督導人員＊</option>' +
+      sel.innerHTML = '<option value="">?豢????鈭箏嚗?/option>' +
         svs.map(u => `<option value="${u.id}" data-name="${u.real_name}">${u.real_name}</option>`).join('');
       if (cur) sel.value = cur;
     }
@@ -1415,7 +1415,7 @@ async function populateIssueSvDropdowns() {
     const active = (tasks || []).filter(t => t.status === 'active' || t.status === 'accepted');
     const tsel = document.getElementById('issue-sv-task');
     if (tsel) {
-      tsel.innerHTML = '<option value="">關聯任務（選填）</option>' +
+      tsel.innerHTML = '<option value="">?隞餃?嚗憛恬?</option>' +
         active.map(t => `<option value="${t.id}">${t.task_name || t.id}</option>`).join('');
     }
   } catch(e){}
@@ -1423,28 +1423,28 @@ async function populateIssueSvDropdowns() {
 
 async function loadMyIssuesSv() {
   try {
-    const all = await API.get('/api/reports/mine');
+    const all = await API.get('/api/issues/mine');
     const list = all.filter(r => r.report_type === 'supervisor');
     const el = document.getElementById('issues-pt-sv-list');
     if (!el) return;
-    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">尚無回報紀錄</div>'; return; }
+    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">撠?蝝??/div>'; return; }
     el.innerHTML = list.map(r => ptIssueCard(r, 'mine-pt')).join('');
   } catch(e){ console.error(e); }
 }
 
 async function loadMyIssuesAdmin() {
   try {
-    const all = await API.get('/api/reports/mine');
+    const all = await API.get('/api/issues/mine');
     const list = all.filter(r => r.report_type === 'admin');
     const el = document.getElementById('issues-pt-admin-list');
     if (!el) return;
-    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">尚無回報紀錄</div>'; return; }
+    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">撠?蝝??/div>'; return; }
     el.innerHTML = list.map(r => ptIssueCard(r, 'mine-pt')).join('');
   } catch(e){ console.error(e); }
 }
 
 function ptIssueCard(r, viewer) {
-  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
+  const statusMap = { pending:'敺???, processing:'??銝?, resolved:'撌脰圾瘙? };
   const statusColor = { pending:'#FFB830', processing:'#48B4E8', resolved:'#2EAA7A' };
   const unread = r.unread_reporter;
   return `<div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer" onclick="togglePtIssue(${r.id},'${viewer}')">
@@ -1453,28 +1453,28 @@ function ptIssueCard(r, viewer) {
       <span style="font-weight:700;font-size:.9rem;flex:1;color:#fff">${r.title}</span>
       <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}33;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
     </div>
-    <div style="font-size:.75rem;opacity:.55;color:#fff">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div style="font-size:.75rem;opacity:.55;color:#fff">${r.supervisor_name ? '???嚗?+r.supervisor_name+' 繚 ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' 繚 ? '+r.replies.length+' ??閬? : ''}</div>
     <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid rgba(255,255,255,.12);padding-top:.75rem">
       <div style="font-size:.85rem;line-height:1.7;color:rgba(255,255,255,.85);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
-      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/reports/${r.id}/image/${i}" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
-      <div style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:.4rem">回覆紀錄</div>
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      <div style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:.4rem">??蝝??/div>
       <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
         ${ptIssueRepliesHtml(r.replies||[])}
       </div>
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
-        <input id="pt-issue-reply-input-${r.id}" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-family:'Noto Sans TC',sans-serif">
-        <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--orange);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
+        <input id="pt-issue-reply-input-${r.id}" placeholder="頛詨??..." style="flex:1;padding:.45rem .75rem;font-size:.85rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-family:'Noto Sans TC',sans-serif">
+        <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--orange);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">?</button>
       </div>
     </div>
   </div>`;
 }
 
 function ptIssueRepliesHtml(replies) {
-  if (!replies.length) return '<div style="font-size:.8rem;color:rgba(255,255,255,.4);font-style:italic">尚無回覆</div>';
-  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  if (!replies.length) return '<div style="font-size:.8rem;color:rgba(255,255,255,.4);font-style:italic">撠??</div>';
+  const rMap = { partner:'憭乩撈', supervisor:'???', staff:'蝞∠?' };
   return replies.map(rp => `
     <div style="background:rgba(0,0,0,.2);border-radius:var(--rs);padding:.45rem .75rem">
-      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.2rem">${rp.author_name}嚗?{rMap[rp.author_role]||rp.author_role}嚗?${fmtDay(rp.created_at)}</div>
       <div style="font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.55">${rp.text}</div>
     </div>`).join('');
 }
@@ -1486,7 +1486,7 @@ async function togglePtIssue(id, viewer) {
   document.querySelectorAll('[id^="pt-issue-detail-"]').forEach(e => e.style.display = 'none');
   if (!isOpen) {
     el.style.display = 'block';
-    try { await API.put('/api/reports/'+id+'/read', {}); } catch(e){}
+    try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
     if (ptIssueTab === 'sv') await loadMyIssuesSv();
     else await loadMyIssuesAdmin();
     const el2 = document.getElementById('pt-issue-detail-' + id);
@@ -1500,9 +1500,9 @@ async function submitPtIssueReply(id, viewer) {
   const text = input && input.value && input.value.trim();
   if (!text) return;
   try {
-    await API.post('/api/reports/'+id+'/reply', { text });
+    await API.post('/api/issues/'+id+'/reply', { text });
     input.value = '';
-    showToast('回覆已送出', 'success');
+    showToast('??撌脤', 'success');
     if (ptIssueTab === 'sv') await loadMyIssuesSv();
     else await loadMyIssuesAdmin();
     const el2 = document.getElementById('pt-issue-detail-' + id);
@@ -1549,10 +1549,10 @@ async function submitIssueSv() {
   const svName  = sel && sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].dataset.name;
   const taskId  = taskSel && taskSel.value;
   const taskName = taskSel && taskSel.options[taskSel.selectedIndex] && taskSel.selectedIndex > 0 ? taskSel.options[taskSel.selectedIndex].textContent : null;
-  if (!svId) { errEl.textContent='請選擇督導人員'; errEl.style.display='block'; return; }
-  if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
+  if (!svId) { errEl.textContent='隢?撠犖??; errEl.style.display='block'; return; }
+  if (!title || !content) { errEl.textContent='隢‵撖急?憿??批捆'; errEl.style.display='block'; return; }
   try {
-    const r = await API.post('/api/reports', {
+    const r = await API.post('/api/issues', {
       report_type: 'supervisor', title, content,
       supervisor_id: svId, supervisor_name: svName,
       assignment_id: taskId || null, assignment_name: taskName || null,
@@ -1560,7 +1560,7 @@ async function submitIssueSv() {
     const id = r.id;
     let imgIdx = 0;
     for (const img of ptIssueSvImgs) {
-      if (img) await API.post('/api/reports/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
+      if (img) await API.post('/api/issues/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
       imgIdx++;
     }
     titleEl.value = '';
@@ -1572,7 +1572,7 @@ async function submitIssueSv() {
       if (prev) { prev.style.display='none'; prev.src=''; }
       if (icon) icon.style.display='';
     }
-    showToast('回報已送出！', 'success');
+    showToast('?撌脤嚗?, 'success');
     await loadMyIssuesSv();
   } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
 }
@@ -1584,13 +1584,13 @@ async function submitPtIssueAdmin() {
   errEl.style.display = 'none';
   const title   = titleEl && titleEl.value.trim();
   const content = contEl && contEl.value.trim();
-  if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
+  if (!title || !content) { errEl.textContent='隢‵撖急?憿??批捆'; errEl.style.display='block'; return; }
   try {
-    const r = await API.post('/api/reports', { report_type: 'admin', title, content });
+    const r = await API.post('/api/issues', { report_type: 'admin', title, content });
     const id = r.id;
     let imgIdx = 0;
     for (const img of ptIssueAdminImgs) {
-      if (img) await API.post('/api/reports/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
+      if (img) await API.post('/api/issues/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
       imgIdx++;
     }
     titleEl.value = '';
@@ -1602,21 +1602,21 @@ async function submitPtIssueAdmin() {
       if (prev) { prev.style.display='none'; prev.src=''; }
       if (icon) icon.style.display='';
     }
-    showToast('回報已送出！', 'success');
+    showToast('?撌脤嚗?, 'success');
     await loadMyIssuesAdmin();
   } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
 }
 
 async function syncPtIssueNotifyBar() {
   try {
-    const data = await API.get('/api/reports/unread');
+    const data = await API.get('/api/issues/unread');
     const bar   = document.getElementById('pt-issue-notify-bar');
     const badge = document.getElementById('badge-issues');
     const total = (data.from_handler||0);
     if (bar) {
       bar.style.display = total > 0 ? 'flex' : 'none';
       const txt = document.getElementById('pt-issue-notify-text');
-      if (txt && total > 0) txt.textContent = total+' 件問題回報有新回覆';
+      if (txt && total > 0) txt.textContent = total+' 隞嗅?憿??望??啣?閬?;
     }
     if (badge) {
       badge.style.display = total > 0 ? 'inline' : 'none';

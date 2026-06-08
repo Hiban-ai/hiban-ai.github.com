@@ -169,13 +169,6 @@ textarea.form-input{resize:none}
   .mobile-topbar{display:flex}
 }
 /* 跑馬燈 */
-.marquee-bar{background:linear-gradient(90deg,#0D4A72,#1A8AC0);color:#fff;font-size:.82rem;font-weight:600;padding:.42rem 1rem;display:flex;align-items:center;gap:.75rem;overflow:hidden;flex-shrink:0;font-family:'Noto Sans TC',sans-serif}
-.mq-label{white-space:nowrap;font-size:.72rem;background:rgba(255,255,255,.2);padding:.15rem .55rem;border-radius:10px;flex-shrink:0}
-.mq-wrap{flex:1;overflow:hidden;position:relative}
-.mq-track{display:inline-flex;align-items:center;white-space:nowrap;animation:marquee 22s linear infinite}
-.mq-track:hover{animation-play-state:paused}
-.mq-item:hover{text-decoration:underline;opacity:.85}
-@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 /* 公告列表 */
 .ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem;display:flex;gap:.75rem;align-items:flex-start}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
@@ -186,10 +179,6 @@ textarea.form-input{resize:none}
 .att-chip{display:inline-flex;align-items:center;gap:.4rem;background:var(--blue-p);border:1px solid var(--blue);border-radius:20px;padding:.22rem .7rem;font-size:.78rem;font-weight:600;color:var(--blue-d)}
 .att-dl-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .75rem;background:var(--blue-p);border:1.5px solid var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;color:var(--blue-d);cursor:pointer;text-decoration:none;font-family:'Noto Sans TC',sans-serif}
 .att-dl-btn:hover{background:var(--blue);color:#fff}
-/* 公告子分頁 */
-.ann-tab{padding:.6rem 1.25rem;font-size:.88rem;font-weight:600;color:var(--text-s);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .2s;font-family:'Noto Sans TC',sans-serif}
-.ann-tab.active{color:var(--blue-d);border-bottom-color:var(--blue-d);font-weight:700}
-.ann-tab:hover:not(.active){color:var(--text-m);background:var(--bg);border-radius:var(--rs) var(--rs) 0 0}
 /* 日期選擇器 */
 .dp-wrap{border:1.5px solid var(--border);border-radius:var(--rs);padding:.75rem;background:var(--blue-p)}
 .dp-selects{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem}
@@ -247,10 +236,11 @@ textarea.form-input{resize:none}
 
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- 跑馬燈 -->
-  <div class="marquee-bar" id="ann-marquee-bar" style="display:none">
-    <span class="mq-label">📢 公告</span>
-    <div class="mq-wrap"><div id="ann-marquee"></div></div>
+  <!-- 新公告通知條 -->
+  <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
+       style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
+    <span>📢</span><span id="ann-notify-text">您有新公告</span>
+    <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
   </div>
   <div class="st-main">
 
@@ -672,8 +662,7 @@ function switchPage(name, el) {
     const now2 = new Date().toISOString().slice(0,10);
     const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
     markAllRead(me.id, ids);
-    const badge = document.getElementById('badge-notices');
-    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+    try { syncNotifyBar(); renderAnnList(); } catch(e) {}
   }
 }
 
@@ -1422,29 +1411,30 @@ function closeAnnForm() {
 async function loadAnnouncements() {
   try { annList = await API.get('/api/admin/announcements'); }
   catch(e) { annList = []; console.warn('[announcements]', e.message); }
-  try { renderAnnList(); } catch(e) { console.warn('[renderAnnList]', e.message); }
-  try { syncMarquee();  } catch(e) { console.warn('[syncMarquee]',   e.message); }
+  try { renderAnnList();   } catch(e) { console.warn('[renderAnnList]',   e.message); }
+  try { syncNotifyBar();  } catch(e) { console.warn('[syncNotifyBar]',  e.message); }
 }
 
-// ── 跑馬燈 & 未讀數 ───────────────────────
-function syncMarquee() {
+// ── 通知條 & 未讀數 ───────────────────────
+function syncNotifyBar() {
+  if (!me) return;
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  const marqueeEl = document.getElementById('ann-marquee');
-  const bar = document.getElementById('ann-marquee-bar');
-  if (visible.length && marqueeEl) {
-    const sorted = [...visible].sort((a,b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
-    const html = sorted.slice(0,6).map(a =>
-      `<span class="mq-item" style="padding:0 2rem;cursor:pointer" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">${a.is_pinned ? '📌 ' : ''}${a.title}</span>`
-    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
-    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
-    bar.style.display = 'flex';
-  } else if (bar) { bar.style.display = 'none'; }
-  if (me) {
-    const readIds = getReadIds(me.id);
-    const unread  = visible.filter(a => !readIds.includes(a.id)).length;
-    const badge   = document.getElementById('badge-notices');
-    if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  const readIds = getReadIds(me.id);
+  const unread  = visible.filter(a => !readIds.includes(String(a.id))).length;
+  // 導覽紅點
+  const badge = document.getElementById('badge-notices');
+  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  // 通知條
+  const bar  = document.getElementById('ann-notify-bar');
+  const text = document.getElementById('ann-notify-text');
+  if (bar) {
+    if (unread > 0) {
+      text.textContent = `您有 ${unread} 則新公告`;
+      bar.style.display = 'flex';
+    } else {
+      bar.style.display = 'none';
+    }
   }
 }
 
@@ -1453,39 +1443,45 @@ function renderAnnList() {
   const wrap = document.getElementById('ann-list-wrap');
   if (!annList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
   const now = new Date().toISOString().slice(0,10);
+  const readIds = me ? getReadIds(me.id) : [];
   const sorted = [...annList].sort((a,b) => {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
     return (b.created_at||'').localeCompare(a.created_at||'');
   });
   wrap.innerHTML = sorted.map(a => {
-    const expired = a.expires_at && a.expires_at < now;
+    const expired   = a.expires_at && a.expires_at < now;
     const permanent = !a.expires_at;
+    const unread    = !readIds.includes(String(a.id));
     const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[a.target||'all'] || '全部角色';
-    const attHtml = a.attachment_name
-      ? `<a class="att-dl-btn" href="/api/announcements/${a.id}/attachment" download="${a.attachment_name}">📎 ${a.attachment_name}</a>` : '';
+    const annJson = JSON.stringify(a).replace(/'/g, '&#39;');
     return `
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="${expired ? 'opacity:.55' : ''}">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-          ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
-          ${permanent ? '<span style="font-size:.72rem;background:var(--purple);color:#fff;padding:.1rem .4rem;border-radius:8px">🔒 永久</span>' : ''}
-          ${expired   ? '<span style="font-size:.72rem;background:var(--text-s);color:#fff;padding:.1rem .4rem;border-radius:8px">已到期</span>' : ''}
+      <div style="flex:1;min-width:0;cursor:pointer" onclick='openAnnDetail(${annJson})'>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.2rem">
+          ${unread    ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
+          ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
+          ${permanent ? '<span style="font-size:.68rem;background:var(--purple);color:#fff;padding:.1rem .4rem;border-radius:8px">🔒</span>' : ''}
+          ${expired   ? '<span style="font-size:.68rem;background:var(--text-s);color:#fff;padding:.1rem .4rem;border-radius:8px">到期</span>' : ''}
           <span class="ann-target-tag">${targetLabel}</span>
-          <span style="font-weight:700;font-size:.92rem">${a.title}</span>
+          <span style="font-weight:700;font-size:.9rem">${a.title}</span>
         </div>
-        <div style="font-size:.85rem;color:var(--text-m);margin:.4rem 0;white-space:pre-wrap">${a.content}</div>
-        ${attHtml ? `<div style="margin-top:.4rem">${attHtml}</div>` : ''}
-        <div class="ann-meta">
-          發布：${(a.created_at||'').slice(0,16)}
-          ${a.expires_at ? ` &nbsp;｜&nbsp; 到期：${a.expires_at}` : ' &nbsp;｜&nbsp; 永久有效'}
+        <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}
+          ${a.attachment_name ? ' &nbsp;·&nbsp; 📎 有附件' : ''}
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0;margin-left:.5rem">
         <button onclick="editAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">編輯</button>
         <button onclick="deleteAnn('${a.id}')" style="padding:.3rem .75rem;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:20px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">刪除</button>
       </div>
     </div>`;
   }).join('');
+}
+
+// ── 點開公告詳細 ───────────────────────────
+function openAnnDetail(ann) {
+  showAnnDetail(ann, me ? me.id : null);
+  // 讀後更新通知條與紅點
+  try { syncNotifyBar(); } catch(e) {}
 }
 
 // ── 永久公告 checkbox ──────────────────────

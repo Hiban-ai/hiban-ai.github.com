@@ -50,13 +50,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
 .page-section{display:none}
 .page-section.active{display:block}
-.marquee-bar{background:linear-gradient(90deg,#0D4A72,#1A8AC0);color:#fff;font-size:.82rem;font-weight:600;padding:.42rem 1rem;display:flex;align-items:center;gap:.75rem;overflow:hidden;flex-shrink:0;font-family:'Noto Sans TC',sans-serif}
-.mq-label{white-space:nowrap;font-size:.72rem;background:rgba(255,255,255,.2);padding:.15rem .55rem;border-radius:10px;flex-shrink:0}
-.mq-wrap{flex:1;overflow:hidden;position:relative}
-.mq-track{display:inline-flex;align-items:center;white-space:nowrap;animation:marquee 22s linear infinite}
-.mq-track:hover{animation-play-state:paused}
-.mq-item:hover{text-decoration:underline;opacity:.85}
-@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
 .ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
@@ -169,10 +162,11 @@ textarea.form-input{resize:none}
   </div>
 
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- 跑馬燈 -->
-  <div class="marquee-bar" id="ann-marquee-bar" style="display:none">
-    <span class="mq-label">📢 公告</span>
-    <div class="mq-wrap"><div id="ann-marquee"></div></div>
+  <!-- 新公告通知條 -->
+  <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
+       style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
+    <span>📢</span><span id="ann-notify-text">您有新公告</span>
+    <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
   </div>
   <div class="sv-main">
 
@@ -473,8 +467,7 @@ function switchPage(name, el) {
     const now2 = new Date().toISOString().slice(0,10);
     const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
     markAllRead(svMe.id, ids);
-    const badge = document.getElementById('badge-notices');
-    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+    try { syncNotifyBar(); renderAnnList(); } catch(e) {}
   }
 }
 
@@ -768,29 +761,23 @@ let svMe = null;
 
 async function loadAnnouncements() {
   try { annList = await API.get('/api/announcements'); } catch(e) { annList = []; console.warn('[ann]', e.message); }
-  try { renderAnnList(); } catch(e) { console.warn('[renderAnnList]', e.message); }
-  try { syncMarquee();  } catch(e) { console.warn('[syncMarquee]',   e.message); }
+  try { renderAnnList();   } catch(e) { console.warn('[renderAnnList]',   e.message); }
+  try { syncNotifyBar();   } catch(e) { console.warn('[syncNotifyBar]',   e.message); }
 }
 
-function syncMarquee() {
+function syncNotifyBar() {
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  const marqueeEl = document.getElementById('ann-marquee');
-  const bar = document.getElementById('ann-marquee-bar');
-  if (visible.length && marqueeEl) {
-    const sorted = [...visible].sort((a,b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
-    const items = sorted.slice(0, 6);
-    const html = items.map(a =>
-      `<span class="mq-item" style="padding:0 2rem;cursor:pointer" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">${a.is_pinned ? '📌 ' : ''}${a.title}</span>`
-    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
-    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
-    bar.style.display = 'flex';
-  } else if (bar) { bar.style.display = 'none'; }
-  if (svMe) {
-    const readIds = getReadIds(svMe.id);
-    const unread = visible.filter(a => !readIds.includes(a.id)).length;
-    const badge = document.getElementById('badge-notices');
-    if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  const uid = svMe ? svMe.id : null;
+  const readIds = uid ? getReadIds(uid) : [];
+  const unread  = visible.filter(a => !readIds.includes(String(a.id))).length;
+  const badge = document.getElementById('badge-notices');
+  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  const bar  = document.getElementById('ann-notify-bar');
+  const text = document.getElementById('ann-notify-text');
+  if (bar) {
+    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.style.display = 'flex'; }
+    else { bar.style.display = 'none'; }
   }
 }
 
@@ -800,25 +787,30 @@ function renderAnnList() {
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
   if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
+  const uid = svMe ? svMe.id : null;
+  const readIds = uid ? getReadIds(uid) : [];
   const sorted = [...visible].sort((a,b) => {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
     return (b.created_at||'').localeCompare(a.created_at||'');
   });
   wrap.innerHTML = sorted.map(a => {
-    const attHtml = a.attachment_name
-      ? `<div style="margin-top:.45rem"><a class="att-dl-btn" href="/api/announcements/${a.id}/attachment" download="${a.attachment_name}">📎 ${a.attachment_name}</a></div>`
-      : '';
+    const unread = !readIds.includes(String(a.id));
+    const annJson = JSON.stringify(a).replace(/'/g, '&#39;');
     return `
-    <div class="ann-card${a.is_pinned ? ' pinned' : ''}">
-      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
-        ${a.is_pinned ? '<span style="font-size:.72rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌 置頂</span>' : ''}
-        <span style="font-weight:700;font-size:.95rem">${a.title}</span>
+    <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="cursor:pointer" onclick='openAnnDetail(${annJson})'>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem">
+        ${unread ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
+        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
+        <span style="font-weight:700;font-size:.9rem">${a.title}</span>
       </div>
-      <div style="font-size:.88rem;color:var(--text-m);white-space:pre-wrap">${a.content}</div>
-      ${attHtml}
-      <div class="ann-meta">發布：${(a.created_at||'').slice(0,16)}${a.expires_at ? ` ｜ 到期：${a.expires_at}` : ''}</div>
+      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}${a.attachment_name ? ' &nbsp;·&nbsp; 📎 有附件' : ''}</div>
     </div>`;
   }).join('');
+}
+
+function openAnnDetail(ann) {
+  showAnnDetail(ann, svMe ? svMe.id : null);
+  try { syncNotifyBar(); renderAnnList(); } catch(e) {}
 }
 
 async function init() {

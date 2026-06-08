@@ -39,42 +39,62 @@ async function signOut() {
   location.href = '/index.html';
 }
 
-// ── 公告跑馬燈 ────────────────────────────────────────────────
-// 讀取已讀清單（localStorage，per user）
+// ── 公告已讀追蹤 ──────────────────────────────────────────────
 function getReadIds(userId) {
   try { return JSON.parse(localStorage.getItem(`ann_read_${userId}`) || '[]'); } catch { return []; }
 }
 function markRead(userId, id) {
   const ids = getReadIds(userId);
-  if (!ids.includes(id)) { ids.push(id); localStorage.setItem(`ann_read_${userId}`, JSON.stringify(ids)); }
+  if (!ids.includes(String(id))) { ids.push(String(id)); localStorage.setItem(`ann_read_${userId}`, JSON.stringify(ids)); }
 }
 function markAllRead(userId, ids) {
-  localStorage.setItem(`ann_read_${userId}`, JSON.stringify(ids));
+  localStorage.setItem(`ann_read_${userId}`, JSON.stringify(ids.map(String)));
 }
 
-async function initAnnouncements(userId, { navBadgeId, marqueeContainerId, onClickAnn } = {}) {
-  let anns = [];
-  try { anns = await API.get('/api/announcements'); } catch { return; }
+// ── 公告詳細視窗（所有角色共用）─────────────────────────────
+function showAnnDetail(ann, userId) {
+  // 標記已讀
+  if (userId) markRead(userId, ann.id);
 
-  // 未讀紅點
-  const readIds = getReadIds(userId);
-  const unread  = anns.filter(a => !readIds.includes(a.id)).length;
-  const badge   = navBadgeId ? document.getElementById(navBadgeId) : null;
-  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[ann.target||'all'] || '全部角色';
+  const expiryHtml  = ann.expires_at
+    ? `<span style="background:#F0F8FE;color:#7A9AAF;padding:.18rem .55rem;border-radius:8px">到期：${ann.expires_at}</span>`
+    : `<span style="background:#F0EBF8;color:#9B6FD4;padding:.18rem .55rem;border-radius:8px">🔒 永久公告</span>`;
+  const attHtml = ann.attachment_name
+    ? `<div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid #C8E8F6">
+         <div style="font-size:.75rem;color:#7A9AAF;margin-bottom:.45rem">📎 附件</div>
+         <a href="/api/announcements/${ann.id}/attachment" download="${ann.attachment_name}"
+            style="display:inline-flex;align-items:center;gap:.4rem;padding:.38rem .9rem;background:#EBF7FD;border:1.5px solid #48B4E8;border-radius:20px;font-size:.82rem;font-weight:700;color:#1A8AC0;text-decoration:none">
+           📎 ${ann.attachment_name}
+         </a>
+       </div>` : '';
 
-  // 跑馬燈（取最新 5 則）
-  const marqueeEl = marqueeContainerId ? document.getElementById(marqueeContainerId) : null;
-  if (marqueeEl && anns.length) {
-    const items = anns.slice(0, 5);
-    const html  = items.map(a =>
-      `<span class="mq-item" onclick="(${onClickAnn ? onClickAnn.toString() : 'function(){}'})()" data-id="${a.id}" style="cursor:pointer;padding:0 2rem">
-        ${a.is_pinned ? '📌 ' : ''}${a.title}
-      </span>`
-    ).join('<span style="padding:0 1rem;opacity:.4">｜</span>');
-    marqueeEl.innerHTML = `<div class="mq-track">${html}${html}</div>`;
+  // 建立或取得 modal
+  let modal = document.getElementById('_ann_detail_modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = '_ann_detail_modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto';
+    modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    document.body.appendChild(modal);
   }
-
-  return anns;
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:min(600px,96vw);max-height:88vh;overflow-y:auto;padding:1.6rem;box-shadow:0 16px 48px rgba(13,74,114,.22);position:relative">
+      <button onclick="document.getElementById('_ann_detail_modal').style.display='none'"
+              style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.25rem;cursor:pointer;color:#7A9AAF;line-height:1">✕</button>
+      <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.1rem;line-height:1.5;padding-right:2rem;margin-bottom:.75rem">${ann.title}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem;font-size:.73rem">
+        ${ann.is_pinned ? '<span style="background:#1A8AC0;color:#fff;padding:.18rem .5rem;border-radius:8px">📌 置頂</span>' : ''}
+        <span style="background:#EBF7FD;color:#1A8AC0;padding:.18rem .55rem;border-radius:8px">${targetLabel}</span>
+        ${expiryHtml}
+      </div>
+      <div style="font-size:.75rem;color:#7A9AAF;margin-bottom:.9rem">
+        發布：${ann.created_by || '—'} &nbsp;·&nbsp; ${(ann.created_at||'').slice(0,16)}
+      </div>
+      <div style="font-size:.92rem;color:#3D5A70;line-height:1.85;white-space:pre-wrap;border-top:1px solid #C8E8F6;padding-top:.9rem">${ann.content}</div>
+      ${attHtml}
+    </div>`;
+  modal.style.display = 'flex';
 }
 
 // 顯示 toast 通知

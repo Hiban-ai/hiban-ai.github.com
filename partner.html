@@ -488,9 +488,8 @@ textarea.form-input{resize:none}
           <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
           <div id="issue-sv-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
           <div style="display:flex;flex-direction:column;gap:.55rem">
-            <select id="issue-sv-target" class="form-input" style="width:100%">
-              <option value="">選擇督導人員＊</option>
-            </select>
+            <input type="hidden" id="issue-sv-target" value="">
+            <div id="issue-sv-target-display" class="form-input" style="width:100%;background:var(--bg);color:var(--text-s);cursor:default">督導人員載入中…</div>
             <input id="issue-sv-title" class="form-input" placeholder="問題標題＊" style="width:100%">
             <textarea id="issue-sv-content" class="form-input" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
             <select id="issue-sv-task" class="form-input" style="width:100%">
@@ -1281,14 +1280,13 @@ async function loadGrabZone() {
     const ovBadge = document.getElementById('overview-grab-badge');
     const ovList  = document.getElementById('overview-grab-list');
     if (ovBlock) {
-      if (list.length) {
+      if (available.length) {
         ovBlock.style.display = '';
         if (ovBadge) ovBadge.textContent = available.length;
-        if (ovList) ovList.innerHTML = list.slice(0, 3).map(t => {
+        if (ovList) ovList.innerHTML = available.slice(0, 3).map(t => {
           const remaining = t.total_slots - t.grabbed_count;
-          const alreadyGrabbed = !!t.my_grab_no;
           return `
-          <div style="background:#fff;border-radius:var(--rs);padding:.65rem .9rem;margin-bottom:.5rem;border:1.5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'};display:flex;align-items:center;gap:.75rem">
+          <div style="background:#fff;border-radius:var(--rs);padding:.65rem .9rem;margin-bottom:.5rem;border:1.5px solid var(--blue);display:flex;align-items:center;gap:.75rem">
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
               <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
@@ -1296,25 +1294,23 @@ async function loadGrabZone() {
               </div>
             </div>
             <div style="flex-shrink:0">
-              ${alreadyGrabbed
-                ? `<span style="font-size:.75rem;font-weight:700;color:var(--green)">已搶 #${t.my_grab_no}</span>`
-                : remaining === 0
-                  ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
-                  : `<button onclick="doGrab(${t.id},this)" style="padding:.3rem .75rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">搶單</button>`
+              ${remaining === 0
+                ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
+                : `<button onclick="doGrab(${t.id},this)" style="padding:.3rem .75rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">搶單</button>`
               }
             </div>
           </div>`;
-        }).join('') + (list.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${list.length-3} 個任務 →</div>` : '');
+        }).join('') + (available.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${available.length-3} 個任務 →</div>` : '');
       } else {
         ovBlock.style.display = 'none';
       }
     }
 
     if (!wrap) return;
-    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放搶單的任務</div>'; return; }
-    wrap.innerHTML = list.map(t => {
+    if (!available.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放搶單的任務</div>'; return; }
+    wrap.innerHTML = available.map(t => {
       const remaining  = t.total_slots - t.grabbed_count;
-      const alreadyGrabbed = !!t.my_grab_no;
+      const alreadyGrabbed = false;
       const pctFill    = Math.round((t.grabbed_count / t.total_slots) * 100);
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'}">
@@ -1387,8 +1383,8 @@ function switchPtIssueTab(tab) {
   ptIssueTab = tab;
   const svBtn    = document.getElementById('ptitab-sv');
   const adminBtn = document.getElementById('ptitab-admin');
-  if (svBtn)    { svBtn.style.color = tab==='sv' ? '#FFD166' : 'rgba(255,255,255,.55)'; svBtn.style.borderBottomColor = tab==='sv' ? '#FFD166' : 'transparent'; svBtn.style.fontWeight = tab==='sv' ? '700' : '400'; }
-  if (adminBtn) { adminBtn.style.color = tab==='admin' ? '#FFD166' : 'rgba(255,255,255,.55)'; adminBtn.style.borderBottomColor = tab==='admin' ? '#FFD166' : 'transparent'; adminBtn.style.fontWeight = tab==='admin' ? '700' : '400'; }
+  if (svBtn)    { svBtn.style.color = tab==='sv' ? 'var(--blue-d)' : 'var(--text-s)'; svBtn.style.borderBottomColor = tab==='sv' ? 'var(--blue)' : 'transparent'; svBtn.style.fontWeight = tab==='sv' ? '700' : '400'; }
+  if (adminBtn) { adminBtn.style.color = tab==='admin' ? 'var(--blue-d)' : 'var(--text-s)'; adminBtn.style.borderBottomColor = tab==='admin' ? 'var(--blue)' : 'transparent'; adminBtn.style.fontWeight = tab==='admin' ? '700' : '400'; }
   document.getElementById('pt-issue-tab-sv').style.display    = tab==='sv'    ? 'block' : 'none';
   document.getElementById('pt-issue-tab-admin').style.display = tab==='admin' ? 'block' : 'none';
   if (tab==='sv')    loadMyIssuesSv();
@@ -1403,13 +1399,18 @@ async function loadIssuesPt() {
 
 async function populateIssueSvDropdowns() {
   try {
-    const svs = await API.get('/api/users-list?role=supervisor');
-    const sel = document.getElementById('issue-sv-target');
-    if (sel) {
-      const cur = sel.value;
-      sel.innerHTML = '<option value="">選擇督導人員＊</option>' +
-        svs.map(u => `<option value="${u.id}" data-name="${u.real_name}">${u.real_name}</option>`).join('');
-      if (cur) sel.value = cur;
+    const me = await API.get('/api/me');
+    const hiddenSv = document.getElementById('issue-sv-target');
+    const dispSv   = document.getElementById('issue-sv-target-display');
+    if (me.supervisor_id) {
+      if (hiddenSv) hiddenSv.value = me.supervisor_id;
+      try {
+        const svs = await API.get('/api/users-list?role=supervisor');
+        const sv = svs.find(u => String(u.id) === String(me.supervisor_id));
+        if (dispSv) dispSv.textContent = sv ? '督導：' + sv.real_name : '已指派督導';
+      } catch(e2) { if (dispSv) dispSv.textContent = '已指派督導'; }
+    } else {
+      if (dispSv) dispSv.textContent = '（尚未指派督導）';
     }
   } catch(e){}
   // populate task dropdown

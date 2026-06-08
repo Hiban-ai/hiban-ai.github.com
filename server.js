@@ -95,7 +95,7 @@ app.post('/api/login', async (req, res) => {
     if (user.status === 'pending')  return res.status(403).json({ error: 'Account pending approval' });
     if (user.status === 'inactive') return res.status(403).json({ error: 'Account disabled' });
     if (!bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Wrong password' });
-    req.session.user = { id: user.id, username: user.username, real_name: user.real_name, nickname: user.nickname, role: user.role, is_admin: !!(user.is_admin || user.username === 'admin') };
+    req.session.user = { id: user.id, username: user.username, real_name: user.real_name, nickname: user.nickname, role: user.role, is_admin: !!(user.is_admin || user.username === 'admin'), supervisor_id: user.supervisor_id || null };
     res.json({ ok: true, role: user.role, is_first_login: !!user.is_first_login });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

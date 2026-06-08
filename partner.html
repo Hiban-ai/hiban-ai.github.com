@@ -1129,7 +1129,7 @@ function renderAnnList() {
         ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
         <span style="font-weight:700;font-size:.9rem">${a.title}</span>
       </div>
-      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}${a.attachment_name ? ' &nbsp;·&nbsp; 📎 有附件' : ''}</div>
+      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}${(()=>{ const n=(a.attachments&&a.attachments.length)||(a.attachment_drive_id?1:0); return n?` &nbsp;·&nbsp; 📎 ${n} 個附件`:''; })()}</div>
     </div>`;
   }).join('');
 }

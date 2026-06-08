@@ -170,26 +170,35 @@ app.put('/api/admin/announcements/:id', requireRole('staff'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 取得公告的附件陣列（相容舊單一附件格式）
+function getAnnAttachments(ann) {
+  if (ann.attachments && ann.attachments.length) return ann.attachments;
+  if (ann.attachment_drive_id) return [{ drive_id: ann.attachment_drive_id, name: ann.attachment_name, mime: ann.attachment_mime || 'application/octet-stream' }];
+  return [];
+}
+
 // 刪除公告
 app.delete('/api/admin/announcements/:id', requireRole('staff'), async (req, res) => {
   try {
-    // 若有附件，先從 Drive 刪除
     const ann = await Announcements.byId(req.params.id);
-    if (ann && ann.attachment_drive_id) {
-      try {
-        const drive = getDrive();
-        if (drive) await drive.files.delete({ fileId: ann.attachment_drive_id, supportsAllDrives: true });
-      } catch(de) { console.error('[Drive delete attachment]', de.message); }
+    if (ann) {
+      const drive = getDrive();
+      if (drive) {
+        for (const att of getAnnAttachments(ann)) {
+          try { await drive.files.delete({ fileId: att.drive_id, supportsAllDrives: true }); }
+          catch(de) { console.error('[Drive delete att]', de.message); }
+        }
+      }
     }
     await Announcements.delete(req.params.id);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 上傳公告附件（base64，最大 15MB）
+// 上傳公告附件（base64，最大 15MB）— 追加到陣列
 app.post('/api/admin/announcements/:id/attachment', requireRole('staff'), async (req, res) => {
   try {
-    const { name, mime, data } = req.body;           // data = pure base64 (no prefix)
+    const { name, mime, data } = req.body;
     if (!name || !data) return res.status(400).json({ error: '缺少檔案資料' });
     const buf = Buffer.from(data, 'base64');
     if (buf.byteLength > 15 * 1024 * 1024) return res.status(400).json({ error: '附件大小不得超過 15 MB' });
@@ -203,12 +212,6 @@ app.post('/api/admin/announcements/:id/attachment', requireRole('staff'), async 
     const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
     const annDirId = await driveEnsureFolder(drive, '公告附件', rootId);
 
-    // 若已有舊附件，先刪除
-    if (ann.attachment_drive_id) {
-      try { await drive.files.delete({ fileId: ann.attachment_drive_id, supportsAllDrives: true }); }
-      catch(de) { console.error('[Drive] 舊附件刪除失敗', de.message); }
-    }
-
     const { Readable } = require('stream');
     const created = await drive.files.create({
       requestBody: { name, parents: [annDirId] },
@@ -218,58 +221,62 @@ app.post('/api/admin/announcements/:id/attachment', requireRole('staff'), async 
     });
     const fileId = created.data.id;
 
+    // 取現有附件陣列並追加
+    const existing = getAnnAttachments(ann);
+    const updated  = [...existing, { drive_id: fileId, name, mime: mime || 'application/octet-stream' }];
     await Announcements.update(req.params.id, {
-      attachment_drive_id: fileId,
-      attachment_name: name,
-      attachment_mime: mime || 'application/octet-stream',
+      attachments: updated,
+      // 清除舊單一附件欄位
+      attachment_drive_id: null, attachment_name: null, attachment_mime: null,
     });
-    res.json({ ok: true, file_id: fileId, file_name: name });
+    res.json({ ok: true, drive_id: fileId, name });
   } catch(e) { console.error('[attachment upload]', e.message); res.status(500).json({ error: e.message }); }
 });
 
-// 刪除公告附件
-app.delete('/api/admin/announcements/:id/attachment', requireRole('staff'), async (req, res) => {
+// 刪除特定附件（by drive_id）
+app.delete('/api/admin/announcements/:id/attachment/:driveId', requireRole('staff'), async (req, res) => {
   try {
     const ann = await Announcements.byId(req.params.id);
     if (!ann) return res.status(404).json({ error: '公告不存在' });
-    if (ann.attachment_drive_id) {
-      const drive = getDrive();
-      if (drive) {
-        try { await drive.files.delete({ fileId: ann.attachment_drive_id, supportsAllDrives: true }); }
-        catch(de) { console.error('[Drive] 附件刪除失敗', de.message); }
-      }
+    const { driveId } = req.params;
+    const existing = getAnnAttachments(ann);
+    const remaining = existing.filter(a => a.drive_id !== driveId);
+    // Drive 刪除
+    const drive = getDrive();
+    if (drive) {
+      try { await drive.files.delete({ fileId: driveId, supportsAllDrives: true }); }
+      catch(de) { console.error('[Drive] 附件刪除失敗', de.message); }
     }
     await Announcements.update(req.params.id, {
-      attachment_drive_id: null,
-      attachment_name: null,
-      attachment_mime: null,
+      attachments: remaining,
+      attachment_drive_id: null, attachment_name: null, attachment_mime: null,
     });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 下載公告附件（已登入者皆可存取）
-app.get('/api/announcements/:id/attachment', requireAuth, async (req, res) => {
+// 下載附件（by drive_id）
+app.get('/api/announcements/:id/attachment/:driveId', requireAuth, async (req, res) => {
   try {
     const ann = await Announcements.byId(req.params.id);
-    if (!ann || !ann.attachment_drive_id) return res.status(404).json({ error: '無附件' });
+    if (!ann) return res.status(404).json({ error: '公告不存在' });
+    const { driveId } = req.params;
+    const atts = getAnnAttachments(ann);
+    const att = atts.find(a => a.drive_id === driveId);
+    if (!att) return res.status(404).json({ error: '附件不存在' });
 
     const drive = getDrive();
     if (!drive) return res.status(503).json({ error: 'Drive 未設定' });
 
-    const meta = await drive.files.get({
-      fileId: ann.attachment_drive_id,
-      fields: 'name,mimeType,size',
-      supportsAllDrives: true,
-    });
-    const mime = meta.data.mimeType || ann.attachment_mime || 'application/octet-stream';
-    const fname = encodeURIComponent(ann.attachment_name || meta.data.name || 'attachment');
+    const meta = await drive.files.get({ fileId: driveId, fields: 'name,mimeType', supportsAllDrives: true });
+    const mime  = meta.data.mimeType || att.mime || 'application/octet-stream';
+    const fname = encodeURIComponent(att.name || meta.data.name || 'attachment');
 
     res.setHeader('Content-Type', mime);
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${fname}`);
+    res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${fname}`);
 
     const dl = await drive.files.get(
-      { fileId: ann.attachment_drive_id, alt: 'media', supportsAllDrives: true },
+      { fileId: driveId, alt: 'media', supportsAllDrives: true },
       { responseType: 'stream' }
     );
     dl.data.pipe(res);

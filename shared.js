@@ -60,24 +60,33 @@ function showAnnDetail(ann, userId) {
   const expiryHtml  = ann.expires_at
     ? `<span style="background:#F0F8FE;color:#7A9AAF;padding:.18rem .55rem;border-radius:8px">到期：${ann.expires_at}</span>`
     : `<span style="background:#F0EBF8;color:#9B6FD4;padding:.18rem .55rem;border-radius:8px">🔒 永久公告</span>`;
-  const attUrl  = `/api/announcements/${ann.id}/attachment`;
-  const isImage = ann.attachment_mime && ann.attachment_mime.startsWith('image/');
-  const attHtml = ann.attachment_name ? `
+  // 取附件陣列（相容舊單一欄位）
+  let atts = [];
+  if (ann.attachments && ann.attachments.length) atts = ann.attachments;
+  else if (ann.attachment_drive_id) atts = [{ drive_id: ann.attachment_drive_id, name: ann.attachment_name, mime: ann.attachment_mime }];
+
+  const attHtml = atts.length ? `
     <div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid #C8E8F6">
-      <div style="font-size:.75rem;color:#7A9AAF;margin-bottom:.6rem">📎 附件</div>
-      ${isImage ? `
-        <div style="margin-bottom:.7rem;border-radius:10px;overflow:hidden;border:1.5px solid #C8E8F6;max-width:100%;line-height:0">
-          <img src="${attUrl}" alt="${ann.attachment_name}"
-               style="max-width:100%;max-height:320px;object-fit:contain;display:block;background:#f5fafd">
-        </div>` : `
-        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;background:#f5fafd;border:1.5px solid #C8E8F6;border-radius:10px;margin-bottom:.6rem">
-          <span style="font-size:1.5rem">📄</span>
-          <span style="font-size:.82rem;color:#3D5A70;word-break:break-all">${ann.attachment_name}</span>
-        </div>`}
-      <a href="${attUrl}" download="${ann.attachment_name}"
-         style="display:inline-flex;align-items:center;gap:.4rem;padding:.38rem 1rem;background:#1A8AC0;border-radius:20px;font-size:.82rem;font-weight:700;color:#fff;text-decoration:none">
-        ⬇ 下載附件
-      </a>
+      <div style="font-size:.75rem;color:#7A9AAF;margin-bottom:.6rem">📎 附件（${atts.length} 個）</div>
+      ${atts.map(a => {
+        const url = `/api/announcements/${ann.id}/attachment/${a.drive_id}`;
+        const isImg = a.mime && a.mime.startsWith('image/');
+        return `
+        <div style="margin-bottom:.75rem;border:1.5px solid #C8E8F6;border-radius:10px;overflow:hidden;background:#f5fafd">
+          ${isImg ? `<div style="line-height:0;border-bottom:1px solid #C8E8F6">
+            <img src="${url}" alt="${a.name}" style="max-width:100%;max-height:280px;object-fit:contain;display:block;margin:0 auto">
+          </div>` : `<div style="display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem">
+            <span style="font-size:1.6rem">📄</span>
+            <span style="font-size:.82rem;color:#3D5A70;word-break:break-all">${a.name}</span>
+          </div>`}
+          <div style="padding:.45rem .8rem">
+            <a href="${url}" download="${a.name}"
+               style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .85rem;background:#1A8AC0;border-radius:20px;font-size:.78rem;font-weight:700;color:#fff;text-decoration:none">
+              ⬇ 下載
+            </a>
+          </div>
+        </div>`;
+      }).join('')}
     </div>` : '';
 
   // 建立或取得 modal

@@ -562,18 +562,15 @@ textarea.form-input{resize:none}
         </div>
         <input type="hidden" id="ann-expires">
       </div>
-      <!-- 附件 -->
+      <!-- 附件（多個） -->
       <div>
-        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">📎 附件（選填，最大 15 MB）</label>
-        <div id="ann-att-current" style="display:none;margin-bottom:.45rem;align-items:center;gap:.5rem">
-          <span class="att-chip" id="ann-att-name-chip">—</span>
-          <button onclick="removeAnnAttachment()" style="background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:0">✕ 移除</button>
-        </div>
-        <input type="hidden" id="ann-att-keep">
-        <input type="file" id="ann-att-file" style="display:none" onchange="onAnnFileChange(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.txt">
-        <div class="att-zone" id="ann-att-zone" onclick="document.getElementById('ann-att-file').click()">
-          <span>📁</span><span id="ann-att-zone-label">點擊選擇附件</span>
-        </div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">📎 附件（可多個，每個最大 15 MB）</label>
+        <div id="ann-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem"></div>
+        <input type="file" id="ann-att-file" style="display:none" onchange="onAnnFileAdd(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.txt">
+        <button type="button" onclick="document.getElementById('ann-att-file').click()"
+                style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">
+          ＋ 新增附件
+        </button>
       </div>
       <div id="ann-form-err" style="color:var(--red);font-size:.82rem;display:none"></div>
       <div style="display:flex;gap:.5rem;margin-top:.1rem">
@@ -1384,15 +1381,17 @@ function openAnnForm(editId) {
   // 日期選擇器
   dpInit();
   if (a && a.expires_at) dpSetDate(a.expires_at); else dpClear();
-  // 附件
+  // 附件初始化
   document.getElementById('ann-att-file').value = '';
-  document.getElementById('ann-att-keep').value = a && a.attachment_name ? 'keep' : '';
-  document.getElementById('ann-att-zone-label').textContent = '點擊選擇附件';
-  document.getElementById('ann-att-current').style.display = 'none';
-  if (a && a.attachment_name) {
-    document.getElementById('ann-att-name-chip').textContent = a.attachment_name;
-    document.getElementById('ann-att-current').style.display = 'flex';
+  annAttExisting = [];
+  annAttNew      = [];
+  annAttRemove   = [];
+  if (a) {
+    // 相容新 attachments 陣列與舊單一欄位
+    if (a.attachments && a.attachments.length) annAttExisting = [...a.attachments];
+    else if (a.attachment_drive_id) annAttExisting = [{ drive_id: a.attachment_drive_id, name: a.attachment_name, mime: a.attachment_mime }];
   }
+  renderAttList();
   const overlay = document.getElementById('ann-form-overlay');
   overlay.style.display = 'flex';
   overlay.style.pointerEvents = 'auto';
@@ -1463,7 +1462,7 @@ function renderAnnList() {
           <span style="font-weight:700;font-size:.9rem">${a.title}</span>
         </div>
         <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}
-          ${a.attachment_name ? ' &nbsp;·&nbsp; 📎 有附件' : ''}
+          ${(()=>{ const n=(a.attachments&&a.attachments.length)||( a.attachment_drive_id?1:0); return n?` &nbsp;·&nbsp; 📎 ${n} 個附件`:''; })()}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0;margin-left:.5rem">
@@ -1567,19 +1566,44 @@ function dpSetDate(ds) {
   document.getElementById('dp-ann-hint').textContent = `到期日：${ds}`;
 }
 
-// ── 附件處理 ────────────────────────────────
-function onAnnFileChange(input) {
+// ── 附件狀態（多個）────────────────────────
+let annAttExisting = []; // [{drive_id, name, mime}] 已在 DB 的
+let annAttNew      = []; // [{file: File, name, mime}] 待上傳
+let annAttRemove   = []; // drive_id[] 待從 DB 刪除
+
+function renderAttList() {
+  const wrap = document.getElementById('ann-att-list');
+  if (!wrap) return;
+  const chips = [
+    ...annAttExisting.map((a, i) => `
+      <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .55rem;background:#EBF7FD;border:1.5px solid #48B4E8;border-radius:20px;font-size:.75rem;color:#1A8AC0;max-width:180px">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.name}</span>
+        <button onclick="removeExistingAtt(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:.8rem;line-height:1;flex-shrink:0">✕</button>
+      </span>`),
+    ...annAttNew.map((a, i) => `
+      <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .55rem;background:#F0F8E8;border:1.5px solid #7BC67E;border-radius:20px;font-size:.75rem;color:#3A8A3D;max-width:180px">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">＋ ${a.name}</span>
+        <button onclick="removeNewAtt(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;padding:0;font-size:.8rem;line-height:1;flex-shrink:0">✕</button>
+      </span>`),
+  ];
+  wrap.innerHTML = chips.join('');
+}
+function onAnnFileAdd(input) {
   if (!input.files || !input.files[0]) return;
   const f = input.files[0];
   if (f.size > 15 * 1024 * 1024) { showToast('附件大小不得超過 15 MB', 'error'); input.value = ''; return; }
-  document.getElementById('ann-att-zone-label').textContent = '📄 ' + f.name;
-  document.getElementById('ann-att-keep').value = '';
+  annAttNew.push({ file: f, name: f.name, mime: f.type || 'application/octet-stream' });
+  input.value = '';
+  renderAttList();
 }
-function removeAnnAttachment() {
-  document.getElementById('ann-att-current').style.display = 'none';
-  document.getElementById('ann-att-keep').value = 'remove';
-  document.getElementById('ann-att-zone-label').textContent = '點擊選擇附件';
-  document.getElementById('ann-att-file').value = '';
+function removeExistingAtt(i) {
+  const att = annAttExisting.splice(i, 1)[0];
+  if (att && att.drive_id) annAttRemove.push(att.drive_id);
+  renderAttList();
+}
+function removeNewAtt(i) {
+  annAttNew.splice(i, 1);
+  renderAttList();
 }
 
 // ── 編輯（從列表進入）─────────────────────
@@ -1616,22 +1640,22 @@ async function saveAnn() {
       const r = await API.post('/api/admin/announcements', body);
       annId = r.id;
     }
-    // 附件
-    const attKeep = document.getElementById('ann-att-keep').value;
-    const attFile = document.getElementById('ann-att-file').files[0];
-    if (attKeep === 'remove') {
-      await API.delete(`/api/admin/announcements/${annId}/attachment`).catch(()=>{});
-    } else if (attFile) {
-      saveBtn.textContent = '上傳附件中…';
+    // 附件 — 先刪要移除的，再上傳新的
+    for (const driveId of annAttRemove) {
+      await API.delete(`/api/admin/announcements/${annId}/attachment/${driveId}`).catch(()=>{});
+    }
+    for (let i = 0; i < annAttNew.length; i++) {
+      const att = annAttNew[i];
+      saveBtn.textContent = `上傳附件 ${i+1}/${annAttNew.length}…`;
       const b64 = await new Promise((res,rej) => {
         const reader = new FileReader();
         reader.onload = e => res(e.target.result.split(',')[1]);
         reader.onerror = rej;
-        reader.readAsDataURL(attFile);
+        reader.readAsDataURL(att.file);
       });
       await fetch(`/api/admin/announcements/${annId}/attachment`, {
         method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
-        body: JSON.stringify({ name:attFile.name, mime:attFile.type||'application/octet-stream', data:b64 }),
+        body: JSON.stringify({ name: att.name, mime: att.mime, data: b64 }),
       }).then(async r => { if (!r.ok) { const d=await r.json(); throw new Error(d.error||'附件上傳失敗'); } });
     }
     showToast(id ? '公告已更新 ✅' : '公告已發布 ✅', 'success');

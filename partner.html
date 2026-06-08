@@ -296,6 +296,18 @@ textarea.form-input{resize:none}
         </div>
       </div>
 
+      <!-- 搶單區塊 -->
+      <div id="overview-grab-block" style="display:none;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
+          <div style="font-size:.88rem;font-weight:700">🎯 搶單區
+            <span id="overview-grab-badge" style="background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
+          </div>
+          <button onclick="switchPage('grab',document.querySelector('[onclick*=grab]'))"
+                  style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">前往搶單 →</button>
+        </div>
+        <div id="overview-grab-list"></div>
+      </div>
+
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
         <div style="font-size:.88rem;font-weight:700">
           📋 可接任務
@@ -1155,12 +1167,49 @@ function openAnnDetail(ann) {
 // ── 搶單區 ────────────────────────────────────────────────────
 async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
-  if (!wrap) return;
   try {
     const list = await API.get('/api/grab-tasks');
-    const badge = document.getElementById('badge-grab');
     const available = list.filter(t => !t.my_grab_no && t.grabbed_count < t.total_slots);
+
+    // 側邊選單 badge
+    const badge = document.getElementById('badge-grab');
     if (badge) { badge.textContent = available.length; badge.style.display = available.length ? 'inline-flex' : 'none'; }
+
+    // 總覽儀表板搶單區塊
+    const ovBlock = document.getElementById('overview-grab-block');
+    const ovBadge = document.getElementById('overview-grab-badge');
+    const ovList  = document.getElementById('overview-grab-list');
+    if (ovBlock) {
+      if (list.length) {
+        ovBlock.style.display = '';
+        if (ovBadge) ovBadge.textContent = available.length;
+        if (ovList) ovList.innerHTML = list.slice(0, 3).map(t => {
+          const remaining = t.total_slots - t.grabbed_count;
+          const alreadyGrabbed = !!t.my_grab_no;
+          return `
+          <div style="background:#fff;border-radius:var(--rs);padding:.65rem .9rem;margin-bottom:.5rem;border:1.5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'};display:flex;align-items:center;gap:.75rem">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+              <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
+                💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${(t.deadline||'').slice(0,10)} 截止
+              </div>
+            </div>
+            <div style="flex-shrink:0">
+              ${alreadyGrabbed
+                ? `<span style="font-size:.75rem;font-weight:700;color:var(--green)">已搶 #${t.my_grab_no}</span>`
+                : remaining === 0
+                  ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
+                  : `<button onclick="doGrab(${t.id},this)" style="padding:.3rem .75rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">搶單</button>`
+              }
+            </div>
+          </div>`;
+        }).join('') + (list.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${list.length-3} 個任務 →</div>` : '');
+      } else {
+        ovBlock.style.display = 'none';
+      }
+    }
+
+    if (!wrap) return;
     if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放搶單的任務</div>'; return; }
     wrap.innerHTML = list.map(t => {
       const remaining  = t.total_slots - t.grabbed_count;
@@ -1218,6 +1267,7 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   loadAnnouncements(); // 背景載入，不阻塞
+  loadGrabZone();      // 背景載入搶單
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
   if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }

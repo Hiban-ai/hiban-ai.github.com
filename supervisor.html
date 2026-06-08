@@ -50,6 +50,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
 .page-section{display:none}
 .page-section.active{display:block}
+/* 搶單日期選擇器 */
+.gdp-wrap{border:1.5px solid var(--border);border-radius:var(--rs);padding:.65rem;background:var(--blue-p)}
+.gdp-selects{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.gdp-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.2rem}
+.gdp-grid-header span{text-align:center;font-size:.68rem;font-weight:700;padding:.2rem 0}
+.gdp-grid-body{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.gdp-day{text-align:center;font-size:.82rem;padding:.35rem .1rem;border-radius:6px;cursor:pointer;background:#fff;border:1.5px solid transparent;transition:all .15s;line-height:1.2}
+.gdp-day.gdp-sel{background:var(--blue-d);color:#fff;border-color:var(--blue-d)}
+.gdp-day.gdp-past{opacity:.35;cursor:not-allowed}
+.gdp-empty{background:transparent!important;border-color:transparent!important;cursor:default!important}
+.gdp-hint{font-size:.75rem;color:var(--text-s);margin-top:.4rem}
 .ann-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:.6rem}
 .ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
 .ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
@@ -348,10 +359,23 @@ textarea.form-input{resize:none}
               <span style="font-size:.9rem;color:var(--text-s);white-space:nowrap">天內完成</span>
             </div>
           </div>
-          <!-- 搶單模式：截止時間 -->
-          <div id="row-grab-deadline" style="display:none;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">截止時間</label>
-            <input class="form-input" type="datetime-local" id="grab-deadline" style="flex:1">
+          <!-- 搶單模式：截止日期（自訂選擇器，當日 23:59） -->
+          <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem">
+            <label style="font-size:.82rem;color:var(--text-s)">截止日期 <span style="opacity:.65">（當日 23:59 截止）</span></label>
+            <div class="gdp-wrap">
+              <div class="gdp-selects">
+                <select class="form-input" id="gdp-year"  onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">選擇年份</option></select>
+                <select class="form-input" id="gdp-month" onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">選擇月份</option></select>
+              </div>
+              <div id="gdp-grid" style="display:none">
+                <div class="gdp-grid-header">
+                  <span style="color:var(--red)">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:#2EAA7A">六</span>
+                </div>
+                <div class="gdp-grid-body" id="gdp-days"></div>
+              </div>
+              <div class="gdp-hint" id="gdp-hint">尚未選擇截止日期</div>
+            </div>
+            <input type="hidden" id="grab-deadline">
           </div>
 
           <div style="display:flex;align-items:flex-start;gap:.75rem">
@@ -625,6 +649,55 @@ function sendRevision(btn) {
   showToast('修改意見已送出', 'warn');
 }
 
+// ── 搶單日期選擇器 ───────────────────────────────────────────
+function gdpInit() {
+  const yearSel = document.getElementById('gdp-year');
+  const monSel  = document.getElementById('gdp-month');
+  const today   = new Date();
+  const cy      = today.getFullYear();
+  yearSel.innerHTML = '<option value="">選擇年份</option>';
+  for (let y = cy; y <= cy + 3; y++)
+    yearSel.innerHTML += `<option value="${y}">${y} 年</option>`;
+  monSel.innerHTML = '<option value="">選擇月份</option>';
+  for (let m = 1; m <= 12; m++)
+    monSel.innerHTML += `<option value="${m}">${m} 月</option>`;
+  document.getElementById('grab-deadline').value = '';
+  document.getElementById('gdp-hint').textContent = '尚未選擇截止日期';
+  document.getElementById('gdp-grid').style.display = 'none';
+}
+
+function gdpUpdateGrid() {
+  const y = parseInt(document.getElementById('gdp-year').value);
+  const m = parseInt(document.getElementById('gdp-month').value);
+  const grid   = document.getElementById('gdp-grid');
+  const daysEl = document.getElementById('gdp-days');
+  if (!y || !m) { grid.style.display = 'none'; return; }
+  grid.style.display = '';
+  const today       = new Date();
+  const todayStr    = today.toISOString().slice(0,10);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const firstDow    = new Date(y, m-1, 1).getDay();
+  const selDate     = document.getElementById('grab-deadline').value;
+  let html = '';
+  for (let i = 0; i < firstDow; i++) html += '<div class="gdp-day gdp-empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds  = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = (firstDow + d - 1) % 7;
+    const col = dow === 0 ? 'var(--red)' : dow === 6 ? '#2EAA7A' : 'var(--text)';
+    const past = ds < todayStr ? ' gdp-past' : '';
+    const sel  = ds === selDate ? ' gdp-sel' : '';
+    const click = past ? '' : `onclick="gdpSelectDay('${ds}')"`;
+    html += `<div class="gdp-day${past}${sel}" style="color:${col}" ${click}>${d}</div>`;
+  }
+  daysEl.innerHTML = html;
+}
+
+function gdpSelectDay(ds) {
+  document.getElementById('grab-deadline').value = ds; // YYYY-MM-DD，送出時補 23:59
+  document.getElementById('gdp-hint').textContent = `截止日：${ds}（當日 23:59）`;
+  gdpUpdateGrid();
+}
+
 // ── 搶單模式切換 ──────────────────────────────────────────────
 let assignMode = 'normal'; // 'normal' | 'grab'
 function setAssignMode(mode) {
@@ -640,6 +713,7 @@ function setAssignMode(mode) {
   document.getElementById('row-grab-deadline').style.display  = isGrab ? 'flex' : 'none';
   document.getElementById('assign-submit-btn').textContent    = isGrab ? '🎯 建立搶單' : '確認派案 ✓';
   document.getElementById('assign-err').style.display = 'none';
+  if (isGrab) gdpInit();
 }
 
 // ── 任務派案 ──
@@ -665,19 +739,19 @@ async function submitAssign() {
   if (assignMode === 'grab') {
     // 搶單模式
     const slots    = document.getElementById('grab-slots').value;
-    const deadline = document.getElementById('grab-deadline').value;
+    const dlDate   = document.getElementById('grab-deadline').value; // YYYY-MM-DD
     if (!slots || parseInt(slots) < 1) { err.textContent = '請填寫名額總數'; err.style.display = 'block'; return; }
-    if (!deadline) { err.textContent = '請選擇搶單截止時間'; err.style.display = 'block'; return; }
-    if (new Date(deadline) <= new Date()) { err.textContent = '截止時間必須在未來'; err.style.display = 'block'; return; }
-    // datetime-local 轉 YYYY/MM/DD HH:MM
-    const dl = deadline.replace('T', ' ').replace(/-/g, '/');
+    if (!dlDate) { err.textContent = '請選擇搶單截止日期'; err.style.display = 'block'; return; }
+    // 組合成 YYYY/MM/DD 23:59
+    const dl = dlDate.replace(/-/g, '/') + ' 23:59';
     try {
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
       });
       showToast('搶單任務已建立！', 'success');
-      ['assign-company','assign-task','assign-qty','assign-price','assign-notes','grab-slots','grab-deadline'].forEach(id => document.getElementById(id).value = '');
+      ['assign-company','assign-task','assign-qty','assign-price','assign-notes','grab-slots'].forEach(id => document.getElementById(id).value = '');
+      gdpInit();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }

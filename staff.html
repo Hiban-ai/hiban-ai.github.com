@@ -681,6 +681,14 @@ async function init() {
   me = await requireAuth(['staff']);
   if (!me) return;
   document.getElementById('st-user-label').textContent = me.real_name;
+  // 系統設定僅 is_admin 可見
+  const isAdmin = me.username === 'admin' || me.is_admin === true;
+  const menuSettings = document.querySelector('[onclick*="\'settings\'"]');
+  if (menuSettings) menuSettings.style.display = isAdmin ? '' : 'none';
+  if (!isAdmin) {
+    const pageSec = document.getElementById('page-settings');
+    if (pageSec) pageSec.remove();
+  }
   initCuBday();
   const p = await API.get('/api/profile');
   fillStProfile(p);

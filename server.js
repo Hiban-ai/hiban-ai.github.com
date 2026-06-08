@@ -828,8 +828,10 @@ app.get('/api/system/contract', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 更新合約內容（staff）
+// 更新合約內容（is_admin only）
 app.put('/api/system/contract', requireRole('staff'), async (req, res) => {
+  const u = req.session.user;
+  if (u.username !== 'admin' && !u.is_admin) return res.status(403).json({ error: '權限不足' });
   try {
     const { text } = req.body;
     await firestoreDb.collection('system_config').doc('contract').set(

@@ -823,17 +823,19 @@ app.get('/api/assignments/history', requireRole('supervisor'), async (req, res) 
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days } = req.body;
     if (!task_name || !unit_price || !total_slots || !deadline)
       return res.status(400).json({ error: '缺少必填欄位' });
     const slots = parseInt(total_slots);
     const price = parseInt(unit_price);
+    const ddays = parseInt(deadline_days) || null;
     if (slots < 1) return res.status(400).json({ error: '總名額至少 1' });
     const item = await GrabTasks.create({
       task_name, company: company || '',
       unit_price: price, total_price_each: price,
       total_slots: slots,
       deadline,
+      deadline_days: ddays,
       notes: notes || '',
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
@@ -942,7 +944,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       unit_price:      result.task.unit_price,
       total_price:     result.task.unit_price,
       notes:           result.task.notes || '',
-      deadline_days:   null,
+      deadline_days:   result.task.deadline_days || null,
       deadline_date:   result.task.deadline.slice(0,10),
       assigned_at:     nowTW(),
       assign_type:     'grab',

@@ -736,7 +736,7 @@ function setAssignMode(mode) {
   document.getElementById('mode-btn-grab').style.color        = isGrab ? '#fff' : 'var(--text-s)';
   document.getElementById('row-assign-target').style.display  = isGrab ? 'none' : 'flex';
   document.getElementById('row-grab-slots').style.display     = isGrab ? 'flex' : 'none';
-  document.getElementById('row-deadline-days').style.display  = isGrab ? 'none' : 'flex';
+  document.getElementById('row-deadline-days').style.display  = 'flex';
   document.getElementById('row-grab-deadline').style.display  = isGrab ? 'flex' : 'none';
   document.getElementById('assign-submit-btn').textContent    = isGrab ? '🎯 建立搶單' : '確認派案 ✓';
   document.getElementById('assign-err').style.display = 'none';
@@ -769,7 +769,9 @@ async function submitAssign() {
     const dlDate = document.getElementById('grab-deadline').value; // YYYY-MM-DD
     const dlHour = document.getElementById('gdp-hour').value;
     const dlMin  = document.getElementById('gdp-min').value;
+    const days   = document.getElementById('assign-days').value;
     if (!slots || parseInt(slots) < 1) { err.textContent = '請填寫名額總數'; err.style.display = 'block'; return; }
+    if (!days || parseInt(days) < 1)   { err.textContent = '請填寫完成期限（天數）'; err.style.display = 'block'; return; }
     if (!dlDate) { err.textContent = '請選擇搶單截止日期'; err.style.display = 'block'; return; }
     // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
@@ -777,9 +779,10 @@ async function submitAssign() {
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
+        deadline_days: parseInt(days),
       });
       showToast('搶單任務已建立！', 'success');
-      ['assign-company','assign-task','assign-qty','assign-price','assign-notes','grab-slots'].forEach(id => document.getElementById(id).value = '');
+      ['assign-company','assign-task','assign-qty','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();

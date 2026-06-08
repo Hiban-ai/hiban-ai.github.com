@@ -114,17 +114,45 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   </div>
 
   <div class="steps" id="steps">
-    <div class="si active" id="si1"><div class="si-num">1</div><span class="si-label">身分證明上傳</span></div>
+    <div class="si active" id="si1"><div class="si-num">1</div><span class="si-label">合約確認</span></div>
     <div class="si-line" id="sl1"></div>
-    <div class="si" id="si2"><div class="si-num">2</div><span class="si-label">基本資料</span></div>
+    <div class="si" id="si2"><div class="si-num">2</div><span class="si-label">身分上傳</span></div>
     <div class="si-line" id="sl2"></div>
-    <div class="si" id="si3"><div class="si-num">3</div><span class="si-label">存摺上傳</span></div>
+    <div class="si" id="si3"><div class="si-num">3</div><span class="si-label">基本資料</span></div>
     <div class="si-line" id="sl3"></div>
-    <div class="si" id="si4"><div class="si-num">4</div><span class="si-label">完成</span></div>
+    <div class="si" id="si4"><div class="si-num">4</div><span class="si-label">存摺上傳</span></div>
+    <div class="si-line" id="sl4"></div>
+    <div class="si" id="si5"><div class="si-num">5</div><span class="si-label">完成</span></div>
+  </div>
+
+  <!-- Step 0：合約確認 -->
+  <div class="card" id="step0">
+    <div class="card-title">📋 合約確認</div>
+    <div class="card-desc">請仔細閱讀以下合約條款，捲動至最下方後勾選同意，才能繼續申請。</div>
+    <div id="contract-loading" style="text-align:center;padding:2rem;color:var(--text-s);font-size:.85rem">載入中...</div>
+    <div id="contract-scroll-wrap"
+      style="display:none;height:340px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--rs);padding:1rem 1.1rem;background:#fff;font-size:.85rem;line-height:1.9;color:var(--text-m);white-space:pre-wrap;word-break:break-word"
+      onscroll="onContractScroll(this)">
+    </div>
+    <div style="margin-top:.85rem;display:flex;align-items:flex-start;gap:.6rem">
+      <input type="checkbox" id="contract-agree" disabled
+        style="width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:var(--blue)"
+        onchange="document.getElementById('btn-contract-next').style.opacity=this.checked?'1':'.4';
+                  document.getElementById('btn-contract-next').disabled=!this.checked;">
+      <label for="contract-agree" style="font-size:.87rem;color:var(--text-m);line-height:1.5;cursor:pointer">
+        我已閱讀並同意上述合約條款
+        <span id="contract-scroll-hint" style="display:block;font-size:.78rem;color:var(--text-s);margin-top:.2rem">（請先捲動閱讀至底部）</span>
+      </label>
+    </div>
+    <button id="btn-contract-next" disabled onclick="goStep(1)"
+      style="margin-top:1rem;width:100%;padding:.82rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;opacity:.4;transition:opacity .3s">
+      下一步，上傳身分證 →
+    </button>
+    <div id="err0" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-top:.5rem"></div>
   </div>
 
   <!-- Step 1：身分證上傳 -->
-  <div class="card" id="step1">
+  <div class="card" id="step1" style="display:none">
     <div class="card-title">🪪 上傳身分證明</div>
     <div class="card-desc">上傳後點「下一步辨識」，AI 將自動抓取姓名、身分證字號、生日、地址</div>
     <div class="error-msg" id="err1"></div>
@@ -347,7 +375,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script src="shared.js"></script>
 <script>
-let curStep = 1;
+let curStep = 0;
 const uploads = {}; // key: front/back/bank/disability → { b64, dataUrl }
 let cropperInstance = null;
 let cropTarget = null; // 目前裁切目標
@@ -383,9 +411,10 @@ function goStep(n) {
 }
 
 function updateSteps() {
-  for (let i = 1; i <= 4; i++) {
-    document.getElementById('si' + i).className = 'si' + (i < curStep ? ' done' : i === curStep ? ' active' : '');
-    if (i < 4) document.getElementById('sl' + i).className = 'si-line' + (i < curStep ? ' done' : '');
+  const vis = curStep + 1; // visual step number (1-based): curStep 0 → visual 1
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('si' + i).className = 'si' + (i < vis ? ' done' : i === vis ? ' active' : '');
+    if (i < 5) document.getElementById('sl' + i).className = 'si-line' + (i < vis ? ' done' : '');
   }
 }
 
@@ -646,6 +675,9 @@ function syncBirthday() {
 function v(id) { return (document.getElementById(id)?.value || '').trim(); }
 
 function validate(step) {
+  if (step === 0) {
+    if (!document.getElementById('contract-agree').checked) return '請閱讀並勾選同意合約';
+  }
   if (step === 1) {
     if (!uploads.front) return '請上傳身分證正面';
     if (!uploads.back)  return '請上傳身分證反面';
@@ -758,6 +790,48 @@ async function submitRegister() {
 }
 
 initBirthdaySelects();
+
+// ── 合約載入與捲動偵測 ────────────────────────────────────
+let contractScrolled = false;
+async function loadContract() {
+  try {
+    const res = await fetch('/api/system/contract');
+    const data = await res.json();
+    const wrap = document.getElementById('contract-scroll-wrap');
+    const loading = document.getElementById('contract-loading');
+    loading.style.display = 'none';
+    wrap.style.display = 'block';
+    const text = (data.text || '').trim();
+    if (text) {
+      wrap.textContent = text;
+    } else {
+      wrap.innerHTML = '<span style="color:var(--text-s);font-style:italic">（目前尚無合約內容，請直接勾選同意繼續）</span>';
+      // 無合約內容時直接允許勾選
+      enableContractAgree();
+    }
+    // 初次判斷是否已捲到底
+    checkContractBottom(wrap);
+  } catch(e) {
+    document.getElementById('contract-loading').textContent = '載入失敗，請重新整理頁面';
+  }
+}
+function onContractScroll(el) {
+  checkContractBottom(el);
+}
+function checkContractBottom(el) {
+  if (contractScrolled) return;
+  if (el.scrollHeight - el.scrollTop <= el.clientHeight + 4) {
+    enableContractAgree();
+  }
+}
+function enableContractAgree() {
+  contractScrolled = true;
+  const cb = document.getElementById('contract-agree');
+  cb.disabled = false;
+  document.getElementById('contract-scroll-hint').style.display = 'none';
+}
+
+loadContract();
 </script>
 </body>
 </html>

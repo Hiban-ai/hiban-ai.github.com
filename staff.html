@@ -227,6 +227,7 @@ textarea.form-input{resize:none}
         <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
         <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
         <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理<span class="st-badge" id="badge-notices" style="display:none">0</span></div>
+        <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">⚙️</span>系統設定</div>
         <div class="st-menu-group">帳號</div>
         <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
@@ -379,6 +380,27 @@ textarea.form-input{resize:none}
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
         </div>
         <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.35);transition:all .25s">更新密碼</button>
+      </div>
+    </div>
+
+    <!-- 系統設定 -->
+    <div class="page-section" id="page-settings">
+      <div class="page-title">⚙️ 系統設定</div>
+      <div class="card" style="max-width:600px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">📄 合約設定</div>
+        </div>
+        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.6">設定申請加入時顯示的合約條款，夥伴需捲動至底部並勾選同意後才能繼續申請。</div>
+        <div id="contract-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem"></div>
+        <textarea id="contract-text"
+          placeholder="請輸入合約條款內容..."
+          style="width:100%;min-height:320px;padding:.85rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);line-height:1.8;resize:vertical;background:#fff;transition:border .2s;outline:none"
+          onfocus="this.style.borderColor='var(--blue)'"
+          onblur="this.style.borderColor='var(--border)'"></textarea>
+        <div style="display:flex;gap:.5rem;margin-top:.85rem">
+          <button onclick="saveContract()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.25);transition:all .25s">儲存合約</button>
+          <button onclick="cancelContract()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        </div>
       </div>
     </div>
 
@@ -667,7 +689,7 @@ async function init() {
   loadAnnouncements(); // 背景載入，不阻塞主流程
   // 重整後還原上次頁面
   const hash = location.hash.replace('#','');
-  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','profile'];
+  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','settings','profile'];
   if (hash && pages.includes(hash)) switchPage(hash);
 }
 
@@ -694,6 +716,7 @@ function switchPage(name, el) {
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
+  if (name === 'settings') loadSystemSettings();
 }
 
 // ── 帳號管理 ──
@@ -1160,6 +1183,34 @@ async function submitCreateUser() {
     showToast(`帳號已建立：${res.username}`, 'success');
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+// ── 系統設定 ──────────────────────────────────────────────────
+let contractOriginal = '';
+async function loadSystemSettings() {
+  try {
+    const data = await API.get('/api/system/contract');
+    contractOriginal = data.text || '';
+    document.getElementById('contract-text').value = contractOriginal;
+    document.getElementById('contract-err').style.display = 'none';
+  } catch(e) { /* silently fail */ }
+}
+async function saveContract() {
+  const text = document.getElementById('contract-text').value;
+  const errEl = document.getElementById('contract-err');
+  errEl.style.display = 'none';
+  try {
+    await API.put('/api/system/contract', { text });
+    contractOriginal = text;
+    showToast('合約已儲存', 'success');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+function cancelContract() {
+  document.getElementById('contract-text').value = contractOriginal;
+  document.getElementById('contract-err').style.display = 'none';
 }
 
 // ── 個人資料 — 基本資料 ──

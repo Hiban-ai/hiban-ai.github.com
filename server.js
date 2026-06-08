@@ -817,6 +817,29 @@ app.get('/api/assignments/history', requireRole('supervisor'), async (req, res) 
 });
 
 // ══════════════════════════════════════════════════════════════
+// 系統設定
+// ══════════════════════════════════════════════════════════════
+
+// 取得合約內容（公開）
+app.get('/api/system/contract', async (req, res) => {
+  try {
+    const doc = await firestoreDb.collection('system_config').doc('contract').get();
+    res.json({ text: doc.exists ? (doc.data().text || '') : '' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 更新合約內容（staff）
+app.put('/api/system/contract', requireRole('staff'), async (req, res) => {
+  try {
+    const { text } = req.body;
+    await firestoreDb.collection('system_config').doc('contract').set(
+      { text: text || '', updated_at: nowTW() }, { merge: true }
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
 // 搶單系統
 // ══════════════════════════════════════════════════════════════
 

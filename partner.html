@@ -466,6 +466,14 @@ textarea.form-input{resize:none}
     <!-- 問題回報 -->
     <div class="page-section" id="page-issues">
       <div class="page-title">🚩 問題回報</div>
+      <!-- 分頁切換 -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
+        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">回報督導</button>
+        <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--text-s);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
+      </div>
+
+      <!-- Tab：回報督導 -->
+      <div id="pt-issue-tab-sv">
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(72,180,232,.10);border-top:3px solid var(--blue)">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
         <div id="issue-sv-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
@@ -504,6 +512,44 @@ textarea.form-input{resize:none}
       <div id="issues-pt-sv-list" style="display:flex;flex-direction:column;gap:.75rem">
         <div style="font-size:.82rem;color:var(--text-s)">載入中...</div>
       </div>
+      </div><!-- end pt-issue-tab-sv -->
+
+      <!-- Tab：回報管理人員 -->
+      <div id="pt-issue-tab-admin" style="display:none">
+        <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(72,180,232,.10);border-top:3px solid var(--blue)">
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
+          <div id="issue-pt-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
+          <div style="display:flex;flex-direction:column;gap:.55rem">
+            <input id="issue-pt-admin-title" class="form-input" placeholder="問題標題＊" style="width:100%">
+            <textarea id="issue-pt-admin-content" class="form-input" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
+          </div>
+          <div style="margin-top:.65rem">
+            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'pt-admin')">
+                <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;color:var(--text-s)">📷</span>
+                <img id="issue-pt-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'pt-admin')">
+                <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;color:var(--text-s)">📷</span>
+                <img id="issue-pt-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'pt-admin')">
+                <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;color:var(--text-s)">📷</span>
+                <img id="issue-pt-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+            </div>
+          </div>
+          <button onclick="submitPtIssueAdmin()" style="margin-top:.9rem;width:100%;padding:.78rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,138,192,.3)">送出回報</button>
+        </div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">我的回報紀錄</div>
+        <div id="issues-pt-admin-list" style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="font-size:.82rem;color:var(--text-s)">載入中...</div>
+        </div>
+      </div><!-- end pt-issue-tab-admin -->
     </div>
 
   </div><!-- pt-main -->
@@ -1318,10 +1364,24 @@ async function init() {
 init();
 
 // ── 問題回報（partner）───────────────────────────────────────
-let ptIssueSvImgs = [null, null, null];
+let ptIssueSvImgs    = [null, null, null];
+let ptIssueAdminImgs = [null, null, null];
+let ptIssueTab = 'sv';
+
+function switchPtIssueTab(tab) {
+  ptIssueTab = tab;
+  const svBtn    = document.getElementById('ptitab-sv');
+  const adminBtn = document.getElementById('ptitab-admin');
+  if (svBtn)    { svBtn.style.color = tab==='sv' ? 'var(--blue-d)' : 'var(--text-s)'; svBtn.style.borderBottomColor = tab==='sv' ? 'var(--blue)' : 'transparent'; svBtn.style.fontWeight = tab==='sv' ? '700' : '400'; }
+  if (adminBtn) { adminBtn.style.color = tab==='admin' ? 'var(--blue-d)' : 'var(--text-s)'; adminBtn.style.borderBottomColor = tab==='admin' ? 'var(--blue)' : 'transparent'; adminBtn.style.fontWeight = tab==='admin' ? '700' : '400'; }
+  document.getElementById('pt-issue-tab-sv').style.display    = tab==='sv'    ? 'block' : 'none';
+  document.getElementById('pt-issue-tab-admin').style.display = tab==='admin' ? 'block' : 'none';
+  if (tab==='sv')    loadMyIssuesSv();
+  if (tab==='admin') loadMyIssuesAdmin();
+}
 
 async function loadIssuesPt() {
-  await loadMyIssuesSv();
+  await Promise.all([loadMyIssuesSv(), loadMyIssuesAdmin()]);
   await populateIssueSvDropdowns();
   syncPtIssueNotifyBar();
 }
@@ -1360,15 +1420,26 @@ async function loadMyIssuesSv() {
     const el = document.getElementById('issues-pt-sv-list');
     if (!el) return;
     if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;color:var(--text-s)">尚無回報紀錄</div>'; return; }
-    el.innerHTML = list.map(r => ptIssueCard(r)).join('');
+    el.innerHTML = list.map(r => ptIssueCard(r, 'sv')).join('');
   } catch(e){ console.error(e); }
 }
 
-function ptIssueCard(r) {
+async function loadMyIssuesAdmin() {
+  try {
+    const all = await API.get('/api/issues/mine');
+    const list = all.filter(r => r.report_type === 'admin');
+    const el = document.getElementById('issues-pt-admin-list');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;color:var(--text-s)">尚無回報紀錄</div>'; return; }
+    el.innerHTML = list.map(r => ptIssueCard(r, 'admin')).join('');
+  } catch(e){ console.error(e); }
+}
+
+function ptIssueCard(r, tab) {
   const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
   const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
   const unread = r.unread_reporter;
-  return `<div style="background:#fff;border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10)" onclick="togglePtIssue(${r.id})">
+  return `<div style="background:#fff;border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10)" onclick="togglePtIssue(${r.id},'${tab}')">
     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem">
       ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>' : ''}
       <span style="font-weight:700;font-size:.9rem;flex:1;color:var(--text)">${r.title}</span>
@@ -1382,9 +1453,9 @@ function ptIssueCard(r) {
       <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">${ptIssueRepliesHtml(r.replies||[])}</div>
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
         <input id="pt-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1">
-        <button onclick="submitPtIssueReply(${r.id})" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
+        <button onclick="submitPtIssueReply(${r.id},'${tab}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
       </div>
-      ${r.status !== 'resolved' ? `<div style="margin-top:.5rem" onclick="event.stopPropagation()"><button onclick="setPtIssueResolved(${r.id})" style="padding:.38rem .9rem;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✅ 標記已解決</button></div>` : ''}
+      ${r.status !== 'resolved' ? `<div style="margin-top:.5rem" onclick="event.stopPropagation()"><button onclick="setPtIssueResolved(${r.id},'${tab}')" style="padding:.38rem .9rem;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✅ 標記已解決</button></div>` : ''}
     </div>
   </div>`;
 }
@@ -1395,7 +1466,7 @@ function ptIssueRepliesHtml(replies) {
   return replies.map(rp => `<div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem"><div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div><div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div></div>`).join('');
 }
 
-async function togglePtIssue(id) {
+async function togglePtIssue(id, tab) {
   const el = document.getElementById('pt-issue-detail-' + id);
   if (!el) return;
   const isOpen = el.style.display !== 'none';
@@ -1403,23 +1474,23 @@ async function togglePtIssue(id) {
   if (!isOpen) {
     el.style.display = 'block';
     try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
-    await loadMyIssuesSv();
+    if (tab === 'admin') await loadMyIssuesAdmin(); else await loadMyIssuesSv();
     const el2 = document.getElementById('pt-issue-detail-' + id);
     if (el2) el2.style.display = 'block';
     syncPtIssueNotifyBar();
   }
 }
 
-async function setPtIssueResolved(id) {
+async function setPtIssueResolved(id, tab) {
   if (!confirm('確定將此問題標記為已解決？')) return;
   try {
     await API.put('/api/issues/'+id+'/status', { status: 'resolved' });
     showToast('已標記為解決 ✅', 'success');
-    await loadMyIssuesSv();
+    if (tab === 'admin') await loadMyIssuesAdmin(); else await loadMyIssuesSv();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-async function submitPtIssueReply(id) {
+async function submitPtIssueReply(id, tab) {
   const input = document.getElementById('pt-issue-reply-input-' + id);
   const text = input && input.value && input.value.trim();
   if (!text) return;
@@ -1427,10 +1498,38 @@ async function submitPtIssueReply(id) {
     await API.post('/api/issues/'+id+'/reply', { text });
     input.value = '';
     showToast('回覆已送出', 'success');
-    await loadMyIssuesSv();
+    if (tab === 'admin') await loadMyIssuesAdmin(); else await loadMyIssuesSv();
     const el2 = document.getElementById('pt-issue-detail-' + id);
     if (el2) el2.style.display = 'block';
   } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function submitPtIssueAdmin() {
+  const titleEl = document.getElementById('issue-pt-admin-title');
+  const contEl  = document.getElementById('issue-pt-admin-content');
+  const errEl   = document.getElementById('issue-pt-admin-err');
+  errEl.style.display = 'none';
+  const title   = titleEl && titleEl.value.trim();
+  const content = contEl && contEl.value.trim();
+  if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
+  try {
+    const r = await API.post('/api/issues', { report_type: 'admin', title, content });
+    const id = r.id; let imgIdx = 0;
+    for (const img of ptIssueAdminImgs) {
+      if (img) await API.post('/api/issues/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
+      imgIdx++;
+    }
+    titleEl.value = ''; contEl.value = '';
+    ptIssueAdminImgs = [null,null,null];
+    for (let i=0;i<3;i++) {
+      const prev = document.getElementById('issue-pt-admin-img-prev-'+i);
+      const icon = document.getElementById('issue-pt-admin-img-icon-'+i);
+      if (prev) { prev.style.display='none'; prev.src=''; }
+      if (icon) icon.style.display='';
+    }
+    showToast('回報已送出！', 'success');
+    await loadMyIssuesAdmin();
+  } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
 }
 
 function ptIssueImgPreview(input, idx, ns) {
@@ -1446,6 +1545,7 @@ function ptIssueImgPreview(input, idx, ns) {
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       if (ns === 'sv-report') ptIssueSvImgs[idx] = { data: dataUrl, mime: 'image/jpeg' };
+      else if (ns === 'pt-admin') ptIssueAdminImgs[idx] = { data: dataUrl, mime: 'image/jpeg' };
       const prevEl = document.getElementById('issue-'+ns+'-img-prev-'+idx);
       const iconEl = document.getElementById('issue-'+ns+'-img-icon-'+idx);
       if (prevEl) { prevEl.src = dataUrl; prevEl.style.display = 'block'; }

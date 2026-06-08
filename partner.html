@@ -845,7 +845,10 @@ function renderActive(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+        <div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+          ${a.grab_no ? `<div style="margin-top:.2rem"><span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span></div>` : ''}
+        </div>
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">

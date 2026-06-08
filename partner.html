@@ -256,16 +256,10 @@ textarea.form-input{resize:none}
 
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- 新公告通知條 -->
-  <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
-       style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
+  <!-- 通知條（公告 + 問題回報合併） -->
+  <div id="ann-notify-bar" id="ann-notify-bar" style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem" onclick="notifyBarClick()">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
-  </div>
-  <div id="pt-issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
-       style="display:none;background:rgba(255,183,64,.18);border-bottom:1.5px solid rgba(255,183,64,.5);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#FFD166;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
-    <span style="flex-shrink:0">🚩</span>
-    <div style="overflow:hidden;flex:1"><span id="pt-issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有問題回報有新回覆</span></div>
   </div>
   <div class="pt-main">
 
@@ -1218,19 +1212,29 @@ async function loadAnnouncements() {
   try { syncNotifyBar();   } catch(e) { console.warn('[syncNotifyBar]',   e.message); }
 }
 
+let _issueUnread = 0; // 由 syncPtIssueNotifyBar 更新
+
 function syncNotifyBar() {
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
   const readIds = meId ? getReadIds(meId) : [];
-  const unread  = visible.filter(a => !readIds.includes(String(a.id))).length;
+  const annUnread = visible.filter(a => !readIds.includes(String(a.id))).length;
   const badge = document.getElementById('badge-notices');
-  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  if (badge) { badge.textContent = annUnread; badge.style.display = annUnread ? 'inline-flex' : 'none'; }
   const bar  = document.getElementById('ann-notify-bar');
   const text = document.getElementById('ann-notify-text');
   if (bar) {
-    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.style.display = 'flex'; }
+    const parts = [];
+    if (annUnread > 0)    parts.push(`${annUnread} 則公告`);
+    if (_issueUnread > 0) parts.push(`${_issueUnread} 則回覆`);
+    if (parts.length > 0) { text.textContent = '您有　' + parts.join('　'); bar.style.display = 'flex'; }
     else { bar.style.display = 'none'; }
   }
+}
+
+function notifyBarClick() {
+  if (_issueUnread > 0) switchPage('issues', document.querySelector('[onclick*=issues]'));
+  else switchPage('notices', document.querySelector('[onclick*=notices]'));
 }
 
 function renderAnnList() {
@@ -1469,6 +1473,7 @@ function ptIssueCard(r, viewer) {
         <input id="pt-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1">
         <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
       </div>
+      ${r.status !== 'resolved' ? `<div style="margin-top:.5rem" onclick="event.stopPropagation()"><button onclick="setPtIssueResolved(${r.id},'${viewer}')" style="padding:.38rem .9rem;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✅ 標記已解決</button></div>` : ''}
     </div>
   </div>`;
 }
@@ -1497,6 +1502,16 @@ async function togglePtIssue(id, viewer) {
     if (el2) el2.style.display = 'block';
     syncPtIssueNotifyBar();
   }
+}
+
+async function setPtIssueResolved(id, viewer) {
+  if (!confirm('確定將此問題標記為已解決？')) return;
+  try {
+    await API.put('/api/issues/'+id+'/status', { status: 'resolved' });
+    showToast('已標記為解決 ✅', 'success');
+    if (viewer === 'mine-pt' && ptIssueTab === 'sv') await loadMyIssuesSv();
+    else await loadMyIssuesAdmin();
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 async function submitPtIssueReply(id, viewer) {
@@ -1550,10 +1565,11 @@ async function submitIssueSv() {
   const title   = titleEl && titleEl.value.trim();
   const content = contEl && contEl.value.trim();
   const svId    = sel && sel.value;
-  const svName  = sel && sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].dataset.name;
+  const dispDiv = document.getElementById('issue-sv-target-display');
+  const svName  = dispDiv ? dispDiv.textContent.replace(/^督導：/, '') : '';
   const taskId  = taskSel && taskSel.value;
   const taskName = taskSel && taskSel.options[taskSel.selectedIndex] && taskSel.selectedIndex > 0 ? taskSel.options[taskSel.selectedIndex].textContent : null;
-  if (!svId) { errEl.textContent='請選擇督導人員'; errEl.style.display='block'; return; }
+  if (!svId) { errEl.textContent='尚未指派督導人員，無法送出'; errEl.style.display='block'; return; }
   if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
   try {
     const r = await API.post('/api/issues', {
@@ -1614,14 +1630,10 @@ async function submitPtIssueAdmin() {
 async function syncPtIssueNotifyBar() {
   try {
     const data = await API.get('/api/issues/unread');
-    const bar   = document.getElementById('pt-issue-notify-bar');
     const badge = document.getElementById('badge-issues');
     const total = (data.from_handler||0);
-    if (bar) {
-      bar.style.display = total > 0 ? 'flex' : 'none';
-      const txt = document.getElementById('pt-issue-notify-text');
-      if (txt && total > 0) txt.textContent = total+' 件問題回報有新回覆';
-    }
+    _issueUnread = total;
+    syncNotifyBar(); // 合併重繪
     if (badge) {
       badge.style.display = total > 0 ? 'inline' : 'none';
       badge.textContent = total;

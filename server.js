@@ -566,6 +566,36 @@ app.delete('/api/admin/users/:id', requireRole('staff'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (id === req.session.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
+
+    // 刪 Drive 人員資料夾
+    const user = await Users.byId(id);
+    if (user && user.real_name) {
+      const drive  = getDrive();
+      const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+      if (drive && rootId) {
+        try {
+          // 找 人員資料 資料夾
+          const staffDirRes = await drive.files.list({
+            q: `name='人員資料' and '${rootId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+            fields: 'files(id)', supportsAllDrives: true, includeItemsFromAllDrives: true,
+          });
+          const staffDirId = staffDirRes.data.files[0]?.id;
+          if (staffDirId) {
+            // 找該人的子資料夾
+            const personRes = await drive.files.list({
+              q: `name='${user.real_name}' and '${staffDirId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+              fields: 'files(id)', supportsAllDrives: true, includeItemsFromAllDrives: true,
+            });
+            const personFolderId = personRes.data.files[0]?.id;
+            if (personFolderId) {
+              await drive.files.delete({ fileId: personFolderId, supportsAllDrives: true });
+              console.log(`[Drive] 已刪除 ${user.real_name} 的人員資料夾`);
+            }
+          }
+        } catch(de) { console.error('[Drive] 刪除人員資料夾失敗', de.message); }
+      }
+    }
+
     await ForgotReqs.resolveByUser(id);
     await Users.delete(id);
     res.json({ ok: true });

@@ -246,4 +246,45 @@ const Announcements = {
   }
 };
 
-module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements };
+// ── GrabTasks ─────────────────────────────────────────────────
+const GrabTasks = {
+  async byId(id) {
+    const snap = await db.collection('grab_tasks').where('id','==',id).limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async create(data) {
+    const id   = await nextId('grab_tasks');
+    const item = { id, created_at: now(), grabbed_count: 0, status: 'open', ...data };
+    await db.collection('grab_tasks').doc(String(id)).set(item);
+    return item;
+  },
+  async update(id, patch) {
+    await db.collection('grab_tasks').doc(String(id)).update(patch);
+  },
+  async openList() {
+    const snap = await db.collection('grab_tasks').where('status','==','open').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+  async forSupervisor(supervisorId) {
+    const snap = await db.collection('grab_tasks').where('supervisor_id','==',supervisorId).get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+  async all() {
+    const snap = await db.collection('grab_tasks').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+};
+
+// ── GrabRecords ───────────────────────────────────────────────
+const GrabRecords = {
+  async forTask(grabTaskId) {
+    const snap = await db.collection('grab_records').where('grab_task_id','==',grabTaskId).get();
+    return snap.docs.map(d => d.data()).sort((a,b) => a.grab_no.localeCompare(b.grab_no));
+  },
+  async forPartner(partnerId) {
+    const snap = await db.collection('grab_records').where('partner_id','==',partnerId).get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.grabbed_at, a.grabbed_at));
+  },
+};
+
+module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, db };

@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, db: firestoreDb } = require('./db');
 
 // ── Google Apps Script 寄件設定 ───────────────────────────
 const GAS_URL    = process.env.GAS_URL;
@@ -814,6 +814,159 @@ app.get('/api/assignments/history', requireRole('supervisor'), async (req, res) 
     }));
     res.json(enriched);
   } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
+// 搶單系統
+// ══════════════════════════════════════════════════════════════
+
+// 督導建立搶單任務
+app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { task_name, company, unit_price, total_slots, deadline, notes } = req.body;
+    if (!task_name || !unit_price || !total_slots || !deadline)
+      return res.status(400).json({ error: '缺少必填欄位' });
+    const slots = parseInt(total_slots);
+    const price = parseInt(unit_price);
+    if (slots < 1) return res.status(400).json({ error: '總名額至少 1' });
+    const item = await GrabTasks.create({
+      task_name, company: company || '',
+      unit_price: price, total_price_each: price,
+      total_slots: slots,
+      deadline,
+      notes: notes || '',
+      supervisor_id: req.session.user.id,
+      supervisor_name: req.session.user.real_name,
+    });
+    res.json({ ok: true, id: item.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 督導取得自己的搶單任務列表
+app.get('/api/grab-tasks/supervisor', requireRole('supervisor'), async (req, res) => {
+  try {
+    const list = await GrabTasks.forSupervisor(req.session.user.id);
+    res.json(list);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 管理員取得所有搶單任務
+app.get('/api/grab-tasks/all', requireRole('staff'), async (req, res) => {
+  try {
+    res.json(await GrabTasks.all());
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 夥伴取得開放中的搶單任務
+app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
+  try {
+    const partnerId = req.session.user.id;
+    const now = nowTW();
+    let list = await GrabTasks.openList();
+    // 過濾截止的
+    list = list.filter(t => t.deadline >= now.slice(0,16));
+    // 附上該夥伴是否已搶
+    const result = await Promise.all(list.map(async t => {
+      const recSnap = await firestoreDb.collection('grab_tasks').doc(String(t.id))
+        .collection('grabbed_by').doc(String(partnerId)).get();
+      return { ...t, my_grab_no: recSnap.exists ? recSnap.data().grab_no : null };
+    }));
+    res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 取得某搶單任務的搶單紀錄
+app.get('/api/grab-tasks/:id/records', requireRole('supervisor','staff'), async (req, res) => {
+  try {
+    const records = await GrabRecords.forTask(parseInt(req.params.id));
+    res.json(records);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 督導關閉搶單
+app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res) => {
+  try {
+    const task = await GrabTasks.byId(parseInt(req.params.id));
+    if (!task) return res.status(404).json({ error: '任務不存在' });
+    if (task.supervisor_id !== req.session.user.id) return res.status(403).json({ error: '無權限' });
+    await GrabTasks.update(parseInt(req.params.id), { status: 'closed' });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 夥伴搶單（Firestore Transaction 防超搶）
+app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) => {
+  const taskId    = parseInt(req.params.id);
+  const partnerId = req.session.user.id;
+  const partnerName = req.session.user.real_name;
+  try {
+    const taskRef    = firestoreDb.collection('grab_tasks').doc(String(taskId));
+    const alreadyRef = taskRef.collection('grabbed_by').doc(String(partnerId));
+    const counterRef = firestoreDb.collection('_meta').doc('counters');
+
+    const result = await firestoreDb.runTransaction(async t => {
+      const [taskDoc, alreadyDoc, counterDoc] = await Promise.all([
+        t.get(taskRef), t.get(alreadyRef), t.get(counterRef)
+      ]);
+      if (!taskDoc.exists) throw new Error('搶單任務不存在');
+      const task = taskDoc.data();
+      if (task.status !== 'open') throw new Error('搶單已關閉');
+      const nowStr = nowTW().slice(0,16); // YYYY/MM/DD HH:MM
+      if (task.deadline <= nowStr) throw new Error('搶單時間已截止');
+      if (task.grabbed_count >= task.total_slots) throw new Error('名額已滿');
+      if (alreadyDoc.exists) throw new Error('您已搶過此單');
+
+      const counters   = counterDoc.exists ? counterDoc.data() : {};
+      const nextRecId  = (counters['grab_records'] || 0) + 1;
+      const nextGrabNo = (counters[`grab_no_${taskId}`] || 0) + 1;
+      const grabNoStr  = String(nextGrabNo).padStart(3, '0');
+      const ts = nowTW();
+
+      t.update(taskRef, { grabbed_count: task.grabbed_count + 1 });
+      t.set(counterRef, { ...counters, grab_records: nextRecId, [`grab_no_${taskId}`]: nextGrabNo }, { merge: true });
+      t.set(alreadyRef, { partner_id: partnerId, grab_no: grabNoStr, grabbed_at: ts });
+      t.set(firestoreDb.collection('grab_records').doc(String(nextRecId)), {
+        id: nextRecId, grab_task_id: taskId,
+        grab_no: grabNoStr, partner_id: partnerId, partner_name: partnerName,
+        grabbed_at: ts, status: 'active', created_at: ts,
+      });
+
+      return { recId: nextRecId, grabNo: grabNoStr, task };
+    });
+
+    // Transaction 外建立 assignment（自動接受）
+    const assignment = await Assignments.create({
+      task_name:       result.task.task_name,
+      company:         result.task.company || '',
+      quantity:        1,
+      unit_price:      result.task.unit_price,
+      total_price:     result.task.unit_price,
+      notes:           result.task.notes || '',
+      deadline_days:   null,
+      deadline_date:   result.task.deadline.slice(0,10),
+      assigned_at:     nowTW(),
+      assign_type:     'grab',
+      target_partner_id: partnerId,
+      accepted_by:     partnerId,
+      accepted_at:     nowTW(),
+      supervisor_id:   result.task.supervisor_id,
+      supervisor_name: result.task.supervisor_name,
+      grab_task_id:    taskId,
+      grab_no:         result.grabNo,
+      status:          'accepted',
+      rejected_by: [], reject_reason: null,
+    });
+    // 更新 grab_record 存 assignment_id
+    await firestoreDb.collection('grab_records').doc(String(result.recId)).update({ assignment_id: assignment.id });
+
+    res.json({ ok: true, grab_no: result.grabNo, assignment_id: assignment.id });
+  } catch(e) {
+    const userErr = ['搶單任務不存在','搶單已關閉','搶單時間已截止','名額已滿','您已搶過此單'];
+    if (userErr.some(m => e.message.includes(m)))
+      return res.status(400).json({ error: e.message });
+    console.error('[grab]', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── 任務回報 ──────────────────────────────────────────────────

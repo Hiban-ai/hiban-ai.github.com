@@ -335,7 +335,8 @@ textarea.form-input{resize:none}
     <!-- 任務管理 -->
     <div class="page-section" id="page-tasks">
       <div class="page-title">⚔️ 任務管理</div>
-      <div class="card"><p style="color:var(--text-s);font-size:.88rem">任務管理功能開發中</p></div>
+      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">🎯 搶單任務統計</div>
+      <div id="staff-grab-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
     </div>
 
     <!-- 公告管理 -->
@@ -618,6 +619,40 @@ textarea.form-input{resize:none}
 
 <script src="shared.js"></script>
 <script>
+// ── 搶單統計（管理員）──────────────────────────────────────
+async function loadStaffGrab() {
+  const wrap = document.getElementById('staff-grab-wrap');
+  if (!wrap) return;
+  try {
+    const list = await API.get('/api/grab-tasks/all');
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無搶單任務</div>'; return; }
+    wrap.innerHTML = list.map(t => {
+      const remaining = t.total_slots - t.grabbed_count;
+      const pct       = Math.round((t.grabbed_count / t.total_slots) * 100);
+      const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
+      const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
+      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
+      return `
+      <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+          <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem .75rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">
+          <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
+          <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
+          <div>名額<br><strong>${t.grabbed_count}/${t.total_slots}</strong></div>
+          <div>截止<br><strong>${(t.deadline||'').slice(0,10)}</strong></div>
+        </div>
+        <div style="height:5px;background:#e5edf3;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--red)':'var(--blue)'};border-radius:4px"></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">已搶 ${t.grabbed_count} 人，剩餘 ${remaining} 個名額</div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('[staffGrab]', e.message); }
+}
+
 let me = null;
 
 async function init() {
@@ -655,6 +690,7 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
+  if (name === 'tasks')   loadStaffGrab();
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }

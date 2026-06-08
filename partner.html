@@ -238,6 +238,10 @@ textarea.form-input{resize:none}
         <span class="mi-icon">📝</span>回報
         <span class="pt-badge" id="badge-worklog">1</span>
       </div>
+      <div class="pt-menu-item" onclick="switchPage('grab',this)">
+        <span class="mi-icon">🎯</span>搶單區
+        <span class="pt-badge" id="badge-grab" style="display:none">0</span>
+      </div>
       <div class="pt-menu-item" onclick="switchPage('notices',this)">
         <span class="mi-icon">📢</span>公告
         <span class="pt-badge" id="badge-notices" style="display:none">0</span>
@@ -379,6 +383,14 @@ textarea.form-input{resize:none}
         <div class="form-group"><label class="form-label">今天完成了幾則？</label><input class="form-input" type="number" placeholder="請輸入數量" min="0"></div>
         <div class="form-group"><label class="form-label">遇到什麼困難？（選填）</label><textarea class="form-input" rows="3" placeholder="有任何問題，告訴督導，我們一起想辦法"></textarea></div>
         <button class="btn-primary" onclick="showToast('回報已送出！','success')">送出回報 ✓</button>
+      </div>
+    </div>
+
+    <!-- 搶單區 -->
+    <div class="page-section" id="page-grab">
+      <div class="page-title">🎯 搶單區</div>
+      <div id="grab-zone-wrap">
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
     </div>
 
@@ -529,6 +541,7 @@ function switchPage(name, el) {
   if (el) el.classList.add('active');
   if (name === 'tasks' || name === 'quests') loadTasks();
   if (name === 'tasks') renderQuests();
+  if (name === 'grab') loadGrabZone();
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
@@ -1137,6 +1150,63 @@ function renderAnnList() {
 function openAnnDetail(ann) {
   showAnnDetail(ann, meId || null);
   try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+}
+
+// ── 搶單區 ────────────────────────────────────────────────────
+async function loadGrabZone() {
+  const wrap = document.getElementById('grab-zone-wrap');
+  if (!wrap) return;
+  try {
+    const list = await API.get('/api/grab-tasks');
+    const badge = document.getElementById('badge-grab');
+    const available = list.filter(t => !t.my_grab_no && t.grabbed_count < t.total_slots);
+    if (badge) { badge.textContent = available.length; badge.style.display = available.length ? 'inline-flex' : 'none'; }
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放搶單的任務</div>'; return; }
+    wrap.innerHTML = list.map(t => {
+      const remaining  = t.total_slots - t.grabbed_count;
+      const alreadyGrabbed = !!t.my_grab_no;
+      const pctFill    = Math.round((t.grabbed_count / t.total_slots) * 100);
+      return `
+      <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
+          <div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+            ${alreadyGrabbed ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶到 <span style="font-size:.9rem">＃${t.my_grab_no}</span></div>` : ''}
+          </div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.1rem;color:var(--yellow)">$${(t.unit_price||0).toLocaleString()}</div>
+        </div>
+        <!-- 名額進度 -->
+        <div style="margin-bottom:.6rem">
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-s);margin-bottom:.25rem">
+            <span>名額 ${t.grabbed_count} / ${t.total_slots}</span><span>剩餘 ${remaining}</span>
+          </div>
+          <div style="height:6px;background:#e5edf3;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
+          </div>
+        </div>
+        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">⏰ 截止：${(t.deadline||'').slice(0,16)}</div>
+        ${alreadyGrabbed
+          ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`
+          : remaining === 0
+            ? `<div style="padding:.55rem 1rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">名額已滿</div>`
+            : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 搶單</button>`
+        }
+      </div>`;
+    }).join('');
+  } catch(e) { wrap.innerHTML = `<div style="color:var(--red);font-size:.85rem">${e.message}</div>`; }
+}
+
+async function doGrab(taskId, btn) {
+  btn.disabled = true; btn.textContent = '搶單中…';
+  try {
+    const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
+    showToast(`搶單成功！您的編號 #${r.grab_no} 🎉`, 'success');
+    loadGrabZone();
+    loadTasks(); // 更新進行中任務
+  } catch(e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = '🎯 搶單';
+  }
 }
 
 async function init() {

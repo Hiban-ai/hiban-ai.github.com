@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, db: firestoreDb } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb } = require('./db');
 
 // ── Google Apps Script 寄件設定 ───────────────────────────
 const GAS_URL    = process.env.GAS_URL;
@@ -837,6 +837,170 @@ app.put('/api/system/contract', requireRole('staff'), async (req, res) => {
     await firestoreDb.collection('system_config').doc('contract').set(
       { text: text || '', updated_at: nowTW() }, { merge: true }
     );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════
+// 問題回報系統
+// ══════════════════════════════════════════════════════════════
+
+// 建立問題回報
+app.post('/api/reports', requireAuth, async (req, res) => {
+  try {
+    const { report_type, title, content, supervisor_id, supervisor_name, assignment_id, assignment_name } = req.body;
+    const user = req.session.user;
+    if (!title || !content) return res.status(400).json({ error: '請填寫標題與內容' });
+    if (report_type === 'supervisor' && !supervisor_id)
+      return res.status(400).json({ error: '請選擇督導人員' });
+    if (!['supervisor','admin'].includes(report_type))
+      return res.status(400).json({ error: '無效的回報類型' });
+    const item = await Reports.create({
+      report_type, title, content,
+      reporter_id: user.id,
+      reporter_name: user.real_name,
+      reporter_role: user.role,
+      supervisor_id: supervisor_id ? parseInt(supervisor_id) : null,
+      supervisor_name: supervisor_name || null,
+      assignment_id: assignment_id ? parseInt(assignment_id) : null,
+      assignment_name: assignment_name || null,
+      image_count: 0,
+    });
+    res.json({ ok: true, id: item.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 我送出的問題
+app.get('/api/reports/mine', requireAuth, async (req, res) => {
+  try {
+    const list = await Reports.forReporter(req.session.user.id);
+    res.json(list);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 未讀數量
+app.get('/api/reports/unread', requireAuth, async (req, res) => {
+  try {
+    const user = req.session.user;
+    let from_handler = 0, from_reporter = 0;
+    if (user.role === 'partner') {
+      const mine = await Reports.forReporter(user.id);
+      from_handler = mine.filter(r => r.unread_reporter).length;
+    } else if (user.role === 'supervisor') {
+      const inbox = await Reports.forSupervisor(user.id);
+      from_reporter = inbox.filter(r => r.unread_handler).length;
+      const mine = await Reports.forReporter(user.id);
+      from_handler = mine.filter(r => r.unread_reporter && r.report_type === 'admin').length;
+    } else if (user.role === 'staff') {
+      const inbox = await Reports.forAdmin();
+      from_reporter = inbox.filter(r => r.unread_handler).length;
+    }
+    res.json({ from_handler, from_reporter, total: from_handler + from_reporter });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 督導收到的問題
+app.get('/api/reports/inbox/supervisor', requireRole('supervisor'), async (req, res) => {
+  try {
+    res.json(await Reports.forSupervisor(req.session.user.id));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 管理員收到的所有問題
+app.get('/api/reports/inbox/admin', requireRole('staff'), async (req, res) => {
+  try {
+    res.json(await Reports.forAdmin());
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 新增回覆
+app.post('/api/reports/:id/reply', requireAuth, async (req, res) => {
+  try {
+    const reportId = parseInt(req.params.id);
+    const { text } = req.body;
+    const user = req.session.user;
+    if (!text || !text.trim()) return res.status(400).json({ error: '回覆不能為空' });
+    const report = await Reports.byId(reportId);
+    if (!report) return res.status(404).json({ error: '問題不存在' });
+
+    const isReporter = report.reporter_id === user.id;
+    if (!isReporter) {
+      if (report.report_type === 'supervisor' && (user.role !== 'supervisor' || report.supervisor_id !== user.id))
+        return res.status(403).json({ error: '無權限' });
+      if (report.report_type === 'admin' && user.role !== 'staff')
+        return res.status(403).json({ error: '無權限' });
+    }
+
+    const reply = {
+      id: Date.now(),
+      author_id: user.id,
+      author_name: user.real_name,
+      author_role: user.role,
+      text: text.trim(),
+      created_at: nowTW(),
+    };
+    const replies = [...(report.replies || []), reply];
+    await Reports.update(reportId, {
+      replies,
+      unread_reporter: !isReporter,
+      unread_handler: isReporter,
+    });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 更新狀態
+app.put('/api/reports/:id/status', requireAuth, async (req, res) => {
+  try {
+    const reportId = parseInt(req.params.id);
+    const { status } = req.body;
+    const user = req.session.user;
+    if (!['pending','processing','resolved'].includes(status))
+      return res.status(400).json({ error: '無效狀態' });
+    const report = await Reports.byId(reportId);
+    if (!report) return res.status(404).json({ error: '不存在' });
+    if (report.report_type === 'supervisor' && (user.role !== 'supervisor' || report.supervisor_id !== user.id))
+      return res.status(403).json({ error: '無權限' });
+    if (report.report_type === 'admin' && user.role !== 'staff')
+      return res.status(403).json({ error: '無權限' });
+    await Reports.update(reportId, { status });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 上傳圖片
+app.post('/api/reports/:id/image', requireAuth, async (req, res) => {
+  try {
+    const reportId = parseInt(req.params.id);
+    const { index, data, mime } = req.body;
+    const idx = parseInt(index);
+    if (idx < 0 || idx > 2) return res.status(400).json({ error: '最多3張' });
+    await ReportImages.save(reportId, idx, data, mime || 'image/jpeg');
+    await Reports.update(reportId, { image_count: idx + 1 });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 取得圖片
+app.get('/api/reports/:id/image/:index', requireAuth, async (req, res) => {
+  try {
+    const img = await ReportImages.get(parseInt(req.params.id), parseInt(req.params.index));
+    if (!img) return res.status(404).end();
+    const b64 = img.data.replace(/^data:[^;]+;base64,/, '');
+    res.setHeader('Content-Type', img.mime || 'image/jpeg');
+    res.send(Buffer.from(b64, 'base64'));
+  } catch(e) { res.status(500).end(); }
+});
+
+// 標記已讀
+app.put('/api/reports/:id/read', requireAuth, async (req, res) => {
+  try {
+    const reportId = parseInt(req.params.id);
+    const user = req.session.user;
+    const report = await Reports.byId(reportId);
+    if (!report) return res.status(404).json({ error: '不存在' });
+    const isReporter = report.reporter_id === user.id;
+    await Reports.update(reportId, isReporter ? { unread_reporter: false } : { unread_handler: false });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

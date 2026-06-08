@@ -154,6 +154,7 @@ textarea.form-input{resize:none}
 .detail-row{display:flex;align-items:flex-start;gap:.5rem;padding:.55rem 0;border-bottom:1px solid var(--border-l)}
 .detail-label{font-size:.8rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.1rem}
 .detail-val{font-size:.9rem;font-weight:600;color:var(--text);flex:1;word-break:break-all}
+@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100vw)}}
 
 @media(max-width:768px){
   .st-layout{flex-direction:column}
@@ -227,6 +228,7 @@ textarea.form-input{resize:none}
         <div class="st-menu-item" onclick="switchPage('payroll',this)"><span class="mi-icon">💰</span>薪資管理</div>
         <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
         <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理<span class="st-badge" id="badge-notices" style="display:none">0</span></div>
+        <div class="st-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">📝</span>問題管理<span class="st-badge" id="badge-issues" style="display:none">0</span></div>
         <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">⚙️</span>系統設定</div>
         <div class="st-menu-group">帳號</div>
         <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
@@ -242,6 +244,11 @@ textarea.form-input{resize:none}
        style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
+  </div>
+  <div id="issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
+       style="display:none;background:linear-gradient(90deg,#FFF7E6,#FFE4A0);border-bottom:1.5px solid #FFB830;padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#7A5800;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
+    <span style="flex-shrink:0">📝</span>
+    <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有新的問題回報待處理</span></div>
   </div>
   <div class="st-main">
 
@@ -420,6 +427,28 @@ textarea.form-input{resize:none}
           <button onclick="saveContract()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.25);transition:all .25s">儲存合約</button>
           <button onclick="cancelContract()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
         </div>
+      </div>
+    </div>
+
+    <!-- 問題管理 -->
+    <div class="page-section" id="page-issues">
+      <div class="page-title">📝 問題管理</div>
+      <div id="issues-staff-unread" style="display:none;background:var(--yellow-p);border:1.5px solid var(--yellow);border-radius:var(--rs);padding:.5rem .9rem;font-size:.82rem;color:#7A5800;margin-bottom:.85rem"></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.85rem">
+        <select id="issues-filter-status" class="form-input" style="max-width:140px;padding:.4rem .7rem;font-size:.82rem" onchange="renderIssueList()">
+          <option value="">全部狀態</option>
+          <option value="pending">待處理</option>
+          <option value="processing">處理中</option>
+          <option value="resolved">已解決</option>
+        </select>
+        <select id="issues-filter-role" class="form-input" style="max-width:160px;padding:.4rem .7rem;font-size:.82rem" onchange="renderIssueList()">
+          <option value="">全部來源</option>
+          <option value="partner">工作夥伴</option>
+          <option value="supervisor">督導人員</option>
+        </select>
+      </div>
+      <div id="issues-staff-list" style="display:flex;flex-direction:column;gap:.75rem">
+        <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
       </div>
     </div>
 
@@ -714,9 +743,10 @@ async function init() {
   await Promise.all([loadAccounts(), loadForgotRequests()]);
   updateDashboard();
   loadAnnouncements(); // 背景載入，不阻塞主流程
+  syncIssueNotifyBar();
   // 重整後還原上次頁面
   const hash = location.hash.replace('#','');
-  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','settings','profile'];
+  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','settings','profile','issues'];
   if (hash && pages.includes(hash)) switchPage(hash);
 }
 
@@ -744,6 +774,7 @@ function switchPage(name, el) {
     try { renderAnnList(); } catch(e) {}
   }
   if (name === 'settings') loadSystemSettings();
+  if (name === 'issues') loadIssuesStaff();
 }
 
 // ── 帳號管理 ──
@@ -1803,6 +1834,138 @@ async function deleteAnn(id) {
 }
 
 init();
+
+// ── 問題管理（staff）──────────────────────────────────────────
+let issuesStaffCache = [];
+
+async function loadIssuesStaff() {
+  try {
+    issuesStaffCache = await API.get('/api/reports/inbox/admin');
+    renderIssueList();
+    syncIssueNotifyBar();
+  } catch(e) { console.error(e); }
+}
+
+function renderIssueList() {
+  const statusF = document.getElementById('issues-filter-status').value;
+  const roleF   = document.getElementById('issues-filter-role').value;
+  let list = issuesStaffCache;
+  if (statusF) list = list.filter(r => r.status === statusF);
+  if (roleF)   list = list.filter(r => r.reporter_role === roleF);
+  const el = document.getElementById('issues-staff-list');
+  if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">目前無問題回報</div>'; return; }
+  el.innerHTML = list.map(r => issueCard(r, 'staff')).join('');
+}
+
+function issueCard(r, viewer) {
+  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
+  const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
+  const roleMap2 = { partner:'工作夥伴', supervisor:'督導人員' };
+  const unread = viewer === 'staff' ? r.unread_handler : r.unread_reporter;
+  return `<div class="card" style="padding:1rem 1.1rem;cursor:pointer;border-left:4px solid ${statusColor[r.status]}" onclick="toggleIssue(${r.id},'${viewer}')">
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
+      ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>' : ''}
+      <span style="font-weight:700;font-size:.92rem;flex:1">${r.title}</span>
+      <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
+    </div>
+    <div style="font-size:.78rem;color:var(--text-s)">${r.reporter_name}（${roleMap2[r.reporter_role]||r.reporter_role}）· ${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div id="issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
+      <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/reports/${r.id}/image/${i}" style="height:80px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      ${r.assignment_name ? `<div style="font-size:.78rem;color:var(--text-s);margin-bottom:.5rem">📎 關聯任務：${r.assignment_name}</div>` : ''}
+      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
+      <div id="issue-replies-${r.id}" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
+        ${issueRepliesHtml(r.replies||[])}
+      </div>
+      ${viewer !== 'mine-pt' && viewer !== 'mine-sv' ? `
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">處理中</button>
+        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'resolved','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">已解決</button>
+        <button onclick="event.stopPropagation();setIssueStatus(${r.id},'pending','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">重設待處理</button>
+      </div>` : ''}
+      <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
+        <input id="issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">
+        <button onclick="submitIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function issueRepliesHtml(replies) {
+  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
+  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  return replies.map(rp => `
+    <div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem">
+      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
+      <div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div>
+    </div>`).join('');
+}
+
+async function toggleIssue(id, viewer) {
+  const el = document.getElementById('issue-detail-' + id);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  document.querySelectorAll('[id^="issue-detail-"]').forEach(e => e.style.display = 'none');
+  if (!isOpen) {
+    el.style.display = 'block';
+    try { await API.put('/api/reports/'+id+'/read', {}); } catch(e){}
+    if (viewer === 'staff') await loadIssuesStaff();
+    const el2 = document.getElementById('issue-detail-' + id);
+    if (el2) el2.style.display = 'block';
+  }
+}
+
+async function setIssueStatus(id, status, viewer) {
+  try {
+    await API.put('/api/reports/'+id+'/status', { status });
+    showToast('狀態已更新', 'success');
+    if (viewer === 'staff') await loadIssuesStaff();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function submitIssueReply(id, viewer) {
+  const input = document.getElementById('issue-reply-input-' + id);
+  const text = input && input.value && input.value.trim();
+  if (!text) return;
+  try {
+    await API.post('/api/reports/'+id+'/reply', { text });
+    input.value = '';
+    showToast('回覆已送出', 'success');
+    if (viewer === 'staff') await loadIssuesStaff();
+    const el2 = document.getElementById('issue-detail-' + id);
+    if (el2) el2.style.display = 'block';
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function syncIssueNotifyBar() {
+  try {
+    const data = await API.get('/api/reports/unread');
+    const bar   = document.getElementById('issue-notify-bar');
+    const badge = document.getElementById('badge-issues');
+    const total = (data.from_reporter||0) + (data.from_handler||0);
+    if (bar) {
+      bar.style.display = total > 0 ? 'flex' : 'none';
+      const txt = document.getElementById('issue-notify-text');
+      if (txt) {
+        const msgs = [];
+        if (data.from_reporter > 0) msgs.push(data.from_reporter+' 件新問題回報待處理');
+        if (data.from_handler > 0)  msgs.push(data.from_handler+' 件問題有新回覆');
+        txt.textContent = msgs.join('　·　');
+      }
+    }
+    if (badge) {
+      badge.style.display = total > 0 ? 'inline' : 'none';
+      badge.textContent = total;
+    }
+  } catch(e){}
+}
+
+function fmtDay(s) {
+  if (!s || s === '—') return '—';
+  const datePart = s.replace(/-/g,'/').split(' ')[0];
+  const [y,m,d] = datePart.split('/');
+  return y+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+}
 </script>
 </body>
 </html>

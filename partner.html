@@ -184,6 +184,7 @@ textarea.form-input{resize:none}
   .mobile-topbar{display:flex}
   .char-stats-inner{grid-template-columns:repeat(3,1fr)}
 }
+@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100vw)}}
 </style>
 </head>
 <body>
@@ -242,6 +243,7 @@ textarea.form-input{resize:none}
         <span class="mi-icon">📝</span>回報
         <span class="pt-badge" id="badge-worklog">1</span>
       </div>
+      <div class="pt-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">🚩</span>問題回報<span class="pt-badge" id="badge-issues" style="display:none">0</span></div>
       <div class="pt-menu-item" onclick="switchPage('notices',this)">
         <span class="mi-icon">📢</span>公告
         <span class="pt-badge" id="badge-notices" style="display:none">0</span>
@@ -259,6 +261,11 @@ textarea.form-input{resize:none}
        style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
+  </div>
+  <div id="pt-issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
+       style="display:none;background:rgba(255,183,64,.18);border-bottom:1.5px solid rgba(255,183,64,.5);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#FFD166;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
+    <span style="flex-shrink:0">🚩</span>
+    <div style="overflow:hidden;flex:1"><span id="pt-issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有問題回報有新回覆</span></div>
   </div>
   <div class="pt-main">
 
@@ -466,6 +473,93 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
+    <!-- 問題回報 -->
+    <div class="page-section" id="page-issues">
+      <div class="page-title" style="color:#fff;font-family:'Noto Serif TC',serif">🚩 問題回報</div>
+      <div style="display:flex;gap:0;border-bottom:2px solid rgba(255,255,255,.15);margin-bottom:1rem">
+        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:#FFD166;font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid #FFD166;font-weight:700">回報督導</button>
+        <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:rgba(255,255,255,.55);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
+      </div>
+      <!-- Tab: report to supervisor -->
+      <div id="pt-issue-tab-sv">
+        <div style="background:rgba(255,255,255,.08);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,.12)">
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">📝 新增回報</div>
+          <div id="issue-sv-err" style="display:none;background:rgba(224,85,85,.15);border:1px solid #E05555;border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:#ffaaaa;margin-bottom:.5rem"></div>
+          <div style="display:flex;flex-direction:column;gap:.55rem">
+            <select id="issue-sv-target" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+              <option value="">選擇督導人員＊</option>
+            </select>
+            <input id="issue-sv-title" placeholder="問題標題＊" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+            <textarea id="issue-sv-content" placeholder="詳細說明＊" rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
+            <select id="issue-sv-task" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+              <option value="">關聯任務（選填）</option>
+            </select>
+          </div>
+          <div style="margin-top:.55rem">
+            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">附圖（最多 3 張）</div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'sv-report')">
+                <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;opacity:.5">📷</span>
+                <img id="issue-sv-report-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'sv-report')">
+                <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;opacity:.5">📷</span>
+                <img id="issue-sv-report-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'sv-report')">
+                <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;opacity:.5">📷</span>
+                <img id="issue-sv-report-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+            </div>
+          </div>
+          <button onclick="submitIssueSv()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+        </div>
+        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">我的回報紀錄</div>
+        <div id="issues-pt-sv-list" style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="font-size:.82rem;opacity:.55;color:#fff">載入中...</div>
+        </div>
+      </div>
+      <!-- Tab: report to admin -->
+      <div id="pt-issue-tab-admin" style="display:none">
+        <div style="background:rgba(255,255,255,.08);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,.12)">
+          <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;color:#fff">📝 新增回報</div>
+          <div id="issue-pt-admin-err" style="display:none;background:rgba(224,85,85,.15);border:1px solid #E05555;border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:#ffaaaa;margin-bottom:.5rem"></div>
+          <div style="display:flex;flex-direction:column;gap:.55rem">
+            <input id="issue-pt-admin-title" placeholder="問題標題＊" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+            <textarea id="issue-pt-admin-content" placeholder="詳細說明＊" rows="4" style="width:100%;padding:.6rem .75rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;line-height:1.6"></textarea>
+          </div>
+          <div style="margin-top:.55rem">
+            <div style="font-size:.75rem;opacity:.65;margin-bottom:.35rem;color:#fff">附圖（最多 3 張）</div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'pt-admin')">
+                <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;opacity:.5">📷</span>
+                <img id="issue-pt-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'pt-admin')">
+                <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;opacity:.5">📷</span>
+                <img id="issue-pt-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:68px;height:68px;border:1.5px dashed rgba(255,255,255,.25);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'pt-admin')">
+                <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;opacity:.5">📷</span>
+                <img id="issue-pt-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+            </div>
+          </div>
+          <button onclick="submitPtIssueAdmin()" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,var(--orange),var(--yellow-l));color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+        </div>
+        <div style="font-size:.82rem;font-weight:700;opacity:.8;margin-bottom:.5rem;color:#fff">我的回報紀錄</div>
+        <div id="issues-pt-admin-list" style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="font-size:.82rem;opacity:.55;color:#fff">載入中...</div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- pt-main -->
   </div><!-- main wrapper -->
 </div><!-- pt-layout -->
@@ -557,6 +651,7 @@ function switchPage(name, el) {
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
+  if (name === 'issues') loadIssuesPt();
 }
 
 // ── 日期格式化 ────────────────────────────────────────────────
@@ -1270,6 +1365,7 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   loadAnnouncements(); // 背景載入，不阻塞
+  syncPtIssueNotifyBar();
   loadGrabZone();      // 背景載入搶單
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
@@ -1278,6 +1374,256 @@ async function init() {
   startPolling();
 }
 init();
+
+// ── 問題回報（partner）───────────────────────────────────────
+let ptIssueSvImgs    = [null, null, null];
+let ptIssueAdminImgs = [null, null, null];
+let ptIssueTab = 'sv';
+
+function switchPtIssueTab(tab) {
+  ptIssueTab = tab;
+  const svBtn    = document.getElementById('ptitab-sv');
+  const adminBtn = document.getElementById('ptitab-admin');
+  if (svBtn)    { svBtn.style.color = tab==='sv' ? '#FFD166' : 'rgba(255,255,255,.55)'; svBtn.style.borderBottomColor = tab==='sv' ? '#FFD166' : 'transparent'; svBtn.style.fontWeight = tab==='sv' ? '700' : '400'; }
+  if (adminBtn) { adminBtn.style.color = tab==='admin' ? '#FFD166' : 'rgba(255,255,255,.55)'; adminBtn.style.borderBottomColor = tab==='admin' ? '#FFD166' : 'transparent'; adminBtn.style.fontWeight = tab==='admin' ? '700' : '400'; }
+  document.getElementById('pt-issue-tab-sv').style.display    = tab==='sv'    ? 'block' : 'none';
+  document.getElementById('pt-issue-tab-admin').style.display = tab==='admin' ? 'block' : 'none';
+  if (tab==='sv')    loadMyIssuesSv();
+  if (tab==='admin') loadMyIssuesAdmin();
+}
+
+async function loadIssuesPt() {
+  await Promise.all([loadMyIssuesSv(), loadMyIssuesAdmin()]);
+  await populateIssueSvDropdowns();
+  syncPtIssueNotifyBar();
+}
+
+async function populateIssueSvDropdowns() {
+  try {
+    const svs = await API.get('/api/users-list?role=supervisor');
+    const sel = document.getElementById('issue-sv-target');
+    if (sel) {
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">選擇督導人員＊</option>' +
+        svs.map(u => `<option value="${u.id}" data-name="${u.real_name}">${u.real_name}</option>`).join('');
+      if (cur) sel.value = cur;
+    }
+  } catch(e){}
+  // populate task dropdown
+  try {
+    const tasks = await API.get('/api/assignments/active');
+    const active = (tasks || []).filter(t => t.status === 'active' || t.status === 'accepted');
+    const tsel = document.getElementById('issue-sv-task');
+    if (tsel) {
+      tsel.innerHTML = '<option value="">關聯任務（選填）</option>' +
+        active.map(t => `<option value="${t.id}">${t.task_name || t.id}</option>`).join('');
+    }
+  } catch(e){}
+}
+
+async function loadMyIssuesSv() {
+  try {
+    const all = await API.get('/api/reports/mine');
+    const list = all.filter(r => r.report_type === 'supervisor');
+    const el = document.getElementById('issues-pt-sv-list');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">尚無回報紀錄</div>'; return; }
+    el.innerHTML = list.map(r => ptIssueCard(r, 'mine-pt')).join('');
+  } catch(e){ console.error(e); }
+}
+
+async function loadMyIssuesAdmin() {
+  try {
+    const all = await API.get('/api/reports/mine');
+    const list = all.filter(r => r.report_type === 'admin');
+    const el = document.getElementById('issues-pt-admin-list');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<div style="font-size:.82rem;opacity:.55;color:#fff">尚無回報紀錄</div>'; return; }
+    el.innerHTML = list.map(r => ptIssueCard(r, 'mine-pt')).join('');
+  } catch(e){ console.error(e); }
+}
+
+function ptIssueCard(r, viewer) {
+  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
+  const statusColor = { pending:'#FFB830', processing:'#48B4E8', resolved:'#2EAA7A' };
+  const unread = r.unread_reporter;
+  return `<div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-left:4px solid ${statusColor[r.status]||'#888'};border-radius:var(--rs);padding:1rem;cursor:pointer" onclick="togglePtIssue(${r.id},'${viewer}')">
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem">
+      ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:#E05555;flex-shrink:0;display:inline-block"></span>' : ''}
+      <span style="font-weight:700;font-size:.9rem;flex:1;color:#fff">${r.title}</span>
+      <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}33;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
+    </div>
+    <div style="font-size:.75rem;opacity:.55;color:#fff">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid rgba(255,255,255,.12);padding-top:.75rem">
+      <div style="font-size:.85rem;line-height:1.7;color:rgba(255,255,255,.85);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/reports/${r.id}/image/${i}" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      <div style="font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:.4rem">回覆紀錄</div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
+        ${ptIssueRepliesHtml(r.replies||[])}
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
+        <input id="pt-issue-reply-input-${r.id}" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-family:'Noto Sans TC',sans-serif">
+        <button onclick="submitPtIssueReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--orange);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ptIssueRepliesHtml(replies) {
+  if (!replies.length) return '<div style="font-size:.8rem;color:rgba(255,255,255,.4);font-style:italic">尚無回覆</div>';
+  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  return replies.map(rp => `
+    <div style="background:rgba(0,0,0,.2);border-radius:var(--rs);padding:.45rem .75rem">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.55">${rp.text}</div>
+    </div>`).join('');
+}
+
+async function togglePtIssue(id, viewer) {
+  const el = document.getElementById('pt-issue-detail-' + id);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  document.querySelectorAll('[id^="pt-issue-detail-"]').forEach(e => e.style.display = 'none');
+  if (!isOpen) {
+    el.style.display = 'block';
+    try { await API.put('/api/reports/'+id+'/read', {}); } catch(e){}
+    if (ptIssueTab === 'sv') await loadMyIssuesSv();
+    else await loadMyIssuesAdmin();
+    const el2 = document.getElementById('pt-issue-detail-' + id);
+    if (el2) el2.style.display = 'block';
+    syncPtIssueNotifyBar();
+  }
+}
+
+async function submitPtIssueReply(id, viewer) {
+  const input = document.getElementById('pt-issue-reply-input-' + id);
+  const text = input && input.value && input.value.trim();
+  if (!text) return;
+  try {
+    await API.post('/api/reports/'+id+'/reply', { text });
+    input.value = '';
+    showToast('回覆已送出', 'success');
+    if (ptIssueTab === 'sv') await loadMyIssuesSv();
+    else await loadMyIssuesAdmin();
+    const el2 = document.getElementById('pt-issue-detail-' + id);
+    if (el2) el2.style.display = 'block';
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function ptIssueImgPreview(input, idx, ns) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const max = 600;
+      let w = img.width, h = img.height;
+      if (w > max) { h = Math.round(h * max / w); w = max; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      if (ns === 'sv-report') ptIssueSvImgs[idx] = { data: dataUrl, mime: 'image/jpeg' };
+      else if (ns === 'pt-admin') ptIssueAdminImgs[idx] = { data: dataUrl, mime: 'image/jpeg' };
+      const prevEl = document.getElementById('issue-'+ns+'-img-prev-'+idx);
+      const iconEl = document.getElementById('issue-'+ns+'-img-icon-'+idx);
+      if (prevEl) { prevEl.src = dataUrl; prevEl.style.display = 'block'; }
+      if (iconEl) iconEl.style.display = 'none';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitIssueSv() {
+  const sel     = document.getElementById('issue-sv-target');
+  const titleEl = document.getElementById('issue-sv-title');
+  const contEl  = document.getElementById('issue-sv-content');
+  const taskSel = document.getElementById('issue-sv-task');
+  const errEl   = document.getElementById('issue-sv-err');
+  errEl.style.display = 'none';
+  const title   = titleEl && titleEl.value.trim();
+  const content = contEl && contEl.value.trim();
+  const svId    = sel && sel.value;
+  const svName  = sel && sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].dataset.name;
+  const taskId  = taskSel && taskSel.value;
+  const taskName = taskSel && taskSel.options[taskSel.selectedIndex] && taskSel.selectedIndex > 0 ? taskSel.options[taskSel.selectedIndex].textContent : null;
+  if (!svId) { errEl.textContent='請選擇督導人員'; errEl.style.display='block'; return; }
+  if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
+  try {
+    const r = await API.post('/api/reports', {
+      report_type: 'supervisor', title, content,
+      supervisor_id: svId, supervisor_name: svName,
+      assignment_id: taskId || null, assignment_name: taskName || null,
+    });
+    const id = r.id;
+    let imgIdx = 0;
+    for (const img of ptIssueSvImgs) {
+      if (img) await API.post('/api/reports/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
+      imgIdx++;
+    }
+    titleEl.value = '';
+    contEl.value = '';
+    ptIssueSvImgs = [null,null,null];
+    for (let i=0;i<3;i++) {
+      const prev = document.getElementById('issue-sv-report-img-prev-'+i);
+      const icon = document.getElementById('issue-sv-report-img-icon-'+i);
+      if (prev) { prev.style.display='none'; prev.src=''; }
+      if (icon) icon.style.display='';
+    }
+    showToast('回報已送出！', 'success');
+    await loadMyIssuesSv();
+  } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
+}
+
+async function submitPtIssueAdmin() {
+  const titleEl = document.getElementById('issue-pt-admin-title');
+  const contEl  = document.getElementById('issue-pt-admin-content');
+  const errEl   = document.getElementById('issue-pt-admin-err');
+  errEl.style.display = 'none';
+  const title   = titleEl && titleEl.value.trim();
+  const content = contEl && contEl.value.trim();
+  if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
+  try {
+    const r = await API.post('/api/reports', { report_type: 'admin', title, content });
+    const id = r.id;
+    let imgIdx = 0;
+    for (const img of ptIssueAdminImgs) {
+      if (img) await API.post('/api/reports/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
+      imgIdx++;
+    }
+    titleEl.value = '';
+    contEl.value = '';
+    ptIssueAdminImgs = [null,null,null];
+    for (let i=0;i<3;i++) {
+      const prev = document.getElementById('issue-pt-admin-img-prev-'+i);
+      const icon = document.getElementById('issue-pt-admin-img-icon-'+i);
+      if (prev) { prev.style.display='none'; prev.src=''; }
+      if (icon) icon.style.display='';
+    }
+    showToast('回報已送出！', 'success');
+    await loadMyIssuesAdmin();
+  } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
+}
+
+async function syncPtIssueNotifyBar() {
+  try {
+    const data = await API.get('/api/reports/unread');
+    const bar   = document.getElementById('pt-issue-notify-bar');
+    const badge = document.getElementById('badge-issues');
+    const total = (data.from_handler||0);
+    if (bar) {
+      bar.style.display = total > 0 ? 'flex' : 'none';
+      const txt = document.getElementById('pt-issue-notify-text');
+      if (txt && total > 0) txt.textContent = total+' 件問題回報有新回覆';
+    }
+    if (badge) {
+      badge.style.display = total > 0 ? 'inline' : 'none';
+      badge.textContent = total;
+    }
+  } catch(e){}
+}
 </script>
 </body>
 </html>

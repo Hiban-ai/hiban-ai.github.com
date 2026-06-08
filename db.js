@@ -287,4 +287,60 @@ const GrabRecords = {
   },
 };
 
-module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, db };
+// ── Reports ───────────────────────────────────────────────────
+const Reports = {
+  async byId(id) {
+    const snap = await db.collection('reports').where('id','==',id).limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async create(data) {
+    const id   = await nextId('reports');
+    const item = { id, created_at: now(), updated_at: now(),
+                   replies: [], unread_handler: true, unread_reporter: false,
+                   status: 'pending', ...data };
+    await db.collection('reports').doc(String(id)).set(item);
+    return item;
+  },
+  async update(id, patch) {
+    await db.collection('reports').doc(String(id)).update({ ...patch, updated_at: now() });
+  },
+  async forReporter(reporterId) {
+    const snap = await db.collection('reports').where('reporter_id','==',reporterId).get();
+    return snap.docs.map(d=>d.data()).sort((a,b)=>byDate(b.created_at,a.created_at));
+  },
+  async forSupervisor(supervisorId) {
+    const snap = await db.collection('reports')
+      .where('report_type','==','supervisor')
+      .where('supervisor_id','==',supervisorId).get();
+    return snap.docs.map(d=>d.data()).sort((a,b)=>byDate(b.created_at,a.created_at));
+  },
+  async forAdmin() {
+    const snap = await db.collection('reports').where('report_type','==','admin').get();
+    return snap.docs.map(d=>d.data()).sort((a,b)=>byDate(b.created_at,a.created_at));
+  },
+};
+
+// ── ReportImages ──────────────────────────────────────────────
+const ReportImages = {
+  async save(reportId, index, data, mime) {
+    await db.collection('report_images').doc(`${reportId}_${index}`).set(
+      { report_id: reportId, index, data, mime, saved_at: now() }
+    );
+  },
+  async get(reportId, index) {
+    const doc = await db.collection('report_images').doc(`${reportId}_${index}`).get();
+    return doc.exists ? doc.data() : null;
+  },
+  async listForReport(reportId) {
+    const snap = await db.collection('report_images').where('report_id','==',reportId).get();
+    return snap.docs.map(d=>d.data()).sort((a,b)=>a.index-b.index);
+  },
+  async deleteAll(reportId) {
+    const snap = await db.collection('report_images').where('report_id','==',reportId).get();
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  },
+};
+
+module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db };

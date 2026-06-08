@@ -423,8 +423,49 @@ textarea.form-input{resize:none}
     <!-- 問題管理 -->
     <div class="page-section" id="page-issues">
       <div class="page-title">📝 問題管理</div>
-      <div id="issues-sv-inbox" style="display:flex;flex-direction:column;gap:.75rem">
-        <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
+        <button class="acc-tab active" id="itab-inbox" onclick="switchIssueTab('inbox')">📥 夥伴問題</button>
+        <button class="acc-tab" id="itab-admin" onclick="switchIssueTab('admin')">📤 回報管理人員</button>
+      </div>
+      <div id="issue-tab-inbox">
+        <div id="issues-sv-inbox" style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
+        </div>
+      </div>
+      <div id="issue-tab-admin" style="display:none">
+        <div class="card" style="max-width:560px;margin-bottom:1rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📝 新增回報</div>
+          <div id="issue-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem"></div>
+          <div style="display:flex;flex-direction:column;gap:.6rem">
+            <input class="form-input" id="issue-admin-title" placeholder="問題標題＊" style="width:100%">
+            <textarea class="form-input" id="issue-admin-content" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
+          </div>
+          <div style="margin-top:.6rem">
+            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <label style="width:72px;height:72px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="issueImgPreview(this,0,'admin')">
+                <span id="issue-admin-img-icon-0" style="font-size:1.4rem;color:var(--text-s)">📷</span>
+                <img id="issue-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:72px;height:72px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="issueImgPreview(this,1,'admin')">
+                <span id="issue-admin-img-icon-1" style="font-size:1.4rem;color:var(--text-s)">📷</span>
+                <img id="issue-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+              <label style="width:72px;height:72px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+                <input type="file" accept="image/*" style="display:none" onchange="issueImgPreview(this,2,'admin')">
+                <span id="issue-admin-img-icon-2" style="font-size:1.4rem;color:var(--text-s)">📷</span>
+                <img id="issue-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              </label>
+            </div>
+          </div>
+          <button onclick="submitIssueAdmin('sv')" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
+        </div>
+        <div style="font-size:.88rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">我的回報紀錄</div>
+        <div id="issues-sv-mine" style="display:flex;flex-direction:column;gap:.75rem">
+          <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
+        </div>
       </div>
     </div>
 
@@ -542,7 +583,7 @@ function switchPage(name, el) {
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
-  if (name === 'issues') { loadIssuesSvInbox(); }
+  if (name === 'issues') { loadIssuesSvInbox(); if (issueTab==='admin') loadMyIssues(); }
 }
 
 // 日期格式化：YYYY/MM/DD hh:mm:ss
@@ -1427,8 +1468,20 @@ function renderTaskRecordsContent() {
 let issuesSvInboxCache = [];
 let issuesSvMineCache  = [];
 let issueAdminImgs = [null, null, null];
+let issueTab = 'inbox';
+
+function switchIssueTab(tab) {
+  issueTab = tab;
+  document.getElementById('itab-inbox').classList.toggle('active', tab==='inbox');
+  document.getElementById('itab-admin').classList.toggle('active', tab==='admin');
+  document.getElementById('issue-tab-inbox').style.display = tab==='inbox' ? 'block' : 'none';
+  document.getElementById('issue-tab-admin').style.display = tab==='admin' ? 'block' : 'none';
+  if (tab==='inbox') loadIssuesSvInbox();
+  if (tab==='admin') loadMyIssues();
+}
+
 async function loadIssuesSv() {
-  await loadIssuesSvInbox();
+  await Promise.all([loadIssuesSvInbox(), loadMyIssues()]);
   syncIssueNotifyBar();
 }
 
@@ -1563,6 +1616,7 @@ async function toggleIssueSv(id, viewer) {
     el.style.display = 'block';
     try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
     if (viewer === 'sv-inbox') await loadIssuesSvInbox();
+    else if (viewer === 'mine-sv') await loadMyIssues();
     const el2 = document.getElementById('sv-issue-detail-' + id);
     if (el2) el2.style.display = 'block';
   }
@@ -1573,6 +1627,7 @@ async function setIssueSvStatus(id, status, viewer) {
     await API.put('/api/issues/'+id+'/status', { status });
     showToast('狀態已更新', 'success');
     if (viewer === 'sv-inbox') await loadIssuesSvInbox();
+    else if (viewer === 'mine-sv') await loadMyIssues();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1585,6 +1640,7 @@ async function submitIssueSvReply(id, viewer) {
     input.value = '';
     showToast('回覆已送出', 'success');
     if (viewer === 'sv-inbox') await loadIssuesSvInbox();
+    else if (viewer === 'mine-sv') await loadMyIssues();
     const el2 = document.getElementById('sv-issue-detail-' + id);
     if (el2) el2.style.display = 'block';
   } catch(e) { showToast(e.message, 'error'); }

@@ -251,7 +251,26 @@ textarea.form-input{resize:none}
       <div class="impact-grid">
         <div class="impact-card" style="--ic:var(--blue)"><div class="ic-val" id="dash-active">—</div><div class="ic-label">活躍工作夥伴</div></div>
         <div class="impact-card" style="--ic:var(--orange)"><div class="ic-val" id="dash-pending">—</div><div class="ic-label">待審核帳號</div></div>
-        <div class="impact-card" style="--ic:var(--green)"><div class="ic-val" id="dash-total">—</div><div class="ic-label">總帳號數</div></div>
+        <div class="impact-card" style="--ic:var(--green);cursor:default">
+          <div class="ic-val" id="dash-total">—</div>
+          <div class="ic-label">總帳號數</div>
+          <div style="display:flex;justify-content:space-between;margin-top:.55rem;padding-top:.45rem;border-top:1px solid rgba(0,0,0,.07);gap:.25rem">
+            <div style="flex:1;text-align:center">
+              <div style="font-size:.78rem;font-weight:700;color:var(--blue-d)" id="dash-cnt-partner">—</div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">夥伴</div>
+            </div>
+            <div style="width:1px;background:rgba(0,0,0,.07)"></div>
+            <div style="flex:1;text-align:center">
+              <div style="font-size:.78rem;font-weight:700;color:#7B5EA7" id="dash-cnt-supervisor">—</div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">督導</div>
+            </div>
+            <div style="width:1px;background:rgba(0,0,0,.07)"></div>
+            <div style="flex:1;text-align:center">
+              <div style="font-size:.78rem;font-weight:700;color:var(--green)" id="dash-cnt-staff">—</div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">管理</div>
+            </div>
+          </div>
+        </div>
         <div class="impact-card" style="--ic:var(--purple)"><div class="ic-val" id="dash-forgot">—</div><div class="ic-label">待處理忘記密碼</div></div>
       </div>
       <div class="card">
@@ -1119,10 +1138,17 @@ function renderForgotRequests() {
 
 // ── Dashboard 統計 ──
 function updateDashboard() {
-  document.getElementById('dash-total').textContent = usersCache.length || '—';
-  document.getElementById('dash-active').textContent = usersCache.filter(u=>u.status==='active'&&u.role==='partner').length || '0';
+  const total      = usersCache.length;
+  const cntPartner    = usersCache.filter(u => u.role === 'partner').length;
+  const cntSupervisor = usersCache.filter(u => u.role === 'supervisor').length;
+  const cntStaff      = usersCache.filter(u => u.role === 'staff').length;
+  document.getElementById('dash-total').textContent       = total || '—';
+  document.getElementById('dash-cnt-partner').textContent    = cntPartner;
+  document.getElementById('dash-cnt-supervisor').textContent = cntSupervisor;
+  document.getElementById('dash-cnt-staff').textContent      = cntStaff;
+  document.getElementById('dash-active').textContent  = usersCache.filter(u=>u.status==='active'&&u.role==='partner').length || '0';
   document.getElementById('dash-pending').textContent = usersCache.filter(u=>u.status==='pending').length || '0';
-  document.getElementById('dash-forgot').textContent = forgotCache.length || '0';
+  document.getElementById('dash-forgot').textContent  = forgotCache.length || '0';
 }
 
 // ── 新增帳號 ──

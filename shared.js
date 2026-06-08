@@ -60,14 +60,25 @@ function showAnnDetail(ann, userId) {
   const expiryHtml  = ann.expires_at
     ? `<span style="background:#F0F8FE;color:#7A9AAF;padding:.18rem .55rem;border-radius:8px">到期：${ann.expires_at}</span>`
     : `<span style="background:#F0EBF8;color:#9B6FD4;padding:.18rem .55rem;border-radius:8px">🔒 永久公告</span>`;
-  const attHtml = ann.attachment_name
-    ? `<div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid #C8E8F6">
-         <div style="font-size:.75rem;color:#7A9AAF;margin-bottom:.45rem">📎 附件</div>
-         <a href="/api/announcements/${ann.id}/attachment" download="${ann.attachment_name}"
-            style="display:inline-flex;align-items:center;gap:.4rem;padding:.38rem .9rem;background:#EBF7FD;border:1.5px solid #48B4E8;border-radius:20px;font-size:.82rem;font-weight:700;color:#1A8AC0;text-decoration:none">
-           📎 ${ann.attachment_name}
-         </a>
-       </div>` : '';
+  const attUrl  = `/api/announcements/${ann.id}/attachment`;
+  const isImage = ann.attachment_mime && ann.attachment_mime.startsWith('image/');
+  const attHtml = ann.attachment_name ? `
+    <div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid #C8E8F6">
+      <div style="font-size:.75rem;color:#7A9AAF;margin-bottom:.6rem">📎 附件</div>
+      ${isImage ? `
+        <div style="margin-bottom:.7rem;border-radius:10px;overflow:hidden;border:1.5px solid #C8E8F6;max-width:100%;line-height:0">
+          <img src="${attUrl}" alt="${ann.attachment_name}"
+               style="max-width:100%;max-height:320px;object-fit:contain;display:block;background:#f5fafd">
+        </div>` : `
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;background:#f5fafd;border:1.5px solid #C8E8F6;border-radius:10px;margin-bottom:.6rem">
+          <span style="font-size:1.5rem">📄</span>
+          <span style="font-size:.82rem;color:#3D5A70;word-break:break-all">${ann.attachment_name}</span>
+        </div>`}
+      <a href="${attUrl}" download="${ann.attachment_name}"
+         style="display:inline-flex;align-items:center;gap:.4rem;padding:.38rem 1rem;background:#1A8AC0;border-radius:20px;font-size:.82rem;font-weight:700;color:#fff;text-decoration:none">
+        ⬇ 下載附件
+      </a>
+    </div>` : '';
 
   // 建立或取得 modal
   let modal = document.getElementById('_ann_detail_modal');

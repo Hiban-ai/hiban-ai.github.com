@@ -529,11 +529,8 @@ function switchPage(name, el) {
   if (el) el.classList.add('active');
   if (name === 'tasks' || name === 'quests') loadTasks();
   if (name === 'tasks') renderQuests();
-  if (name === 'notices' && meId) {
-    const now2 = new Date().toISOString().slice(0,10);
-    const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
-    markAllRead(meId, ids);
-    try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+  if (name === 'notices') {
+    try { renderAnnList(); } catch(e) {}
   }
 }
 

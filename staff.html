@@ -658,11 +658,8 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
-  if (name === 'notices' && me) {
-    const now2 = new Date().toISOString().slice(0,10);
-    const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
-    markAllRead(me.id, ids);
-    try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+  if (name === 'notices') {
+    try { renderAnnList(); } catch(e) {}
   }
 }
 

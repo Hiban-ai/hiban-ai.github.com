@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>???鈭箏 ??撣??脖??</title>
+<title>督導人員 — 希絆雲作所</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -36,13 +36,13 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 
 .sv-main{flex:1;padding:1.5rem;overflow-y:auto;min-width:0}
 
-/* 撌血?脰遘 ??????*/
+/* 左側捲軸 — 半透明白 */
 .sv-sidebar-nav::-webkit-scrollbar{width:4px}
 .sv-sidebar-nav::-webkit-scrollbar-track{background:transparent}
 .sv-sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
 .sv-sidebar-nav::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.5)}
 
-/* ?喳?脰遘 ??瘛∟???*/
+/* 右側捲軸 — 淡藍灰 */
 .sv-main::-webkit-scrollbar{width:6px}
 .sv-main::-webkit-scrollbar-track{background:transparent}
 .sv-main::-webkit-scrollbar-thumb{background:#B8D9EE;border-radius:6px}
@@ -50,7 +50,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
 .page-section{display:none}
 .page-section.active{display:block}
-/* ?嗅?交??豢???*/
+/* 搶單日期選擇器 */
 .gdp-wrap{border:1.5px solid var(--border);border-radius:var(--rs);padding:.65rem;background:var(--blue-p)}
 .gdp-selects{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
 .gdp-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.2rem}
@@ -143,328 +143,328 @@ textarea.form-input{resize:none}
 
 <div class="mobile-topbar">
   <div style="display:flex;align-items:center;gap:.5rem">
-    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">? ?餃</button>
-    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">撣??脖??</span>
+    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
+    <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
   </div>
-  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">?? ???鈭箏</span>
+  <span style="font-size:.78rem;color:rgba(255,255,255,.7)">📖 督導人員</span>
 </div>
 
 <div class="sv-layout">
   <div class="sv-sidebar">
     <div class="sv-sidebar-logo">
-      <div class="sv-logo-main">撣??脖??</div>
-      <div style="display:inline-block;margin-top:.4rem;padding:.18rem .6rem;background:rgba(255,255,255,.18);border-radius:4px;font-size:.72rem;color:#fff;font-weight:700;letter-spacing:.03em">?? ???鈭箏</div>
-      <div style="font-size:.92rem;font-weight:600;color:rgba(255,255,255,.92);margin-top:.45rem" id="sv-user-label">??/div>
+      <div class="sv-logo-main">希絆雲作所</div>
+      <div style="display:inline-block;margin-top:.4rem;padding:.18rem .6rem;background:rgba(255,255,255,.18);border-radius:4px;font-size:.72rem;color:#fff;font-weight:700;letter-spacing:.03em">📖 督導人員</div>
+      <div style="font-size:.92rem;font-weight:600;color:rgba(255,255,255,.92);margin-top:.45rem" id="sv-user-label">—</div>
     </div>
     <div class="sv-sidebar-nav">
       <div class="sv-menu">
-        <div class="sv-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">??</span>蝮質汗?銵冽</div>
-        <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">??</span>?郎?<span class="sv-badge">3</span></div>
-        <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">?</span>憭乩撈蝞∠?</div>
-        <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">??</span>隞餃?瘣暹?</div>
+        <div class="sv-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
+        <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
+        <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
+        <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
         <div class="sv-menu-item" onclick="switchPage('worklog-review',this)">
-          <span class="mi-icon">??</span>隞餃?撖拇
+          <span class="mi-icon">📋</span>任務審核
           <span class="sv-badge" id="badge-task-review" style="display:none">0</span>
         </div>
-        <div class="sv-menu-item" onclick="switchPage('task-records',this)"><span class="mi-icon">??</span>隞餃?蝝??/div>
-        <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">?</span>???蝝??/div>
-        <div class="sv-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">??</span>??蝞∠?<span class="sv-badge" id="badge-issues" style="display:none">0</span></div>
-        <div class="sv-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">?</span>?砍?<span class="sv-badge" id="badge-notices" style="display:none">0</span></div>
-        <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">??</span>?犖鞈?</div>
+        <div class="sv-menu-item" onclick="switchPage('task-records',this)"><span class="mi-icon">📁</span>任務紀錄</div>
+        <div class="sv-menu-item" onclick="switchPage('mentor',this)"><span class="mi-icon">💬</span>督導紀錄</div>
+        <div class="sv-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">📝</span>問題管理<span class="sv-badge" id="badge-issues" style="display:none">0</span></div>
+        <div class="sv-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告<span class="sv-badge" id="badge-notices" style="display:none">0</span></div>
+        <div class="sv-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
     </div>
-    <div class="sv-logout" onclick="signOut()"><span>?</span>?餃</div>
+    <div class="sv-logout" onclick="signOut()"><span>🚪</span>登出</div>
   </div>
 
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- ?啣?璇?-->
+  <!-- 新公告通知條 -->
   <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
        style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
-    <span>?</span><span id="ann-notify-text">?冽??啣??/span>
-    <span style="margin-left:auto;font-size:.72rem;opacity:.65">???亦? ??/span>
+    <span>📢</span><span id="ann-notify-text">您有新公告</span>
+    <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
   </div>
   <div id="issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
        style="display:none;background:linear-gradient(90deg,#FFF7E6,#FFE4A0);border-bottom:1.5px solid #FFB830;padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#7A5800;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
-    <span style="flex-shrink:0">??</span>
-    <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">???敺???/span></div>
+    <span style="flex-shrink:0">📝</span>
+    <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有新問題待處理</span></div>
   </div>
   <div class="sv-main">
 
     <!-- Dashboard -->
     <div class="page-section active" id="page-dashboard">
-      <div class="page-title">?? 蝮質汗?銵冽</div>
+      <div class="page-title">📊 總覽儀表板</div>
       <div class="stats-row">
-        <div class="stat-card sc-blue"><div class="sc-label">鞎痊憭乩撈??/div><div class="sc-val" id="dashboard-partner-count">??/div></div>
-        <div class="stat-card sc-green"><div class="sc-label">?祆?摰?隞餃?</div><div class="sc-val">12</div></div>
-        <div class="stat-card sc-yellow"><div class="sc-label">敺祟?稜orkLog</div><div class="sc-val">5</div></div>
-        <div class="stat-card sc-red"><div class="sc-label">?郎憭乩撈</div><div class="sc-val">2</div></div>
+        <div class="stat-card sc-blue"><div class="sc-label">負責夥伴數</div><div class="sc-val" id="dashboard-partner-count">—</div></div>
+        <div class="stat-card sc-green"><div class="sc-label">本月完成任務</div><div class="sc-val">12</div></div>
+        <div class="stat-card sc-yellow"><div class="sc-label">待審核WorkLog</div><div class="sc-val">5</div></div>
+        <div class="stat-card sc-red"><div class="sc-label">預警夥伴</div><div class="sc-val">2</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
         <div class="card">
-          <div class="sec-header"><div class="sec-title">?? ?閬釣??/div><button class="sec-action" onclick="switchPage('alerts',document.querySelector('[onclick*=alerts]'))">?亦??券</button></div>
-          <div class="alert-card ac-red"><span style="font-size:1.1rem">?</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">?喳???/div><div style="font-size:.8rem;color:var(--text-m)">5憭拇?餃</div></div><button class="alert-action">?舐鼠</button></div>
-          <div class="alert-card ac-orange"><span style="font-size:1.1rem">??</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">???/div><div style="font-size:.8rem;color:var(--text-m)">隞餃??⊿?頞?3憭?/div></div><button class="alert-action">?</button></div>
+          <div class="sec-header"><div class="sec-title">⚠️ 需要注意</div><button class="sec-action" onclick="switchPage('alerts',document.querySelector('[onclick*=alerts]'))">查看全部</button></div>
+          <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">陳小明</div><div style="font-size:.8rem;color:var(--text-m)">5天未登入</div></div><button class="alert-action">聯繫</button></div>
+          <div class="alert-card ac-orange"><span style="font-size:1.1rem">⚠️</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">林阿華</div><div style="font-size:.8rem;color:var(--text-m)">任務卡關超過3天</div></div><button class="alert-action">協助</button></div>
         </div>
         <div class="card">
-          <div class="sec-header"><div class="sec-title">?? 敺祟??/div><button class="sec-action" onclick="switchPage('worklog-review',document.querySelector('[onclick*=worklog]'))">?亦??券</button></div>
-          <div style="font-size:.82rem;color:var(--text-s)">5 隞?WorkLog 敺祟??/div>
+          <div class="sec-header"><div class="sec-title">📝 待審核</div><button class="sec-action" onclick="switchPage('worklog-review',document.querySelector('[onclick*=worklog]'))">查看全部</button></div>
+          <div style="font-size:.82rem;color:var(--text-s)">5 件 WorkLog 待審核</div>
         </div>
       </div>
     </div>
 
     <!-- Alerts -->
     <div class="page-section" id="page-alerts">
-      <div class="page-title">?? ?郎?</div>
-      <div class="alert-card ac-red"><span style="font-size:1.1rem">?</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">?喳?????5憭拇?餃</div><div style="font-size:.8rem;color:var(--text-m)">銝活?餃嚗?/15 繚 ?芣隞颱?隞餃?</div></div><button class="alert-action">?舐鼠憭乩撈</button></div>
-      <div class="alert-card ac-orange"><span style="font-size:1.1rem">??</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">?????隞餃??⊿?</div><div style="font-size:.8rem;color:var(--text-m)">???隞餃?撌?憭拇?湔?脣漲</div></div><button class="alert-action">?閫?捱</button></div>
+      <div class="page-title">⚠️ 預警通知</div>
+      <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">陳小明 — 5天未登入</div><div style="font-size:.8rem;color:var(--text-m)">上次登入：3/15 · 未接任何任務</div></div><button class="alert-action">聯繫夥伴</button></div>
+      <div class="alert-card ac-orange"><span style="font-size:1.1rem">⚠️</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">林阿華 — 任務卡關</div><div style="font-size:.8rem;color:var(--text-m)">口碑任務已3天未更新進度</div></div><button class="alert-action">協助解決</button></div>
     </div>
 
     <!-- Partners -->
     <div class="page-section" id="page-partners">
-      <div class="page-title">? 憭乩撈蝞∠?</div>
+      <div class="page-title">👥 夥伴管理</div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>憪?</th><th>?瑟平</th><th>?祆?隞餃?</th><th>蝝航??嗅</th><th>?敺???/th><th>???/th></tr></thead>
+            <thead><tr><th>姓名</th><th>職業</th><th>本月任務</th><th>累計收入</th><th>最後回報</th><th>狀態</th></tr></thead>
             <tbody id="sv-partner-tbody">
-              <tr><td colspan="6" style="text-align:center;color:var(--text-s);padding:1.5rem">頛銝?..</td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- 隞餃?撖拇 -->
+    <!-- 任務審核 -->
     <div class="page-section" id="page-worklog-review">
-      <div class="page-title">?? 隞餃?撖拇</div>
-      <div id="task-review-list"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
+      <div class="page-title">📋 任務審核</div>
+      <div id="task-review-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
-    <!-- 隞餃?蝝??-->
+    <!-- 任務紀錄 -->
     <div class="page-section" id="page-task-records">
-      <div class="page-title">?? 隞餃?蝝??/div>
-      <!-- 鈭箏?? tabs -->
+      <div class="page-title">📁 任務紀錄</div>
+      <!-- 人員分頁 tabs -->
       <div id="task-records-tabs" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem"></div>
-      <!-- ?批捆? -->
-      <div id="task-records-content"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
+      <!-- 內容區 -->
+      <div id="task-records-content"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
     <!-- Mentor -->
     <div class="page-section" id="page-mentor">
-      <div class="page-title">? ???蝝??/div>
+      <div class="page-title">💬 督導紀錄</div>
       <div class="card" style="margin-bottom:1rem">
-        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">?啣????蝝??/div>
-        <div class="form-group"><label class="form-label">?豢?憭乩撈</label><select class="form-select" id="mentor-partner-sel"><option value="">隢?丰隡?/option></select></div>
-        <div class="form-group"><label class="form-label">頛?憿?</label><select class="form-select"><option>?餉店??</option><option>蝺?頛?</option><option>?Ｚ?</option><option>隞餃???</option><option>敹??舀?</option></select></div>
-        <div class="form-group"><label class="form-label">頛??批捆</label><textarea class="form-input" rows="4" placeholder="閮??祆活頛??蜓閬摰嫘丰隡渡?瘜?蝥蕭頩支???.."></textarea></div>
-        <button class="btn-primary" onclick="showToast('???蝝?歇?脣?','success')">?脣?蝝??/button>
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">新增督導紀錄</div>
+        <div class="form-group"><label class="form-label">選擇夥伴</label><select class="form-select" id="mentor-partner-sel"><option value="">請選擇夥伴</option></select></div>
+        <div class="form-group"><label class="form-label">輔導類型</label><select class="form-select"><option>電話關心</option><option>線上輔導</option><option>面談</option><option>任務指導</option><option>心理支持</option></select></div>
+        <div class="form-group"><label class="form-label">輔導內容</label><textarea class="form-input" rows="4" placeholder="記錄本次輔導的主要內容、夥伴狀況、後續追蹤事項..."></textarea></div>
+        <button class="btn-primary" onclick="showToast('督導紀錄已儲存','success')">儲存紀錄</button>
       </div>
     </div>
 
-    <!-- ?犖鞈? -->
+    <!-- 個人資料 -->
     <div class="page-section" id="page-profile">
-      <div class="page-title">?? ?犖鞈?</div>
+      <div class="page-title">🧑 個人資料</div>
       <div class="card" style="max-width:520px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">? ?犖鞈?</div>
-          <button id="sv-prof-edit-btn" onclick="toggleSvProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">靽格</button>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
+          <button id="sv-prof-edit-btn" onclick="toggleSvProfEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">修改</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">憪?</label><input class="form-input" id="sv-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">頨怠?霅?/label><input class="form-input" id="sv-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?</label><input class="form-input" id="sv-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?餉店</label><input class="form-input" id="sv-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?舐窗?啣?</label><input class="form-input" id="sv-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">姓名</label><input class="form-input" id="sv-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="sv-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="sv-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="sv-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="sv-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
         </div>
         <div id="sv-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
-          <button onclick="saveSvProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?脣?</button>
-          <button onclick="cancelSvProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
+          <button onclick="saveSvProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
+          <button onclick="cancelSvProfEdit()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
         </div>
       </div>
 
       <div class="card" style="max-width:520px">
-        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">?? 靽格撖Ⅳ</div>
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.9rem">🔐 修改密碼</div>
         <div id="cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?桀?撖Ⅳ</label><input class="form-input" type="password" id="cpw-current" placeholder="頛詨?桀?撖Ⅳ" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">?啣?蝣?/label><input class="form-input" type="password" id="cpw-new" placeholder="6嚚?2 雿? maxlength="12" style="flex:1"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">蝣箄??啣?蝣?/label><input class="form-input" type="password" id="cpw-confirm" placeholder="?撓?乩?甈? style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="cpw-current" placeholder="輸入目前密碼" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="cpw-new" placeholder="6～12 位" maxlength="12" style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">確認新密碼</label><input class="form-input" type="password" id="cpw-confirm" placeholder="再輸入一次" style="flex:1"></div>
         </div>
-        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,112,160,.3);transition:all .25s">?湔撖Ⅳ</button>
+        <button onclick="changePassword()" style="margin-top:1rem;padding:.7rem 2rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(26,112,160,.3);transition:all .25s">更新密碼</button>
       </div>
     </div>
 
     <!-- Tasks sv -->
     <div class="page-section" id="page-tasks-sv">
-      <div class="page-title">?? 隞餃?瘣暹?</div>
+      <div class="page-title">⚔️ 任務派案</div>
       <div class="card" style="max-width:540px;margin-bottom:1.5rem">
-        <!-- ?嗅璅∪??? -->
+        <!-- 搶單模式切換 -->
         <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1.5px dashed var(--border)">
-          <span style="font-size:.82rem;color:var(--text-s);font-weight:600">瘣暹?璅∪?</span>
+          <span style="font-size:.82rem;color:var(--text-s);font-weight:600">派案模式</span>
           <div style="display:flex;border-radius:20px;overflow:hidden;border:1.5px solid var(--border)">
             <button id="mode-btn-normal" onclick="setAssignMode('normal')"
-                    style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:var(--blue-d);color:#fff;transition:all .2s">?? ??瘣暹?</button>
+                    style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:var(--blue-d);color:#fff;transition:all .2s">📋 指定派案</button>
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
-                    style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s">? ?嗅璅∪?</button>
+                    style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s">🎯 搶單模式</button>
           </div>
         </div>
 
         <div id="assign-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
         <div style="display:flex;flex-direction:column;gap:.75rem">
 
-          <!-- ??瘣暹?嚗?瘣曄策 -->
+          <!-- 指定派案：指派給 -->
           <div id="row-assign-target" style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">?晷蝯?/label>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">指派給</label>
             <select class="form-select" id="assign-target" style="flex:1" onchange="updateAssignLabel()">
-              <option value="">隢?丰隡?/option>
+              <option value="">請選擇夥伴</option>
             </select>
           </div>
 
-          <!-- ?嗅璅∪?嚗?憿蜇??-->
+          <!-- 搶單模式：名額總數 -->
           <div id="row-grab-slots" style="display:none;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">??蝮賣</label>
-            <input class="form-input" type="number" id="grab-slots" min="1" placeholder="?勗嗾??憿? style="flex:1">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">名額總數</label>
+            <input class="form-input" type="number" id="grab-slots" min="1" placeholder="共幾個名額" style="flex:1">
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">?砍</label>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">公司</label>
             <select class="form-select" id="assign-company" style="flex:1">
-              <option value="">隢???/option>
+              <option value="">請選擇公司</option>
             </select>
-            <button onclick="openCompanyMgr()" title="蝞∠??砍" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">??</button>
+            <button onclick="openCompanyMgr()" title="管理公司" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">?豢?隞餃?</label>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
             <select class="form-select" id="assign-task" style="flex:1">
-              <option value="">隢?遙??/option>
+              <option value="">請選擇任務</option>
             </select>
-            <button onclick="openTaskTypesMgr()" title="蝞∠?隞餃??" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">??</button>
+            <button onclick="openTaskTypesMgr()" title="管理任務項目" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">?賊?</label>
-            <input class="form-input" type="number" id="assign-qty" min="1" placeholder="隢撓?交?? style="flex:1" oninput="calcAssignTotal()">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">數量</label>
+            <input class="form-input" type="number" id="assign-qty" min="1" placeholder="請輸入數量" style="flex:1" oninput="calcAssignTotal()">
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">?桀</label>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">單價</label>
             <div style="flex:1;position:relative">
               <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
-              <input class="form-input" type="number" id="assign-price" min="0" placeholder="瘥辣?桀" style="padding-left:1.8rem" oninput="calcAssignTotal()">
+              <input class="form-input" type="number" id="assign-price" min="0" placeholder="每件單價" style="padding-left:1.8rem" oninput="calcAssignTotal()">
             </div>
           </div>
 
           <div style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">蝮賢</label>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">總價</label>
             <div style="flex:1;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.72rem 1rem;font-family:'Noto Serif TC',serif;font-weight:700;color:var(--blue-d);font-size:1rem" id="assign-total">$0</div>
           </div>
 
-          <!-- ??瘣暹?嚗憭?-->
+          <!-- 指定派案：X天 -->
           <div id="row-deadline-days" style="display:flex;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">摰???</label>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">完成期限</label>
             <div style="flex:1;display:flex;align-items:center;gap:.5rem">
-              <input class="form-input" type="number" id="assign-days" min="1" placeholder="憭拇" style="flex:1">
-              <span style="font-size:.9rem;color:var(--text-s);white-space:nowrap">憭拙摰?</span>
+              <input class="form-input" type="number" id="assign-days" min="1" placeholder="天數" style="flex:1">
+              <span style="font-size:.9rem;color:var(--text-s);white-space:nowrap">天內完成</span>
             </div>
           </div>
-          <!-- ?嗅璅∪?嚗甇Ｘ??+ ?? -->
+          <!-- 搶單模式：截止日期 + 時間 -->
           <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem">
-            <label style="font-size:.82rem;color:var(--text-s)">?芣迫?交?????/label>
+            <label style="font-size:.82rem;color:var(--text-s)">截止日期與時間</label>
             <div class="gdp-wrap">
               <div class="gdp-selects">
-                <select class="form-input" id="gdp-year"  onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">?豢?撟港遢</option></select>
-                <select class="form-input" id="gdp-month" onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">?豢??遢</option></select>
+                <select class="form-input" id="gdp-year"  onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">選擇年份</option></select>
+                <select class="form-input" id="gdp-month" onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">選擇月份</option></select>
               </div>
               <div id="gdp-grid" style="display:none">
                 <div class="gdp-grid-header">
-                  <span style="color:var(--red)">??/span><span>銝</span><span>鈭?/span><span>銝?/span><span>??/span><span>鈭?/span><span style="color:#2EAA7A">??/span>
+                  <span style="color:var(--red)">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:#2EAA7A">六</span>
                 </div>
                 <div class="gdp-grid-body" id="gdp-days"></div>
               </div>
-              <!-- ???豢?嚗?憟賢??＊蝷綽? -->
+              <!-- 時間選擇（日期選好後才顯示） -->
               <div id="gdp-time-row" style="display:none;align-items:center;gap:.5rem;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed var(--border)">
-                <span style="font-size:.78rem;color:var(--text-s);flex-shrink:0">????</span>
+                <span style="font-size:.78rem;color:var(--text-s);flex-shrink:0">⏰ 時間</span>
                 <select class="form-input" id="gdp-hour" onchange="gdpUpdateHint()" style="flex:1;font-size:.82rem"></select>
-                <span style="color:var(--text-s);font-size:.9rem">嚗?/span>
+                <span style="color:var(--text-s);font-size:.9rem">：</span>
                 <select class="form-input" id="gdp-min"  onchange="gdpUpdateHint()" style="flex:1;font-size:.82rem"></select>
               </div>
-              <div class="gdp-hint" id="gdp-hint">撠?豢??芣迫?交?</div>
+              <div class="gdp-hint" id="gdp-hint">尚未選擇截止日期</div>
             </div>
             <input type="hidden" id="grab-deadline">
           </div>
 
           <div style="display:flex;align-items:flex-start;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.7rem">鋆?隤芣?</label>
-            <textarea class="form-input" id="assign-notes" rows="3" placeholder="?孵????蝷?..嚗憛恬?" style="flex:1"></textarea>
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.7rem">補充說明</label>
+            <textarea class="form-input" id="assign-notes" rows="3" placeholder="特別提醒或指示...（選填）" style="flex:1"></textarea>
           </div>
 
         </div>
-        <button id="assign-submit-btn" onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">蝣箄?瘣暹? ??/button>
+        <button id="assign-submit-btn" onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>
 
-      <!-- 瘣暹?蝝??-->
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">?? 瘣暹?蝝??/div>
-      <div id="assign-history"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
+      <!-- 派案紀錄 -->
+      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📂 派案紀錄</div>
+      <div id="assign-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
 
-      <!-- ?嗅蝝??-->
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin:1.5rem 0 .75rem">? ?嗅蝝??/div>
-      <div id="grab-history"><div style="color:var(--text-s);font-size:.85rem">頛銝?..</div></div>
+      <!-- 搶單紀錄 -->
+      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin:1.5rem 0 .75rem">🎯 搶單紀錄</div>
+      <div id="grab-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
     </div>
 
-    <!-- ?砍? -->
+    <!-- 公告 -->
     <div class="page-section" id="page-notices">
-      <div class="page-title">? ?砍?</div>
+      <div class="page-title">📢 公告</div>
       <div id="ann-list-wrap">
-        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">頛銝凌?/div>
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
     </div>
 
-    <!-- ??蝞∠? -->
+    <!-- 問題管理 -->
     <div class="page-section" id="page-issues">
-      <div class="page-title">?? ??蝞∠?</div>
+      <div class="page-title">📝 問題管理</div>
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
-        <button class="acc-tab active" id="itab-inbox" onclick="switchIssueTab('inbox')">? 憭乩撈??</button>
-        <button class="acc-tab" id="itab-admin" onclick="switchIssueTab('admin')">? ?蝞∠?鈭箏</button>
+        <button class="acc-tab active" id="itab-inbox" onclick="switchIssueTab('inbox')">📥 夥伴問題</button>
+        <button class="acc-tab" id="itab-admin" onclick="switchIssueTab('admin')">📤 回報管理人員</button>
       </div>
       <div id="issue-tab-inbox">
         <div id="issues-sv-inbox" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="color:var(--text-s);font-size:.85rem">頛銝?..</div>
+          <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
         </div>
       </div>
       <div id="issue-tab-admin" style="display:none">
         <div class="card" style="max-width:560px;margin-bottom:1rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">?? ?啣??</div>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📝 新增回報</div>
           <div id="issue-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem"></div>
           <div style="display:flex;flex-direction:column;gap:.6rem">
-            <input class="form-input" id="issue-admin-title" placeholder="??璅?嚗? style="width:100%">
-            <textarea class="form-input" id="issue-admin-content" placeholder="閰喟敦隤芣?嚗? rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
+            <input class="form-input" id="issue-admin-title" placeholder="問題標題＊" style="width:100%">
+            <textarea class="form-input" id="issue-admin-content" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
           </div>
           <div style="margin-top:.6rem">
-            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">??嚗?憭?3 撘蛛?</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap">
               <label style="width:72px;height:72px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="issueImgPreview(this,0,'admin')">
-                <span id="issue-admin-img-icon-0" style="font-size:1.4rem;color:var(--text-s)">?</span>
+                <span id="issue-admin-img-icon-0" style="font-size:1.4rem;color:var(--text-s)">📷</span>
                 <img id="issue-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:72px;height:72px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="issueImgPreview(this,1,'admin')">
-                <span id="issue-admin-img-icon-1" style="font-size:1.4rem;color:var(--text-s)">?</span>
+                <span id="issue-admin-img-icon-1" style="font-size:1.4rem;color:var(--text-s)">📷</span>
                 <img id="issue-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:72px;height:72px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
                 <input type="file" accept="image/*" style="display:none" onchange="issueImgPreview(this,2,'admin')">
-                <span id="issue-admin-img-icon-2" style="font-size:1.4rem;color:var(--text-s)">?</span>
+                <span id="issue-admin-img-icon-2" style="font-size:1.4rem;color:var(--text-s)">📷</span>
                 <img id="issue-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
             </div>
           </div>
-          <button onclick="submitIssueAdmin('sv')" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>
+          <button onclick="submitIssueAdmin('sv')" style="margin-top:.85rem;width:100%;padding:.75rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">送出回報</button>
         </div>
-        <div style="font-size:.88rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">???蝝??/div>
+        <div style="font-size:.88rem;font-weight:700;color:var(--text-m);margin-bottom:.5rem">我的回報紀錄</div>
         <div id="issues-sv-mine" style="display:flex;flex-direction:column;gap:.75rem">
-          <div style="color:var(--text-s);font-size:.85rem">頛銝?..</div>
+          <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
         </div>
       </div>
     </div>
@@ -474,98 +474,98 @@ textarea.form-input{resize:none}
 </div><!-- sv-layout -->
 
 
-<!-- ?砍蝞∠? overlay -->
+<!-- 公司管理 overlay -->
 <div class="pw-overlay" id="company-overlay">
   <div class="pw-box" style="width:340px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">? ?砍蝞∠?</div>
-      <button onclick="closeCompanyMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">??/button>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🏢 公司管理</div>
+      <button onclick="closeCompanyMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-      <button onclick="coShowMode('add')"    id="co-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">嚗??啣?</button>
-      <button onclick="coShowMode('edit')"   id="co-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">??靽格</button>
-      <button onclick="coShowMode('delete')" id="co-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">???芷</button>
+      <button onclick="coShowMode('add')"    id="co-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">＋ 新增</button>
+      <button onclick="coShowMode('edit')"   id="co-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✎ 修改</button>
+      <button onclick="coShowMode('delete')" id="co-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✕ 刪除</button>
     </div>
     <div id="co-panel-add" style="display:none;flex-direction:column;gap:.6rem">
       <div id="co-add-list" style="display:flex;flex-direction:column;gap:.4rem">
         <div class="co-add-row" style="display:flex;gap:.4rem;align-items:center">
-          <input class="form-input co-add-input" placeholder="頛詨?砍?迂" style="font-size:.88rem;flex:1">
-          <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">嚗?/button>
+          <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+          <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
         </div>
       </div>
-      <button onclick="addCompany()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">?啣?</button>
+      <button onclick="addCompany()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增</button>
     </div>
     <div id="co-panel-edit" style="display:none;flex-direction:column;gap:.6rem">
-      <select class="form-select" id="co-edit-sel" style="font-size:.88rem"><option value="">隢??靽格???/option></select>
-      <div style="font-size:.82rem;color:var(--text-s)">靽格??/div>
-      <input class="form-input" id="co-edit-name" placeholder="?啁??砍?迂" style="font-size:.88rem">
-      <button onclick="editCompany()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">靽格</button>
+      <select class="form-select" id="co-edit-sel" style="font-size:.88rem"><option value="">請選擇要修改的公司</option></select>
+      <div style="font-size:.82rem;color:var(--text-s)">修改為</div>
+      <input class="form-input" id="co-edit-name" placeholder="新的公司名稱" style="font-size:.88rem">
+      <button onclick="editCompany()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">修改</button>
     </div>
     <div id="co-panel-delete" style="display:none;flex-direction:column;gap:.6rem">
-      <select class="form-select" id="co-del-sel" style="font-size:.88rem"><option value="">隢???芷???/option></select>
-      <button onclick="deleteCompany()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">?芷</button>
+      <select class="form-select" id="co-del-sel" style="font-size:.88rem"><option value="">請選擇要刪除的公司</option></select>
+      <button onclick="deleteCompany()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">刪除</button>
     </div>
   </div>
 </div>
 
-<!-- ?????overlay -->
-<!-- 隞餃?憿?蝞∠? overlay -->
+<!-- 退回原因 overlay -->
+<!-- 任務類型管理 overlay -->
 <div class="pw-overlay" id="task-types-overlay">
   <div class="pw-box" style="width:340px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">?? 隞餃??蝞∠?</div>
-      <button onclick="closeTaskTypesMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">??/button>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 任務項目管理</div>
+      <button onclick="closeTaskTypesMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
-    <!-- ???豢? -->
+    <!-- 操作選擇 -->
     <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-      <button onclick="ttShowMode('add')"    id="tt-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">嚗??啣?</button>
-      <button onclick="ttShowMode('edit')"   id="tt-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">??靽格</button>
-      <button onclick="ttShowMode('delete')" id="tt-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">???芷</button>
+      <button onclick="ttShowMode('add')"    id="tt-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">＋ 新增</button>
+      <button onclick="ttShowMode('edit')"   id="tt-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✎ 修改</button>
+      <button onclick="ttShowMode('delete')" id="tt-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✕ 刪除</button>
     </div>
-    <!-- ?啣??Ｘ -->
+    <!-- 新增面板 -->
     <div id="tt-panel-add" style="display:none;flex-direction:column;gap:.6rem">
       <div id="tt-add-list" style="display:flex;flex-direction:column;gap:.4rem">
         <div class="tt-add-row" style="display:flex;gap:.4rem;align-items:center">
-          <input class="form-input tt-add-input" placeholder="頛詨隞餃??迂嚗??emoji嚗? style="font-size:.88rem;flex:1">
-          <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">嚗?/button>
+          <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+          <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
         </div>
       </div>
-      <button onclick="addTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">?啣?</button>
+      <button onclick="addTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增</button>
     </div>
-    <!-- 靽格?Ｘ -->
+    <!-- 修改面板 -->
     <div id="tt-panel-edit" style="display:none;flex-direction:column;gap:.6rem">
-      <select class="form-select" id="tt-edit-sel" style="font-size:.88rem"><option value="">隢??靽格????/option></select>
-      <div style="font-size:.82rem;color:var(--text-s)">靽格??/div>
-      <input class="form-input" id="tt-edit-name" placeholder="?啁?隞餃??迂" style="font-size:.88rem">
-      <button onclick="editTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">靽格</button>
+      <select class="form-select" id="tt-edit-sel" style="font-size:.88rem"><option value="">請選擇要修改的項目</option></select>
+      <div style="font-size:.82rem;color:var(--text-s)">修改為</div>
+      <input class="form-input" id="tt-edit-name" placeholder="新的任務名稱" style="font-size:.88rem">
+      <button onclick="editTaskType()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">修改</button>
     </div>
-    <!-- ?芷?Ｘ -->
+    <!-- 刪除面板 -->
     <div id="tt-panel-delete" style="display:none;flex-direction:column;gap:.6rem">
-      <select class="form-select" id="tt-del-sel" style="font-size:.88rem"><option value="">隢???芷????/option></select>
-      <button onclick="deleteTaskType()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">?芷</button>
+      <select class="form-select" id="tt-del-sel" style="font-size:.88rem"><option value="">請選擇要刪除的項目</option></select>
+      <button onclick="deleteTaskType()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">刪除</button>
     </div>
   </div>
 </div>
 
 <div class="pw-overlay" id="reject-report-overlay">
   <div class="pw-box">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">????耨?寞?閬?/div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">憛怠神?????撌乩?憭乩撈撠??嗅甇斗?閬?/div>
+    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✎ 退回修改意見</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">填寫退回原因，工作夥伴將會收到此意見。</div>
     <input type="hidden" id="reject-report-id">
     <div id="reject-report-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <div class="form-group">
-      <textarea class="form-input" id="reject-report-reason" rows="4" placeholder="隢擃牧??閬耨?寧??唳..."></textarea>
+      <textarea class="form-input" id="reject-report-reason" rows="4" placeholder="請具體說明需要修改的地方..."></textarea>
     </div>
-    <button class="btn-primary" onclick="submitRejectReport()">???</button>
-    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeRejectReport()">??</button>
+    <button class="btn-primary" onclick="submitRejectReport()">送出意見</button>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeRejectReport()">取消</button>
   </div>
 </div>
 
-<!-- ???曉之 overlay -->
+<!-- 圖片放大 overlay -->
 <div id="img-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:.75rem">
   <div style="display:flex;gap:.75rem;align-items:center">
-    <button onclick="downloadOverlayImg()" style="padding:.45rem 1.1rem;background:#fff;color:#222;border:none;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">漎?銝?</button>
-    <button onclick="document.getElementById('img-overlay').style.display='none'" style="padding:.45rem 1.1rem;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:20px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">????</button>
+    <button onclick="downloadOverlayImg()" style="padding:.45rem 1.1rem;background:#fff;color:#222;border:none;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⬇ 下載</button>
+    <button onclick="document.getElementById('img-overlay').style.display='none'" style="padding:.45rem 1.1rem;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:20px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✕ 關閉</button>
   </div>
   <img id="img-overlay-src" onclick="document.getElementById('img-overlay').style.display='none'" style="max-width:90vw;max-height:82vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:zoom-out">
 </div>
@@ -586,17 +586,17 @@ function switchPage(name, el) {
   if (name === 'issues') { loadIssuesSvInbox(); if (issueTab==='admin') loadMyIssues(); }
 }
 
-// ?交??澆???YYYY/MM/DD hh:mm:ss
+// 日期格式化：YYYY/MM/DD hh:mm:ss
 function fmtDate(s) {
-  if (!s) return '??;
+  if (!s) return '—';
   const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
   const [y,m,d] = datePart.split('/');
   const date = `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
   return timePart ? `${date} ${timePart}` : date;
 }
-// ?芷＊蝷箸??YYYY/MM/DD
+// 只顯示日期：YYYY/MM/DD
 function fmtDay(s) {
-  if (!s) return '??;
+  if (!s) return '—';
   const datePart = s.replace(/-/g,'/').split(' ')[0];
   const [y,m,d] = datePart.split('/');
   return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
@@ -618,9 +618,9 @@ function downloadOverlayImg() {
 async function approveReport(reportId, assignmentId) {
   try {
     await API.put(`/api/reports/${reportId}/approve`);
-    showToast('撌脣???隞餃?璅??箏?????, 'success');
+    showToast('已同意，任務標記為完成 ✓', 'success');
     loadTaskReviews();
-    // ?乩遙????撌脤????郊?瑟
+    // 若任務紀錄頁已開啟則同步刷新
     if (document.getElementById('page-task-records').classList.contains('active')) {
       loadTaskRecords();
     }
@@ -641,11 +641,11 @@ async function submitRejectReport() {
   err.style.display = 'none';
   const id     = parseInt(document.getElementById('reject-report-id').value);
   const reason = document.getElementById('reject-report-reason').value.trim();
-  if (!reason) { err.textContent = '隢‵撖恍????; err.style.display = 'block'; return; }
+  if (!reason) { err.textContent = '請填寫退回原因'; err.style.display = 'block'; return; }
   try {
     await API.put(`/api/reports/${id}/reject`, { reason });
     closeRejectReport();
-    showToast('撌脤????撌脣?策憭乩撈', 'warn');
+    showToast('已退回，意見已傳送給夥伴', 'warn');
     loadTaskReviews();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
@@ -654,29 +654,29 @@ async function loadTaskReviews() {
   const el    = document.getElementById('task-review-list');
   const badge = document.getElementById('badge-task-review');
   try {
-    const list = await API.get('/api/issues/supervisor');
+    const list = await API.get('/api/reports/supervisor');
     if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
     if (!list.length) {
-      el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">?桀?瘝?敺祟?貊??</div>';
+      el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">目前沒有待審核的回報</div>';
       return;
     }
     el.innerHTML = list.map(r => `
       <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--blue)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
           <div>
-            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"嚗?+r.task_name : r.task_name}</div>
-            <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">? ${r.partner_name} ???? ${fmtDate(r.created_at)}</div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
+            <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
           </div>
-          <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">敺祟??/span>
+          <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">隞餃??賊?</span>${r.task_quantity || '??} 隞?/div>
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">摰??賊?</span><strong style="color:var(--green)">${r.completed_qty || 0} 隞?/strong></div>
-          ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">蝬脣?</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
-          ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">隤芣?</span><span style="font-size:14px;font-family:'璅扑擃?,'DFKai-SB',serif">${r.notes}</span></div>` : ''}
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">?交??交?</span>${fmtDate(r.accepted_at)}</div>
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">摰???</span>${fmtDay(r.deadline_date)}</div>
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">??交?</span>${fmtDate(r.created_at)}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+          ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">回報日期</span>${fmtDate(r.created_at)}</div>
         </div>
         ${r.images && r.images.length ? `
         <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
@@ -688,8 +688,8 @@ async function loadTaskReviews() {
           `).join('')}
         </div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
-          <button onclick="approveReport(${r.id},${r.assignment_id})" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">????</button>
-          <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?????/button>
+          <button onclick="approveReport(${r.id},${r.assignment_id})" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✓ 同意</button>
+          <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 退回</button>
         </div>
       </div>
     `).join('');
@@ -702,7 +702,7 @@ function approveWL(btn) {
   const card = btn.closest('.wl-review-card');
   card.style.opacity='.4';
   card.style.pointerEvents='none';
-  showToast('撌脫??? ?嗅撌脰?蝞?, 'success');
+  showToast('已核准！💰 收入已計算', 'success');
 }
 function toggleRevInput(btn) {
   const ri = btn.closest('.wl-review-card').querySelector('.revision-input');
@@ -712,33 +712,33 @@ function sendRevision(btn) {
   const card = btn.closest('.wl-review-card');
   card.style.opacity='.4';
   card.style.pointerEvents='none';
-  showToast('靽格??撌脤', 'warn');
+  showToast('修改意見已送出', 'warn');
 }
 
-// ?? ?嗅?交??豢??????????????????????????????????????????????
+// ── 搶單日期選擇器 ───────────────────────────────────────────
 function gdpInit() {
   const yearSel = document.getElementById('gdp-year');
   const monSel  = document.getElementById('gdp-month');
   const today   = new Date();
   const cy      = today.getFullYear();
-  yearSel.innerHTML = '<option value="">?豢?撟港遢</option>';
+  yearSel.innerHTML = '<option value="">選擇年份</option>';
   for (let y = cy; y <= cy + 3; y++)
-    yearSel.innerHTML += `<option value="${y}">${y} 撟?/option>`;
-  monSel.innerHTML = '<option value="">?豢??遢</option>';
+    yearSel.innerHTML += `<option value="${y}">${y} 年</option>`;
+  monSel.innerHTML = '<option value="">選擇月份</option>';
   for (let m = 1; m <= 12; m++)
-    monSel.innerHTML += `<option value="${m}">${m} ??/option>`;
-  // ???00~23
+    monSel.innerHTML += `<option value="${m}">${m} 月</option>`;
+  // 時選項 00~23
   const hourSel = document.getElementById('gdp-hour');
   hourSel.innerHTML = '';
   for (let h = 0; h <= 23; h++)
-    hourSel.innerHTML += `<option value="${String(h).padStart(2,'0')}"${h===23?' selected':''}>${String(h).padStart(2,'0')} ??/option>`;
-  // ???00/05/10/.../55
+    hourSel.innerHTML += `<option value="${String(h).padStart(2,'0')}"${h===23?' selected':''}>${String(h).padStart(2,'0')} 時</option>`;
+  // 分選項 00/05/10/.../55
   const minSel = document.getElementById('gdp-min');
   minSel.innerHTML = '';
   for (let n = 0; n <= 59; n++)
-    minSel.innerHTML += `<option value="${String(n).padStart(2,'0')}"${n===59?' selected':''}>${String(n).padStart(2,'0')} ??/option>`;
+    minSel.innerHTML += `<option value="${String(n).padStart(2,'0')}"${n===59?' selected':''}>${String(n).padStart(2,'0')} 分</option>`;
   document.getElementById('grab-deadline').value = '';
-  document.getElementById('gdp-hint').textContent = '撠?豢??芣迫?交?';
+  document.getElementById('gdp-hint').textContent = '尚未選擇截止日期';
   document.getElementById('gdp-grid').style.display = 'none';
   document.getElementById('gdp-time-row').style.display = 'none';
 }
@@ -781,10 +781,10 @@ function gdpUpdateHint() {
   if (!ds) return;
   const hh  = document.getElementById('gdp-hour').value;
   const mm  = document.getElementById('gdp-min').value;
-  document.getElementById('gdp-hint').textContent = `?芣迫嚗?{ds.replace(/-/g,'/')} ${hh}:${mm}`;
+  document.getElementById('gdp-hint').textContent = `截止：${ds.replace(/-/g,'/')} ${hh}:${mm}`;
 }
 
-// ?? ?嗅璅∪??? ??????????????????????????????????????????????
+// ── 搶單模式切換 ──────────────────────────────────────────────
 let assignMode = 'normal'; // 'normal' | 'grab'
 function setAssignMode(mode) {
   assignMode = mode;
@@ -797,12 +797,12 @@ function setAssignMode(mode) {
   document.getElementById('row-grab-slots').style.display     = isGrab ? 'flex' : 'none';
   document.getElementById('row-deadline-days').style.display  = 'flex';
   document.getElementById('row-grab-deadline').style.display  = isGrab ? 'flex' : 'none';
-  document.getElementById('assign-submit-btn').textContent    = isGrab ? '? 撱箇??嗅' : '蝣箄?瘣暹? ??;
+  document.getElementById('assign-submit-btn').textContent    = isGrab ? '🎯 建立搶單' : '確認派案 ✓';
   document.getElementById('assign-err').style.display = 'none';
   if (isGrab) gdpInit();
 }
 
-// ?? 隞餃?瘣暹? ??
+// ── 任務派案 ──
 function calcAssignTotal() {
   const qty   = parseInt(document.getElementById('assign-qty').value)   || 0;
   const price = parseInt(document.getElementById('assign-price').value) || 0;
@@ -817,22 +817,22 @@ async function submitAssign() {
   const qty     = document.getElementById('assign-qty').value;
   const price   = document.getElementById('assign-price').value;
   const notes   = document.getElementById('assign-notes').value;
-  if (!company) { err.textContent = '隢???;     err.style.display = 'block'; return; }
-  if (!task)    { err.textContent = '隢?遙????; err.style.display = 'block'; return; }
-  if (!qty || parseInt(qty) < 1)    { err.textContent = '隢‵撖急??; err.style.display = 'block'; return; }
-  if (!price || parseInt(price) < 0){ err.textContent = '隢‵撖怠??; err.style.display = 'block'; return; }
+  if (!company) { err.textContent = '請選擇公司';     err.style.display = 'block'; return; }
+  if (!task)    { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
+  if (!qty || parseInt(qty) < 1)    { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
+  if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
 
   if (assignMode === 'grab') {
-    // ?嗅璅∪?
+    // 搶單模式
     const slots    = document.getElementById('grab-slots').value;
     const dlDate = document.getElementById('grab-deadline').value; // YYYY-MM-DD
     const dlHour = document.getElementById('gdp-hour').value;
     const dlMin  = document.getElementById('gdp-min').value;
     const days   = document.getElementById('assign-days').value;
-    if (!slots || parseInt(slots) < 1) { err.textContent = '隢‵撖怠?憿蜇??; err.style.display = 'block'; return; }
-    if (!days || parseInt(days) < 1)   { err.textContent = '隢‵撖怠?????憭拇嚗?; err.style.display = 'block'; return; }
-    if (!dlDate) { err.textContent = '隢??格甇Ｘ??; err.style.display = 'block'; return; }
-    // 蝯???YYYY/MM/DD HH:MM
+    if (!slots || parseInt(slots) < 1) { err.textContent = '請填寫名額總數'; err.style.display = 'block'; return; }
+    if (!days || parseInt(days) < 1)   { err.textContent = '請填寫完成期限（天數）'; err.style.display = 'block'; return; }
+    if (!dlDate) { err.textContent = '請選擇搶單截止日期'; err.style.display = 'block'; return; }
+    // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
     try {
       await API.post('/api/grab-tasks', {
@@ -840,17 +840,18 @@ async function submitAssign() {
         total_slots: parseInt(slots), deadline: dl,
         deadline_days: parseInt(days),
       });
-      showToast('?嗅隞餃?撌脣遣蝡?', 'success');
+      showToast('搶單任務已建立！', 'success');
       ['assign-company','assign-task','assign-qty','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
   } else {
-    // 銝?祆晷獢?    const target  = document.getElementById('assign-target').value;
+    // 一般派案
+    const target  = document.getElementById('assign-target').value;
     const days    = document.getElementById('assign-days').value;
-    if (!target)  { err.textContent = '隢??瘣曉?鞊?; err.style.display = 'block'; return; }
-    if (!days || parseInt(days) < 1)  { err.textContent = '隢‵撖怠?????; err.style.display = 'block'; return; }
+    if (!target)  { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
+    if (!days || parseInt(days) < 1)  { err.textContent = '請填寫完成期限'; err.style.display = 'block'; return; }
     try {
       await API.post('/api/assignments', {
         company, task_name: task, quantity: qty, unit_price: price, notes,
@@ -858,7 +859,7 @@ async function submitAssign() {
         assign_type: target === 'all' ? 'all' : 'individual',
         target_partner_id: target === 'all' ? null : parseInt(target),
       });
-      showToast('瘣暹???嚗?, 'success');
+      showToast('派案成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-qty','assign-price','assign-notes','assign-days'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-total').textContent = '$0';
       loadAssignHistory();
@@ -871,31 +872,31 @@ async function loadGrabHistory() {
     const list = await API.get('/api/grab-tasks/supervisor');
     const el = document.getElementById('grab-history');
     if (!el) return;
-    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">撠?嗅蝝??/div>'; return; }
+    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無搶單紀錄</div>'; return; }
     el.innerHTML = list.map(t => {
       const remaining = t.total_slots - t.grabbed_count;
       const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'open' && !expired ? 'var(--green)' : 'var(--text-s)';
-      const statusLabel = t.status === 'closed' ? '撌脤??? : expired ? '撌脫甇? : `?銝?(??${remaining})`;
+      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : `開放中 (剩 ${remaining})`;
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
           <div>
-            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">? ${t.company ? t.company+'嚗?+t.task_name : t.task_name}</div>
-            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">撱箇?嚗?{(t.created_at||'').slice(0,16)}</div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
-            ${t.status === 'open' && !expired ? `<button onclick="closeGrabTask(${t.id})" style="padding:.2rem .6rem;font-size:.72rem;font-weight:700;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??</button>` : ''}
+            ${t.status === 'open' && !expired ? `<button onclick="closeGrabTask(${t.id})" style="padding:.2rem .6rem;font-size:.72rem;font-weight:700;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">關閉</button>` : ''}
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem .75rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">
-          <div>? ?桀 <strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
-          <div>? ?? <strong>${t.grabbed_count} / ${t.total_slots}</strong></div>
-          <div>???芣迫 <strong>${(t.deadline||'').slice(0,16)}</strong></div>
+          <div>💰 單價 <strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
+          <div>👥 名額 <strong>${t.grabbed_count} / ${t.total_slots}</strong></div>
+          <div>⏰ 截止 <strong>${(t.deadline||'').slice(0,16)}</strong></div>
         </div>
         <div id="grab-rec-${t.id}">
-          <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">??撅??嗅?敦嚗?{t.grabbed_count} 蝑?</button>
+          <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開搶單明細（${t.grabbed_count} 筆）</button>
         </div>
       </div>`;
     }).join('');
@@ -908,7 +909,7 @@ async function toggleGrabRec(taskId) {
   if (!el) return;
   if (grabRecExpanded[taskId]) {
     grabRecExpanded[taskId] = false;
-    el.innerHTML = `<button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">??撅??嗅?敦</button>`;
+    el.innerHTML = `<button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開搶單明細</button>`;
     return;
   }
   grabRecExpanded[taskId] = true;
@@ -916,21 +917,21 @@ async function toggleGrabRec(taskId) {
     const recs = await API.get(`/api/grab-tasks/${taskId}/records`);
     const rows = recs.length
       ? recs.map(r => `<div style="display:flex;align-items:center;gap:.6rem;padding:.3rem 0;border-bottom:1px solid var(--border-l)"><span style="font-size:.78rem;font-weight:700;color:var(--blue-d);width:40px">#${r.grab_no}</span><span style="font-size:.85rem">${r.partner_name}</span><span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${(r.grabbed_at||'').slice(0,16)}</span></div>`).join('')
-      : '<div style="font-size:.82rem;color:var(--text-s)">撠鈭箸??/div>';
+      : '<div style="font-size:.82rem;color:var(--text-s)">尚無人搶單</div>';
     el.innerHTML = `
       <div style="background:var(--bg);border-radius:var(--rs);padding:.6rem .8rem;margin-top:.4rem">
-        <div style="font-size:.78rem;font-weight:700;color:var(--text-s);margin-bottom:.4rem">?嗅?敦</div>
+        <div style="font-size:.78rem;font-weight:700;color:var(--text-s);margin-bottom:.4rem">搶單明細</div>
         ${rows}
       </div>
-      <button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--text-s);background:none;border:none;cursor:pointer;padding:.3rem 0;font-family:'Noto Sans TC',sans-serif">???嗉絲</button>`;
-  } catch(e) { showToast('頛?敦憭望?', 'error'); }
+      <button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--text-s);background:none;border:none;cursor:pointer;padding:.3rem 0;font-family:'Noto Sans TC',sans-serif">▲ 收起</button>`;
+  } catch(e) { showToast('載入明細失敗', 'error'); }
 }
 
 async function closeGrabTask(id) {
-  if (!confirm('蝣箏???甇斗?桐遙??')) return;
+  if (!confirm('確定關閉此搶單任務？')) return;
   try {
     await API.put(`/api/grab-tasks/${id}/close`);
-    showToast('撌脤????, 'success');
+    showToast('已關閉搶單', 'success');
     loadGrabHistory();
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -939,19 +940,19 @@ async function loadAssignHistory() {
   try {
     const list = await API.get('/api/assignments/history');
     const el = document.getElementById('assign-history');
-    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">撠瘣暹?蝝??/div>'; return; }
-    const statusLabel = { pending:'敺?閬?, accepted:'?脰?銝?, completed:'撌脣???, rejected:'撌脫?蝯? };
+    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無派案紀錄</div>'; return; }
+    const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已拒絕' };
     const statusColor = { pending:'var(--orange)', accepted:'var(--blue)', completed:'var(--green)', rejected:'var(--red)' };
     el.innerHTML = list.map(a => {
       const s = a.status || 'pending';
       const reviewTag = a.review_status === 'reviewing'
-        ? `<span style="font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:8px;background:var(--blue-p);color:var(--blue-d);margin-left:.4rem">撖拇銝?/span>` : '';
+        ? `<span style="font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:8px;background:var(--blue-p);color:var(--blue-d);margin-left:.4rem">審核中</span>` : '';
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor[s]||'var(--border)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem">
           <div>
-            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.company ? a.company+"嚗?+a.task_name : a.task_name}</div>
-            <div style="font-size:.8rem;color:var(--text-s);margin-top:.15rem">? 瘣暹?嚗?{fmtDate(a.assigned_at)}</div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.company ? a.company+"："+a.task_name : a.task_name}</div>
+            <div style="font-size:.8rem;color:var(--text-s);margin-top:.15rem">📤 派案：${fmtDate(a.assigned_at)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor[s]+'22'||'#eee'};color:${statusColor[s]||'var(--text-s)'}">${statusLabel[s]||s}</span>
@@ -959,11 +960,11 @@ async function loadAssignHistory() {
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m)">
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">?晷蝯?/span>${a.partner_name || (a.assign_type==='all'?'?券憭乩撈':'??)}</div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">隞餃??賊?</span>${a.quantity} 隞?/div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">?桀嚗蜇??/span>$${(a.unit_price||0).toLocaleString()} 嚗?<strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">摰???</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'憭? : '??)}</div>
-          ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">鋆?隤芣?</span><div style="font-family:'璅扑擃?,'DFKai-SB',serif;max-height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">指派給</span>${a.partner_name || (a.assign_type==='all'?'全部夥伴':'—')}</div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${a.quantity} 件</div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">單價／總價</span>$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
+          <div><span style="color:var(--text-s);width:72px;display:inline-block">完成期限</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'天' : '—')}</div>
+          ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">補充說明</span><div style="font-family:'標楷體','DFKai-SB',serif;max-height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
         </div>
       </div>`
     }).join('');
@@ -974,24 +975,26 @@ async function loadPartners() {
   try {
     const users = await API.get('/api/users-list?role=partner');
     const opts = users.map(u=>`<option value="${u.id}">${u.real_name}</option>`).join('');
-    // 隞餃?瘣暹?銝?嚗?券憭乩撈嚗?    const assignTarget = document.getElementById('assign-target');
-    if (assignTarget) assignTarget.innerHTML = '<option value="">隢?丰隡?/option>' + opts;
+    // 任務派案下拉（含全部夥伴）
+    const assignTarget = document.getElementById('assign-target');
+    if (assignTarget) assignTarget.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     document.querySelectorAll('#mentor-partner-sel').forEach(sel=>{
-      sel.innerHTML = '<option value="">隢?丰隡?/option>' + opts;
+      sel.innerHTML = '<option value="">請選擇夥伴</option>' + opts;
     });
-    // ?銵冽鞎痊憭乩撈??    const countEl = document.getElementById('dashboard-partner-count');
+    // 儀表板負責夥伴數
+    const countEl = document.getElementById('dashboard-partner-count');
     if (countEl) countEl.textContent = users.length;
-    // 憭乩撈蝞∠? table
+    // 夥伴管理 table
     const tbody = document.getElementById('sv-partner-tbody');
     tbody.innerHTML = users.map(u=>`
       <tr><td style="font-weight:700;color:var(--text)">${u.real_name}</td>
-      <td>?? ??摮詨?</td><td>3隞?/td><td>$350</td><td>隞予</td>
-      <td><span class="status-badge sb-active">甇?虜</span></td></tr>
+      <td>⚔️ 文字學徒</td><td>3件</td><td>$350</td><td>今天</td>
+      <td><span class="status-badge sb-active">正常</span></td></tr>
     `).join('');
   } catch {}
 }
 
-// ?? ?犖鞈? ???箸鞈? ??
+// ── 個人資料 — 基本資料 ──
 let svProfData = {};
 
 function fillSvProfile(p) {
@@ -1030,7 +1033,7 @@ async function saveSvProfile() {
     svProfData.phone   = document.getElementById('sv-prof-phone').value;
     svProfData.address = document.getElementById('sv-prof-address').value;
     cancelSvProfEdit();
-    showToast('?犖鞈?撌脣摮?, 'success');
+    showToast('個人資料已儲存', 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1040,18 +1043,18 @@ async function changePassword() {
   const current=document.getElementById('cpw-current').value;
   const newPw=document.getElementById('cpw-new').value;
   const confirm=document.getElementById('cpw-confirm').value;
-  if(newPw.length<6||newPw.length>12){err.textContent='?啣?蝣潮???6嚚?2 雿??臬?望??摮泵??';err.style.display='block';return;}
-  if(newPw!==confirm){err.textContent='?拇活頛詨銝???;err.style.display='block';return;}
+  if(newPw.length<6||newPw.length>12){err.textContent='新密碼須為 6～12 位（可含英文、數字、符號）';err.style.display='block';return;}
+  if(newPw!==confirm){err.textContent='兩次輸入不一致';err.style.display='block';return;}
   try{
     await API.post('/api/change-password',{current_password:current,new_password:newPw});
-    showToast('撖Ⅳ撌脖耨??,'success');
+    showToast('密碼已修改','success');
     document.getElementById('cpw-current').value='';
     document.getElementById('cpw-new').value='';
     document.getElementById('cpw-confirm').value='';
   }catch(e){err.textContent=e.message;err.style.display='block';}
 }
 
-// ?? ?砍? ???????????????????????????????????????????????????????
+// ── 公告 ───────────────────────────────────────────────────────
 let annList = [];
 let svMe = null;
 
@@ -1072,7 +1075,7 @@ function syncNotifyBar() {
   const bar  = document.getElementById('ann-notify-bar');
   const text = document.getElementById('ann-notify-text');
   if (bar) {
-    if (unread > 0) { text.textContent = `?冽? ${unread} ??砍?`; bar.style.display = 'flex'; }
+    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.style.display = 'flex'; }
     else { bar.style.display = 'none'; }
   }
 }
@@ -1082,7 +1085,7 @@ function renderAnnList() {
   if (!wrap) return;
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">?桀?瘝??砍?</div>'; return; }
+  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
   const uid = svMe ? svMe.id : null;
   const readIds = uid ? getReadIds(uid) : [];
   const sorted = [...visible].sort((a,b) => {
@@ -1096,10 +1099,10 @@ function renderAnnList() {
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="cursor:pointer" onclick='openAnnDetail(${annJson})'>
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem">
         ${unread ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
-        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">??</span>' : ''}
+        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
         <span style="font-weight:700;font-size:.9rem">${a.title}</span>
       </div>
-      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;繚&nbsp; ${a.created_by||'??}${(()=>{ const n=(a.attachments&&a.attachments.length)||(a.attachment_drive_id?1:0); return n?` &nbsp;繚&nbsp; ?? ${n} ??隞跆:''; })()}</div>
+      <div class="ann-meta">${(a.created_at||'').slice(0,16)} &nbsp;·&nbsp; ${a.created_by||'—'}${(()=>{ const n=(a.attachments&&a.attachments.length)||(a.attachment_drive_id?1:0); return n?` &nbsp;·&nbsp; 📎 ${n} 個附件`:''; })()}</div>
     </div>`;
   }).join('');
 }
@@ -1119,23 +1122,23 @@ async function init() {
   loadPartners();
   loadTaskTypes();
   loadCompanies();
-  loadAnnouncements(); // ?頛嚗??餃?
+  loadAnnouncements(); // 背景載入，不阻塞
   syncIssueNotifyBar();
 }
 init();
 
-// ?? 瘣暹??????砍 + 隞餃?嚗????????????????????????????????
+// ── 派案動態列（公司 + 任務）────────────────────────────────
 function buildRowHtml(idx) {
-  const coOpts = '<option value="">隢???/option>' +
+  const coOpts = '<option value="">請選擇公司</option>' +
     _coList.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-  const ttOpts = '<option value="">隢?遙??/option>' +
+  const ttOpts = '<option value="">請選擇任務</option>' +
     _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
   return `
     <div class="assign-row" style="display:flex;gap:.4rem;align-items:center">
       <select class="form-select row-company" style="flex:1;font-size:.83rem">${coOpts}</select>
       <select class="form-select row-task"    style="flex:1;font-size:.83rem">${ttOpts}</select>
-      <button onclick="removeAssignRow(this)" title="蝘駁"
-        style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">?</button>
+      <button onclick="removeAssignRow(this)" title="移除"
+        style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
     </div>`;
 }
 
@@ -1143,7 +1146,7 @@ function initAssignRows() {
   const container = document.getElementById('assign-rows');
   if (!container) return;
   container.innerHTML = buildRowHtml(0) +
-    `<button onclick="addAssignRow()" style="align-self:flex-start;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">嚗??啣??</button>`;
+    `<button onclick="addAssignRow()" style="align-self:flex-start;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">＋ 新增項目</button>`;
 }
 
 function addAssignRow() {
@@ -1157,7 +1160,7 @@ function addAssignRow() {
 function removeAssignRow(btn) {
   const rows = document.querySelectorAll('.assign-row');
   if (rows.length <= 1) {
-    // ?敺???皜征?豢????芷
+    // 最後一列：清空選擇而不刪除
     const row = btn.closest('.assign-row');
     row.querySelector('.row-company').value = '';
     row.querySelector('.row-task').value = '';
@@ -1166,22 +1169,22 @@ function removeAssignRow(btn) {
   btn.closest('.assign-row').remove();
 }
 
-// ?? ?砍蝞∠? ??????????????????????????????????????????????????
+// ── 公司管理 ──────────────────────────────────────────────────
 let _coList = [];
 
 async function loadCompanies() {
   try {
     _coList = await API.get('/api/companies');
-    // ?湔蝞∠??Ｘ
-    const opts = '<option value="">隢??/option>' +
+    // 更新管理面板
+    const opts = '<option value="">請選擇</option>' +
       _coList.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
     const editSel = document.getElementById('co-edit-sel');
     const delSel  = document.getElementById('co-del-sel');
     if (editSel) editSel.innerHTML = opts;
     if (delSel)  delSel.innerHTML  = opts;
-    // ?湔瘣暹?銝?
+    // 更新派案下拉
     const coSel = document.getElementById('assign-company');
-    if (coSel) { const cur = coSel.value; coSel.innerHTML = '<option value="">隢???/option>' + _coList.map(c => `<option value="${c.name}">${c.name}</option>`).join(''); coSel.value = cur; }
+    if (coSel) { const cur = coSel.value; coSel.innerHTML = '<option value="">請選擇公司</option>' + _coList.map(c => `<option value="${c.name}">${c.name}</option>`).join(''); coSel.value = cur; }
   } catch {}
 }
 
@@ -1202,8 +1205,8 @@ function addCoRow() {
   div.className = 'co-add-row';
   div.style.cssText = 'display:flex;gap:.4rem;align-items:center';
   div.innerHTML = `
-    <input class="form-input co-add-input" placeholder="頛詨?砍?迂" style="font-size:.88rem;flex:1">
-    <button onclick="removeAddRow(this,'co-add-row')" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">?</button>`;
+    <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+    <button onclick="removeAddRow(this,'co-add-row')" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>`;
   list.appendChild(div);
   div.querySelector('input').focus();
 }
@@ -1211,18 +1214,18 @@ function addCoRow() {
 async function addCompany() {
   const names = [...document.querySelectorAll('.co-add-input')]
     .map(i => i.value.trim()).filter(n => n);
-  if (!names.length) return showToast('隢撓?亙?詨?蝔?, 'error');
-  if (!confirm(`?臬?啣? ${names.map(n=>`??{n}?).join('??)}嚗)) return;
+  if (!names.length) return showToast('請輸入公司名稱', 'error');
+  if (!confirm(`是否新增 ${names.map(n=>`「${n}」`).join('、')}？`)) return;
   try {
     for (const name of names) await API.post('/api/companies', { name });
-    // 皜征銝阡?蝵桃?桀?
+    // 清空並重置為單列
     const list = document.getElementById('co-add-list');
     list.innerHTML = `<div class="co-add-row" style="display:flex;gap:.4rem;align-items:center">
-      <input class="form-input co-add-input" placeholder="頛詨?砍?迂" style="font-size:.88rem;flex:1">
-      <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">嚗?/button>
+      <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+      <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
     </div>`;
     await loadCompanies();
-    showToast(`撌脫憓?${names.length} ?, 'success');
+    showToast(`已新增 ${names.length} 項`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1231,14 +1234,14 @@ async function editCompany() {
   const id      = sel.value;
   const oldName = sel.options[sel.selectedIndex]?.dataset.name || '';
   const newName = document.getElementById('co-edit-name').value.trim();
-  if (!id)      return showToast('隢??靽格???, 'error');
-  if (!newName) return showToast('隢撓?交?迂', 'error');
-  if (!confirm(`??{oldName}??虫耨?寧??{newName}??`)) return;
+  if (!id)      return showToast('請選擇要修改的公司', 'error');
+  if (!newName) return showToast('請輸入新名稱', 'error');
+  if (!confirm(`「${oldName}」是否修改為「${newName}」？`)) return;
   try {
     await API.put(`/api/companies/${id}`, { name: newName });
     document.getElementById('co-edit-name').value = '';
     await loadCompanies();
-    showToast('撌脖耨??, 'success');
+    showToast('已修改', 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1246,12 +1249,12 @@ async function deleteCompany() {
   const sel  = document.getElementById('co-del-sel');
   const id   = sel.value;
   const name = sel.options[sel.selectedIndex]?.dataset.name || '';
-  if (!id) return showToast('隢???芷???, 'error');
-  if (!confirm(`?臬蝣箏??芷??{name}??`)) return;
+  if (!id) return showToast('請選擇要刪除的公司', 'error');
+  if (!confirm(`是否確定刪除「${name}」？`)) return;
   try {
     await API.delete(`/api/companies/${id}`);
     await loadCompanies();
-    showToast(`撌脣?扎?{name}?, 'success');
+    showToast(`已刪除「${name}」`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1259,8 +1262,8 @@ function openCompanyMgr() {
   loadCompanies();
   coShowMode('add');
   document.getElementById('co-add-list').innerHTML = `<div class="co-add-row" style="display:flex;gap:.4rem;align-items:center">
-    <input class="form-input co-add-input" placeholder="頛詨?砍?迂" style="font-size:.88rem;flex:1">
-    <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">嚗?/button>
+    <input class="form-input co-add-input" placeholder="輸入公司名稱" style="font-size:.88rem;flex:1">
+    <button onclick="addCoRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
   </div>`;
   document.getElementById('company-overlay').classList.add('open');
 }
@@ -1268,22 +1271,22 @@ function closeCompanyMgr() {
   document.getElementById('company-overlay').classList.remove('open');
 }
 
-// ?? 隞餃?憿?蝞∠? ??????????????????????????????????????????????
+// ── 任務類型管理 ──────────────────────────────────────────────
 let _ttList = [];
 
 async function loadTaskTypes() {
   try {
     _ttList = await API.get('/api/task-types');
-    // ?湔蝞∠??Ｘ銝?
-    const opts = '<option value="">隢??/option>' +
+    // 更新管理面板下拉
+    const opts = '<option value="">請選擇</option>' +
       _ttList.map(t => `<option value="${t.id}" data-name="${t.name}">${t.name}</option>`).join('');
     const editSel = document.getElementById('tt-edit-sel');
     const delSel  = document.getElementById('tt-del-sel');
     if (editSel) editSel.innerHTML = opts;
     if (delSel)  delSel.innerHTML  = opts;
-    // ?湔瘣暹?銝?
+    // 更新派案下拉
     const ttSel = document.getElementById('assign-task');
-    if (ttSel) { const cur = ttSel.value; ttSel.innerHTML = '<option value="">隢?遙??/option>' + _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join(''); ttSel.value = cur; }
+    if (ttSel) { const cur = ttSel.value; ttSel.innerHTML = '<option value="">請選擇任務</option>' + _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join(''); ttSel.value = cur; }
   } catch {}
 }
 
@@ -1304,8 +1307,8 @@ function addTtRow() {
   div.className = 'tt-add-row';
   div.style.cssText = 'display:flex;gap:.4rem;align-items:center';
   div.innerHTML = `
-    <input class="form-input tt-add-input" placeholder="頛詨隞餃??迂嚗??emoji嚗? style="font-size:.88rem;flex:1">
-    <button onclick="removeAddRow(this,'tt-add-row')" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">?</button>`;
+    <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+    <button onclick="removeAddRow(this,'tt-add-row')" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>`;
   list.appendChild(div);
   div.querySelector('input').focus();
 }
@@ -1319,17 +1322,17 @@ function removeAddRow(btn, rowClass) {
 async function addTaskType() {
   const names = [...document.querySelectorAll('.tt-add-input')]
     .map(i => i.value.trim()).filter(n => n);
-  if (!names.length) return showToast('隢撓?乩遙??蝔?, 'error');
-  if (!confirm(`?臬?啣? ${names.map(n=>`??{n}?).join('??)}嚗)) return;
+  if (!names.length) return showToast('請輸入任務名稱', 'error');
+  if (!confirm(`是否新增 ${names.map(n=>`「${n}」`).join('、')}？`)) return;
   try {
     for (const name of names) await API.post('/api/task-types', { name });
     const list = document.getElementById('tt-add-list');
     list.innerHTML = `<div class="tt-add-row" style="display:flex;gap:.4rem;align-items:center">
-      <input class="form-input tt-add-input" placeholder="頛詨隞餃??迂嚗??emoji嚗? style="font-size:.88rem;flex:1">
-      <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">嚗?/button>
+      <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+      <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
     </div>`;
     await loadTaskTypes();
-    showToast(`撌脫憓?${names.length} ?, 'success');
+    showToast(`已新增 ${names.length} 項`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1338,14 +1341,14 @@ async function editTaskType() {
   const id   = sel.value;
   const oldName = sel.options[sel.selectedIndex]?.dataset.name || '';
   const newName = document.getElementById('tt-edit-name').value.trim();
-  if (!id)      return showToast('隢??靽格????, 'error');
-  if (!newName) return showToast('隢撓?交?迂', 'error');
-  if (!confirm(`??{oldName}??虫耨?寧??{newName}??`)) return;
+  if (!id)      return showToast('請選擇要修改的項目', 'error');
+  if (!newName) return showToast('請輸入新名稱', 'error');
+  if (!confirm(`「${oldName}」是否修改為「${newName}」？`)) return;
   try {
     await API.put(`/api/task-types/${id}`, { name: newName });
     document.getElementById('tt-edit-name').value = '';
     await loadTaskTypes();
-    showToast('撌脖耨??, 'success');
+    showToast('已修改', 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1353,12 +1356,12 @@ async function deleteTaskType() {
   const sel  = document.getElementById('tt-del-sel');
   const id   = sel.value;
   const name = sel.options[sel.selectedIndex]?.dataset.name || '';
-  if (!id) return showToast('隢???芷????, 'error');
-  if (!confirm(`?臬蝣箏??芷??{name}??`)) return;
+  if (!id) return showToast('請選擇要刪除的項目', 'error');
+  if (!confirm(`是否確定刪除「${name}」？`)) return;
   try {
     await API.delete(`/api/task-types/${id}`);
     await loadTaskTypes();
-    showToast(`撌脣?扎?{name}?, 'success');
+    showToast(`已刪除「${name}」`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1366,8 +1369,8 @@ function openTaskTypesMgr() {
   loadTaskTypes();
   ttShowMode('add');
   document.getElementById('tt-add-list').innerHTML = `<div class="tt-add-row" style="display:flex;gap:.4rem;align-items:center">
-    <input class="form-input tt-add-input" placeholder="頛詨隞餃??迂嚗??emoji嚗? style="font-size:.88rem;flex:1">
-    <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">嚗?/button>
+    <input class="form-input tt-add-input" placeholder="輸入任務名稱（可含 emoji）" style="font-size:.88rem;flex:1">
+    <button onclick="addTtRow(this)" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);background:#fff;color:var(--blue);font-size:1.1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">＋</button>
   </div>`;
   document.getElementById('task-types-overlay').classList.add('open');
 }
@@ -1375,22 +1378,22 @@ function closeTaskTypesMgr() {
   document.getElementById('task-types-overlay').classList.remove('open');
 }
 
-// ?? 隞餃?蝝????????????????????????????????????????????????????
+// ── 任務紀錄 ──────────────────────────────────────────────────
 let _taskRecordsCurrentTab = 'all';
 let _taskRecordsCache = { approved: [], partners: [] };
 
 async function loadTaskRecords() {
   const tabsEl    = document.getElementById('task-records-tabs');
   const contentEl = document.getElementById('task-records-content');
-  contentEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">頛銝?..</div>';
+  contentEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">載入中...</div>';
   try {
     const [approved, partners] = await Promise.all([
-      API.get('/api/issues/approved'),
+      API.get('/api/reports/approved'),
       API.get('/api/users-list?role=partner')
     ]);
     _taskRecordsCache = { approved, partners };
 
-    const tabs = [{ id: 'all', label: '?券' }, ...partners.map(p => ({ id: String(p.id), label: p.real_name }))];
+    const tabs = [{ id: 'all', label: '全部' }, ...partners.map(p => ({ id: String(p.id), label: p.real_name }))];
     if (!tabs.find(t => t.id === _taskRecordsCurrentTab)) _taskRecordsCurrentTab = 'all';
 
     tabsEl.innerHTML = tabs.map(t => `
@@ -1427,7 +1430,7 @@ function renderTaskRecordsContent() {
     : approved.filter(r => String(r.partner_id) === _taskRecordsCurrentTab);
 
   if (!filtered.length) {
-    contentEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">?桀?瘝?撌脣???隞餃?蝝??/div>';
+    contentEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">目前沒有已完成的任務紀錄</div>';
     return;
   }
 
@@ -1435,19 +1438,19 @@ function renderTaskRecordsContent() {
     <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--green)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
         <div>
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"嚗?+r.task_name : r.task_name}</div>
-          <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">? ${r.partner_name} ??? 瘣暹? ${fmtDate(r.assigned_at)}</div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
+          <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📤 派案 ${fmtDate(r.assigned_at)}</div>
         </div>
-        <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">??撌脣???/span>
+        <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
-        ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">隞餃??賊?</span>${r.task_quantity} 隞?/div>` : ''}
-        <div><span style="color:var(--text-s);width:80px;display:inline-block">摰??賊?</span><strong style="color:var(--green)">${r.completed_qty || 0} 隞?/strong></div>
-        ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">蝬脣?</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
-        ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">隤芣?</span><span style="font-size:14px;font-family:'璅扑擃?,'DFKai-SB',serif">${r.notes}</span></div>` : ''}
-        ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">?交??交?</span>${fmtDate(r.accepted_at)}</div>`   : ''}
-        ${r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">摰???</span>${fmtDay(r.deadline_date)}</div>` : ''}
-        ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">摰??交?</span>${fmtDate(r.completed_at)}</div>`  : ''}
+        ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
+        <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+        ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+        ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+        ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}
+        ${r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
+        ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成日期</span>${fmtDate(r.completed_at)}</div>`  : ''}
       </div>
       ${r.images && r.images.length ? `
       <div style="display:flex;flex-wrap:wrap;gap:.5rem">
@@ -1461,7 +1464,7 @@ function renderTaskRecordsContent() {
     </div>`).join('');
 }
 
-// ?? ??蝞∠?嚗upervisor嚗?????????????????????????????????????
+// ── 問題管理（supervisor）─────────────────────────────────────
 let issuesSvInboxCache = [];
 let issuesSvMineCache  = [];
 let issueAdminImgs = [null, null, null];
@@ -1487,7 +1490,7 @@ async function loadIssuesSvInbox() {
     issuesSvInboxCache = await API.get('/api/issues/inbox/supervisor');
     const el = document.getElementById('issues-sv-inbox');
     if (!el) return;
-    if (!issuesSvInboxCache.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">?桀??∪?憿???/div>'; return; }
+    if (!issuesSvInboxCache.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">目前無問題回報</div>'; return; }
     el.innerHTML = issuesSvInboxCache.map(r => issueCard(r,'sv-inbox')).join('');
   } catch(e){ console.error(e); }
 }
@@ -1498,7 +1501,7 @@ async function loadMyIssues() {
     issuesSvMineCache = all.filter(r => r.report_type === 'admin');
     const el = document.getElementById('issues-sv-mine');
     if (!el) return;
-    if (!issuesSvMineCache.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">撠?蝝??/div>'; return; }
+    if (!issuesSvMineCache.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無回報紀錄</div>'; return; }
     el.innerHTML = issuesSvMineCache.map(r => issueCard(r,'mine-sv')).join('');
   } catch(e){ console.error(e); }
 }
@@ -1537,7 +1540,7 @@ async function submitIssueAdmin(role) {
   const content = document.getElementById(contentId) && document.getElementById(contentId).value.trim();
   const errEl   = document.getElementById(errId);
   errEl.style.display = 'none';
-  if (!title || !content) { errEl.textContent = '隢‵撖急?憿??批捆'; errEl.style.display = 'block'; return; }
+  if (!title || !content) { errEl.textContent = '請填寫標題與內容'; errEl.style.display = 'block'; return; }
   try {
     const r = await API.post('/api/issues', { report_type: 'admin', title, content });
     const id = r.id;
@@ -1555,15 +1558,15 @@ async function submitIssueAdmin(role) {
       if (prev) { prev.style.display='none'; prev.src=''; }
       if (icon) icon.style.display='';
     }
-    showToast('?撌脤嚗?, 'success');
+    showToast('回報已送出！', 'success');
     await loadMyIssues();
   } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
 }
 
 function issueCard(r, viewer) {
-  const statusMap = { pending:'敺???, processing:'??銝?, resolved:'撌脰圾瘙? };
+  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
   const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
-  const roleMap2 = { partner:'撌乩?憭乩撈', supervisor:'???鈭箏' };
+  const roleMap2 = { partner:'工作夥伴', supervisor:'督導人員' };
   const unread = (viewer === 'sv-inbox') ? r.unread_handler : r.unread_reporter;
   return `<div class="card" style="padding:1rem 1.1rem;cursor:pointer;border-left:4px solid ${statusColor[r.status]}" onclick="toggleIssueSv(${r.id},'${viewer}')">
     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
@@ -1571,35 +1574,35 @@ function issueCard(r, viewer) {
       <span style="font-weight:700;font-size:.92rem;flex:1">${r.title}</span>
       <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
     </div>
-    <div style="font-size:.78rem;color:var(--text-s)">${r.reporter_name}嚗?{roleMap2[r.reporter_role]||r.reporter_role}嚗?${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' 繚 ? '+r.replies.length+' ??閬? : ''}</div>
+    <div style="font-size:.78rem;color:var(--text-s)">${r.reporter_name}（${roleMap2[r.reporter_role]||r.reporter_role}）· ${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
     <div id="sv-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
       <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
       ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:80px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
-      ${r.assignment_name ? `<div style="font-size:.78rem;color:var(--text-s);margin-bottom:.5rem">?? ?隞餃?嚗?{r.assignment_name}</div>` : ''}
-      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">??蝝??/div>
+      ${r.assignment_name ? `<div style="font-size:.78rem;color:var(--text-s);margin-bottom:.5rem">📎 關聯任務：${r.assignment_name}</div>` : ''}
+      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
       <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">
         ${issueRepliesHtml(r.replies||[])}
       </div>
       ${viewer === 'sv-inbox' ? `
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
-        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">??銝?/button>
-        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'resolved','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">撌脰圾瘙?/button>
-        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'pending','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">?身敺???/button>
+        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">處理中</button>
+        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'resolved','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">已解決</button>
+        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'pending','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">重設待處理</button>
       </div>` : ''}
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
-        <input id="sv-issue-reply-input-${r.id}" class="form-input" placeholder="頛詨??..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">
-        <button onclick="submitIssueSvReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">?</button>
+        <input id="sv-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">
+        <button onclick="submitIssueSvReply(${r.id},'${viewer}')" style="padding:.45rem 1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">送出</button>
       </div>
     </div>
   </div>`;
 }
 
 function issueRepliesHtml(replies) {
-  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">撠??</div>';
-  const rMap = { partner:'憭乩撈', supervisor:'???', staff:'蝞∠?' };
+  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
+  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
   return replies.map(rp => `
     <div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem">
-      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}嚗?{rMap[rp.author_role]||rp.author_role}嚗?${fmtDay(rp.created_at)}</div>
+      <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>
       <div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div>
     </div>`).join('');
 }
@@ -1622,7 +1625,7 @@ async function toggleIssueSv(id, viewer) {
 async function setIssueSvStatus(id, status, viewer) {
   try {
     await API.put('/api/issues/'+id+'/status', { status });
-    showToast('??歇?湔', 'success');
+    showToast('狀態已更新', 'success');
     if (viewer === 'sv-inbox') await loadIssuesSvInbox();
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -1634,7 +1637,7 @@ async function submitIssueSvReply(id, viewer) {
   try {
     await API.post('/api/issues/'+id+'/reply', { text });
     input.value = '';
-    showToast('??撌脤', 'success');
+    showToast('回覆已送出', 'success');
     if (viewer === 'sv-inbox') await loadIssuesSvInbox();
     else if (viewer === 'mine-sv') await loadMyIssues();
     const el2 = document.getElementById('sv-issue-detail-' + id);
@@ -1653,9 +1656,9 @@ async function syncIssueNotifyBar() {
       const txt = document.getElementById('issue-notify-text');
       if (txt) {
         const msgs = [];
-        if (data.from_reporter > 0) msgs.push(data.from_reporter+' 隞嗆??敺???);
-        if (data.from_handler > 0)  msgs.push(data.from_handler+' 隞嗅?憿??啣?閬?);
-        txt.textContent = msgs.join('?繚?');
+        if (data.from_reporter > 0) msgs.push(data.from_reporter+' 件新問題待處理');
+        if (data.from_handler > 0)  msgs.push(data.from_handler+' 件問題有新回覆');
+        txt.textContent = msgs.join('　·　');
       }
     }
     if (badge) {

@@ -350,97 +350,11 @@ textarea.form-input{resize:none}
 
     <!-- 公告管理 -->
     <div class="page-section" id="page-notices">
-      <div class="page-title" style="margin-bottom:.75rem">📢 公告管理</div>
-      <!-- 子分頁列 -->
-      <div style="display:flex;border-bottom:2px solid var(--border);margin-bottom:1.1rem">
-        <button class="ann-tab active" id="ann-tab-list" onclick="switchAnnTab('list')">📋 公告欄</button>
-        <button class="ann-tab" id="ann-tab-new"  onclick="switchAnnTab('new')">＋ 新增公告</button>
+      <div class="page-title" style="margin-bottom:.75rem">📢 公告管理
+        <button onclick="openAnnForm()" style="margin-left:auto;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增公告</button>
       </div>
-
-      <!-- 公告欄 panel -->
-      <div id="ann-panel-list">
-        <div id="ann-list-wrap"><div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div></div>
-      </div>
-
-      <!-- 新增／編輯公告 panel -->
-      <div id="ann-panel-new" style="display:none">
-        <div class="card" style="max-width:620px;padding:1.5rem">
-          <div style="font-size:1rem;font-weight:700;font-family:'Noto Serif TC',serif;margin-bottom:1rem" id="ann-form-heading">📢 新增公告</div>
-          <input type="hidden" id="ann-edit-id">
-          <div style="display:flex;flex-direction:column;gap:.85rem">
-
-            <div>
-              <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">標題 <span style="color:var(--red)">＊</span></label>
-              <input class="form-input" id="ann-title" placeholder="公告標題" maxlength="50">
-            </div>
-
-            <div>
-              <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">內容 <span style="color:var(--red)">＊</span></label>
-              <textarea class="form-input" id="ann-content" rows="5" placeholder="公告內容…" style="resize:vertical"></textarea>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-              <div>
-                <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">對象</label>
-                <select class="form-input" id="ann-target">
-                  <option value="all">全部角色</option>
-                  <option value="partner">工作夥伴</option>
-                  <option value="supervisor">督導人員</option>
-                  <option value="staff">管理人員</option>
-                </select>
-              </div>
-              <div>
-                <label style="display:flex;align-items:center;gap:.45rem;font-size:.82rem;cursor:pointer;margin-bottom:.5rem">
-                  <input type="checkbox" id="ann-permanent" onchange="togglePermanent()" style="width:15px;height:15px;cursor:pointer">
-                  🔒 永久公告（不下架）
-                </label>
-                <label style="display:flex;align-items:center;gap:.45rem;font-size:.88rem;cursor:pointer">
-                  <input type="checkbox" id="ann-pinned" style="width:15px;height:15px;cursor:pointer">
-                  📌 置頂
-                </label>
-              </div>
-            </div>
-
-            <!-- 到期日（日期選擇器） -->
-            <div id="ann-expires-wrap">
-              <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">到期日（選填）</label>
-              <div class="dp-wrap">
-                <div class="dp-selects">
-                  <select class="form-input" id="dp-ann-year"  onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">選擇年份</option></select>
-                  <select class="form-input" id="dp-ann-month" onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">選擇月份</option></select>
-                </div>
-                <div id="dp-ann-grid" style="display:none">
-                  <div class="dp-grid-header">
-                    <span style="color:var(--red)">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:#2EAA7A">六</span>
-                  </div>
-                  <div class="dp-grid-body" id="dp-ann-days"></div>
-                </div>
-                <div class="dp-hint" id="dp-ann-hint">尚未選擇到期日</div>
-              </div>
-              <input type="hidden" id="ann-expires">
-            </div>
-
-            <!-- 附件 -->
-            <div>
-              <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">📎 附件（選填，最大 15 MB）</label>
-              <div id="ann-att-current" style="display:none;margin-bottom:.45rem;align-items:center;gap:.5rem">
-                <span class="att-chip" id="ann-att-name-chip">—</span>
-                <button onclick="removeAnnAttachment()" style="background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:0">✕ 移除</button>
-              </div>
-              <input type="hidden" id="ann-att-keep">
-              <input type="file" id="ann-att-file" style="display:none" onchange="onAnnFileChange(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.txt">
-              <div class="att-zone" id="ann-att-zone" onclick="document.getElementById('ann-att-file').click()">
-                <span>📁</span><span id="ann-att-zone-label">點擊選擇附件</span>
-              </div>
-            </div>
-
-            <div id="ann-form-err" style="color:var(--red);font-size:.82rem;display:none"></div>
-            <div style="display:flex;gap:.5rem">
-              <button onclick="switchAnnTab('list')" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
-              <button onclick="saveAnn()" id="ann-save-btn" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存公告</button>
-            </div>
-          </div>
-        </div>
+      <div id="ann-list-wrap">
+        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
     </div>
 
@@ -602,6 +516,84 @@ textarea.form-input{resize:none}
   <img id="img-lightbox-img" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
 </div>
 
+<!-- 公告新增/編輯 Modal -->
+<div class="confirm-overlay" id="ann-form-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
+  <div class="confirm-box" style="width:min(580px,96vw);text-align:left;border-top-color:var(--blue);padding:1.5rem;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem">
+      <div style="font-size:1.05rem;font-weight:700;font-family:'Noto Serif TC',serif" id="ann-form-heading">📢 新增公告</div>
+      <button onclick="closeAnnForm()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
+    </div>
+    <input type="hidden" id="ann-edit-id">
+    <div style="display:flex;flex-direction:column;gap:.85rem">
+      <div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">標題 <span style="color:var(--red)">＊</span></label>
+        <input class="form-input" id="ann-title" placeholder="公告標題" maxlength="50">
+      </div>
+      <div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">內容 <span style="color:var(--red)">＊</span></label>
+        <textarea class="form-input" id="ann-content" rows="5" placeholder="公告內容…" style="resize:vertical"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div>
+          <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">對象</label>
+          <select class="form-input" id="ann-target">
+            <option value="all">全部角色</option>
+            <option value="partner">工作夥伴</option>
+            <option value="supervisor">督導人員</option>
+            <option value="staff">管理人員</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.5rem;justify-content:flex-end">
+          <label style="display:flex;align-items:center;gap:.45rem;font-size:.82rem;cursor:pointer">
+            <input type="checkbox" id="ann-permanent" onchange="togglePermanent()" style="width:15px;height:15px;cursor:pointer">
+            🔒 永久公告（不下架）
+          </label>
+          <label style="display:flex;align-items:center;gap:.45rem;font-size:.88rem;cursor:pointer">
+            <input type="checkbox" id="ann-pinned" style="width:15px;height:15px;cursor:pointer">
+            📌 置頂公告
+          </label>
+        </div>
+      </div>
+      <!-- 到期日（自訂日期選擇器） -->
+      <div id="ann-expires-wrap">
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.4rem">到期日（選填）</label>
+        <div class="dp-wrap">
+          <div class="dp-selects">
+            <select class="form-input" id="dp-ann-year"  onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">選擇年份</option></select>
+            <select class="form-input" id="dp-ann-month" onchange="dpUpdateGrid()" style="font-size:.82rem"><option value="">選擇月份</option></select>
+          </div>
+          <div id="dp-ann-grid" style="display:none">
+            <div class="dp-grid-header">
+              <span style="color:var(--red)">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:#2EAA7A">六</span>
+            </div>
+            <div class="dp-grid-body" id="dp-ann-days"></div>
+          </div>
+          <div class="dp-hint" id="dp-ann-hint">尚未選擇到期日</div>
+        </div>
+        <input type="hidden" id="ann-expires">
+      </div>
+      <!-- 附件 -->
+      <div>
+        <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">📎 附件（選填，最大 15 MB）</label>
+        <div id="ann-att-current" style="display:none;margin-bottom:.45rem;align-items:center;gap:.5rem">
+          <span class="att-chip" id="ann-att-name-chip">—</span>
+          <button onclick="removeAnnAttachment()" style="background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:0">✕ 移除</button>
+        </div>
+        <input type="hidden" id="ann-att-keep">
+        <input type="file" id="ann-att-file" style="display:none" onchange="onAnnFileChange(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.txt">
+        <div class="att-zone" id="ann-att-zone" onclick="document.getElementById('ann-att-file').click()">
+          <span>📁</span><span id="ann-att-zone-label">點擊選擇附件</span>
+        </div>
+      </div>
+      <div id="ann-form-err" style="color:var(--red);font-size:.82rem;display:none"></div>
+      <div style="display:flex;gap:.5rem;margin-top:.1rem">
+        <button onclick="closeAnnForm()" style="flex:1;padding:.72rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        <button onclick="saveAnn()" id="ann-save-btn" style="flex:2;padding:.72rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">發布公告</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 核准夥伴 - 指定督導 overlay -->
 <div class="confirm-overlay" id="approve-overlay">
   <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
@@ -676,8 +668,12 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
-  if (name === 'notices') {
-    switchAnnTab('list'); // 每次進入公告頁，預設顯示公告欄並標記已讀
+  if (name === 'notices' && me) {
+    const now2 = new Date().toISOString().slice(0,10);
+    const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
+    markAllRead(me.id, ids);
+    const badge = document.getElementById('badge-notices');
+    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
   }
 }
 
@@ -1384,28 +1380,42 @@ function exportPayrollExcel() {
 // ══════════════════════════════════════════
 let annList = [];
 
-// ── 子分頁切換 ─────────────────────────────
-function switchAnnTab(tab, editId) {
-  ['list','new'].forEach(t => {
-    document.getElementById('ann-panel-'+t).style.display = t === tab ? '' : 'none';
-    document.getElementById('ann-tab-'+t).classList.toggle('active', t === tab);
-  });
-  if (tab === 'new') {
-    resetAnnForm(editId || null);
-    // 若是從列表導航過來而非編輯，清除編輯 id
-    if (!editId) {
-      document.getElementById('ann-form-heading').textContent = '📢 新增公告';
-      document.getElementById('ann-save-btn').textContent = '發布公告';
-    }
+// ── Modal 開關 ─────────────────────────────
+function openAnnForm(editId) {
+  const a = editId ? annList.find(x => x.id === editId) : null;
+  document.getElementById('ann-form-heading').textContent = editId ? '✏️ 編輯公告' : '📢 新增公告';
+  document.getElementById('ann-save-btn').textContent     = editId ? '更新公告' : '發布公告';
+  document.getElementById('ann-edit-id').value  = editId || '';
+  document.getElementById('ann-title').value    = a ? (a.title   || '') : '';
+  document.getElementById('ann-content').value  = a ? (a.content || '') : '';
+  document.getElementById('ann-target').value   = a ? (a.target  || 'all') : 'all';
+  document.getElementById('ann-pinned').checked = a ? !!a.is_pinned : false;
+  document.getElementById('ann-form-err').style.display = 'none';
+  // 永久公告
+  const perm = a ? !a.expires_at : false;
+  document.getElementById('ann-permanent').checked = perm;
+  document.getElementById('ann-expires-wrap').style.display = perm ? 'none' : '';
+  // 日期選擇器
+  dpInit();
+  if (a && a.expires_at) dpSetDate(a.expires_at); else dpClear();
+  // 附件
+  document.getElementById('ann-att-file').value = '';
+  document.getElementById('ann-att-keep').value = a && a.attachment_name ? 'keep' : '';
+  document.getElementById('ann-att-zone-label').textContent = '點擊選擇附件';
+  document.getElementById('ann-att-current').style.display = 'none';
+  if (a && a.attachment_name) {
+    document.getElementById('ann-att-name-chip').textContent = a.attachment_name;
+    document.getElementById('ann-att-current').style.display = 'flex';
   }
-  if (tab === 'list' && me) {
-    // 標記已讀
-    const now2 = new Date().toISOString().slice(0,10);
-    const ids = annList.filter(a => !a.expires_at || a.expires_at >= now2).map(a => a.id);
-    markAllRead(me.id, ids);
-    const badge = document.getElementById('badge-notices');
-    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
-  }
+  const overlay = document.getElementById('ann-form-overlay');
+  overlay.style.display = 'flex';
+  overlay.style.pointerEvents = 'auto';
+}
+
+function closeAnnForm() {
+  const overlay = document.getElementById('ann-form-overlay');
+  overlay.style.display = 'none';
+  overlay.style.pointerEvents = 'none';
 }
 
 // ── 載入公告 ───────────────────────────────
@@ -1564,37 +1574,6 @@ function dpSetDate(ds) {
   document.getElementById('dp-ann-hint').textContent = `到期日：${ds}`;
 }
 
-// ── 表單重置 ────────────────────────────────
-function resetAnnForm(editId) {
-  const a = editId ? annList.find(x => x.id === editId) : null;
-  document.getElementById('ann-edit-id').value  = editId || '';
-  document.getElementById('ann-form-heading').textContent = editId ? '✏️ 編輯公告' : '📢 新增公告';
-  document.getElementById('ann-save-btn').textContent     = editId ? '更新公告' : '發布公告';
-  document.getElementById('ann-title').value    = a ? (a.title   || '') : '';
-  document.getElementById('ann-content').value  = a ? (a.content || '') : '';
-  document.getElementById('ann-target').value   = a ? (a.target  || 'all') : 'all';
-  document.getElementById('ann-pinned').checked = a ? !!a.is_pinned : false;
-  document.getElementById('ann-form-err').style.display = 'none';
-  // 永久公告
-  const perm = a ? !a.expires_at : false;
-  document.getElementById('ann-permanent').checked = perm;
-  document.getElementById('ann-expires-wrap').style.display = perm ? 'none' : '';
-  // 日期選擇器
-  dpInit();
-  if (a && a.expires_at) dpSetDate(a.expires_at);
-  else dpClear();
-  // 附件
-  document.getElementById('ann-att-file').value = '';
-  document.getElementById('ann-att-keep').value = '';
-  document.getElementById('ann-att-zone-label').textContent = '點擊選擇附件';
-  document.getElementById('ann-att-current').style.display = 'none';
-  if (a && a.attachment_name) {
-    document.getElementById('ann-att-name-chip').textContent = a.attachment_name;
-    document.getElementById('ann-att-current').style.display = 'flex';
-    document.getElementById('ann-att-keep').value = 'keep';
-  }
-}
-
 // ── 附件處理 ────────────────────────────────
 function onAnnFileChange(input) {
   if (!input.files || !input.files[0]) return;
@@ -1611,7 +1590,7 @@ function removeAnnAttachment() {
 }
 
 // ── 編輯（從列表進入）─────────────────────
-function editAnn(id) { switchAnnTab('new', id); }
+function editAnn(id) { openAnnForm(id); }
 
 // ── 儲存公告 ────────────────────────────────
 async function saveAnn() {
@@ -1663,12 +1642,13 @@ async function saveAnn() {
       }).then(async r => { if (!r.ok) { const d=await r.json(); throw new Error(d.error||'附件上傳失敗'); } });
     }
     showToast(id ? '公告已更新 ✅' : '公告已發布 ✅', 'success');
+    closeAnnForm();
     await loadAnnouncements();
-    switchAnnTab('list');
   } catch(e) {
     errEl.textContent = e.message; errEl.style.display = 'block';
   } finally {
-    saveBtn.disabled = false; saveBtn.textContent = document.getElementById('ann-edit-id').value ? '更新公告' : '發布公告';
+    saveBtn.disabled = false;
+    saveBtn.textContent = document.getElementById('ann-edit-id').value ? '更新公告' : '發布公告';
   }
 }
 

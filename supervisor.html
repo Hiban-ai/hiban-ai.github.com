@@ -177,16 +177,10 @@ textarea.form-input{resize:none}
   </div>
 
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
-  <!-- 新公告通知條 -->
-  <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
-       style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
+  <!-- 通知條（公告 + 問題合併） -->
+  <div id="ann-notify-bar" style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem" onclick="notifyBarClick()">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
-  </div>
-  <div id="issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
-       style="display:none;background:linear-gradient(90deg,#FFF7E6,#FFE4A0);border-bottom:1.5px solid #FFB830;padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#7A5800;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
-    <span style="flex-shrink:0">📝</span>
-    <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有新問題待處理</span></div>
   </div>
   <div class="sv-main">
 
@@ -422,19 +416,22 @@ textarea.form-input{resize:none}
 
     <!-- 問題管理 -->
     <div class="page-section" id="page-issues">
-      <div class="page-title">📝 問題管理</div>
-      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
-        <button class="acc-tab active" id="itab-inbox" onclick="switchIssueTab('inbox')">📥 夥伴問題</button>
-        <button class="acc-tab" id="itab-admin" onclick="switchIssueTab('admin')">📤 回報管理人員</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem">
+        <div class="page-title" style="margin-bottom:0">📋 處理問題</div>
+        <button id="btn-sv-report-admin" onclick="showSvAdminReport()" style="padding:.42rem 1rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📤 回報管理人員</button>
       </div>
+      <!-- 夥伴問題收件匣 -->
       <div id="issue-tab-inbox">
         <div id="issues-sv-inbox" style="display:flex;flex-direction:column;gap:.75rem">
           <div style="color:var(--text-s);font-size:.85rem">載入中...</div>
         </div>
       </div>
       <div id="issue-tab-admin" style="display:none">
+        <div style="margin-bottom:.75rem">
+          <button onclick="hideSvAdminReport()" style="padding:.38rem .85rem;background:transparent;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif">← 返回處理問題</button>
+        </div>
         <div class="card" style="max-width:560px;margin-bottom:1rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📝 新增回報</div>
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📝 回報管理人員</div>
           <div id="issue-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem"></div>
           <div style="display:flex;flex-direction:column;gap:.6rem">
             <input class="form-input" id="issue-admin-title" placeholder="問題標題＊" style="width:100%">
@@ -583,7 +580,7 @@ function switchPage(name, el) {
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
-  if (name === 'issues') { loadIssuesSvInbox(); if (issueTab==='admin') loadMyIssues(); }
+  if (name === 'issues') { loadIssuesSvInbox(); }
 }
 
 // 日期格式化：YYYY/MM/DD hh:mm:ss
@@ -1064,20 +1061,30 @@ async function loadAnnouncements() {
   try { syncNotifyBar();   } catch(e) { console.warn('[syncNotifyBar]',   e.message); }
 }
 
+let _issueUnreadSv = 0;
+
 function syncNotifyBar() {
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
   const uid = svMe ? svMe.id : null;
   const readIds = uid ? getReadIds(uid) : [];
-  const unread  = visible.filter(a => !readIds.includes(String(a.id))).length;
+  const annUnread = visible.filter(a => !readIds.includes(String(a.id))).length;
   const badge = document.getElementById('badge-notices');
-  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-flex' : 'none'; }
+  if (badge) { badge.textContent = annUnread; badge.style.display = annUnread ? 'inline-flex' : 'none'; }
   const bar  = document.getElementById('ann-notify-bar');
   const text = document.getElementById('ann-notify-text');
   if (bar) {
-    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.style.display = 'flex'; }
+    const parts = [];
+    if (annUnread > 0)      parts.push(`${annUnread} 則新公告`);
+    if (_issueUnreadSv > 0) parts.push(`${_issueUnreadSv} 則新回覆`);
+    if (parts.length > 0) { text.textContent = '您有　' + parts.join('　'); bar.style.display = 'flex'; }
     else { bar.style.display = 'none'; }
   }
+}
+
+function notifyBarClick() {
+  if (_issueUnreadSv > 0) switchPage('issues', document.querySelector('[onclick*=issues]'));
+  else switchPage('notices', document.querySelector('[onclick*=notices]'));
 }
 
 function renderAnnList() {
@@ -1468,20 +1475,29 @@ function renderTaskRecordsContent() {
 let issuesSvInboxCache = [];
 let issuesSvMineCache  = [];
 let issueAdminImgs = [null, null, null];
-let issueTab = 'inbox';
+function showSvAdminReport(prefillTitle) {
+  document.getElementById('issue-tab-inbox').style.display = 'none';
+  document.getElementById('issue-tab-admin').style.display = 'block';
+  document.getElementById('btn-sv-report-admin').style.display = 'none';
+  if (prefillTitle) {
+    const t = document.getElementById('issue-admin-title');
+    if (t && !t.value) t.value = '轉報：' + prefillTitle;
+  }
+  loadMyIssues();
+}
 
-function switchIssueTab(tab) {
-  issueTab = tab;
-  document.getElementById('itab-inbox').classList.toggle('active', tab==='inbox');
-  document.getElementById('itab-admin').classList.toggle('active', tab==='admin');
-  document.getElementById('issue-tab-inbox').style.display = tab==='inbox' ? 'block' : 'none';
-  document.getElementById('issue-tab-admin').style.display = tab==='admin' ? 'block' : 'none';
-  if (tab==='inbox') loadIssuesSvInbox();
-  if (tab==='admin') loadMyIssues();
+function hideSvAdminReport() {
+  document.getElementById('issue-tab-admin').style.display = 'none';
+  document.getElementById('issue-tab-inbox').style.display = 'block';
+  document.getElementById('btn-sv-report-admin').style.display = '';
+}
+
+function escalateToAdmin(issueId, title) {
+  showSvAdminReport(title);
 }
 
 async function loadIssuesSv() {
-  await Promise.all([loadIssuesSvInbox(), loadMyIssues()]);
+  await loadIssuesSvInbox();
   syncIssueNotifyBar();
 }
 
@@ -1586,8 +1602,7 @@ function issueCard(r, viewer) {
       ${viewer === 'sv-inbox' ? `
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
         <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">處理中</button>
-        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'resolved','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--green);background:transparent;color:var(--green);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">已解決</button>
-        <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'pending','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">重設待處理</button>
+        <button onclick="event.stopPropagation();escalateToAdmin(${r.id},'${r.title.replace(/'/g,'\\'')}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">回報管理人員</button>
       </div>` : ''}
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
         <input id="sv-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">
@@ -1649,23 +1664,11 @@ async function submitIssueSvReply(id, viewer) {
 async function syncIssueNotifyBar() {
   try {
     const data = await API.get('/api/issues/unread');
-    const bar   = document.getElementById('issue-notify-bar');
     const badge = document.getElementById('badge-issues');
     const total = (data.from_reporter||0) + (data.from_handler||0);
-    if (bar) {
-      bar.style.display = total > 0 ? 'flex' : 'none';
-      const txt = document.getElementById('issue-notify-text');
-      if (txt) {
-        const msgs = [];
-        if (data.from_reporter > 0) msgs.push(data.from_reporter+' 件新問題待處理');
-        if (data.from_handler > 0)  msgs.push(data.from_handler+' 件問題有新回覆');
-        txt.textContent = msgs.join('　·　');
-      }
-    }
-    if (badge) {
-      badge.style.display = total > 0 ? 'inline' : 'none';
-      badge.textContent = total;
-    }
+    _issueUnreadSv = total;
+    syncNotifyBar(); // 合併重繪
+    if (badge) { badge.style.display = total > 0 ? 'inline' : 'none'; badge.textContent = total; }
   } catch(e){}
 }
 </script>

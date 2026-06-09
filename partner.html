@@ -1408,7 +1408,7 @@ async function populateIssueSvDropdowns() {
     const tsel = document.getElementById('issue-sv-task');
     if (tsel) {
       tsel.innerHTML = '<option value="">關聯任務（選填）</option>' +
-        active.map(t => `<option value="${t.id}">${t.task_name || t.id}</option>`).join('');
+        active.map(t => `<option value="${t.id}">${t.company ? t.company+'：'+t.task_name : (t.task_name || t.id)}</option>`).join('');
     }
   } catch(e){}
 }

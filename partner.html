@@ -1000,14 +1000,20 @@ function buildRejectedCards(list) {
   return list.map(function(a) {
     var sc = a.supervisor_comments || [];
     var last = sc.length ? sc[sc.length - 1] : null;
-    var commentText = last ? last.text : '';
     var taskName = (a.task_name || '').replace(/'/g, '&#39;');
-    return '<div style="background:#fff;border-radius:var(--rs);padding:.6rem .85rem;border-left:4px solid var(--orange);box-shadow:0 2px 8px rgba(240,120,64,.10);margin-bottom:.5rem;display:flex;align-items:center;gap:.6rem">'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabel(a) + '</div>'
-      + (commentText ? '<div style="font-size:.72rem;color:var(--text-s);margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💬 ' + commentText + '</div>' : '')
+    var commentBlock = last
+      ? '<div style="margin-top:.3rem;background:var(--orange-p);border-radius:var(--rs);padding:.35rem .6rem;border:1px solid rgba(240,120,64,.2)">'
+        + '<div style="font-size:.68rem;color:var(--text-s);margin-bottom:.1rem">督導意見 · ' + (last.date||'') + ' ' + (last.time||'') + '</div>'
+        + '<div style="font-size:.8rem;color:var(--text-m);line-height:1.45">' + (last.text||'') + '</div>'
+        + '</div>'
+      : '';
+    return '<div style="background:#fff;border-radius:var(--rs);padding:.6rem .85rem;border-left:4px solid var(--orange);box-shadow:0 2px 8px rgba(240,120,64,.10);margin-bottom:.5rem">'
+      + '<div style="display:flex;align-items:center;gap:.6rem">'
+      + '<div style="flex:1;min-width:0;font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabel(a) + '</div>'
       + '</div>'
       + '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="flex-shrink:0;padding:.32rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap">📝 修改</button>'
+      + '</div>'
+      + commentBlock
       + '</div>';
   }).join('');
 }

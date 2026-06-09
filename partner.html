@@ -1143,7 +1143,7 @@ async function submitReport() {
 
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(loadTasks, 3000);
+  pollInterval = setInterval(loadTasks, 30000); // 30 秒輪詢，減少 Firestore 配額消耗
   // 切回分頁時立即更新
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) loadTasks();

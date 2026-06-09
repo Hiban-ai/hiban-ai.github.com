@@ -6,6 +6,18 @@ const cron       = require('node-cron');
 const https = require('https');
 const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb } = require('./db');
 
+// ── 記憶體快取（減少 Firestore 讀取次數）─────────────────────
+const _cache = {};
+function cacheGet(key) {
+  const c = _cache[key];
+  if (!c) return null;
+  if (Date.now() - c.ts > c.ttl) { delete _cache[key]; return null; }
+  return c.data;
+}
+function cacheSet(key, data, ttlMs) { _cache[key] = { data, ts: Date.now(), ttl: ttlMs }; }
+function cacheDel(key) { delete _cache[key]; }
+function cacheClear(prefix) { Object.keys(_cache).filter(k => k.startsWith(prefix)).forEach(k => delete _cache[k]); }
+
 // ── Google Apps Script 寄件設定 ───────────────────────────
 const GAS_URL    = process.env.GAS_URL;
 const GAS_SECRET = process.env.GAS_SECRET || 'hiban2026';
@@ -79,14 +91,19 @@ function requireRole(...roles) {
 app.get('/api/users-list', async (req, res) => {
   try {
     const { role } = req.query;
-    let users = await Users.all();
-    users = users.filter(u => u.status === 'active');
-    if (role) users = users.filter(u => u.role === role);
+    const cacheKey = 'users-list';
+    let users = cacheGet(cacheKey);
+    if (!users) {
+      users = await Users.all();
+      cacheSet(cacheKey, users, 5 * 60 * 1000); // 快取 5 分鐘
+    }
+    let filtered = users.filter(u => u.status === 'active');
+    if (role) filtered = filtered.filter(u => u.role === role);
     // 督導只看自己負責的夥伴
     if (req.session.user?.role === 'supervisor' && role === 'partner') {
-      users = users.filter(u => u.supervisor_id === req.session.user.id);
+      filtered = filtered.filter(u => u.supervisor_id === req.session.user.id);
     }
-    res.json(users.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname })));
+    res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname })));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -127,7 +144,8 @@ app.get('/api/announcements', requireAuth, async (req, res) => {
   try {
     const role = req.session.user.role;
     const now  = new Date();
-    let list = await Announcements.all();
+    let list = cacheGet('announcements');
+    if (!list) { list = await Announcements.all(); cacheSet('announcements', list, 3 * 60 * 1000); }
     list = list.filter(a => {
       if (a.target !== 'all' && a.target !== role) return false;
       if (a.expires_at && new Date(a.expires_at) < now) return false;
@@ -540,6 +558,7 @@ app.put('/api/admin/users/:id/reject', requireRole('staff'), async (req, res) =>
     if (!user) return res.status(404).json({ error: 'User not found' });
     const { reason } = req.body;
     await Users.update(id, { status: 'rejected', rejected_at: new Date().toISOString(), rejected_reason: reason || '' });
+    cacheDel('users-list');
     res.json({ ok: true });
     // 寄信給申請人
     if (user.email) {
@@ -575,6 +594,7 @@ app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req,
 app.put('/api/admin/users/:id/deactivate', requireRole('staff'), async (req, res) => {
   try {
     await Users.update(parseInt(req.params.id), { status: 'inactive' });
+    cacheDel('users-list');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -615,6 +635,7 @@ app.delete('/api/admin/users/:id', requireRole('staff'), async (req, res) => {
 
     await ForgotReqs.resolveByUser(id);
     await Users.delete(id);
+    cacheDel('users-list');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1046,6 +1067,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
     });
+    cacheDel('grab-tasks-open');
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1070,7 +1092,8 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
   try {
     const partnerId = req.session.user.id;
     const now = nowTW();
-    let list = await GrabTasks.openList();
+    let list = cacheGet('grab-tasks-open');
+    if (!list) { list = await GrabTasks.openList(); cacheSet('grab-tasks-open', list, 60 * 1000); } // 快取 1 分鐘
     // 過濾截止的
     list = list.filter(t => t.deadline >= now.slice(0,16));
     // 附上該夥伴是否已搶
@@ -1098,6 +1121,7 @@ app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res)
     if (!task) return res.status(404).json({ error: '任務不存在' });
     if (task.supervisor_id !== req.session.user.id) return res.status(403).json({ error: '無權限' });
     await GrabTasks.update(parseInt(req.params.id), { status: 'closed' });
+    cacheDel('grab-tasks-open');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

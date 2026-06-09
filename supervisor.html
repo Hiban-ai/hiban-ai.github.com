@@ -1602,7 +1602,7 @@ function issueCard(r, viewer) {
       ${viewer === 'sv-inbox' ? `
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
         <button onclick="event.stopPropagation();setIssueSvStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">處理中</button>
-        <button onclick="event.stopPropagation();escalateToAdmin(${r.id},'${r.title.replace(/'/g,'\\'')}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">回報管理人員</button>
+        <button onclick="event.stopPropagation();escalateToAdmin(${r.id},'${r.title.replace(/'/g,"&#39;")}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">回報管理人員</button>
       </div>` : ''}
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">
         <input id="sv-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.45rem .75rem;font-size:.85rem">

@@ -319,19 +319,16 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-tasks">
       <div class="page-title">⚔️ 任務</div>
 
-      <!-- 進行中任務（置頂） -->
-      <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
-        ⚔️ 進行中任務
-        <span id="active-badge" style="display:none;background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
-      </div>
-      <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
-
       <!-- 待回覆派案 -->
-      <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem;display:flex;align-items:center;gap:.5rem">
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
         🔔 待回覆
         <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
       </div>
       <div id="pending-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+
+      <!-- 進行中任務 -->
+      <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">⚔️ 進行中</div>
+      <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
 
       <!-- 已完成任務 -->
       <div style="display:flex;align-items:center;gap:.6rem;margin:1.25rem 0 .6rem;flex-wrap:wrap">

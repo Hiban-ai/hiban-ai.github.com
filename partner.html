@@ -275,20 +275,20 @@ textarea.form-input{resize:none}
       <!-- 退回任務區塊 -->
       <div id="overview-rejected-section" style="display:none;margin-bottom:.75rem">
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem">
-          <div style="font-size:.88rem;font-weight:700;color:var(--orange)">⚠️ 需要修改</div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--orange)">⚠️ 需要修改</div>
           <span id="overview-rejected-badge" style="background:var(--orange);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
         </div>
         <div id="overview-rejected-list"></div>
       </div>
 
       <!-- 搶單區塊 -->
-      <div id="overview-grab-block" style="display:none;margin-bottom:1rem">
+      <div id="overview-grab-block" style="display:none;margin-bottom:1.1rem;background:var(--blue-pp);border-radius:var(--r);padding:.75rem .85rem;border:2px solid var(--blue)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
-          <div style="font-size:.88rem;font-weight:700">🎯 搶單區
-            <span id="overview-grab-badge" style="background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
+          <div style="font-size:1rem;font-weight:800;color:var(--blue-d)">🎯 搶單區
+            <span id="overview-grab-badge" style="background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:10px;margin-left:.35rem">0</span>
           </div>
           <button onclick="switchPage('grab',document.querySelector('[onclick*=grab]'))"
-                  style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">前往搶單 →</button>
+                  style="padding:.35rem .9rem;font-size:.8rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">前往搶單 →</button>
         </div>
         <div id="overview-grab-list"></div>
       </div>
@@ -306,7 +306,7 @@ textarea.form-input{resize:none}
       <!-- 進行中任務區塊 -->
       <div id="overview-active-section" style="display:none;margin-bottom:.75rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
-          <div style="font-size:.88rem;font-weight:700">⚔️ 進行中任務
+          <div style="font-size:.78rem;font-weight:700">⚔️ 進行中任務
             <span id="overview-active-badge" style="background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
           </div>
           <button onclick="switchPage(&#39;tasks&#39;,document.querySelector(&#39;[onclick*=tasks]&#39;))" style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;cursor:pointer;font-family:&#39;Noto Sans TC&#39;,sans-serif">查看全部 →</button>
@@ -1339,9 +1339,9 @@ async function loadGrabZone() {
         if (ovList) ovList.innerHTML = available.slice(0, 3).map(t => {
           const remaining = t.total_slots - t.grabbed_count;
           return `
-          <div style="background:#fff;border-radius:var(--rs);padding:.65rem .9rem;margin-bottom:.5rem;border:1.5px solid var(--blue);display:flex;align-items:center;gap:.75rem">
+          <div style="background:#fff;border-radius:var(--rs);padding:.9rem 1rem;margin-bottom:.55rem;border:1.5px solid var(--blue);box-shadow:0 2px 10px rgba(26,138,192,.12);display:flex;align-items:center;gap:.75rem">
             <div style="flex:1;min-width:0">
-              <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+              <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
               <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
                 💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${(t.deadline||'').slice(0,10)} 截止
               </div>
@@ -1349,7 +1349,7 @@ async function loadGrabZone() {
             <div style="flex-shrink:0">
               ${remaining === 0
                 ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
-                : `<button onclick="doGrab(${t.id},this)" style="padding:.3rem .75rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">搶單</button>`
+                : `<button onclick="doGrab(${t.id},this)" style="padding:.5rem 1.1rem;font-size:.85rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif;box-shadow:0 2px 8px rgba(26,138,192,.3)">搶單</button>`
               }
             </div>
           </div>`;

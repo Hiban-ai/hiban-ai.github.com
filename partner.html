@@ -281,18 +281,7 @@ textarea.form-input{resize:none}
         <div id="overview-rejected-list"></div>
       </div>
 
-      <!-- 進行中任務區塊 -->
-      <div id="overview-active-section" style="display:none;margin-bottom:.75rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
-          <div style="font-size:.88rem;font-weight:700">⚔️ 進行中任務
-            <span id="overview-active-badge" style="background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
-          </div>
-          <button onclick="switchPage(&#39;tasks&#39;,document.querySelector(&#39;[onclick*=tasks]&#39;))" style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;cursor:pointer;font-family:&#39;Noto Sans TC&#39;,sans-serif">查看全部 →</button>
-        </div>
-        <div id="overview-active-list"></div>
-      </div>
-
-            <!-- 搶單區塊 -->
+      <!-- 搶單區塊 -->
       <div id="overview-grab-block" style="display:none;margin-bottom:1rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
           <div style="font-size:.88rem;font-weight:700">🎯 搶單區
@@ -314,7 +303,18 @@ textarea.form-input{resize:none}
       <div id="overview-quest-list"></div>
     </div>
       </div>
+      <!-- 進行中任務區塊 -->
+      <div id="overview-active-section" style="display:none;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
+          <div style="font-size:.88rem;font-weight:700">⚔️ 進行中任務
+            <span id="overview-active-badge" style="background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
+          </div>
+          <button onclick="switchPage(&#39;tasks&#39;,document.querySelector(&#39;[onclick*=tasks]&#39;))" style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;cursor:pointer;font-family:&#39;Noto Sans TC&#39;,sans-serif">查看全部 →</button>
+        </div>
+        <div id="overview-active-list"></div>
+      </div>
 
+      
     <!-- 任務 -->
     <div class="page-section" id="page-tasks">
       <div class="page-title">⚔️ 任務</div>
@@ -994,19 +994,14 @@ function buildRejectedCards(list) {
   return list.map(function(a) {
     var sc = a.supervisor_comments || [];
     var last = sc.length ? sc[sc.length - 1] : null;
-    var commentHtml = last
-      ? '<div style="background:var(--orange-p);border-radius:var(--rs);padding:.5rem .75rem;margin-bottom:.65rem;border:1px solid rgba(240,120,64,.25)">'
-        + '<div style="font-size:.72rem;color:var(--text-s);margin-bottom:.15rem">督導意見（' + last.date + ' ' + last.time + '）</div>'
-        + '<div style="font-size:.85rem;color:var(--text-m);font-family:serif;line-height:1.55">' + last.text + '</div></div>'
-      : '';
+    var commentText = last ? last.text : '';
     var taskName = (a.task_name || '').replace(/'/g, '&#39;');
-    return '<div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid var(--orange);box-shadow:0 4px 16px rgba(240,120,64,.12);margin-bottom:.75rem">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">'
-      + '<div style="font-family:serif;font-weight:700;font-size:.95rem">' + taskLabel(a) + '</div>'
-      + '<span style="padding:.18rem .55rem;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--orange-p);color:var(--orange);white-space:nowrap">⚠️ 退回待修改</span>'
+    return '<div style="background:#fff;border-radius:var(--rs);padding:.6rem .85rem;border-left:4px solid var(--orange);box-shadow:0 2px 8px rgba(240,120,64,.10);margin-bottom:.5rem;display:flex;align-items:center;gap:.6rem">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabel(a) + '</div>'
+      + (commentText ? '<div style="font-size:.72rem;color:var(--text-s);margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💬 ' + commentText + '</div>' : '')
       + '</div>'
-      + commentHtml
-      + '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="width:100%;padding:.6rem;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif">📝 重新回報工作</button>'
+      + '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="flex-shrink:0;padding:.32rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap">📝 修改</button>'
       + '</div>';
   }).join('');
 }

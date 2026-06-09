@@ -1952,6 +1952,18 @@ app.post('/api/gemini/extract-bank', async (req, res) => {
   } catch(e) { console.error('[extract-bank]', e); res.status(500).json({ error: e.message }); }
 });
 
+// ── Firebase Client Config（給前端 onSnapshot 用）────────────
+app.get('/api/firebase-config', requireAuth, (req, res) => {
+  res.json({
+    apiKey:            process.env.FIREBASE_WEB_API_KEY   || '',
+    authDomain:        process.env.FIREBASE_AUTH_DOMAIN   || 'hiban-workspace-c6b5c.firebaseapp.com',
+    projectId:         process.env.FIREBASE_PROJECT_ID    || 'hiban-workspace-c6b5c',
+    storageBucket:     process.env.FIREBASE_STORAGE_BUCKET|| 'hiban-workspace-c6b5c.appspot.com',
+    messagingSenderId: process.env.FIREBASE_SENDER_ID     || '',
+    appId:             process.env.FIREBASE_APP_ID        || '',
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('\nServer started: http://localhost:' + PORT);

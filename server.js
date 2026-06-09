@@ -89,22 +89,25 @@ function requireRole(...roles) {
 }
 
 app.get('/api/users-list', async (req, res) => {
-  try {
-    const { role } = req.query;
-    const cacheKey = 'users-list';
-    let users = cacheGet(cacheKey);
-    if (!users) {
+  const { role } = req.query;
+  const cacheKey = 'users-list';
+  let users = cacheGet(cacheKey);
+  if (!users) {
+    try {
       users = await Users.all();
       cacheSet(cacheKey, users, 5 * 60 * 1000); // 快取 5 分鐘
+    } catch(e) {
+      console.error('[users-list] Firestore error:', e.message);
+      // 配額耗盡或其他錯誤：回傳空陣列，讓登入頁仍可顯示（不噴 500）
+      return res.json([]);
     }
-    let filtered = users.filter(u => u.status === 'active');
-    if (role) filtered = filtered.filter(u => u.role === role);
-    // 督導只看自己負責的夥伴
-    if (req.session.user?.role === 'supervisor' && role === 'partner') {
-      filtered = filtered.filter(u => u.supervisor_id === req.session.user.id);
-    }
-    res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname })));
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  }
+  let filtered = users.filter(u => u.status === 'active');
+  if (role) filtered = filtered.filter(u => u.role === role);
+  if (req.session.user?.role === 'supervisor' && role === 'partner') {
+    filtered = filtered.filter(u => u.supervisor_id === req.session.user.id);
+  }
+  res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname })));
 });
 
 app.post('/api/login', async (req, res) => {
@@ -126,7 +129,13 @@ app.post('/api/login', async (req, res) => {
       await Users.update(user.id, { login_dates: [...loginDates, todayTW] }).catch(()=>{});
     }
     res.json({ ok: true, role: user.role, is_first_login: !!user.is_first_login });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) {
+    const msg = e.message || '';
+    if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota')) {
+      return res.status(503).json({ error: '系統繁忙，請稍後再試（每日配額暫時耗盡，通常凌晨重置）' });
+    }
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
@@ -1255,7 +1264,13 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
         } catch(de) { console.error('[Drive] 回報附件上傳失敗', de.message); }
       }
     }
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) {
+    const msg = e.message || '';
+    if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota')) {
+      return res.status(503).json({ error: '系統繁忙，請稍後再試（Firestore 配額暫時耗盡）' });
+    }
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) => {

@@ -57,7 +57,11 @@ app.use(session({
   secret: 'hiban-secret-2025',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 8 * 60 * 60 * 1000 }
+  cookie: { maxAge: (() => {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    const midnight = new Date(now); midnight.setHours(23, 59, 59, 999);
+    return Math.max(midnight.getTime() - now.getTime() + 1000, 60000);
+  })() }
 }));
 
 function requireAuth(req, res, next) {
@@ -96,13 +100,26 @@ app.post('/api/login', async (req, res) => {
     if (user.status === 'inactive') return res.status(403).json({ error: 'Account disabled' });
     if (!bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Wrong password' });
     req.session.user = { id: user.id, username: user.username, real_name: user.real_name, nickname: user.nickname, role: user.role, is_admin: !!(user.is_admin || user.username === 'admin'), supervisor_id: user.supervisor_id || null };
+        const todayTW = (() => {
+      const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+      return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    })();
+    const loginDates = user.login_dates || [];
+    if (!loginDates.includes(todayTW)) {
+      await Users.update(user.id, { login_dates: [...loginDates, todayTW] }).catch(()=>{});
+    }
     res.json({ ok: true, role: user.role, is_first_login: !!user.is_first_login });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
 
-app.get('/api/me', requireAuth, (req, res) => res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin }));
+app.get('/api/me', requireAuth, async (req, res) => {
+  try {
+    const u = await Users.byId(req.session.user.id);
+    res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin, login_dates: u ? (u.login_dates || []) : [] });
+  } catch(e) { res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin, login_dates: [] }); }
+});
 
 // ── 公告 API ─────────────────────────────────────────────────
 // 取得公告（依角色過濾、過期自動排除）

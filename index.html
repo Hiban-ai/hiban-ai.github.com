@@ -127,7 +127,7 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
     <div class="form-group">
       <label class="form-label">密碼</label>
       <div class="pw-wrap">
-        <input class="form-input" type="password" id="pw-partner" placeholder="請輸入密碼">
+        <input class="form-input" type="password" id="pw-partner" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin('partner')">
         <button class="pw-toggle" type="button" onclick="togglePw('pw-partner',this)">👁</button>
       </div>
     </div>
@@ -148,7 +148,7 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
     <div class="form-group">
       <label class="form-label">密碼</label>
       <div class="pw-wrap">
-        <input class="form-input" type="password" id="pw-supervisor" placeholder="請輸入密碼">
+        <input class="form-input" type="password" id="pw-supervisor" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin('supervisor')">
         <button class="pw-toggle" type="button" onclick="togglePw('pw-supervisor',this)">👁</button>
       </div>
     </div>
@@ -167,7 +167,7 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
     <div class="form-group">
       <label class="form-label">密碼</label>
       <div class="pw-wrap">
-        <input class="form-input" type="password" id="pw-staff" placeholder="請輸入密碼">
+        <input class="form-input" type="password" id="pw-staff" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')doLogin('staff')">
         <button class="pw-toggle" type="button" onclick="togglePw('pw-staff',this)">👁</button>
       </div>
     </div>

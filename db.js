@@ -20,6 +20,79 @@ if (process.env.FIREBASE_KEY) {
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
+// ── Firestore 流量統計（讀/寫/刪計數，每日台灣時間 00:00 重置）──
+const fs = require('fs');
+const path = require('path');
+const STATS_FILE = path.join(__dirname, 'traffic_stats.json');
+function todayTW() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+let trafficStats = { date: todayTW(), reads: 0, writes: 0, deletes: 0, history: [] };
+try {
+  const saved = JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
+  if (saved && saved.date === todayTW()) trafficStats = saved;
+} catch (e) {}
+function saveStats() {
+  try { fs.writeFileSync(STATS_FILE, JSON.stringify(trafficStats)); } catch (e) {}
+}
+function checkRollover() {
+  const t = todayTW();
+  if (trafficStats.date !== t) {
+    trafficStats = { date: t, reads: 0, writes: 0, deletes: 0, history: [] };
+  }
+}
+function getTrafficStats() {
+  checkRollover();
+  return trafficStats;
+}
+function snapshotTraffic() {
+  checkRollover();
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  trafficStats.history.push({ time, reads: trafficStats.reads, writes: trafficStats.writes, deletes: trafficStats.deletes });
+  if (trafficStats.history.length > 96) trafficStats.history.shift();
+  saveStats();
+}
+setInterval(() => { snapshotTraffic(); }, 30 * 60 * 1000);
+snapshotTraffic();
+
+// 修補 Firestore 原型方法，攔截讀/寫/刪以計數
+const QueryProto = Object.getPrototypeOf(db.collection('_meta'));
+const DocRefProto = Object.getPrototypeOf(db.collection('_meta').doc('x'));
+const _queryGet = QueryProto.get;
+QueryProto.get = async function (...args) {
+  const snap = await _queryGet.apply(this, args);
+  checkRollover();
+  trafficStats.reads += (snap.size || (snap.exists ? 1 : 0)) || 1;
+  saveStats();
+  return snap;
+};
+const _docGet = DocRefProto.get;
+DocRefProto.get = async function (...args) {
+  const snap = await _docGet.apply(this, args);
+  checkRollover();
+  trafficStats.reads += 1;
+  saveStats();
+  return snap;
+};
+['set', 'update'].forEach(m => {
+  const orig = DocRefProto[m];
+  DocRefProto[m] = async function (...args) {
+    checkRollover();
+    trafficStats.writes += 1;
+    saveStats();
+    return orig.apply(this, args);
+  };
+});
+const _docDelete = DocRefProto.delete;
+DocRefProto.delete = async function (...args) {
+  checkRollover();
+  trafficStats.deletes += 1;
+  saveStats();
+  return _docDelete.apply(this, args);
+};
+
 function now() {
   const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
   const p = n => String(n).padStart(2, '0');
@@ -343,4 +416,4 @@ const ReportImages = {
   },
 };
 
-module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db };
+module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db, getTrafficStats };

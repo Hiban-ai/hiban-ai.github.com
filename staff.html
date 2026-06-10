@@ -229,6 +229,7 @@ textarea.form-input{resize:none}
         <div class="st-menu-item" onclick="switchPage('tasks',this)"><span class="mi-icon">⚔️</span>任務管理</div>
         <div class="st-menu-item" onclick="switchPage('notices',this)"><span class="mi-icon">📢</span>公告管理<span class="st-badge" id="badge-notices" style="display:none">0</span></div>
         <div class="st-menu-item" onclick="switchPage('issues',this)"><span class="mi-icon">📝</span>問題管理<span class="st-badge" id="badge-issues" style="display:none">0</span></div>
+        <div class="st-menu-item" onclick="switchPage('traffic',this)"><span class="mi-icon">📡</span>流量資訊</div>
         <div class="st-menu-item" onclick="switchPage('settings',this)"><span class="mi-icon">⚙️</span>系統設定</div>
         <div class="st-menu-group">帳號</div>
         <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
@@ -410,6 +411,35 @@ textarea.form-input{resize:none}
     </div>
 
     <!-- 系統設定 -->
+    <!-- 流量資訊 -->
+    <div class="page-section" id="page-traffic">
+      <div class="page-title">📡 流量資訊</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.85rem">
+        <button class="tf-tab active" onclick="switchTrafficTab('firebase',this)" style="padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">Firebase 流量</button>
+      </div>
+      <div id="tf-page-firebase">
+        <div class="card" style="max-width:680px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+            <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">📊 Cloud Firestore 今日用量（<span id="tf-date">-</span>）</div>
+            <button onclick="loadTraffic()" style="padding:.3rem .8rem;font-size:.78rem;border-radius:14px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🔄 重新整理</button>
+          </div>
+          <div id="tf-bars"></div>
+          <div style="font-size:.78rem;color:var(--text-s);margin-top:.6rem">每 30 分鐘自動記錄一筆，資料每日台灣時間 00:00 重置。</div>
+        </div>
+        <div class="card" style="max-width:680px;margin-top:1rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.6rem">🕒 歷史紀錄</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+              <thead><tr style="text-align:left;color:var(--text-s);border-bottom:1.5px solid var(--border)">
+                <th style="padding:.4rem .3rem">時間</th><th style="padding:.4rem .3rem">讀取</th><th style="padding:.4rem .3rem">寫入</th><th style="padding:.4rem .3rem">刪除</th>
+              </tr></thead>
+              <tbody id="tf-history"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="page-section" id="page-settings">
       <div class="page-title">⚙️ 系統設定</div>
       <div class="card" style="max-width:600px">
@@ -746,8 +776,44 @@ async function init() {
   syncIssueNotifyBar();
   // 重整後還原上次頁面
   const hash = location.hash.replace('#','');
-  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','settings','profile','issues'];
+  const pages = ['dashboard','accounts','forgot','payroll','tasks','notices','settings','profile','issues','traffic'];
   if (hash && pages.includes(hash)) switchPage(hash);
+}
+
+// 流量資訊
+function switchTrafficTab(name, el) {
+  document.querySelectorAll('.tf-tab').forEach(b => { b.classList.remove('active'); b.style.background='#fff'; b.style.color='var(--blue)'; });
+  el.classList.add('active'); el.style.background='var(--blue)'; el.style.color='#fff';
+}
+function tfBar(label, used, limit, color) {
+  var pct = Math.min(100, Math.round(used / limit * 1000) / 10);
+  return '<div style="margin-bottom:1rem">'
+    + '<div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem">'
+    + '<span style="font-weight:700;color:var(--text-m)">' + label + '</span>'
+    + '<span style="color:var(--text-s)">' + used.toLocaleString() + ' / ' + limit.toLocaleString() + '（' + pct + '%）</span>'
+    + '</div>'
+    + '<div style="background:var(--bg);border-radius:8px;height:10px;overflow:hidden">'
+    + '<div style="width:' + pct + '%;height:100%;background:' + color + ';transition:width .3s"></div>'
+    + '</div></div>';
+}
+async function loadTraffic() {
+  try {
+    var s = await API.get('/api/admin/firebase-traffic');
+    document.getElementById('tf-date').textContent = s.date;
+    document.getElementById('tf-bars').innerHTML =
+      tfBar('讀取 Reads', s.reads, s.readsLimit, s.reads/s.readsLimit > 0.9 ? 'var(--red)' : 'var(--blue)') +
+      tfBar('寫入 Writes', s.writes, s.writesLimit, 'var(--green,#3CB371)') +
+      tfBar('刪除 Deletes', s.deletes, s.deletesLimit, 'var(--orange)');
+    var rows = (s.history || []).slice().reverse().map(function(h) {
+      return '<tr style="border-bottom:1px solid var(--border)">'
+        + '<td style="padding:.35rem .3rem">' + h.time + '</td>'
+        + '<td style="padding:.35rem .3rem">' + h.reads.toLocaleString() + '</td>'
+        + '<td style="padding:.35rem .3rem">' + h.writes.toLocaleString() + '</td>'
+        + '<td style="padding:.35rem .3rem">' + h.deletes.toLocaleString() + '</td>'
+        + '</tr>';
+    }).join('');
+    document.getElementById('tf-history').innerHTML = rows || '<tr><td colspan="4" style="padding:.5rem;color:var(--text-s)">尚無紀錄</td></tr>';
+  } catch (e) { console.error('loadTraffic', e); }
 }
 
 // 頁面切換
@@ -773,6 +839,7 @@ function switchPage(name, el) {
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
+  if (name === 'traffic') loadTraffic();
   if (name === 'settings') loadSystemSettings();
   if (name === 'issues') loadIssuesStaff();
 }

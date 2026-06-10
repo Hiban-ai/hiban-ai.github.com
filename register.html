@@ -805,6 +805,7 @@ async function loadContract() {
       wrap.innerHTML = esc
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\[size=([\d.]+em)\](.+?)\[\/size\]/g, '<span style="font-size:$1">$2</span>')
+        .replace(/\[center\]([\s\S]+?)\[\/center\]/g, '<div style="text-align:center">$1</div>')
         .replace(/^---\n?/gm, '<hr style="border:none;border-top:1.5px solid var(--border);margin:.6rem 0">');
     } else {
       wrap.innerHTML = '<span style="color:var(--text-s);font-style:italic">（目前尚無合約內容，請直接勾選同意繼續）</span>';

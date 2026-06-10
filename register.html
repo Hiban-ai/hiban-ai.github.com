@@ -801,7 +801,8 @@ async function loadContract() {
     wrap.style.display = 'block';
     const text = (data.text || '').trim();
     if (text) {
-      wrap.textContent = text;
+      const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      wrap.innerHTML = esc.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     } else {
       wrap.innerHTML = '<span style="color:var(--text-s);font-style:italic">（目前尚無合約內容，請直接勾選同意繼續）</span>';
       // 無合約內容時直接允許勾選

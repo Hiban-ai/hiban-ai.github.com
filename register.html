@@ -802,7 +802,10 @@ async function loadContract() {
     const text = (data.text || '').trim();
     if (text) {
       const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      wrap.innerHTML = esc.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      wrap.innerHTML = esc
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\[size=([\d.]+em)\](.+?)\[\/size\]/g, '<span style="font-size:$1">$2</span>')
+        .replace(/^---$/gm, '<hr style="border:none;border-top:1.5px solid var(--border);margin:.6rem 0">');
     } else {
       wrap.innerHTML = '<span style="color:var(--text-s);font-style:italic">（目前尚無合約內容，請直接勾選同意繼續）</span>';
       // 無合約內容時直接允許勾選

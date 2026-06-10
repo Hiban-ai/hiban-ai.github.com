@@ -1427,6 +1427,7 @@ async function init() {
   meId = me.id;
   document.getElementById('char-realname-sidebar').textContent = me.real_name;
   loadAvatar(me.id);
+  if (window._initFirestore) window._initFirestore(meId); // 啟動即時監聽
   // 本月登入天數
   var loginDates = me.login_dates || [];
   var twNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));

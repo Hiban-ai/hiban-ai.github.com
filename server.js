@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb, getTrafficStats } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, calculateLevel, xpToNextLevel, levelInfo, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
 
 // ── 記憶體快取（減少 Firestore 讀取次數）─────────────────────
 const _cache = {};
@@ -171,6 +171,45 @@ app.get('/api/announcements', requireAuth, async (req, res) => {
 });
 
 // 取得所有公告（staff 管理用）
+// ── 任務冒險錄：XP / 等級 / Streak / 徽章 ─────────────────────
+app.get('/api/me/xp', requireAuth, async (req, res) => {
+  try {
+    const u = await Users.byId(req.session.user.id);
+    const xp = (u && u.xp) || 0;
+    const level = calculateLevel(xp);
+    const info = levelInfo(level);
+    const logs = await XPLogs.listByUser(req.session.user.id, 5);
+    res.json({
+      xp, level, levelTitle: info.title, levelColor: info.color,
+      xpToNext: xpToNextLevel(xp), levelMin: info.min,
+      streak: (u && u.streak) || 0,
+      badges: (u && u.badges) || [],
+      recentLogs: logs,
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/badges', requireAuth, (req, res) => res.json(BADGES));
+
+// 管理員：任務 XP 設定
+app.get('/api/admin/xp-config', requireRole('staff'), async (req, res) => {
+  try {
+    const config = await XPConfig.get();
+    // 列出近期任務名稱供設定（去重）
+    const snap = await firestoreDb.collection('assignments').get();
+    const names = new Set();
+    snap.docs.forEach(d => { const t = d.data().task_name; if (t) names.add(t); });
+    res.json({ ...config, taskNames: [...names] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.put('/api/admin/xp-config', requireRole('staff'), async (req, res) => {
+  try {
+    const { globalDefault, taskDefaults } = req.body;
+    await XPConfig.set(globalDefault || 10, taskDefaults || {});
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Firebase 流量統計（staff 專用）─────────────────────────────
 app.get('/api/admin/firebase-traffic', requireRole('staff'), (req, res) => {
   const s = getTrafficStats();
@@ -1348,6 +1387,10 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
       await Assignments.update(r.assignment_id, {
         status: 'completed', completed_at: nowTW(), review_status: 'approved'
       });
+      const a = await Assignments.byId(r.assignment_id);
+      if (a && a.accepted_by) {
+        await grantTaskXP(a.accepted_by, a.task_name, a.company).catch(e => console.error('[grantTaskXP]', e.message));
+      }
     }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }

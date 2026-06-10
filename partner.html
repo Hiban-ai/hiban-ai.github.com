@@ -196,6 +196,36 @@ textarea.form-input{resize:none}
 #grab-success-overlay.show .gso-text.go{opacity:1;transform:scale(1) translateY(0)}
 #grab-success-overlay .gso-title{font-family:'Noto Serif TC',serif;font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.35);margin-bottom:.4rem}
 #grab-success-overlay .gso-sub{font-size:1rem;font-weight:700;color:#FFE9A8;text-shadow:0 1px 6px rgba(0,0,0,.3)}
+
+/* 任務冒險錄：完成動畫 */
+#task-complete-overlay{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,0);transition:background .3s}
+#task-complete-overlay.show{display:flex;background:rgba(20,30,50,.4)}
+#tco-card{background:#fff;border-radius:16px;padding:24px 28px;min-width:240px;max-width:88vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);opacity:0;transform:translateY(40px) scale(.95);transition:transform .3s;}
+#task-complete-overlay.show #tco-card{animation:cardSlideUp .4s cubic-bezier(.34,1.56,.64,1) forwards}
+#task-complete-overlay.shrink #tco-card{transform:scale(.85) translateY(0);opacity:1}
+@keyframes cardSlideUp{from{opacity:0;transform:translateY(40px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)}}
+#tco-company{font-size:.75rem;color:var(--text-s);opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.1s}
+#tco-title{font-size:1.25rem;font-weight:800;color:var(--text);margin:.3rem 0;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.2s}
+#tco-congrats{font-size:1.05rem;color:var(--green,#3CB371);font-weight:700;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)}}
+#tco-xpfly{position:fixed;z-index:9999;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;font-weight:800;font-size:1.1rem;padding:.35rem 1rem;border-radius:999px;box-shadow:0 4px 14px rgba(240,120,64,.4);opacity:0;pointer-events:none}
+#tco-xpfly.fly{animation:xpFly .9s ease-in forwards}
+#tco-xpfly .tco-mult{display:block;font-size:.65rem;font-weight:700;opacity:.85;margin-top:.1rem}
+@keyframes xpFly{
+  0%{opacity:1;transform:translate(0,0) scale(1)}
+  50%{opacity:1;transform:translate(var(--fly-x-mid,0px),var(--fly-y-mid,-60px)) scale(1.2)}
+  100%{opacity:0;transform:translate(var(--fly-x,0px),var(--fly-y,0px)) scale(.6)}
+}
+#pt-exp-wrap.flash .pt-exp-track{animation:barFlash .9s steps(6)}
+@keyframes barFlash{0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 2px var(--level-color,#FFC845)}}
+#tco-levelup{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);z-index:9999;text-align:center;opacity:0;pointer-events:none}
+#tco-levelup.show{animation:levelUpPop .5s cubic-bezier(.34,1.56,.64,1) forwards}
+#tco-levelup .lu-main{font-family:'Noto Serif TC',serif;font-size:1.6rem;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+#tco-levelup .lu-title{font-size:1rem;font-weight:700;color:#FFE9A8;margin-top:.25rem;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.3s}
+@keyframes levelUpPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)} 60%{opacity:1;transform:translate(-50%,-50%) scale(1.2)} 100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media (prefers-reduced-motion: reduce){
+  #task-complete-overlay,#task-complete-overlay #tco-card,#tco-xpfly,#tco-levelup,#tco-company,#tco-title,#tco-congrats,.lu-title{animation-duration:.2s !important;transition-duration:.2s !important}
+}
 </style>
 <!-- Firebase SDK for real-time onSnapshot -->
 <script type="module">
@@ -221,6 +251,20 @@ textarea.form-input{resize:none}
 </script>
 </head>
 <body>
+
+<!-- 任務冒險錄：完成動畫 -->
+<div id="task-complete-overlay">
+  <div id="tco-card">
+    <div id="tco-company"></div>
+    <div id="tco-title"></div>
+    <div id="tco-congrats">🎉 恭喜完成！</div>
+  </div>
+</div>
+<div id="tco-xpfly"></div>
+<div id="tco-levelup">
+  <div class="lu-main"></div>
+  <div class="lu-title"></div>
+</div>
 
 <!-- 搶單成功動畫 -->
 <div id="grab-success-overlay">
@@ -263,9 +307,9 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <div class="pt-exp-wrap">
-      <div class="pt-exp-label"><span>文字學徒 → 文字劍士</span><span>35%</span></div>
-      <div class="pt-exp-track"><div class="pt-exp-fill" style="width:35%"></div></div>
+    <div class="pt-exp-wrap" id="pt-exp-wrap">
+      <div class="pt-exp-label"><span id="pt-exp-text">Lv.1 旅人 Wanderer</span><span id="pt-exp-pct">0%</span></div>
+      <div class="pt-exp-track"><div class="pt-exp-fill" id="pt-exp-fill" style="width:0%"></div></div>
     </div>
 
     <div class="pt-menu">
@@ -1441,6 +1485,161 @@ async function loadGrabZone() {
   } catch(e) { wrap.innerHTML = `<div style="color:var(--red);font-size:.85rem">${e.message}</div>`; }
 }
 
+// ── 任務冒險錄：XP / 等級 / 完成動畫 ──────────────────────────
+let _xpInfo = null;
+let _lastXpLogId = null;
+
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function loadXPInfo(initial) {
+  try {
+    const info = await API.get('/api/me/xp');
+    _xpInfo = info;
+    renderXPBar(info);
+    if (initial && info.recentLogs && info.recentLogs.length) {
+      _lastXpLogId = info.recentLogs[0].id;
+    }
+  } catch(e) { console.warn('loadXPInfo', e.message); }
+}
+
+function renderXPBar(info) {
+  const wrap = document.getElementById('pt-exp-wrap');
+  const fill = document.getElementById('pt-exp-fill');
+  const text = document.getElementById('pt-exp-text');
+  const pct  = document.getElementById('pt-exp-pct');
+  if (!wrap) return;
+  const span = info.xpToNext > 0 ? (info.xp - info.levelMin) + info.xpToNext : 1;
+  const cur  = info.xp - info.levelMin;
+  const ratio = info.xpToNext > 0 ? Math.min(100, Math.max(0, Math.round(cur / span * 100))) : 100;
+  text.textContent = 'Lv.' + info.level + ' ' + info.levelTitle + (info.streak ? ('　🔥' + info.streak) : '');
+  pct.textContent = ratio + '%';
+  fill.style.width = ratio + '%';
+  fill.style.background = info.levelColor;
+  wrap.style.setProperty('--level-color', info.levelColor);
+}
+
+function animateXPBarTo(newInfo) {
+  const fill = document.getElementById('pt-exp-fill');
+  const pct  = document.getElementById('pt-exp-pct');
+  const wrap = document.getElementById('pt-exp-wrap');
+  if (!fill) return;
+  const span = newInfo.xpToNext > 0 ? (newInfo.xp - newInfo.levelMin) + newInfo.xpToNext : 1;
+  const cur  = newInfo.xp - newInfo.levelMin;
+  const targetRatio = newInfo.xpToNext > 0 ? Math.min(100, Math.max(0, Math.round(cur / span * 100))) : 100;
+  const startRatio = parseFloat(fill.style.width) || 0;
+  const start = performance.now();
+  const dur = 800;
+  function step(now) {
+    const t = Math.min(1, (now - start) / dur);
+    const ratio = startRatio + (targetRatio - startRatio) * t;
+    fill.style.width = ratio + '%';
+    pct.textContent = Math.round(ratio) + '%';
+    if (t < 1) requestAnimationFrame(step);
+    else {
+      renderXPBar(newInfo);
+      if (newInfo.levelUp) {
+        wrap.classList.add('flash');
+        setTimeout(() => wrap.classList.remove('flash'), 1000);
+      }
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+async function playCompletionAnimation(data) {
+  const overlay = document.getElementById('task-complete-overlay');
+  const card = document.getElementById('tco-card');
+  document.getElementById('tco-company').textContent = data.companyName || '';
+  document.getElementById('tco-title').textContent = data.taskTitle || '';
+
+  // 第一幕：完成祝賀
+  overlay.classList.remove('shrink');
+  overlay.classList.add('show');
+  await wait(1800);
+
+  // 第二幕：XP 飛入
+  overlay.classList.add('shrink');
+  flyXPToBar(data.xpFinal, data.streakMultiplier, card);
+  await wait(1200);
+
+  // 第三幕：經驗條更新
+  overlay.classList.remove('show','shrink');
+  const newInfo = {
+    xp: data.newXP, level: data.newLevel,
+    levelTitle: data.newLevelTitle, levelColor: data.newLevelColor,
+    levelMin: data.newLevelMin, xpToNext: data.newXpToNext,
+    streak: data.streak, levelUp: data.levelUp,
+  };
+  animateXPBarTo(newInfo);
+  if (data.levelUp) {
+    await wait(900);
+    showLevelUp(data.newLevel, data.newLevelTitle, data.newLevelColor);
+    await wait(1800);
+  } else {
+    await wait(800);
+  }
+  hideCompletionOverlay();
+}
+
+function flyXPToBar(xpFinal, multiplier, card) {
+  const fly = document.getElementById('tco-xpfly');
+  const target = document.getElementById('pt-exp-wrap');
+  const from = card.getBoundingClientRect();
+  const to = target ? target.getBoundingClientRect() : { left: window.innerWidth - 40, top: window.innerHeight - 40 };
+  fly.innerHTML = '＋' + xpFinal + ' XP' + (multiplier && multiplier > 1 ? '<span class="tco-mult">× ' + multiplier + '</span>' : '');
+  fly.classList.remove('fly');
+  fly.style.left = (from.left + from.width/2 - 50) + 'px';
+  fly.style.top  = (from.top + from.height/2 - 20) + 'px';
+  const dx = (to.left + to.width/2) - (from.left + from.width/2);
+  const dy = (to.top + to.height/2) - (from.top + from.height/2);
+  fly.style.setProperty('--fly-x', dx + 'px');
+  fly.style.setProperty('--fly-y', dy + 'px');
+  fly.style.setProperty('--fly-x-mid', (dx*0.5) + 'px');
+  fly.style.setProperty('--fly-y-mid', (dy*0.3 - 60) + 'px');
+  // 強制 reflow 以重新觸發動畫
+  void fly.offsetWidth;
+  fly.classList.add('fly');
+}
+
+function showLevelUp(level, title, color) {
+  const el = document.getElementById('tco-levelup');
+  el.querySelector('.lu-main').textContent = '升等！Lv.' + (level-1) + ' → Lv.' + level;
+  el.querySelector('.lu-title').textContent = title;
+  el.querySelector('.lu-main').style.color = color;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1700);
+}
+
+function hideCompletionOverlay() {
+  document.getElementById('task-complete-overlay').classList.remove('show','shrink');
+}
+
+// 監聽 xp_logs 新紀錄，觸發完成動畫
+async function checkNewXPLog() {
+  if (!meId) return;
+  try {
+    const info = await API.get('/api/me/xp');
+    const logs = info.recentLogs || [];
+    if (!logs.length) { _xpInfo = info; return; }
+    const latest = logs[0];
+    if (_lastXpLogId === null) { _lastXpLogId = latest.id; _xpInfo = info; renderXPBar(info); return; }
+    if (latest.id !== _lastXpLogId) {
+      _lastXpLogId = latest.id;
+      const oldInfo = _xpInfo || info;
+      playCompletionAnimation({
+        taskTitle: latest.taskTitle, companyName: latest.companyName,
+        xpFinal: latest.xpFinal, streakMultiplier: latest.streakMultiplier,
+        newXP: info.xp, newLevel: info.level, newLevelTitle: info.levelTitle,
+        newLevelColor: info.levelColor, newLevelMin: info.levelMin, newXpToNext: info.xpToNext,
+        streak: info.streak, levelUp: info.level > (oldInfo.level || info.level),
+      });
+      _xpInfo = info;
+    }
+  } catch(e) { /* ignore */ }
+}
+
 function showGrabSuccessOverlay(grabNo) {
   var overlay = document.getElementById('grab-success-overlay');
   var sub = document.getElementById('gso-grabno');
@@ -1505,6 +1704,8 @@ async function init() {
   meId = me.id;
   document.getElementById('char-realname-sidebar').textContent = me.real_name;
   loadAvatar(me.id);
+  loadXPInfo(true);
+  setInterval(checkNewXPLog, 15000); // 每15秒檢查是否有新的 XP 紀錄（觸發完成動畫）
   if (window._initFirestore) window._initFirestore(meId); // 啟動即時監聽
   // 本月登入天數
   var loginDates = me.login_dates || [];

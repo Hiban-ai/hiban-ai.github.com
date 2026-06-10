@@ -239,6 +239,11 @@ const Assignments = {
     const snap = await db.collection('assignments').where('supervisor_id','==',supervisorId).get();
     return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
   },
+  async completedCountByUser(userId) {
+    const snap = await db.collection('assignments')
+      .where('accepted_by','==',userId).where('status','==','completed').get();
+    return snap.size;
+  },
 };
 
 // ── WorklogReports ────────────────────────────────────────────
@@ -416,4 +421,161 @@ const ReportImages = {
   },
 };
 
-module.exports = { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db, getTrafficStats };
+// ── 任務冒險錄：等級 / XP / Streak / 徽章 ─────────────────────
+const LEVELS = [
+  { level: 1, title: '旅人 Wanderer',     min: 0,     color: '#1D9E75' },
+  { level: 2, title: '學徒 Apprentice',   min: 300,   color: '#3B6D11' },
+  { level: 3, title: '探索者 Explorer',   min: 800,   color: '#185FA5' },
+  { level: 4, title: '冒險者 Adventurer', min: 1800,  color: '#0C447C' },
+  { level: 5, title: '鬥士 Fighter',      min: 3500,  color: '#534AB7' },
+  { level: 6, title: '英雄 Hero',         min: 6000,  color: '#3C3489' },
+  { level: 7, title: '勇者 Champion',     min: 10000, color: '#993C1D' },
+  { level: 8, title: '傳說 Legend',       min: 16000, color: '#D85A30' },
+];
+const LEVEL_THRESHOLDS = LEVELS.map(l => l.min);
+function calculateLevel(xp) {
+  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (xp >= LEVEL_THRESHOLDS[i]) return i + 1;
+  }
+  return 1;
+}
+function xpToNextLevel(xp) {
+  const level = calculateLevel(xp);
+  if (level >= LEVELS.length) return 0;
+  return LEVELS[level].min - xp;
+}
+function levelInfo(level) {
+  return LEVELS[Math.min(Math.max(level,1),LEVELS.length) - 1];
+}
+function getStreakMultiplier(streak) {
+  if (streak >= 30) return 1.5;
+  if (streak >= 14) return 1.2;
+  if (streak >= 7)  return 1.1;
+  return 1.0;
+}
+
+const BADGES = [
+  { id: 'first_fire',    name: '起火者',     category: 'start',  icon: 'flame',          condition: '完成第一次任務回報' },
+  { id: 'century_tasks', name: '日日不缺',   category: 'daily',  icon: 'checkbox',       condition: '累計完成 100 次任務' },
+  { id: 'streak_7',      name: '七日不輟',   category: 'streak', icon: 'calendar-check', condition: '連續 7 天各完成至少一項任務' },
+  { id: 'streak_30',     name: '月圓不息',   category: 'streak', icon: 'moon',           condition: '連續 30 天維持 streak' },
+  { id: 'streak_100',    name: '百日鍛造',   category: 'streak', icon: 'shield',         condition: '連續 100 天維持 streak' },
+  { id: 'legend_born',   name: '傳說誕生',   category: 'legend', icon: 'star',           condition: '達到 Lv.8 傳說等級（累計 16,000 XP）' },
+];
+
+// settings/xpConfig
+const XPConfig = {
+  async get() {
+    const doc = await db.collection('settings').doc('xpConfig').get();
+    return doc.exists ? doc.data() : { globalDefault: 10, taskDefaults: {} };
+  },
+  async set(globalDefault, taskDefaults) {
+    await db.collection('settings').doc('xpConfig').set(
+      { globalDefault, taskDefaults }, { merge: true }
+    );
+  },
+  getTaskXP(taskName, config) {
+    return (config.taskDefaults && config.taskDefaults[taskName] && config.taskDefaults[taskName].xpValue)
+      || config.globalDefault || 10;
+  },
+};
+
+// xpLogs
+const XPLogs = {
+  async create(data) {
+    const id = await nextId('xp_logs');
+    const log = { id, ...data, timestamp: now() };
+    await db.collection('xp_logs').doc(String(id)).set(log);
+    return log;
+  },
+  async listByUser(userId, limit) {
+    const snap = await db.collection('xp_logs').where('userId','==',userId).get();
+    const list = snap.docs.map(d=>d.data()).sort((a,b)=>byDate(b.timestamp,a.timestamp));
+    return limit ? list.slice(0, limit) : list;
+  },
+};
+
+function getPreviousDateStr(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() - 1);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function todayISO_TW() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+// 完成任務時呼叫：更新 streak、計算 XP、寫入 xpLog、檢查升等與徽章
+async function grantTaskXP(userId, taskName, companyName) {
+  let user = await Users.byId(userId);
+  if (!user) return null;
+  const today = todayISO_TW();
+  const yesterday = getPreviousDateStr(today);
+  let streak = user.streak || 0;
+  let streakProtectUsed = !!user.streakProtectUsed;
+  const lastActive = user.lastActiveDate || null;
+
+  if (lastActive === today) {
+    // 今天已算過 streak，不變
+  } else if (lastActive === yesterday) {
+    streak = streak + 1;
+  } else if (lastActive && lastActive < yesterday) {
+    if (!streakProtectUsed && lastActive.slice(0,7) === today.slice(0,7)) {
+      streakProtectUsed = true;
+    } else {
+      streak = 0;
+    }
+  } else {
+    streak = 1;
+  }
+
+  const config  = await XPConfig.get();
+  const baseXP  = XPConfig.getTaskXP(taskName, config);
+  const multiplier = getStreakMultiplier(streak);
+  const finalXP = Math.floor(baseXP * multiplier);
+  const oldXP   = user.xp || 0;
+  const newXP   = oldXP + finalXP;
+  const oldLevel = calculateLevel(oldXP);
+  const newLevel = calculateLevel(newXP);
+  const levelUp  = newLevel > oldLevel;
+
+  await Users.update(userId, {
+    xp: newXP, level: newLevel, streak, streakProtectUsed, lastActiveDate: today,
+  });
+
+  await XPLogs.create({
+    userId, taskTitle: taskName || '', companyName: companyName || '',
+    xpGained: baseXP, streakMultiplier: multiplier, xpFinal: finalXP,
+  });
+
+  // 徽章檢查
+  const unlocked = user.badges || [];
+  const newBadges = [];
+  const completedCount = (await Assignments.completedCountByUser ? await Assignments.completedCountByUser(userId) : 0);
+  const checks = [
+    { id: 'first_fire',    pass: true },
+    { id: 'streak_7',      pass: streak >= 7 },
+    { id: 'streak_30',     pass: streak >= 30 },
+    { id: 'streak_100',    pass: streak >= 100 },
+    { id: 'century_tasks', pass: completedCount >= 100 },
+    { id: 'legend_born',   pass: newLevel >= 8 },
+  ];
+  for (const c of checks) {
+    if (c.pass && !unlocked.includes(c.id)) newBadges.push(c.id);
+  }
+  if (newBadges.length) {
+    await Users.update(userId, { badges: [...unlocked, ...newBadges] });
+  }
+
+  return {
+    taskTitle: taskName, companyName, xpGained: baseXP, multiplier, finalXP,
+    oldXP, newXP, oldLevel, newLevel, levelUp, streak, newBadges,
+  };
+}
+
+module.exports = {
+  Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db, getTrafficStats,
+  LEVELS, calculateLevel, xpToNextLevel, levelInfo, getStreakMultiplier, BADGES, XPConfig, XPLogs, grantTaskXP,
+};

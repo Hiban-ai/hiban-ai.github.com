@@ -444,8 +444,11 @@ textarea.form-input{resize:none}
       <div class="page-title">⚙️ 系統設定</div>
       <div class="card" style="max-width:680px">
         <div style="display:flex;flex-direction:column;gap:.6rem">
-          <button onclick="openSettingModal('xp')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span>🎮 任務經驗值設定（任務冒險錄）</span><span style="color:var(--text-s)">›</span>
+          <button onclick="openSettingModal('task-xp')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span>🎮 任務經驗值設定</span><span style="color:var(--text-s)">›</span>
+          </button>
+          <button onclick="openSettingModal('level-xp')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span>🏆 等級經驗值設定</span><span style="color:var(--text-s)">›</span>
           </button>
           <button onclick="openSettingModal('contract')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
             <span>📄 合約設定</span><span style="color:var(--text-s)">›</span>
@@ -454,12 +457,12 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <!-- XP 設定 overlay -->
-    <div class="detail-overlay" id="xp-setting-overlay">
+    <!-- 任務經驗值設定 overlay -->
+    <div class="detail-overlay" id="task-xp-setting-overlay">
       <div class="detail-box" style="border-top-color:var(--blue);width:560px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
-          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🎮 任務經驗值設定（任務冒險錄）</div>
-          <button onclick="closeSettingModal('xp')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🎮 任務經驗值設定</div>
+          <button onclick="closeSettingModal('task-xp')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
         </div>
         <div class="form-group" style="max-width:240px">
           <label class="form-label">全域預設 XP（未個別設定的任務）</label>
@@ -473,8 +476,18 @@ textarea.form-input{resize:none}
             <tbody id="xp-config-rows"></tbody>
           </table>
         </div>
+        <button class="btn-primary" style="margin-top:.85rem;max-width:160px" onclick="saveXPConfig()">儲存 XP 設定</button>
+      </div>
+    </div>
 
-        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-top:1.25rem;margin-bottom:.6rem">🏆 等級升級所需經驗值</div>
+    <!-- 等級經驗值設定 overlay -->
+    <div class="detail-overlay" id="level-xp-setting-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🏆 等級經驗值設定</div>
+          <button onclick="closeSettingModal('level-xp')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem">設定每個等級升級所需累積經驗值。</div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:.82rem">
             <thead><tr style="text-align:left;color:var(--text-s);border-bottom:1.5px solid var(--border)">
@@ -483,8 +496,7 @@ textarea.form-input{resize:none}
             <tbody id="xp-level-rows"></tbody>
           </table>
         </div>
-
-        <button class="btn-primary" style="margin-top:.85rem;max-width:160px" onclick="saveXPConfig()">儲存 XP 設定</button>
+        <button class="btn-primary" style="margin-top:.85rem;max-width:160px" onclick="saveXPConfig()">儲存等級設定</button>
       </div>
     </div>
 

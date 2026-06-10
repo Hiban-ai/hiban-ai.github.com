@@ -185,6 +185,17 @@ textarea.form-input{resize:none}
   .char-stats-inner{grid-template-columns:repeat(3,1fr)}
 }
 @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100vw)}}
+#grab-success-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,.45);backdrop-filter:blur(2px)}
+#grab-success-overlay.show{display:flex}
+#grab-success-overlay .gso-confetti{position:absolute;top:-10px;border-radius:2px;opacity:0;animation:gso-fall linear forwards}
+@keyframes gso-fall{
+  0%{opacity:1;transform:translateY(0) rotate(0deg)}
+  100%{opacity:.9;transform:translateY(105vh) rotate(540deg)}
+}
+#grab-success-overlay .gso-text{text-align:center;opacity:0;transform:scale(.6) translateY(10px);transition:opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1)}
+#grab-success-overlay.show .gso-text.go{opacity:1;transform:scale(1) translateY(0)}
+#grab-success-overlay .gso-title{font-family:'Noto Serif TC',serif;font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.35);margin-bottom:.4rem}
+#grab-success-overlay .gso-sub{font-size:1rem;font-weight:700;color:#FFE9A8;text-shadow:0 1px 6px rgba(0,0,0,.3)}
 </style>
 <!-- Firebase SDK for real-time onSnapshot -->
 <script type="module">
@@ -210,6 +221,14 @@ textarea.form-input{resize:none}
 </script>
 </head>
 <body>
+
+<!-- 搶單成功動畫 -->
+<div id="grab-success-overlay">
+  <div class="gso-text">
+    <div class="gso-title">🎉 恭喜搶單成功！</div>
+    <div class="gso-sub" id="gso-grabno"></div>
+  </div>
+</div>
 
 <!-- Mobile topbar -->
 <div class="mobile-topbar">
@@ -1422,11 +1441,48 @@ async function loadGrabZone() {
   } catch(e) { wrap.innerHTML = `<div style="color:var(--red);font-size:.85rem">${e.message}</div>`; }
 }
 
+function showGrabSuccessOverlay(grabNo) {
+  var overlay = document.getElementById('grab-success-overlay');
+  var sub = document.getElementById('gso-grabno');
+  sub.textContent = grabNo ? ('您的編號 #' + grabNo) : '';
+  // 清除舊彩帶
+  overlay.querySelectorAll('.gso-confetti').forEach(function(el){ el.remove(); });
+  overlay.classList.remove('show');
+  overlay.querySelector('.gso-text').classList.remove('go');
+  // 先撒彩帶
+  var colors = ['#1A8AC0','#48B4E8','#F07840','#FFC845','#3CB371','#E05555','#9B59B6'];
+  var count = 90;
+  for (var i = 0; i < count; i++) {
+    var c = document.createElement('div');
+    c.className = 'gso-confetti';
+    var size = 6 + Math.random() * 8;
+    c.style.width = size + 'px';
+    c.style.height = (size * (0.4 + Math.random()*0.6)) + 'px';
+    c.style.left = (Math.random() * 100) + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    var duration = 1.8 + Math.random() * 1.4;
+    var delay = Math.random() * 0.5;
+    c.style.animationDuration = duration + 's';
+    c.style.animationDelay = delay + 's';
+    overlay.appendChild(c);
+  }
+  overlay.classList.add('show');
+  // 文字延遲後慢慢出現（先讓彩帶飄一下）
+  setTimeout(function() {
+    overlay.querySelector('.gso-text').classList.add('go');
+  }, 600);
+  // 整體顯示一段時間後淡出收掉
+  setTimeout(function() {
+    overlay.classList.remove('show');
+    overlay.querySelectorAll('.gso-confetti').forEach(function(el){ el.remove(); });
+  }, 3200);
+}
+
 async function doGrab(taskId, btn) {
   btn.disabled = true; btn.textContent = '搶單中…';
   try {
     const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
-    showToast(`搶單成功！您的編號 #${r.grab_no} 🎉`, 'success');
+    showGrabSuccessOverlay(r.grab_no);
     loadGrabZone();
     loadTasks(); // 更新進行中任務
   } catch(e) {

@@ -473,6 +473,17 @@ textarea.form-input{resize:none}
             <tbody id="xp-config-rows"></tbody>
           </table>
         </div>
+
+        <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-top:1.25rem;margin-bottom:.6rem">🏆 等級升級所需經驗值</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead><tr style="text-align:left;color:var(--text-s);border-bottom:1.5px solid var(--border)">
+              <th style="padding:.4rem .3rem">等級稱號</th><th style="padding:.4rem .3rem;width:120px">所需 XP</th>
+            </tr></thead>
+            <tbody id="xp-level-rows"></tbody>
+          </table>
+        </div>
+
         <button class="btn-primary" style="margin-top:.85rem;max-width:160px" onclick="saveXPConfig()">儲存 XP 設定</button>
       </div>
     </div>
@@ -1399,6 +1410,17 @@ async function loadXPConfig() {
         + '</tr>';
     }).join('');
     document.getElementById('xp-config-rows').innerHTML = rows || '<tr><td colspan="2" style="padding:.5rem;color:var(--text-s)">尚無任務紀錄</td></tr>';
+
+    var levelRows = (cfg.levels || []).map(function(l, i) {
+      var fixed = i === 0;
+      return '<tr style="border-bottom:1px solid var(--border)">'
+        + '<td style="padding:.35rem .3rem">Lv.' + l.level + ' ' + l.title + '</td>'
+        + '<td style="padding:.35rem .3rem">' + (fixed
+            ? '<span style="color:var(--text-s)">0（固定）</span>'
+            : '<input class="form-input" type="number" min="1" data-level="' + i + '" value="' + l.min + '" style="padding:.3rem .5rem">')
+        + '</td></tr>';
+    }).join('');
+    document.getElementById('xp-level-rows').innerHTML = levelRows;
   } catch(e) { console.error('loadXPConfig', e); }
 }
 async function saveXPConfig() {
@@ -1409,7 +1431,11 @@ async function saveXPConfig() {
       var v = parseInt(inp.value);
       if (v) taskDefaults[inp.dataset.task] = { title: inp.dataset.task, xpValue: v };
     });
-    await API.put('/api/admin/xp-config', { globalDefault, taskDefaults });
+    var levelThresholds = [0,0,0,0,0,0,0,0];
+    document.querySelectorAll('#xp-level-rows input[data-level]').forEach(function(inp) {
+      levelThresholds[parseInt(inp.dataset.level)] = parseInt(inp.value) || 0;
+    });
+    await API.put('/api/admin/xp-config', { globalDefault, taskDefaults, levelThresholds });
     showToast('XP 設定已儲存', 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }

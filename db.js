@@ -433,19 +433,27 @@ const LEVELS = [
   { level: 8, title: '傳說 Legend',       min: 16000, color: '#D85A30' },
 ];
 const LEVEL_THRESHOLDS = LEVELS.map(l => l.min);
-function calculateLevel(xp) {
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (xp >= LEVEL_THRESHOLDS[i]) return i + 1;
+function calculateLevel(xp, thresholds) {
+  const t = thresholds || LEVEL_THRESHOLDS;
+  for (let i = t.length - 1; i >= 0; i--) {
+    if (xp >= t[i]) return i + 1;
   }
   return 1;
 }
-function xpToNextLevel(xp) {
-  const level = calculateLevel(xp);
+function xpToNextLevel(xp, thresholds) {
+  const t = thresholds || LEVEL_THRESHOLDS;
+  const level = calculateLevel(xp, t);
   if (level >= LEVELS.length) return 0;
-  return LEVELS[level].min - xp;
+  return t[level] - xp;
 }
-function levelInfo(level) {
-  return LEVELS[Math.min(Math.max(level,1),LEVELS.length) - 1];
+function levelInfo(level, thresholds) {
+  const t = thresholds || LEVEL_THRESHOLDS;
+  const idx = Math.min(Math.max(level,1),LEVELS.length) - 1;
+  return { ...LEVELS[idx], min: t[idx] };
+}
+function getLevelsWithThresholds(thresholds) {
+  const t = thresholds || LEVEL_THRESHOLDS;
+  return LEVELS.map((l, i) => ({ ...l, min: t[i] }));
 }
 function getStreakMultiplier(streak) {
   if (streak >= 30) return 1.5;
@@ -467,12 +475,20 @@ const BADGES = [
 const XPConfig = {
   async get() {
     const doc = await db.collection('settings').doc('xpConfig').get();
-    return doc.exists ? doc.data() : { globalDefault: 10, taskDefaults: {} };
+    const data = doc.exists ? doc.data() : {};
+    return {
+      globalDefault: data.globalDefault || 10,
+      taskDefaults: data.taskDefaults || {},
+      levelThresholds: (Array.isArray(data.levelThresholds) && data.levelThresholds.length === LEVEL_THRESHOLDS.length)
+        ? data.levelThresholds : LEVEL_THRESHOLDS,
+    };
   },
-  async set(globalDefault, taskDefaults) {
-    await db.collection('settings').doc('xpConfig').set(
-      { globalDefault, taskDefaults }, { merge: true }
-    );
+  async set(globalDefault, taskDefaults, levelThresholds) {
+    const data = { globalDefault, taskDefaults };
+    if (Array.isArray(levelThresholds) && levelThresholds.length === LEVEL_THRESHOLDS.length) {
+      data.levelThresholds = levelThresholds.map((v,i) => i === 0 ? 0 : Math.max(1, parseInt(v) || LEVEL_THRESHOLDS[i]));
+    }
+    await db.collection('settings').doc('xpConfig').set(data, { merge: true });
   },
   getTaskXP(taskName, config) {
     return (config.taskDefaults && config.taskDefaults[taskName] && config.taskDefaults[taskName].xpValue)
@@ -537,8 +553,9 @@ async function grantTaskXP(userId, taskName, companyName) {
   const finalXP = Math.floor(baseXP * multiplier);
   const oldXP   = user.xp || 0;
   const newXP   = oldXP + finalXP;
-  const oldLevel = calculateLevel(oldXP);
-  const newLevel = calculateLevel(newXP);
+  const thresholds = config.levelThresholds || LEVEL_THRESHOLDS;
+  const oldLevel = calculateLevel(oldXP, thresholds);
+  const newLevel = calculateLevel(newXP, thresholds);
   const levelUp  = newLevel > oldLevel;
 
   await Users.update(userId, {
@@ -577,5 +594,5 @@ async function grantTaskXP(userId, taskName, companyName) {
 
 module.exports = {
   Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db, getTrafficStats,
-  LEVELS, calculateLevel, xpToNextLevel, levelInfo, getStreakMultiplier, BADGES, XPConfig, XPLogs, grantTaskXP,
+  LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, getStreakMultiplier, BADGES, XPConfig, XPLogs, grantTaskXP,
 };

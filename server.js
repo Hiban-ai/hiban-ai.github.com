@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, calculateLevel, xpToNextLevel, levelInfo, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
 
 // ── 記憶體快取（減少 Firestore 讀取次數）─────────────────────
 const _cache = {};
@@ -176,8 +176,10 @@ app.get('/api/me/xp', requireAuth, async (req, res) => {
   try {
     const u = await Users.byId(req.session.user.id);
     const xp = (u && u.xp) || 0;
-    const level = calculateLevel(xp);
-    const info = levelInfo(level);
+    const xpConfig = await XPConfig.get();
+    const thresholds = xpConfig.levelThresholds;
+    const level = calculateLevel(xp, thresholds);
+    const info = levelInfo(level, thresholds);
     const allLogs = await XPLogs.listByUser(req.session.user.id);
     // 本週統計（台灣時間，週一為一週開始）
     const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
@@ -189,12 +191,13 @@ app.get('/api/me/xp', requireAuth, async (req, res) => {
     });
     res.json({
       xp, level, levelTitle: info.title, levelColor: info.color,
-      xpToNext: xpToNextLevel(xp), levelMin: info.min,
+      xpToNext: xpToNextLevel(xp, thresholds), levelMin: info.min,
       streak: (u && u.streak) || 0,
       badges: (u && u.badges) || [],
       recentLogs: allLogs.slice(0, 5),
       weekCount: weekLogs.length,
       weekXP: weekLogs.reduce((s,l) => s + (l.xpFinal||0), 0),
+      levels: getLevelsWithThresholds(thresholds),
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -214,13 +217,13 @@ app.get('/api/admin/xp-config', requireRole('staff'), async (req, res) => {
       const ttSnap = await firestoreDb.collection('task_types').get();
       names = ttSnap.docs.map(d => d.data().name).filter(Boolean);
     }
-    res.json({ ...config, taskNames: names });
+    res.json({ ...config, taskNames: names, levels: getLevelsWithThresholds(config.levelThresholds) });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/admin/xp-config', requireRole('staff'), async (req, res) => {
   try {
-    const { globalDefault, taskDefaults } = req.body;
-    await XPConfig.set(globalDefault || 10, taskDefaults || {});
+    const { globalDefault, taskDefaults, levelThresholds } = req.body;
+    await XPConfig.set(globalDefault || 10, taskDefaults || {}, levelThresholds);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

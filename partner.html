@@ -198,16 +198,23 @@ textarea.form-input{resize:none}
 #grab-success-overlay .gso-sub{font-size:1rem;font-weight:700;color:#FFE9A8;text-shadow:0 1px 6px rgba(0,0,0,.3)}
 
 /* 任務冒險錄：完成動畫 */
-#task-complete-overlay{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,0);transition:background .3s}
-#task-complete-overlay.show{display:flex;background:rgba(20,30,50,.4)}
-#tco-card{background:#fff;border-radius:16px;padding:24px 28px;min-width:240px;max-width:88vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);opacity:0;transform:translateY(40px) scale(.95);transition:transform .3s;}
-#task-complete-overlay.show #tco-card{animation:cardSlideUp .4s cubic-bezier(.34,1.56,.64,1) forwards}
-#task-complete-overlay.shrink #tco-card{transform:scale(.85) translateY(0);opacity:1}
+#task-complete-overlay{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at center,rgba(72,180,232,0) 0%,rgba(20,30,50,0) 100%);transition:background .35s}
+#task-complete-overlay.show{display:flex;background:radial-gradient(circle at center,rgba(72,180,232,.35) 0%,rgba(20,30,50,.45) 70%)}
+#tco-card{position:relative;background:#fff;border-radius:18px;padding:28px 32px;min-width:260px;max-width:88vw;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.4);opacity:0;transform:translateY(40px) scale(.95);transition:transform .3s;overflow:hidden}
+#tco-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#1A8AC0,#48B4E8,#FFC845,#F07840)}
+#task-complete-overlay.show #tco-card{animation:cardSlideUp .45s cubic-bezier(.34,1.56,.64,1) forwards, cardGlow 1.6s ease-in-out .45s 2}
+#task-complete-overlay.shrink #tco-card{transform:scale(.85) translateY(0);opacity:1;animation:none}
 @keyframes cardSlideUp{from{opacity:0;transform:translateY(40px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)}}
-#tco-company{font-size:.75rem;color:var(--text-s);opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.1s}
-#tco-title{font-size:1.25rem;font-weight:800;color:var(--text);margin:.3rem 0;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.2s}
-#tco-congrats{font-size:1.05rem;color:var(--green,#3CB371);font-weight:700;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.3s}
+@keyframes cardGlow{0%,100%{box-shadow:0 16px 50px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.4)} 50%{box-shadow:0 16px 50px rgba(0,0,0,.3),0 0 0 6px rgba(255,200,69,.35)}}
+#tco-icon{font-size:2.6rem;line-height:1;margin-bottom:.3rem;opacity:0;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) forwards;animation-delay:.05s}
+@keyframes popIn{from{opacity:0;transform:scale(.3) rotate(-15deg)} to{opacity:1;transform:scale(1) rotate(0)}}
+#tco-company{font-size:.75rem;color:var(--text-s);opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.15s}
+#tco-title{font-size:1.3rem;font-weight:800;color:var(--text);margin:.3rem 0;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.25s}
+#tco-congrats{font-size:1.05rem;color:var(--green,#3CB371);font-weight:700;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.35s}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)}}
+#tco-sparkle-wrap{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.tco-sparkle{position:absolute;font-size:1.1rem;opacity:0;animation:sparklePop 1.1s ease-out forwards}
+@keyframes sparklePop{0%{opacity:0;transform:scale(.2) translateY(0) rotate(0)} 30%{opacity:1;transform:scale(1.1) translateY(-10px) rotate(20deg)} 100%{opacity:0;transform:scale(.6) translateY(-40px) rotate(60deg)}}
 #tco-xpfly{position:fixed;z-index:9999;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;font-weight:800;font-size:1.1rem;padding:.35rem 1rem;border-radius:999px;box-shadow:0 4px 14px rgba(240,120,64,.4);opacity:0;pointer-events:none}
 #tco-xpfly.fly{animation:xpFly .9s ease-in forwards}
 #tco-xpfly .tco-mult{display:block;font-size:.65rem;font-weight:700;opacity:.85;margin-top:.1rem}
@@ -255,6 +262,8 @@ textarea.form-input{resize:none}
 <!-- 任務冒險錄：完成動畫 -->
 <div id="task-complete-overlay">
   <div id="tco-card">
+    <div id="tco-sparkle-wrap"></div>
+    <div id="tco-icon">🏅</div>
     <div id="tco-company"></div>
     <div id="tco-title"></div>
     <div id="tco-congrats">🎉 恭喜完成！</div>
@@ -1546,15 +1555,34 @@ function animateXPBarTo(newInfo) {
   requestAnimationFrame(step);
 }
 
+function spawnSparkles(card) {
+  const wrap = document.getElementById('tco-sparkle-wrap');
+  wrap.innerHTML = '';
+  const icons = ['✨','⭐','💫','🌟'];
+  const rect = card.getBoundingClientRect();
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement('div');
+    s.className = 'tco-sparkle';
+    s.textContent = icons[Math.floor(Math.random()*icons.length)];
+    s.style.left = (10 + Math.random()*80) + '%';
+    s.style.top  = (10 + Math.random()*70) + '%';
+    s.style.animationDelay = (Math.random()*0.6) + 's';
+    wrap.appendChild(s);
+  }
+}
+
 async function playCompletionAnimation(data) {
   const overlay = document.getElementById('task-complete-overlay');
   const card = document.getElementById('tco-card');
+  const icons = ['🏅','🎯','🚀','⚡','🔥','🏆','💎'];
+  document.getElementById('tco-icon').textContent = data.levelUp ? '🏆' : icons[Math.floor(Math.random()*icons.length)];
   document.getElementById('tco-company').textContent = data.companyName || '';
   document.getElementById('tco-title').textContent = data.taskTitle || '';
 
   // 第一幕：完成祝賀
   overlay.classList.remove('shrink');
   overlay.classList.add('show');
+  spawnSparkles(card);
   await wait(1800);
 
   // 第二幕：XP 飛入
@@ -1574,7 +1602,11 @@ async function playCompletionAnimation(data) {
   if (data.levelUp) {
     await wait(900);
     showLevelUp(data.newLevel, data.newLevelTitle, data.newLevelColor);
+    showGrabSuccessOverlay(null); // 升等彩帶慶祝
+    document.getElementById('gso-grabno').textContent = '';
+    document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 升等！';
     await wait(1800);
+    document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 恭喜搶單成功！';
   } else {
     await wait(800);
   }

@@ -460,7 +460,10 @@ textarea.form-input{resize:none}
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
           <div style="font-size:.95rem;font-weight:800" id="gw-level-title">Lv.1 旅人 Wanderer</div>
-          <div style="font-size:.85rem;font-weight:700;color:var(--orange)" id="gw-streak">🔥 連續 0 天</div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div style="font-size:.85rem;font-weight:700;color:var(--orange)" id="gw-streak">🔥 連續 0 天</div>
+            <button onclick="openLevelsModal()" style="font-size:.72rem;font-weight:700;color:var(--orange);background:var(--bg);border:1.5px solid var(--border);border-radius:999px;padding:.15rem .6rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📜 等級階段</button>
+          </div>
         </div>
         <div style="background:var(--bg);border-radius:999px;height:14px;overflow:hidden;margin-bottom:.35rem">
           <div id="gw-xp-fill" style="width:0%;height:100%;border-radius:999px;background:var(--blue);transition:width .6s"></div>
@@ -473,16 +476,22 @@ textarea.form-input{resize:none}
         </div>
       </div>
       <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">📜 等級階段</div>
-        <div id="gw-levels" style="display:flex;flex-direction:column;gap:.4rem">載入中…</div>
-      </div>
-      <div class="card">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🕒 最近 XP 紀錄</div>
         <div id="gw-recent-logs" style="font-size:.8rem;color:var(--text-m)">載入中…</div>
       </div>
       <div class="card">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 已解鎖徽章</div>
         <div id="gw-badges" style="display:flex;flex-direction:column;gap:.5rem">載入中…</div>
+      </div>
+    </div>
+
+    <div class="detail-overlay" id="levels-overlay">
+      <div class="detail-box" style="border-top-color:var(--orange);width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">📜 等級階段</div>
+          <button onclick="closeLevelsModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div id="gw-levels" style="display:flex;flex-direction:column;gap:.4rem">載入中…</div>
       </div>
     </div>
 
@@ -1522,6 +1531,12 @@ async function loadXPInfo(initial) {
 }
 
 let _badgeDefs = null;
+function openLevelsModal() {
+  document.getElementById('levels-overlay').classList.add('open');
+}
+function closeLevelsModal() {
+  document.getElementById('levels-overlay').classList.remove('open');
+}
 async function loadGrowthPage() {
   try {
     const info = await API.get('/api/me/xp');

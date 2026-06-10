@@ -95,7 +95,7 @@ app.get('/api/users-list', async (req, res) => {
   if (!users) {
     try {
       users = await Users.all();
-      cacheSet(cacheKey, users, 5 * 60 * 1000); // 快取 5 分鐘
+      cacheSet(cacheKey, users, 30 * 60 * 1000); // 快取 30 分鐘
     } catch(e) {
       console.error('[users-list] Firestore error:', e.message);
       // 配額耗盡或其他錯誤：回傳空陣列，讓登入頁仍可顯示（不噴 500）
@@ -132,7 +132,7 @@ app.post('/api/login', async (req, res) => {
   } catch(e) {
     const msg = e.message || '';
     if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota')) {
-      return res.status(503).json({ error: '系統繁忙，請稍後再試（每日配額暫時耗盡，通常凌晨重置）' });
+      return res.status(503).json({ error: '系統繁忙，請稍後再試（每日配額暫時耗盡，約台灣時間下午重置）' });
     }
     res.status(500).json({ error: e.message });
   }

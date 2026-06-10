@@ -296,7 +296,12 @@ async function doLogin(role) {
 }
 
 function goToRole(role) {
-  const pages = { partner:'partner.html', supervisor:'supervisor.html', staff:'staff.html' };
+  const isMobile = /Android|iPhone|iPod/i.test(navigator.userAgent);
+  const pages = {
+    partner: isMobile ? 'partner-mobile.html' : 'partner.html',
+    supervisor: 'supervisor.html',
+    staff: 'staff.html'
+  };
   location.href = pages[role] || 'index.html';
 }
 

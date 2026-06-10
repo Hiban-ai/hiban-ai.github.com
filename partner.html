@@ -478,7 +478,7 @@ textarea.form-input{resize:none}
       </div>
       <div class="card">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 已解鎖徽章</div>
-        <div id="gw-badges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">載入中…</div>
+        <div id="gw-badges" style="display:flex;flex-direction:column;gap:.5rem">載入中…</div>
       </div>
     </div>
 
@@ -1547,9 +1547,12 @@ async function loadGrowthPage() {
     const unlocked = info.badges || [];
     document.getElementById('gw-badges').innerHTML = _badgeDefs.map(function(b) {
       var on = unlocked.includes(b.id);
-      return '<div title="' + b.condition + '" style="aspect-ratio:1;background:' + (on?'var(--yellow-p)':'var(--bg)') + ';border-radius:var(--rs);border:1.5px solid ' + (on?'var(--yellow)':'var(--border)') + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;' + (on?'':'opacity:.35') + '">'
-        + '<div style="font-size:1.5rem">' + (b.emoji || '🏅') + '</div>'
-        + '<div style="font-size:.6rem;font-weight:600;text-align:center;color:' + (on?'#8A6010':'var(--text-s)') + '">' + b.name + '</div>'
+      return '<div style="display:flex;align-items:center;gap:.6rem;background:' + (on?'var(--yellow-p)':'var(--bg)') + ';border-radius:var(--rs);border:1.5px solid ' + (on?'var(--yellow)':'var(--border)') + ';padding:.5rem .7rem;' + (on?'':'opacity:.5') + '">'
+        + '<div style="font-size:1.5rem;flex-shrink:0">' + (b.emoji || '🏅') + '</div>'
+        + '<div>'
+        + '<div style="font-size:.8rem;font-weight:700;color:' + (on?'#8A6010':'var(--text-m)') + '">' + b.name + '</div>'
+        + '<div style="font-size:.7rem;color:var(--text-s);margin-top:.1rem">' + b.condition + '</div>'
+        + '</div>'
         + '</div>';
     }).join('');
   } catch(e) { console.warn('loadGrowthPage', e.message); }

@@ -186,6 +186,28 @@ textarea.form-input{resize:none}
 }
 @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100vw)}}
 </style>
+<!-- Firebase SDK for real-time onSnapshot -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  window._fsListeners = [];
+  window._initFirestore = async function(meId) {
+    try {
+      const cfg = await fetch('/api/firebase-config').then(r=>r.json());
+      if (!cfg.apiKey) { console.warn('[onSnapshot] FIREBASE_WEB_API_KEY 未設定，略過'); return; }
+      const app = initializeApp(cfg, 'hiban-client');
+      const db  = getFirestore(app);
+      const assignQ = query(collection(db, 'assignments'), where('accepted_by', '==', meId), where('status', '==', 'accepted'));
+      const u1 = onSnapshot(assignQ, snap => { if (typeof loadTasks === 'function') loadTasks(); }, err => console.warn('[onSnapshot] assignments', err.message));
+      const grabQ = query(collection(db, 'grab_tasks'), where('status', '==', 'open'));
+      const u2 = onSnapshot(grabQ, snap => { if (typeof loadGrabZone === 'function') loadGrabZone(); }, err => console.warn('[onSnapshot] grab_tasks', err.message));
+      const pendQ = query(collection(db, 'assignments'), where('assigned_to', '==', meId), where('status', '==', 'pending'));
+      const u3 = onSnapshot(pendQ, snap => { if (typeof loadTasks === 'function') loadTasks(); }, err => console.warn('[onSnapshot] pending', err.message));
+      window._fsListeners = [u1, u2, u3];
+      console.log('[onSnapshot] 即時監聽已啟動');
+    } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }
+  };
+</script>
 </head>
 <body>
 

@@ -487,23 +487,23 @@ textarea.form-input{resize:none}
         <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.6">設定申請加入時顯示的合約條款，夥伴需捲動至底部並勾選同意後才能繼續申請。</div>
         <div id="contract-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem"></div>
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin-bottom:.5rem">
-          <button type="button" onclick="ctWrap('**','**')" title="粗體" style="width:34px;height:34px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-weight:700;font-size:.9rem">B</button>
-          <select id="ct-size" onchange="ctApplySize(this.value)" title="文字大小" style="height:34px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.82rem;padding:0 .4rem">
+          <button type="button" onmousedown="event.preventDefault();ctExec('bold')" title="粗體" style="width:34px;height:34px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-weight:700;font-size:.9rem">B</button>
+          <select id="ct-size" onmousedown="ctSaveSelection()" onchange="ctApplySize(this.value)" title="文字大小" style="height:34px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.82rem;padding:0 .4rem">
             <option value="">字級</option>
             <option value="0.85em">小</option>
             <option value="1em">中</option>
             <option value="1.3em">大</option>
             <option value="1.6em">特大</option>
           </select>
-          <button type="button" onclick="ctInsertDivider()" title="分隔線" style="height:34px;padding:0 .7rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.85rem">分隔線</button>
-          <button type="button" onclick="ctWrap('[center]','[/center]')" title="置中" style="height:34px;padding:0 .7rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.85rem">置中</button>
+          <button type="button" onmousedown="event.preventDefault();ctExec('insertHorizontalRule')" title="分隔線" style="height:34px;padding:0 .7rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.85rem">分隔線</button>
+          <button type="button" onmousedown="event.preventDefault();ctExec('justifyCenter')" title="置中" style="height:34px;padding:0 .7rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.85rem">置中</button>
+          <button type="button" onmousedown="event.preventDefault();ctExec('justifyLeft')" title="靠左" style="height:34px;padding:0 .7rem;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.85rem">靠左</button>
         </div>
-        <div style="font-size:.75rem;color:var(--text-s);margin-bottom:.5rem">提示：選取文字後可設定<strong>粗體</strong>或<strong>字級</strong>；分隔線會獨立成一整行。</div>
-        <textarea id="contract-text"
-          placeholder="請輸入合約條款內容..."
-          style="width:100%;min-height:320px;padding:.85rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);line-height:1.8;resize:vertical;background:#fff;transition:border .2s;outline:none"
+        <div style="font-size:.75rem;color:var(--text-s);margin-bottom:.5rem">提示：選取文字後可設定<strong>粗體</strong>、<strong>字級</strong>或<strong>對齊</strong>，所見即所得。</div>
+        <div id="contract-text" contenteditable="true"
+          style="width:100%;min-height:320px;padding:.85rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);line-height:1.8;background:#fff;transition:border .2s;outline:none;overflow-y:auto"
           onfocus="this.style.borderColor='var(--blue)'"
-          onblur="this.style.borderColor='var(--border)'"></textarea>
+          onblur="this.style.borderColor='var(--border)'"></div>
         <div style="display:flex;gap:.5rem;margin-top:.85rem">
           <button onclick="saveContract()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.25);transition:all .25s">儲存合約</button>
           <button onclick="cancelContract()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
@@ -1381,7 +1381,7 @@ async function loadSystemSettings() {
   try {
     const data = await API.get('/api/system/contract');
     contractOriginal = data.text || '';
-    document.getElementById('contract-text').value = contractOriginal;
+    document.getElementById('contract-text').innerHTML = contractOriginal;
     document.getElementById('contract-err').style.display = 'none';
   } catch(e) { /* silently fail */ }
   loadXPConfig();
@@ -1414,7 +1414,7 @@ async function saveXPConfig() {
   } catch(e) { showToast(e.message, 'error'); }
 }
 async function saveContract() {
-  const text = document.getElementById('contract-text').value;
+  const text = document.getElementById('contract-text').innerHTML;
   const errEl = document.getElementById('contract-err');
   errEl.style.display = 'none';
   try {
@@ -1426,40 +1426,40 @@ async function saveContract() {
     errEl.style.display = 'block';
   }
 }
-function ctWrap(before, after) {
-  const ta = document.getElementById('contract-text');
-  const s = ta.selectionStart, e = ta.selectionEnd;
-  const sel = ta.value.slice(s, e) || '文字';
-  ta.value = ta.value.slice(0, s) + before + sel + after + ta.value.slice(e);
-  ta.focus();
-  ta.selectionStart = s + before.length;
-  ta.selectionEnd = s + before.length + sel.length;
+function ctExec(cmd) {
+  document.getElementById('contract-text').focus();
+  document.execCommand(cmd, false, null);
+}
+let _ctSavedRange = null;
+function ctSaveSelection() {
+  const sel = window.getSelection();
+  if (sel.rangeCount && document.getElementById('contract-text').contains(sel.anchorNode)) {
+    _ctSavedRange = sel.getRangeAt(0);
+  }
 }
 function ctApplySize(size) {
   if (!size) return;
   const ta = document.getElementById('contract-text');
-  const s = ta.selectionStart, e = ta.selectionEnd;
-  const sel = ta.value.slice(s, e) || '文字';
-  const before = '[size=' + size + ']', after = '[/size]';
-  ta.value = ta.value.slice(0, s) + before + sel + after + ta.value.slice(e);
   ta.focus();
-  ta.selectionStart = s + before.length;
-  ta.selectionEnd = s + before.length + sel.length;
+  const sel = window.getSelection();
+  if (_ctSavedRange) {
+    sel.removeAllRanges();
+    sel.addRange(_ctSavedRange);
+  }
+  if (sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+    const range = sel.getRangeAt(0);
+    const span = document.createElement('span');
+    span.style.fontSize = size;
+    try { range.surroundContents(span); } catch(e) {
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+    }
+  }
   document.getElementById('ct-size').value = '';
-}
-function ctInsertDivider() {
-  const ta = document.getElementById('contract-text');
-  const s = ta.selectionStart;
-  const before = ta.value.slice(0, s);
-  const needsNL = before.length && !before.endsWith('\n');
-  const insert = (needsNL ? '\n' : '') + '---\n';
-  ta.value = before + insert + ta.value.slice(ta.selectionEnd);
-  ta.focus();
-  const pos = s + insert.length;
-  ta.selectionStart = ta.selectionEnd = pos;
+  _ctSavedRange = null;
 }
 function cancelContract() {
-  document.getElementById('contract-text').value = contractOriginal;
+  document.getElementById('contract-text').innerHTML = contractOriginal;
   document.getElementById('contract-err').style.display = 'none';
   closeSettingModal('contract');
 }

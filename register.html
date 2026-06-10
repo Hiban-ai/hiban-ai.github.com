@@ -131,7 +131,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="card-desc">請仔細閱讀以下合約條款，捲動至最下方後勾選同意，才能繼續申請。</div>
     <div id="contract-loading" style="text-align:center;padding:2rem;color:var(--text-s);font-size:.85rem">載入中...</div>
     <div id="contract-scroll-wrap"
-      style="display:none;height:340px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--rs);padding:1rem 1.1rem;background:#fff;font-size:.85rem;line-height:1.9;color:var(--text-m);white-space:pre-wrap;overflow-wrap:break-word"
+      style="display:none;height:340px;overflow-y:auto;border:1.5px solid var(--border);border-radius:var(--rs);padding:1rem 1.1rem;background:#fff;font-size:.85rem;line-height:1.9;color:var(--text-m);overflow-wrap:break-word"
       onscroll="onContractScroll(this)">
     </div>
     <div style="margin-top:.85rem;display:flex;align-items:flex-start;gap:.6rem">
@@ -799,14 +799,18 @@ async function loadContract() {
     const loading = document.getElementById('contract-loading');
     loading.style.display = 'none';
     wrap.style.display = 'block';
-    const text = (data.text || '').replace(/^\n+|\s+$/g, '');
+    const text = (data.text || '').trim();
     if (text) {
-      const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      wrap.innerHTML = esc
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\[size=([\d.]+em)\](.+?)\[\/size\]/g, '<span style="font-size:$1">$2</span>')
-        .replace(/\[center\]([\s\S]+?)\[\/center\]/g, '<div style="text-align:center">$1</div>')
-        .replace(/^---\n?/gm, '<hr style="border:none;border-top:1.5px solid var(--border);margin:.6rem 0">');
+      // 移除可能的 script/事件屬性，避免不安全內容
+      const tmp = document.createElement('div');
+      tmp.innerHTML = text;
+      tmp.querySelectorAll('script,style,iframe,object,embed').forEach(el => el.remove());
+      tmp.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(attr => {
+          if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+        });
+      });
+      wrap.innerHTML = tmp.innerHTML;
     } else {
       wrap.innerHTML = '<span style="color:var(--text-s);font-style:italic">（目前尚無合約內容，請直接勾選同意繼續）</span>';
       // 無合約內容時直接允許勾選

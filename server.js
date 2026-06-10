@@ -205,11 +205,16 @@ app.get('/api/badges', requireAuth, (req, res) => res.json(BADGES));
 app.get('/api/admin/xp-config', requireRole('staff'), async (req, res) => {
   try {
     const config = await XPConfig.get();
-    // 列出近期任務名稱供設定（去重）
-    const snap = await firestoreDb.collection('assignments').get();
-    const names = new Set();
-    snap.docs.forEach(d => { const t = d.data().task_name; if (t) names.add(t); });
-    res.json({ ...config, taskNames: [...names] });
+    // 任務名稱與督導設定的任務類型一致
+    let names = [];
+    try {
+      const ttSnap = await firestoreDb.collection('task_types').orderBy('sort','asc').get();
+      names = ttSnap.docs.map(d => d.data().name).filter(Boolean);
+    } catch {
+      const ttSnap = await firestoreDb.collection('task_types').get();
+      names = ttSnap.docs.map(d => d.data().name).filter(Boolean);
+    }
+    res.json({ ...config, taskNames: names });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.put('/api/admin/xp-config', requireRole('staff'), async (req, res) => {

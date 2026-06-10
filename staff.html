@@ -443,8 +443,23 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-settings">
       <div class="page-title">⚙️ 系統設定</div>
       <div class="card" style="max-width:680px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">🎮 任務經驗值設定（任務冒險錄）</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <button onclick="openSettingModal('xp')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span>🎮 任務經驗值設定（任務冒險錄）</span><span style="color:var(--text-s)">›</span>
+          </button>
+          <button onclick="openSettingModal('contract')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span>📄 合約設定</span><span style="color:var(--text-s)">›</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- XP 設定 overlay -->
+    <div class="detail-overlay" id="xp-setting-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:560px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🎮 任務經驗值設定（任務冒險錄）</div>
+          <button onclick="closeSettingModal('xp')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
         </div>
         <div class="form-group" style="max-width:240px">
           <label class="form-label">全域預設 XP（未個別設定的任務）</label>
@@ -460,9 +475,14 @@ textarea.form-input{resize:none}
         </div>
         <button class="btn-primary" style="margin-top:.85rem;max-width:160px" onclick="saveXPConfig()">儲存 XP 設定</button>
       </div>
-      <div class="card" style="max-width:600px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">📄 合約設定</div>
+    </div>
+
+    <!-- 合約設定 overlay -->
+    <div class="detail-overlay" id="contract-setting-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:600px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">📄 合約設定</div>
+          <button onclick="closeSettingModal('contract')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
         </div>
         <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.6">設定申請加入時顯示的合約條款，夥伴需捲動至底部並勾選同意後才能繼續申請。</div>
         <div id="contract-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem"></div>
@@ -1337,6 +1357,12 @@ async function submitCreateUser() {
 }
 
 // ── 系統設定 ──────────────────────────────────────────────────
+function openSettingModal(name) {
+  document.getElementById(name + '-setting-overlay').classList.add('open');
+}
+function closeSettingModal(name) {
+  document.getElementById(name + '-setting-overlay').classList.remove('open');
+}
 let contractOriginal = '';
 async function loadSystemSettings() {
   try {
@@ -1390,6 +1416,7 @@ async function saveContract() {
 function cancelContract() {
   document.getElementById('contract-text').value = contractOriginal;
   document.getElementById('contract-err').style.display = 'none';
+  closeSettingModal('contract');
 }
 
 // ── 個人資料 — 基本資料 ──

@@ -455,12 +455,12 @@ function getStreakMultiplier(streak) {
 }
 
 const BADGES = [
-  { id: 'first_fire',    name: '起火者',     category: 'start',  icon: 'flame',          condition: '完成第一次任務回報' },
-  { id: 'century_tasks', name: '日日不缺',   category: 'daily',  icon: 'checkbox',       condition: '累計完成 100 次任務' },
-  { id: 'streak_7',      name: '七日不輟',   category: 'streak', icon: 'calendar-check', condition: '連續 7 天各完成至少一項任務' },
-  { id: 'streak_30',     name: '月圓不息',   category: 'streak', icon: 'moon',           condition: '連續 30 天維持 streak' },
-  { id: 'streak_100',    name: '百日鍛造',   category: 'streak', icon: 'shield',         condition: '連續 100 天維持 streak' },
-  { id: 'legend_born',   name: '傳說誕生',   category: 'legend', icon: 'star',           condition: '達到 Lv.8 傳說等級（累計 16,000 XP）' },
+  { id: 'first_fire',    name: '起火者',     category: 'start',  icon: 'flame',          emoji: '🔥', condition: '完成第一次任務回報' },
+  { id: 'century_tasks', name: '日日不缺',   category: 'daily',  icon: 'checkbox',       emoji: '✅', condition: '累計完成 100 次任務' },
+  { id: 'streak_7',      name: '七日不輟',   category: 'streak', icon: 'calendar-check', emoji: '📅', condition: '連續 7 天各完成至少一項任務' },
+  { id: 'streak_30',     name: '月圓不息',   category: 'streak', icon: 'moon',           emoji: '🌙', condition: '連續 30 天維持 streak' },
+  { id: 'streak_100',    name: '百日鍛造',   category: 'streak', icon: 'shield',         emoji: '🛡️', condition: '連續 100 天維持 streak' },
+  { id: 'legend_born',   name: '傳說誕生',   category: 'legend', icon: 'star',           emoji: '⭐', condition: '達到 Lv.8 傳說等級（累計 16,000 XP）' },
 ];
 
 // settings/xpConfig

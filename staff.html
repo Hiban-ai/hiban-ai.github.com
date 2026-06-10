@@ -442,6 +442,24 @@ textarea.form-input{resize:none}
 
     <div class="page-section" id="page-settings">
       <div class="page-title">⚙️ 系統設定</div>
+      <div class="card" style="max-width:680px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+          <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">🎮 任務經驗值設定（任務冒險錄）</div>
+        </div>
+        <div class="form-group" style="max-width:240px">
+          <label class="form-label">全域預設 XP（未個別設定的任務）</label>
+          <input class="form-input" type="number" id="xp-global-default" min="1" max="500" value="10">
+        </div>
+        <div style="overflow-x:auto;margin-top:.5rem">
+          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead><tr style="text-align:left;color:var(--text-s);border-bottom:1.5px solid var(--border)">
+              <th style="padding:.4rem .3rem">任務名稱</th><th style="padding:.4rem .3rem;width:120px">XP 值</th>
+            </tr></thead>
+            <tbody id="xp-config-rows"></tbody>
+          </table>
+        </div>
+        <button class="btn-primary" style="margin-top:.85rem;max-width:160px" onclick="saveXPConfig()">儲存 XP 設定</button>
+      </div>
       <div class="card" style="max-width:600px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
           <div style="font-size:.9rem;font-weight:700;color:var(--text-m)">📄 合約設定</div>
@@ -1327,6 +1345,34 @@ async function loadSystemSettings() {
     document.getElementById('contract-text').value = contractOriginal;
     document.getElementById('contract-err').style.display = 'none';
   } catch(e) { /* silently fail */ }
+  loadXPConfig();
+}
+async function loadXPConfig() {
+  try {
+    const cfg = await API.get('/api/admin/xp-config');
+    document.getElementById('xp-global-default').value = cfg.globalDefault || 10;
+    var defaults = cfg.taskDefaults || {};
+    var rows = (cfg.taskNames || []).map(function(name) {
+      var v = (defaults[name] && defaults[name].xpValue) || '';
+      return '<tr style="border-bottom:1px solid var(--border)">'
+        + '<td style="padding:.35rem .3rem">' + name + '</td>'
+        + '<td style="padding:.35rem .3rem"><input class="form-input" type="number" min="1" max="500" placeholder="預設" data-task="' + name.replace(/"/g,'&quot;') + '" value="' + v + '" style="padding:.3rem .5rem"></td>'
+        + '</tr>';
+    }).join('');
+    document.getElementById('xp-config-rows').innerHTML = rows || '<tr><td colspan="2" style="padding:.5rem;color:var(--text-s)">尚無任務紀錄</td></tr>';
+  } catch(e) { console.error('loadXPConfig', e); }
+}
+async function saveXPConfig() {
+  try {
+    var globalDefault = parseInt(document.getElementById('xp-global-default').value) || 10;
+    var taskDefaults = {};
+    document.querySelectorAll('#xp-config-rows input[data-task]').forEach(function(inp) {
+      var v = parseInt(inp.value);
+      if (v) taskDefaults[inp.dataset.task] = { title: inp.dataset.task, xpValue: v };
+    });
+    await API.put('/api/admin/xp-config', { globalDefault, taskDefaults });
+    showToast('XP 設定已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
 }
 async function saveContract() {
   const text = document.getElementById('contract-text').value;

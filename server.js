@@ -178,13 +178,23 @@ app.get('/api/me/xp', requireAuth, async (req, res) => {
     const xp = (u && u.xp) || 0;
     const level = calculateLevel(xp);
     const info = levelInfo(level);
-    const logs = await XPLogs.listByUser(req.session.user.id, 5);
+    const allLogs = await XPLogs.listByUser(req.session.user.id);
+    // 本週統計（台灣時間，週一為一週開始）
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    const dow = (now.getDay() + 6) % 7; // 0=週一
+    const monday = new Date(now); monday.setHours(0,0,0,0); monday.setDate(now.getDate() - dow);
+    const weekLogs = allLogs.filter(l => {
+      const t = new Date((l.timestamp||'').replace(/\//g,'-').replace(' ','T'));
+      return t >= monday;
+    });
     res.json({
       xp, level, levelTitle: info.title, levelColor: info.color,
       xpToNext: xpToNextLevel(xp), levelMin: info.min,
       streak: (u && u.streak) || 0,
       badges: (u && u.badges) || [],
-      recentLogs: logs,
+      recentLogs: allLogs.slice(0, 5),
+      weekCount: weekLogs.length,
+      weekXP: weekLogs.reduce((s,l) => s + (l.xpFinal||0), 0),
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

@@ -251,7 +251,9 @@ textarea.form-input{resize:none}
       const u2 = onSnapshot(grabQ, snap => { if (typeof loadGrabZone === 'function') loadGrabZone(); }, err => console.warn('[onSnapshot] grab_tasks', err.message));
       const pendQ = query(collection(db, 'assignments'), where('assigned_to', '==', meId), where('status', '==', 'pending'));
       const u3 = onSnapshot(pendQ, snap => { if (typeof loadTasks === 'function') loadTasks(); }, err => console.warn('[onSnapshot] pending', err.message));
-      window._fsListeners = [u1, u2, u3];
+      const xpQ = query(collection(db, 'xp_logs'), where('userId', '==', meId));
+      const u4 = onSnapshot(xpQ, snap => { if (typeof checkNewXPLog === 'function') checkNewXPLog(); }, err => console.warn('[onSnapshot] xp_logs', err.message));
+      window._fsListeners = [u1, u2, u3, u4];
       console.log('[onSnapshot] 即時監聽已啟動');
     } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }
   };
@@ -456,24 +458,27 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-growth">
       <div class="page-title">🏆 成長</div>
       <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏆 職業成長</div>
-        <div style="font-size:.78rem;font-weight:600;color:var(--text-m);margin-bottom:.75rem">升級路線（文字系）</div>
-        <div style="display:flex;align-items:center;overflow-x:auto;gap:0">
-          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">🌱</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">初心者</div></div>
-          <div style="flex:1;height:2px;background:var(--blue);min-width:16px"></div>
-          <div style="text-align:center;min-width:64px;flex-shrink:0"><div style="font-size:1.1rem">⚔️</div><div style="font-size:.65rem;font-weight:700;color:var(--blue-d)">文字學徒</div><div style="font-size:.52rem;color:var(--text-s)">$1,000</div></div>
-          <div style="flex:1;height:1px;background:var(--border);min-width:16px"></div>
-          <div style="text-align:center;min-width:64px;flex-shrink:0;opacity:.5"><div style="font-size:1.1rem">🗡️</div><div style="font-size:.65rem;font-weight:700">文字劍士</div><div style="font-size:.52rem;color:var(--text-s)">$10,000</div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+          <div style="font-size:.95rem;font-weight:800" id="gw-level-title">Lv.1 旅人 Wanderer</div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--orange)" id="gw-streak">🔥 連續 0 天</div>
+        </div>
+        <div style="background:var(--bg);border-radius:999px;height:14px;overflow:hidden;margin-bottom:.35rem">
+          <div id="gw-xp-fill" style="width:0%;height:100%;border-radius:999px;background:var(--blue);transition:width .6s"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--text-s)" id="gw-xp-text">0 / 0 XP</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.85rem;text-align:center">
+          <div style="background:var(--bg);border-radius:var(--rs);padding:.5rem"><div style="font-size:1.1rem;font-weight:800" id="gw-week-count">0</div><div style="font-size:.65rem;color:var(--text-s)">本週完成</div></div>
+          <div style="background:var(--bg);border-radius:var(--rs);padding:.5rem"><div style="font-size:1.1rem;font-weight:800" id="gw-week-xp">0</div><div style="font-size:.65rem;color:var(--text-s)">本週獲得XP</div></div>
+          <div style="background:var(--bg);border-radius:var(--rs);padding:.5rem"><div style="font-size:1.1rem;font-weight:800" id="gw-streak-num">0</div><div style="font-size:.65rem;color:var(--text-s)">連續天數</div></div>
         </div>
       </div>
       <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 勳章</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
-          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">🌅</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">早鳥</div></div>
-          <div style="aspect-ratio:1;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem"><div style="font-size:1.5rem">⚔️</div><div style="font-size:.6rem;color:#8A6010;font-weight:600;text-align:center">第一任務</div></div>
-          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">🔥</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">連續7天</div></div>
-          <div style="aspect-ratio:1;background:var(--bg);border-radius:var(--rs);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;opacity:.3"><div style="font-size:1.5rem">🛡️</div><div style="font-size:.6rem;color:var(--text-s);text-align:center">鐵人30天</div></div>
-        </div>
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🕒 最近 XP 紀錄</div>
+        <div id="gw-recent-logs" style="font-size:.8rem;color:var(--text-m)">載入中…</div>
+      </div>
+      <div class="card">
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">🏅 已解鎖徽章</div>
+        <div id="gw-badges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">載入中…</div>
       </div>
     </div>
 
@@ -741,6 +746,7 @@ function switchPage(name, el) {
     try { renderAnnList(); } catch(e) {}
   }
   if (name === 'issues') loadIssuesPt();
+  if (name === 'growth') loadGrowthPage();
 }
 
 // ── 日期格式化 ────────────────────────────────────────────────
@@ -1511,6 +1517,44 @@ async function loadXPInfo(initial) {
   } catch(e) { console.warn('loadXPInfo', e.message); }
 }
 
+let _badgeDefs = null;
+async function loadGrowthPage() {
+  try {
+    const info = await API.get('/api/me/xp');
+    _xpInfo = info;
+    if (!_badgeDefs) _badgeDefs = await API.get('/api/badges');
+    document.getElementById('gw-level-title').textContent = 'Lv.' + info.level + ' ' + info.levelTitle;
+    document.getElementById('gw-streak').textContent = '🔥 連續 ' + (info.streak||0) + ' 天';
+    document.getElementById('gw-streak-num').textContent = info.streak || 0;
+    document.getElementById('gw-week-count').textContent = info.weekCount || 0;
+    document.getElementById('gw-week-xp').textContent = info.weekXP || 0;
+    const span = info.xpToNext > 0 ? (info.xp - info.levelMin) + info.xpToNext : 1;
+    const cur  = info.xp - info.levelMin;
+    const ratio = info.xpToNext > 0 ? Math.min(100, Math.max(0, Math.round(cur / span * 100))) : 100;
+    document.getElementById('gw-xp-fill').style.width = ratio + '%';
+    document.getElementById('gw-xp-fill').style.background = info.levelColor;
+    document.getElementById('gw-xp-text').textContent =
+      info.xpToNext > 0 ? (cur + ' / ' + span + ' XP（距下一等級 ' + info.xpToNext + ' XP）') : (info.xp + ' XP（已達最高等級）');
+
+    const logs = info.recentLogs || [];
+    document.getElementById('gw-recent-logs').innerHTML = logs.length ? logs.map(function(l) {
+      return '<div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)">'
+        + '<span>' + (l.companyName ? l.companyName + '：' : '') + (l.taskTitle||'') + '</span>'
+        + '<span style="color:var(--orange);font-weight:700">+' + l.xpFinal + ' XP</span>'
+        + '</div>';
+    }).join('') : '<div style="color:var(--text-s)">尚無紀錄</div>';
+
+    const unlocked = info.badges || [];
+    document.getElementById('gw-badges').innerHTML = _badgeDefs.map(function(b) {
+      var on = unlocked.includes(b.id);
+      return '<div title="' + b.condition + '" style="aspect-ratio:1;background:' + (on?'var(--yellow-p)':'var(--bg)') + ';border-radius:var(--rs);border:1.5px solid ' + (on?'var(--yellow)':'var(--border)') + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem;' + (on?'':'opacity:.35') + '">'
+        + '<div style="font-size:1.5rem">' + (b.emoji || '🏅') + '</div>'
+        + '<div style="font-size:.6rem;font-weight:600;text-align:center;color:' + (on?'#8A6010':'var(--text-s)') + '">' + b.name + '</div>'
+        + '</div>';
+    }).join('');
+  } catch(e) { console.warn('loadGrowthPage', e.message); }
+}
+
 function renderXPBar(info) {
   const wrap = document.getElementById('pt-exp-wrap');
   const fill = document.getElementById('pt-exp-fill');
@@ -1737,7 +1781,7 @@ async function init() {
   document.getElementById('char-realname-sidebar').textContent = me.real_name;
   loadAvatar(me.id);
   loadXPInfo(true);
-  setInterval(checkNewXPLog, 15000); // 每15秒檢查是否有新的 XP 紀錄（觸發完成動畫）
+  setInterval(checkNewXPLog, 60000); // 每60秒檢查是否有新的 XP 紀錄（備援，主要靠 onSnapshot）
   if (window._initFirestore) window._initFirestore(meId); // 啟動即時監聽
   // 本月登入天數
   var loginDates = me.login_dates || [];

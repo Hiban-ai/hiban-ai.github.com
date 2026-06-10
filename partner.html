@@ -1540,7 +1540,6 @@ async function loadGrowthPage() {
     _xpInfo = info;
     if (!_badgeDefs) _badgeDefs = await API.get('/api/badges');
     document.getElementById('gw-level-title').textContent = 'Lv.' + info.level + ' ' + info.levelTitle;
-    document.getElementById('gw-streak').textContent = '🔥 連續 ' + (info.streak||0) + ' 天';
     document.getElementById('gw-streak-num').textContent = info.streak || 0;
     document.getElementById('gw-week-count').textContent = info.weekCount || 0;
     document.getElementById('gw-week-xp').textContent = info.weekXP || 0;

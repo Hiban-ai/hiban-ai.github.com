@@ -1934,7 +1934,11 @@ async function checkNewGrabTasks() {
 
 function showNextGrabAlert() {
   const t = _grabAlertQueue.shift();
-  if (!t) { _grabAlertShowing = false; _grabAlertCurrentId = null; return; }
+  if (!t) {
+    _grabAlertShowing = false; _grabAlertCurrentId = null;
+    if (!_assignAlertShowing) showNextAssignAlert(); // 搶單佇列清空後才輪到指派任務通知
+    return;
+  }
   _grabAlertShowing = true;
   _grabAlertCurrentId = t.id;
 
@@ -2042,6 +2046,8 @@ async function checkNewAssignments() {
 }
 
 function showNextAssignAlert() {
+  // 搶單動畫優先：若搶單通知正在顯示或還有排隊，先讓搶單跑完
+  if (_grabAlertShowing || _grabAlertQueue.length) { _assignAlertShowing = false; return; }
   const a = _assignAlertQueue.shift();
   if (!a) { _assignAlertShowing = false; return; }
   _assignAlertShowing = true;

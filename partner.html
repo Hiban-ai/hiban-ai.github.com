@@ -219,6 +219,36 @@ textarea.form-input{resize:none}
 #gae-card .gae-btn-grab{background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;box-shadow:0 4px 12px rgba(26,112,160,.3)}
 #gae-card .gae-btn-cancel{background:#f0f0f0;color:var(--text-m)}
 
+/* 飛鴿傳書：新指派任務通知 */
+#assign-alert-overlay{position:fixed;inset:0;z-index:10001;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,.55);backdrop-filter:blur(3px);overflow:hidden}
+#assign-alert-overlay.show{display:flex}
+#aa-pigeon{position:absolute;top:38%;left:50%;font-size:5rem;transform:translate(120vw,-40px) rotate(-8deg);filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))}
+#aa-pigeon.fly-in{animation:aa-flyin 1.2s cubic-bezier(.25,.6,.3,1) forwards}
+#aa-pigeon.fly-out{animation:aa-flyout 1s cubic-bezier(.5,0,.75,0) forwards}
+@keyframes aa-flyin{
+  0%{transform:translate(120vw,-40px) rotate(-8deg)}
+  70%{transform:translate(-50%,-10px) rotate(2deg)}
+  85%{transform:translate(-50%,6px) rotate(-2deg)}
+  100%{transform:translate(-50%,0) rotate(0)}
+}
+@keyframes aa-flyout{
+  0%{transform:translate(-50%,0) rotate(0);opacity:1}
+  100%{transform:translate(-180vw,-120px) rotate(-12deg);opacity:0}
+}
+#aa-envelope{position:absolute;top:50%;left:50%;width:320px;height:210px;max-width:90vw;transform:translate(-50%,40px) scale(.4);opacity:0;transition:transform .5s cubic-bezier(.34,1.56,.64,1),opacity .4s ease}
+#aa-envelope.drop{transform:translate(-50%,40px) scale(1);opacity:1}
+#aa-envelope.hide{opacity:0;transform:translate(-50%,40px) scale(.85)}
+#aa-envelope .gae-body{position:absolute;inset:0;background:linear-gradient(135deg,#fdf6e3,#f3e2c0);border-radius:14px;box-shadow:0 16px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #d8c49a;text-align:center;padding:1rem;gap:.6rem}
+#aa-envelope .gae-back-icon{font-size:6rem}
+#aa-envelope .gae-back-text{font-size:2rem;font-weight:800;color:#8a6d3b;font-family:'Noto Serif TC',serif}
+#aa-envelope .aa-open-btn{padding:.6rem 1.6rem;border:none;border-radius:20px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;box-shadow:0 4px 12px rgba(26,112,160,.3)}
+#aa-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);background:#fff;border-radius:18px;padding:1.6rem 1.8rem;width:340px;max-width:90vw;box-shadow:0 24px 70px rgba(0,0,0,.4);opacity:0;transition:opacity .4s ease,transform .4s cubic-bezier(.34,1.56,.64,1);border-top:6px solid var(--blue);pointer-events:none}
+#aa-card.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#aa-card .gae-card-title{font-family:'Noto Serif TC',serif;font-size:1.15rem;font-weight:800;margin-bottom:.7rem;color:var(--text)}
+#aa-card .gae-card-row{font-size:.88rem;color:var(--text-m);margin-bottom:.45rem;line-height:1.6}
+#aa-card .gae-card-row b{color:var(--text)}
+#aa-card .gae-card-price{font-family:serif;font-weight:800;font-size:1.3rem;color:var(--yellow);margin:.5rem 0 0}
+
 /* 任務冒險錄：完成動畫 */
 #task-complete-overlay{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at center,rgba(72,180,232,0) 0%,rgba(20,30,50,0) 100%);transition:background .35s}
 #task-complete-overlay.show{display:flex;background:radial-gradient(circle at center,rgba(72,180,232,.35) 0%,rgba(20,30,50,.45) 70%)}
@@ -275,7 +305,10 @@ textarea.form-input{resize:none}
         if (typeof checkNewGrabTasks === 'function') checkNewGrabTasks();
       }, err => console.warn('[onSnapshot] grab_tasks', err.message));
       const pendQ = query(collection(db, 'assignments'), where('assigned_to', '==', meId), where('status', '==', 'pending'));
-      const u3 = onSnapshot(pendQ, snap => { if (typeof loadTasks === 'function') loadTasks(); }, err => console.warn('[onSnapshot] pending', err.message));
+      const u3 = onSnapshot(pendQ, snap => {
+        if (typeof loadTasks === 'function') loadTasks();
+        if (typeof checkNewAssignments === 'function') checkNewAssignments();
+      }, err => console.warn('[onSnapshot] pending', err.message));
       const xpQ = query(collection(db, 'xp_logs'), where('userId', '==', meId));
       const u4 = onSnapshot(xpQ, snap => { if (typeof checkNewXPLog === 'function') checkNewXPLog(); }, err => console.warn('[onSnapshot] xp_logs', err.message));
       window._fsListeners = [u1, u2, u3, u4];
@@ -328,6 +361,24 @@ textarea.form-input{resize:none}
       <button class="gae-btn-grab" id="gae-grab-btn" onclick="grabAlertGrab()">🎯 搶單</button>
       <button class="gae-btn-cancel" onclick="grabAlertCancel()">取消</button>
     </div>
+  </div>
+</div>
+
+<!-- 飛鴿傳書：新指派任務通知 -->
+<div id="assign-alert-overlay">
+  <div id="aa-pigeon">🕊️</div>
+  <div id="aa-envelope">
+    <div class="gae-body">
+      <div class="gae-back-icon">✉️</div>
+      <div class="gae-back-text">你的專屬任務</div>
+      <button class="aa-open-btn" onclick="assignAlertOpen()">📬 打開</button>
+    </div>
+  </div>
+  <div id="aa-card">
+    <div class="gae-card-title" id="aa-task-name"></div>
+    <div class="gae-card-row">數量：<b id="aa-qty"></b> 件</div>
+    <div class="gae-card-row" id="aa-deadline-row">期限：<b id="aa-deadline"></b></div>
+    <div class="gae-card-price" id="aa-price"></div>
   </div>
 </div>
 
@@ -1949,6 +2000,103 @@ function grabAlertCancel() {
   closeGrabAlert();
 }
 
+// ── 飛鴿傳書：新指派任務通知 ──────────────────────────────────
+let _assignAlertQueue = [];
+let _assignAlertShowing = false;
+
+function _assignAlertSeenKey() {
+  return 'assignAlertSeen_' + (meId || 'anon');
+}
+function _assignAlertGetSeen() {
+  try { return JSON.parse(localStorage.getItem(_assignAlertSeenKey())) || []; } catch(e) { return []; }
+}
+function _assignAlertMarkSeen(id) {
+  const seen = _assignAlertGetSeen();
+  if (!seen.includes(id)) {
+    seen.push(id);
+    if (seen.length > 200) seen.shift();
+    localStorage.setItem(_assignAlertSeenKey(), JSON.stringify(seen));
+  }
+}
+
+async function initAssignAlertSeen() {
+  try {
+    const list = await API.get('/api/assignments/pending');
+    const seen = _assignAlertGetSeen();
+    list.forEach(a => { if (!seen.includes(a.id)) seen.push(a.id); });
+    localStorage.setItem(_assignAlertSeenKey(), JSON.stringify(seen));
+  } catch(e) { /* ignore */ }
+}
+
+async function checkNewAssignments() {
+  try {
+    const list = await API.get('/api/assignments/pending');
+    const seen = _assignAlertGetSeen();
+    const news = list.filter(a => !seen.includes(a.id));
+    news.forEach(a => {
+      _assignAlertMarkSeen(a.id);
+      _assignAlertQueue.push(a);
+    });
+    if (!_assignAlertShowing) showNextAssignAlert();
+  } catch(e) { /* ignore */ }
+}
+
+function showNextAssignAlert() {
+  const a = _assignAlertQueue.shift();
+  if (!a) { _assignAlertShowing = false; return; }
+  _assignAlertShowing = true;
+
+  document.getElementById('aa-task-name').textContent = taskLabel(a);
+  document.getElementById('aa-qty').textContent = a.quantity;
+  const dlRow = document.getElementById('aa-deadline-row');
+  if (a.deadline_date) {
+    document.getElementById('aa-deadline').textContent = fmtDay(a.deadline_date);
+    dlRow.style.display = '';
+  } else if (a.deadline_days) {
+    document.getElementById('aa-deadline').textContent = a.deadline_days + ' 天';
+    dlRow.style.display = '';
+  } else {
+    dlRow.style.display = 'none';
+  }
+  document.getElementById('aa-price').textContent = '💰 $' + (a.total_price||0).toLocaleString();
+
+  const overlay  = document.getElementById('assign-alert-overlay');
+  const pigeon   = document.getElementById('aa-pigeon');
+  const envelope = document.getElementById('aa-envelope');
+  const card     = document.getElementById('aa-card');
+
+  pigeon.classList.remove('fly-in', 'fly-out');
+  envelope.classList.remove('drop', 'hide');
+  card.classList.remove('show');
+  overlay.classList.add('show');
+
+  // 強制重新觸發動畫
+  void pigeon.offsetWidth;
+  pigeon.classList.add('fly-in');
+
+  // 鴿子飛抵後拋下信件，自己飛走
+  setTimeout(() => {
+    envelope.classList.add('drop');
+    pigeon.classList.add('fly-out');
+  }, 1200);
+}
+
+function assignAlertOpen() {
+  const envelope = document.getElementById('aa-envelope');
+  const card     = document.getElementById('aa-card');
+  envelope.classList.add('hide');
+  card.classList.add('show');
+  // 卡片顯示3秒後自動消失
+  setTimeout(() => {
+    closeAssignAlert();
+  }, 3000);
+}
+
+function closeAssignAlert() {
+  document.getElementById('assign-alert-overlay').classList.remove('show');
+  setTimeout(showNextAssignAlert, 300);
+}
+
 async function doGrab(taskId, btn) {
   btn.disabled = true; btn.textContent = '搶單中…';
   try {
@@ -1994,6 +2142,7 @@ async function init() {
   loadAnnouncements(); // 背景載入，不阻塞
   loadGrabZone();      // 背景載入搶單
   initGrabAlertSeen(); // 將目前已存在的搶單任務標記為已讀，避免重複跳出動畫
+  initAssignAlertSeen(); // 將目前已存在的待回覆派案標記為已讀，避免重複跳出動畫
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
   if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }

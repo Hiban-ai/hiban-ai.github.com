@@ -1165,6 +1165,25 @@ app.get('/api/grab-tasks/all', requireRole('staff'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 管理員取得所有指派任務（依夥伴分組統計用）
+app.get('/api/admin/assignments', requireRole('staff'), async (req, res) => {
+  try {
+    const list = await Assignments.all();
+    const enriched = await Promise.all(list.map(async a => {
+      let partner_name = null;
+      if (a.accepted_by) {
+        const u = await Users.byId(a.accepted_by);
+        partner_name = u ? u.real_name : null;
+      } else if (a.target_partner_id) {
+        const u = await Users.byId(a.target_partner_id);
+        partner_name = u ? u.real_name : null;
+      }
+      return { ...a, partner_name };
+    }));
+    res.json(enriched);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 夥伴取得開放中的搶單任務
 app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
   try {

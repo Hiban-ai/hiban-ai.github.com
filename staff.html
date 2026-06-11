@@ -382,8 +382,32 @@ textarea.form-input{resize:none}
     <!-- 任務管理 -->
     <div class="page-section" id="page-tasks">
       <div class="page-title">⚔️ 任務管理</div>
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">🎯 搶單任務統計</div>
-      <div id="staff-grab-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <button onclick="openSettingModal('grab-stats')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">🎯 搶單任務統計</button>
+        <button onclick="openSettingModal('assign-stats')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">📋 指派任務統計</button>
+      </div>
+    </div>
+
+    <!-- 搶單任務統計 overlay -->
+    <div class="detail-overlay" id="grab-stats-setting-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:640px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🎯 搶單任務統計</div>
+          <button onclick="closeSettingModal('grab-stats')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div id="staff-grab-wrap" style="max-height:65vh;overflow-y:auto"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
+      </div>
+    </div>
+
+    <!-- 指派任務統計 overlay -->
+    <div class="detail-overlay" id="assign-stats-setting-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:640px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">📋 指派任務統計</div>
+          <button onclick="closeSettingModal('assign-stats')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div id="staff-assign-wrap" style="max-height:65vh;overflow-y:auto"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
+      </div>
     </div>
 
     <!-- 公告管理 -->
@@ -819,12 +843,17 @@ async function loadStaffGrab() {
   try {
     const list = await API.get('/api/grab-tasks/all');
     if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無搶單任務</div>'; return; }
-    wrap.innerHTML = list.map(t => {
+    const recordsList = await Promise.all(list.map(t => API.get(`/api/grab-tasks/${t.id}/records`).catch(() => [])));
+    wrap.innerHTML = list.map((t, i) => {
       const remaining = t.total_slots - t.grabbed_count;
       const pct       = Math.round((t.grabbed_count / t.total_slots) * 100);
       const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
       const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
+      const records = recordsList[i] || [];
+      const grabbersHtml = records.length
+        ? `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem">${records.map(r => `<span style="font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:10px;background:var(--bg);color:var(--text-m);border:1px solid var(--border)">#${r.grab_no} ${r.partner_name||'—'}</span>`).join('')}</div>`
+        : `<div style="font-size:.74rem;color:var(--text-s);margin-top:.5rem">尚無人搶單</div>`;
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
@@ -841,9 +870,48 @@ async function loadStaffGrab() {
           <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--red)':'var(--blue)'};border-radius:4px"></div>
         </div>
         <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">已搶 ${t.grabbed_count} 人，剩餘 ${remaining} 個名額</div>
+        ${grabbersHtml}
       </div>`;
     }).join('');
   } catch(e) { console.error('[staffGrab]', e.message); }
+}
+
+// ── 指派任務統計（管理員，依夥伴分組）──────────────────────────
+async function loadStaffAssign() {
+  const wrap = document.getElementById('staff-assign-wrap');
+  if (!wrap) return;
+  try {
+    const list = await API.get('/api/admin/assignments');
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無指派任務</div>'; return; }
+    const groups = {};
+    list.forEach(a => {
+      const name = a.partner_name || '未指定';
+      (groups[name] = groups[name] || []).push(a);
+    });
+    wrap.innerHTML = Object.keys(groups).sort().map(name => {
+      const items = groups[name];
+      return `
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem;margin-bottom:.5rem;color:var(--blue)">👤 ${name}（${items.length}）</div>
+        ${items.map(a => {
+          const statusMap = { pending: ['待回覆','var(--orange)'], accepted: ['進行中','var(--green)'], submitted: ['待審核','var(--blue)'], approved: ['已完成','var(--text-s)'], rejected: ['已退回','var(--red)'] };
+          const [statusLabel, statusColor] = statusMap[a.status] || [a.status, 'var(--text-s)'];
+          return `
+          <div style="background:#fff;border-radius:var(--r);padding:.85rem 1.1rem;box-shadow:var(--shadow);margin-bottom:.5rem;border-left:5px solid ${statusColor}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+              <div style="font-weight:700;font-size:.88rem">${a.company ? a.company+'：'+a.task_name : a.task_name}</div>
+              <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .75rem;font-size:.78rem;color:var(--text-m)">
+              <div>督導：${a.supervisor_name||'—'}</div>
+              <div>數量：${a.quantity||'—'}</div>
+              <div>截止：${(a.deadline||'').slice(0,10)||'—'}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('[staffAssign]', e.message); }
 }
 
 let me = null;
@@ -928,7 +996,6 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
-  if (name === 'tasks')   loadStaffGrab();
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
@@ -1436,6 +1503,8 @@ async function submitCreateUser() {
 // ── 系統設定 ──────────────────────────────────────────────────
 function openSettingModal(name) {
   document.getElementById(name + '-setting-overlay').classList.add('open');
+  if (name === 'grab-stats') loadStaffGrab();
+  if (name === 'assign-stats') loadStaffAssign();
 }
 function closeSettingModal(name) {
   document.getElementById(name + '-setting-overlay').classList.remove('open');

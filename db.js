@@ -241,6 +241,10 @@ const Assignments = {
     const snap = await db.collection('assignments').where('supervisor_id','==',supervisorId).get();
     return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
   },
+  async all() {
+    const snap = await db.collection('assignments').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
   async completedCountByUser(userId) {
     const snap = await db.collection('assignments')
       .where('accepted_by','==',userId).where('status','==','completed').get();

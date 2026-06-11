@@ -280,12 +280,31 @@ textarea.form-input{resize:none}
           </div>
         </div>
         <div class="impact-card" style="--ic:var(--purple)"><div class="ic-val" id="dash-forgot">—</div><div class="ic-label">待處理忘記密碼</div></div>
+        <div class="impact-card" style="--ic:var(--red)"><div class="ic-val" id="dash-unread-issues">—</div><div class="ic-label">未讀問題回報</div></div>
+        <div class="impact-card" style="--ic:var(--blue);cursor:default">
+          <div class="ic-val" id="dash-traffic-reads">—</div>
+          <div class="ic-label">今日 Firestore 讀取</div>
+          <div style="display:flex;justify-content:space-between;margin-top:.55rem;padding-top:.45rem;border-top:1px solid rgba(0,0,0,.07);gap:.25rem">
+            <div style="flex:1;text-align:center">
+              <div style="font-size:.78rem;font-weight:700;color:var(--green)" id="dash-traffic-writes">—</div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">寫入</div>
+            </div>
+            <div style="width:1px;background:rgba(0,0,0,.07)"></div>
+            <div style="flex:1;text-align:center">
+              <div style="font-size:.78rem;font-weight:700;color:var(--red)" id="dash-traffic-deletes">—</div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">刪除</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="card">
         <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">快速操作</div>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap">
           <button class="action-btn" onclick="switchPage('accounts',document.querySelector('[onclick*=accounts]'))">👤 帳號管理</button>
           <button class="action-btn warn" onclick="switchPage('forgot',document.querySelector('[onclick*=forgot]'))">🔑 處理忘記密碼</button>
+          <button class="action-btn" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))">📝 問題管理</button>
+          <button class="action-btn" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">📢 公告管理</button>
+          <button class="action-btn" onclick="switchPage('traffic',document.querySelector('[onclick*=traffic]'))">📡 流量資訊</button>
         </div>
       </div>
     </div>
@@ -1322,6 +1341,28 @@ function updateDashboard() {
   document.getElementById('dash-active').textContent  = usersCache.filter(u=>u.status==='active'&&u.role==='partner').length || '0';
   document.getElementById('dash-pending').textContent = usersCache.filter(u=>u.status==='pending').length || '0';
   document.getElementById('dash-forgot').textContent  = forgotCache.length || '0';
+  loadDashIssues();
+  loadDashTraffic();
+}
+
+async function loadDashIssues() {
+  try {
+    const list = await API.get('/api/issues/inbox/admin');
+    document.getElementById('dash-unread-issues').textContent = list.filter(i => i.unread_handler).length;
+  } catch(e) { document.getElementById('dash-unread-issues').textContent = '0'; }
+}
+
+async function loadDashTraffic() {
+  try {
+    const s = await API.get('/api/admin/firebase-traffic');
+    document.getElementById('dash-traffic-reads').textContent   = (s.reads||0).toLocaleString();
+    document.getElementById('dash-traffic-writes').textContent  = (s.writes||0).toLocaleString();
+    document.getElementById('dash-traffic-deletes').textContent = (s.deletes||0).toLocaleString();
+  } catch(e) {
+    document.getElementById('dash-traffic-reads').textContent = '0';
+    document.getElementById('dash-traffic-writes').textContent = '0';
+    document.getElementById('dash-traffic-deletes').textContent = '0';
+  }
 }
 
 // ── 新增帳號 ──

@@ -189,19 +189,18 @@ textarea.form-input{resize:none}
       <div class="page-title">📊 總覽儀表板</div>
       <div class="stats-row">
         <div class="stat-card sc-blue"><div class="sc-label">負責夥伴數</div><div class="sc-val" id="dashboard-partner-count">—</div></div>
-        <div class="stat-card sc-green"><div class="sc-label">本月完成任務</div><div class="sc-val">12</div></div>
-        <div class="stat-card sc-yellow"><div class="sc-label">待審核WorkLog</div><div class="sc-val">5</div></div>
-        <div class="stat-card sc-red"><div class="sc-label">預警夥伴</div><div class="sc-val">2</div></div>
+        <div class="stat-card sc-green"><div class="sc-label">本月完成任務</div><div class="sc-val" id="dashboard-month-completed">—</div></div>
+        <div class="stat-card sc-yellow"><div class="sc-label">待審核WorkLog</div><div class="sc-val" id="dashboard-pending-worklog">—</div></div>
+        <div class="stat-card sc-red"><div class="sc-label">未讀問題回報</div><div class="sc-val" id="dashboard-unread-issues">—</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
         <div class="card">
-          <div class="sec-header"><div class="sec-title">⚠️ 需要注意</div><button class="sec-action" onclick="switchPage('alerts',document.querySelector('[onclick*=alerts]'))">查看全部</button></div>
-          <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">陳小明</div><div style="font-size:.8rem;color:var(--text-m)">5天未登入</div></div><button class="alert-action">聯繫</button></div>
-          <div class="alert-card ac-orange"><span style="font-size:1.1rem">⚠️</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">林阿華</div><div style="font-size:.8rem;color:var(--text-m)">任務卡關超過3天</div></div><button class="alert-action">協助</button></div>
+          <div class="sec-header"><div class="sec-title">⚠️ 需要注意</div><button class="sec-action" onclick="switchPage('partners',document.querySelector('[onclick*=partners]'))">查看全部</button></div>
+          <div id="dashboard-alerts"><div style="font-size:.82rem;color:var(--text-s)">載入中…</div></div>
         </div>
         <div class="card">
           <div class="sec-header"><div class="sec-title">📝 待審核</div><button class="sec-action" onclick="switchPage('worklog-review',document.querySelector('[onclick*=worklog]'))">查看全部</button></div>
-          <div style="font-size:.82rem;color:var(--text-s)">5 件 WorkLog 待審核</div>
+          <div id="dashboard-pending-list"><div style="font-size:.82rem;color:var(--text-s)">載入中…</div></div>
         </div>
       </div>
     </div>
@@ -1131,8 +1130,61 @@ async function init() {
   loadCompanies();
   loadAnnouncements(); // 背景載入，不阻塞
   syncIssueNotifyBar();
+  loadDashboard();
 }
 init();
+
+// ── 總覽儀表板 ────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [users, history, pending, issues] = await Promise.all([
+      API.get('/api/users-list?role=partner'),
+      API.get('/api/assignments/history'),
+      API.get('/api/reports/supervisor'),
+      API.get('/api/issues/inbox/supervisor'),
+    ]);
+
+    // 本月完成任務
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    const ym = now.getFullYear() + '/' + String(now.getMonth()+1).padStart(2,'0');
+    const monthCompleted = history.filter(a => a.status === 'completed' && (a.completed_at||'').startsWith(ym)).length;
+    document.getElementById('dashboard-month-completed').textContent = monthCompleted;
+
+    // 待審核 WorkLog
+    document.getElementById('dashboard-pending-worklog').textContent = pending.length;
+
+    // 未讀問題回報
+    const unread = issues.filter(i => i.unread_handler).length;
+    document.getElementById('dashboard-unread-issues').textContent = unread;
+
+    // 需要注意：超過3天未登入的夥伴
+    const todayMs = now.getTime();
+    const alerts = [];
+    users.forEach(u => {
+      const dates = u.login_dates || [];
+      const last = dates.length ? dates[dates.length-1] : null;
+      const lastMs = last ? new Date(last.replace(/\//g,'-')).getTime() : 0;
+      const days = Math.floor((todayMs - lastMs) / 86400000);
+      if (!last || days >= 3) {
+        alerts.push({ name: u.real_name, text: (last ? days + '天未登入' : '尚未登入過') });
+      }
+    });
+    const alertsEl = document.getElementById('dashboard-alerts');
+    alertsEl.innerHTML = alerts.length
+      ? alerts.slice(0,5).map(a => `
+        <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${a.name}</div><div style="font-size:.8rem;color:var(--text-m)">${a.text}</div></div></div>
+      `).join('')
+      : '<div style="font-size:.82rem;color:var(--text-s)">目前沒有需要注意的夥伴</div>';
+
+    // 待審核列表
+    const pendEl = document.getElementById('dashboard-pending-list');
+    pendEl.innerHTML = pending.length
+      ? pending.slice(0,5).map(r => `
+        <div class="alert-card"><span style="font-size:1.1rem">📝</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${r.partner_name}</div><div style="font-size:.8rem;color:var(--text-m)">${r.task_name||'—'}</div></div></div>
+      `).join('')
+      : '<div style="font-size:.82rem;color:var(--text-s)">目前沒有待審核的 WorkLog</div>';
+  } catch(e) { console.warn('loadDashboard', e.message); }
+}
 
 // ── 派案動態列（公司 + 任務）────────────────────────────────
 function buildRowHtml(idx) {

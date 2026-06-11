@@ -107,7 +107,7 @@ app.get('/api/users-list', async (req, res) => {
   if (req.session.user?.role === 'supervisor' && role === 'partner') {
     filtered = filtered.filter(u => u.supervisor_id === req.session.user.id);
   }
-  res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname })));
+  res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname, login_dates: u.login_dates || [] })));
 });
 
 app.post('/api/login', async (req, res) => {

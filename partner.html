@@ -197,6 +197,28 @@ textarea.form-input{resize:none}
 #grab-success-overlay .gso-title{font-family:'Noto Serif TC',serif;font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.35);margin-bottom:.4rem}
 #grab-success-overlay .gso-sub{font-size:1rem;font-weight:700;color:#FFE9A8;text-shadow:0 1px 6px rgba(0,0,0,.3)}
 
+/* 新搶單任務通知動畫 */
+#grab-alert-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,.55);backdrop-filter:blur(3px)}
+#grab-alert-overlay.show{display:flex}
+#gae-envelope{position:relative;width:200px;height:130px;animation:popIn .45s cubic-bezier(.34,1.56,.64,1)}
+#gae-envelope.open{animation:gae-fade .4s ease forwards}
+@keyframes gae-fade{to{opacity:0;transform:scale(.85)}}
+#gae-envelope .gae-body{position:absolute;inset:0;background:linear-gradient(135deg,#fdf6e3,#f3e2c0);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #d8c49a;text-align:center;padding:1rem}
+#gae-envelope .gae-back-icon{font-size:2.2rem;margin-bottom:.3rem}
+#gae-envelope .gae-back-text{font-size:1rem;font-weight:800;color:#8a6d3b;font-family:'Noto Serif TC',serif}
+#gae-envelope .gae-flap{position:absolute;top:0;left:0;right:0;height:65px;background:linear-gradient(135deg,#f3e2c0,#e6cfa0);clip-path:polygon(0 0,100% 0,50% 100%);border-radius:10px 10px 0 0;transform-origin:top center;transition:transform .6s cubic-bezier(.6,-0.28,.74,.05);z-index:2}
+#gae-envelope.open .gae-flap{transform:rotateX(180deg)}
+#gae-card{position:absolute;background:#fff;border-radius:18px;padding:1.6rem 1.7rem;width:340px;max-width:90vw;box-shadow:0 24px 70px rgba(0,0,0,.4);opacity:0;transform:translateY(30px) scale(.9);transition:opacity .45s ease .35s, transform .45s cubic-bezier(.34,1.56,.64,1) .35s;border-top:6px solid var(--blue);pointer-events:none}
+#gae-card.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+#gae-card .gae-card-title{font-family:'Noto Serif TC',serif;font-size:1.15rem;font-weight:800;margin-bottom:.7rem;color:var(--text)}
+#gae-card .gae-card-row{font-size:.88rem;color:var(--text-m);margin-bottom:.45rem;line-height:1.6}
+#gae-card .gae-card-row b{color:var(--text)}
+#gae-card .gae-card-price{font-family:serif;font-weight:800;font-size:1.3rem;color:var(--yellow);margin:.5rem 0 1rem}
+#gae-card .gae-card-btns{display:flex;gap:.6rem;margin-top:.6rem}
+#gae-card .gae-card-btns button{flex:1;padding:.65rem;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+#gae-card .gae-btn-grab{background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;box-shadow:0 4px 12px rgba(26,112,160,.3)}
+#gae-card .gae-btn-cancel{background:#f0f0f0;color:var(--text-m)}
+
 /* 任務冒險錄：完成動畫 */
 #task-complete-overlay{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at center,rgba(72,180,232,0) 0%,rgba(20,30,50,0) 100%);transition:background .35s}
 #task-complete-overlay.show{display:flex;background:radial-gradient(circle at center,rgba(72,180,232,.35) 0%,rgba(20,30,50,.45) 70%)}
@@ -248,7 +270,10 @@ textarea.form-input{resize:none}
       const assignQ = query(collection(db, 'assignments'), where('accepted_by', '==', meId), where('status', '==', 'accepted'));
       const u1 = onSnapshot(assignQ, snap => { if (typeof loadTasks === 'function') loadTasks(); }, err => console.warn('[onSnapshot] assignments', err.message));
       const grabQ = query(collection(db, 'grab_tasks'), where('status', '==', 'open'));
-      const u2 = onSnapshot(grabQ, snap => { if (typeof loadGrabZone === 'function') loadGrabZone(); }, err => console.warn('[onSnapshot] grab_tasks', err.message));
+      const u2 = onSnapshot(grabQ, snap => {
+        if (typeof loadGrabZone === 'function') loadGrabZone();
+        if (typeof checkNewGrabTasks === 'function') checkNewGrabTasks();
+      }, err => console.warn('[onSnapshot] grab_tasks', err.message));
       const pendQ = query(collection(db, 'assignments'), where('assigned_to', '==', meId), where('status', '==', 'pending'));
       const u3 = onSnapshot(pendQ, snap => { if (typeof loadTasks === 'function') loadTasks(); }, err => console.warn('[onSnapshot] pending', err.message));
       const xpQ = query(collection(db, 'xp_logs'), where('userId', '==', meId));
@@ -282,6 +307,27 @@ textarea.form-input{resize:none}
   <div class="gso-text">
     <div class="gso-title">🎉 恭喜搶單成功！</div>
     <div class="gso-sub" id="gso-grabno"></div>
+  </div>
+</div>
+
+<!-- 新搶單任務通知動畫 -->
+<div id="grab-alert-overlay">
+  <div id="gae-envelope">
+    <div class="gae-flap"></div>
+    <div class="gae-body">
+      <div class="gae-back-icon">📋</div>
+      <div class="gae-back-text">新搶單任務</div>
+    </div>
+  </div>
+  <div id="gae-card">
+    <div class="gae-card-title" id="gae-task-name"></div>
+    <div class="gae-card-row">數量：<b id="gae-slots"></b></div>
+    <div class="gae-card-row" id="gae-notes-row">補充說明：<b id="gae-notes"></b></div>
+    <div class="gae-card-price" id="gae-price"></div>
+    <div class="gae-card-btns">
+      <button class="gae-btn-grab" id="gae-grab-btn" onclick="grabAlertGrab()">🎯 搶單</button>
+      <button class="gae-btn-cancel" onclick="grabAlertCancel()">取消</button>
+    </div>
   </div>
 </div>
 
@@ -1786,6 +1832,117 @@ function showGrabSuccessOverlay(grabNo) {
   }, 3200);
 }
 
+// ── 新搶單任務通知動畫 ──────────────────────────────────────
+let _grabAlertQueue = [];
+let _grabAlertShowing = false;
+let _grabAlertCurrentId = null;
+
+function _grabAlertSeenKey() {
+  return 'grabAlertSeen_' + (meId || 'anon');
+}
+function _grabAlertGetSeen() {
+  try { return JSON.parse(localStorage.getItem(_grabAlertSeenKey())) || []; } catch(e) { return []; }
+}
+function _grabAlertMarkSeen(id) {
+  const seen = _grabAlertGetSeen();
+  if (!seen.includes(id)) {
+    seen.push(id);
+    if (seen.length > 200) seen.shift();
+    localStorage.setItem(_grabAlertSeenKey(), JSON.stringify(seen));
+  }
+}
+
+async function initGrabAlertSeen() {
+  try {
+    const list = await API.get('/api/grab-tasks');
+    const seen = _grabAlertGetSeen();
+    list.forEach(t => { if (!seen.includes(t.id)) seen.push(t.id); });
+    localStorage.setItem(_grabAlertSeenKey(), JSON.stringify(seen));
+  } catch(e) { /* ignore */ }
+}
+
+async function checkNewGrabTasks() {
+  try {
+    const list = await API.get('/api/grab-tasks');
+    const seen = _grabAlertGetSeen();
+    const news = list.filter(t => !seen.includes(t.id) && !t.my_grab_no && t.grabbed_count < t.total_slots);
+    news.forEach(t => {
+      _grabAlertMarkSeen(t.id);
+      _grabAlertQueue.push(t);
+    });
+    if (!_grabAlertShowing) showNextGrabAlert();
+    // 若正在顯示的任務名額已滿，自動關閉
+    if (_grabAlertShowing && _grabAlertCurrentId != null) {
+      const cur = list.find(t => t.id === _grabAlertCurrentId);
+      if (!cur || cur.grabbed_count >= cur.total_slots || cur.my_grab_no) {
+        closeGrabAlert();
+      }
+    }
+  } catch(e) { /* ignore */ }
+}
+
+function showNextGrabAlert() {
+  const t = _grabAlertQueue.shift();
+  if (!t) { _grabAlertShowing = false; _grabAlertCurrentId = null; return; }
+  _grabAlertShowing = true;
+  _grabAlertCurrentId = t.id;
+
+  document.getElementById('gae-task-name').textContent = t.company ? (t.company + '：' + t.task_name) : t.task_name;
+  document.getElementById('gae-slots').textContent = t.total_slots + ' 個';
+  const notesRow = document.getElementById('gae-notes-row');
+  if (t.notes) {
+    document.getElementById('gae-notes').textContent = t.notes;
+    notesRow.style.display = '';
+  } else {
+    notesRow.style.display = 'none';
+  }
+  document.getElementById('gae-price').textContent = '💰 $' + (t.unit_price||0).toLocaleString();
+  document.getElementById('gae-grab-btn').disabled = false;
+  document.getElementById('gae-grab-btn').textContent = '🎯 搶單';
+
+  const overlay = document.getElementById('grab-alert-overlay');
+  const envelope = document.getElementById('gae-envelope');
+  const card = document.getElementById('gae-card');
+  envelope.classList.remove('open');
+  card.classList.remove('show');
+  overlay.classList.add('show');
+
+  // 信封彈出後自動打開，卡片飛出
+  setTimeout(() => {
+    envelope.classList.add('open');
+    card.classList.add('show');
+  }, 700);
+}
+
+function closeGrabAlert() {
+  document.getElementById('grab-alert-overlay').classList.remove('show');
+  _grabAlertShowing = false;
+  _grabAlertCurrentId = null;
+  // 接著顯示佇列中下一筆
+  setTimeout(showNextGrabAlert, 300);
+}
+
+async function grabAlertGrab() {
+  const taskId = _grabAlertCurrentId;
+  if (taskId == null) return;
+  const btn = document.getElementById('gae-grab-btn');
+  btn.disabled = true; btn.textContent = '搶單中…';
+  try {
+    const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
+    closeGrabAlert();
+    showGrabSuccessOverlay(r.grab_no);
+    loadGrabZone();
+    loadTasks();
+  } catch(e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = '🎯 搶單';
+  }
+}
+
+function grabAlertCancel() {
+  closeGrabAlert();
+}
+
 async function doGrab(taskId, btn) {
   btn.disabled = true; btn.textContent = '搶單中…';
   try {
@@ -1830,6 +1987,7 @@ async function init() {
   fillProfile(p);
   loadAnnouncements(); // 背景載入，不阻塞
   loadGrabZone();      // 背景載入搶單
+  initGrabAlertSeen(); // 將目前已存在的搶單任務標記為已讀，避免重複跳出動畫
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();
   if (!loaded) { await new Promise(r => setTimeout(r, 800)); loaded = await loadTasks(); }

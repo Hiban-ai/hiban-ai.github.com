@@ -223,7 +223,7 @@ const Assignments = {
   async create(data) {
     const id  = await nextId('assignments');
     const no  = await nextTaskNo('assign', data.task_name);
-    const item = { id, created_at: now(), ...data, task_name: `${data.task_name}任務${no}` };
+    const item = { id, created_at: now(), ...data, task_no: no };
     await db.collection('assignments').doc(String(id)).set(item);
     return item;
   },
@@ -354,7 +354,7 @@ const GrabTasks = {
   async create(data) {
     const id  = await nextId('grab_tasks');
     const no  = await nextTaskNo('grab', data.task_name);
-    const item = { id, created_at: now(), grabbed_count: 0, status: 'open', ...data, task_name: `${data.task_name}搶單任務${no}` };
+    const item = { id, created_at: now(), grabbed_count: 0, status: 'open', ...data, task_no: no };
     await db.collection('grab_tasks').doc(String(id)).set(item);
     return item;
   },

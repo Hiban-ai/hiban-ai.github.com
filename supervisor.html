@@ -677,10 +677,13 @@ async function loadTaskReviews() {
         ${r.images && r.images.length ? `
         <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
           ${r.images.map((img,i) => `
-            <img src="${img.data}" alt="${img.name}"
-              onclick="enlargeImg(this.src,'${img.name}')"
-              style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s"
-              onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+            <div style="width:80px">
+              <img src="${img.data}" alt="${img.name}"
+                onclick="enlargeImg(this.src,'${img.name}')"
+                style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s;display:block"
+                onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+              <div style="font-size:.65rem;color:var(--text-s);margin-top:.2rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${img.name||''}">${img.name||''}</div>
+            </div>
           `).join('')}
         </div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
@@ -1514,10 +1517,13 @@ function renderTaskRecordsContent() {
       ${r.images && r.images.length ? `
       <div style="display:flex;flex-wrap:wrap;gap:.5rem">
         ${r.images.map(img => `
-          <img src="${img.data}" alt="${img.name}"
-            onclick="enlargeImg(this.src,'${img.name}')"
-            style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s"
-            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+          <div style="width:80px">
+            <img src="${img.data}" alt="${img.name}"
+              onclick="enlargeImg(this.src,'${img.name}')"
+              style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in;transition:transform .2s;display:block"
+              onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+            <div style="font-size:.65rem;color:var(--text-s);margin-top:.2rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${img.name||''}">${img.name||''}</div>
+          </div>
         `).join('')}
       </div>` : ''}
     </div>`).join('');

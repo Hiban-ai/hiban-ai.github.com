@@ -885,6 +885,12 @@ function switchPage(name, el) {
 function taskLabel(a) {
   return a.company ? `${a.company}：${a.task_name}` : a.task_name;
 }
+function taskLabelNo(a) {
+  return a.task_no ? `${taskLabel(a)} #${a.task_no}` : taskLabel(a);
+}
+function taskNoBadge(a) {
+  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
+}
 
 function fmtDate(s) {
   if (!s || s === '—') return '—';
@@ -1036,7 +1042,7 @@ function renderWallet() {
   listEl.innerHTML = list.map(a => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid var(--border)">
       <div>
-        <div style="font-size:.88rem;font-weight:600;color:var(--text-m)">${taskLabel(a)}</div>
+        <div style="font-size:.88rem;font-weight:600;color:var(--text-m)">${taskLabelNo(a)}</div>
         <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${fmtDate(a.completed_at)}</div>
       </div>
       <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:.95rem;white-space:nowrap">+$${(a.total_price||0).toLocaleString()}</div>
@@ -1056,7 +1062,10 @@ function renderCompleted(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem;opacity:.85">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+        <div>
+          <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+          ${a.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(a)}</div>` : ''}
+        </div>
         <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
@@ -1087,7 +1096,10 @@ function buildTaskCards(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+        <div>
+          <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+          ${a.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(a)}</div>` : ''}
+        </div>
         <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
@@ -1114,7 +1126,10 @@ function buildTaskCardsReadonly(list) {
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
-        <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+        <div>
+          <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
+          ${a.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(a)}</div>` : ''}
+        </div>
         <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
@@ -1244,7 +1259,7 @@ function buildRejectedCards(list) {
       : '';
     return '<div style="background:#fff;border-radius:var(--rs);padding:.65rem .85rem;border-left:4px solid var(--orange);box-shadow:0 2px 8px rgba(240,120,64,.10);margin-bottom:.5rem">'
       + '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:' + (last ? '.4rem' : '0') + '">'
-      + '<div style="flex:1;min-width:0;font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabel(a) + '</div>'
+      + '<div style="flex:1;min-width:0;font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(a) + '</div>'
       + '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="flex-shrink:0;padding:.32rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap">📝 修改</button>'
       + '</div>'
       + commentBlock
@@ -1263,7 +1278,7 @@ function buildActiveCardsOverview(list) {
     var reportBtn = reviewing ? '' : '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="flex-shrink:0;padding:.35rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">回報</button>';
     return '<div style="background:#fff;border-radius:var(--r);padding:.85rem 1rem;border-left:5px solid var(--green);box-shadow:0 4px 16px rgba(46,170,122,.10);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem">'
       + '<div style="flex:1;min-width:0">'
-      + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabel(a) + '</div>'
+      + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(a) + '</div>'
       + '<div style="font-size:.75rem;color:var(--text-s);margin-top:.2rem">' + (reviewing ? '🔍 審核中' : '⚔️ 進行中') + (deadlineInfo ? ' &nbsp;·&nbsp; ' + deadlineInfo : '') + '</div>'
       + '</div>' + reportBtn + '</div>';
   }).join('');
@@ -1581,7 +1596,7 @@ async function loadGrabZone() {
           return `
           <div style="background:#fff;border-radius:var(--rs);padding:.9rem 1rem;margin-bottom:.55rem;border:1.5px solid var(--blue);box-shadow:0 2px 10px rgba(26,138,192,.12);display:flex;align-items:center;gap:.75rem">
             <div style="flex:1;min-width:0">
-              <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+              <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${taskLabelNo(t)}</div>
               <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
                 💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${(t.deadline||'').slice(0,10)} 截止
               </div>
@@ -2001,7 +2016,7 @@ function showNextGrabAlert() {
   _grabAlertShowing = true;
   _grabAlertCurrentId = t.id;
 
-  document.getElementById('gae-task-name').textContent = t.company ? (t.company + '：' + t.task_name) : t.task_name;
+  document.getElementById('gae-task-name').textContent = taskLabelNo(t);
   document.getElementById('gae-slots').textContent = t.total_slots + ' 個';
   const notesRow = document.getElementById('gae-notes-row');
   if (t.notes) {
@@ -2111,7 +2126,7 @@ function showNextAssignAlert() {
   if (!a) { _assignAlertShowing = false; return; }
   _assignAlertShowing = true;
 
-  document.getElementById('aa-task-name').textContent = taskLabel(a);
+  document.getElementById('aa-task-name').textContent = taskLabelNo(a);
   document.getElementById('aa-qty').textContent = a.quantity;
   const dlRow = document.getElementById('aa-deadline-row');
   if (a.deadline_date) {
@@ -2261,7 +2276,7 @@ async function populateIssueSvDropdowns() {
     const tsel = document.getElementById('issue-sv-task');
     if (tsel) {
       tsel.innerHTML = '<option value="">關聯任務（選填）</option>' +
-        active.map(t => `<option value="${t.id}">${t.company ? t.company+'：'+t.task_name : (t.task_name || t.id)}</option>`).join('');
+        active.map(t => `<option value="${t.id}">${t.company ? t.company+'：'+t.task_name : (t.task_name || t.id)}${t.task_no ? ' #'+t.task_no : ''}</option>`).join('');
     }
   } catch(e){}
 }

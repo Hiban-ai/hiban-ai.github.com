@@ -304,7 +304,7 @@ textarea.form-input{resize:none}
         if (typeof loadGrabZone === 'function') loadGrabZone();
         if (typeof checkNewGrabTasks === 'function') checkNewGrabTasks();
       }, err => console.warn('[onSnapshot] grab_tasks', err.message));
-      const pendQ = query(collection(db, 'assignments'), where('assigned_to', '==', meId), where('status', '==', 'pending'));
+      const pendQ = query(collection(db, 'assignments'), where('status', '==', 'pending'));
       const u3 = onSnapshot(pendQ, snap => {
         if (typeof loadTasks === 'function') loadTasks();
         if (typeof checkNewAssignments === 'function') checkNewAssignments();

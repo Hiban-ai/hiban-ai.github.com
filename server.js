@@ -1409,12 +1409,14 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
               const taskDirId    = await driveEnsureFolder(drive, r.task_name || `任務${r.assignment_id}`, worklogDirId);
               const { Readable } = require('stream');
               const driveIds = [];
+              const completedAt = nowTW().replace(/[/: ]/g, '-');
+              const qtyLabel = (r.completed_qty != null) ? `${r.completed_qty}件` : '';
               for (let i = 0; i < r.images.length; i++) {
                 const img  = r.images[i];
                 const b64  = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
                 const mime = img.mime || 'image/jpeg';
                 const ext  = mime.split('/')[1] || 'jpg';
-                const fname = `${r.partner_name}_${r.task_name}_${id}_${i+1}.${ext}`;
+                const fname = `${r.task_name}_${r.partner_name}_${completedAt}_${qtyLabel}_${i+1}.${ext}`;
                 const buf   = Buffer.from(b64, 'base64');
                 const created = await drive.files.create({
                   requestBody: { name: fname, parents: [taskDirId] },

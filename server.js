@@ -1321,37 +1321,6 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
     // 標記 assignment 為審核中，避免重複送出
     await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing' });
     res.json({ ok: true, id: report.id });
-
-    // 背景：Drive 上傳附件圖片
-    if (images && images.length) {
-      const drive  = getDrive();
-      const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-      if (drive && rootId) {
-        try {
-          const worklogDirId = await driveEnsureFolder(drive, '回報附件', rootId);
-          const taskDirId    = await driveEnsureFolder(drive, a.task_name || `任務${assignment_id}`, worklogDirId);
-          const { Readable } = require('stream');
-          const driveIds = [];
-          for (let i = 0; i < images.length; i++) {
-            const img  = images[i];
-            const b64  = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
-            const mime = img.mime || 'image/jpeg';
-            const ext  = mime.split('/')[1] || 'jpg';
-            const fname = `${req.session.user.real_name}_${report.id}_${i+1}.${ext}`;
-            const buf   = Buffer.from(b64, 'base64');
-            const created = await drive.files.create({
-              requestBody: { name: fname, parents: [taskDirId] },
-              media: { mimeType: mime, body: Readable.from(buf) },
-              fields: 'id',
-              supportsAllDrives: true,
-            });
-            driveIds.push({ drive_id: created.data.id, name: fname, mime });
-          }
-          await WorklogReports.update(report.id, { drive_attachments: driveIds });
-          console.log(`[Drive] 回報 ${report.id} 上傳 ${driveIds.length} 張附件完成`);
-        } catch(de) { console.error('[Drive] 回報附件上傳失敗', de.message); }
-      }
-    }
   } catch(e) {
     const msg = e.message || '';
     if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota')) {
@@ -1427,6 +1396,39 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
       const a = await Assignments.byId(r.assignment_id);
       if (a && a.accepted_by) {
         await grantTaskXP(a.accepted_by, a.task_name, a.company).catch(e => console.error('[grantTaskXP]', e.message));
+      }
+
+      // 督導核可後，背景上傳附件圖片至雲端
+      if (r.images && r.images.length) {
+        const drive  = getDrive();
+        const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+        if (drive && rootId) {
+          (async () => {
+            try {
+              const worklogDirId = await driveEnsureFolder(drive, '回報附件', rootId);
+              const taskDirId    = await driveEnsureFolder(drive, r.task_name || `任務${r.assignment_id}`, worklogDirId);
+              const { Readable } = require('stream');
+              const driveIds = [];
+              for (let i = 0; i < r.images.length; i++) {
+                const img  = r.images[i];
+                const b64  = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
+                const mime = img.mime || 'image/jpeg';
+                const ext  = mime.split('/')[1] || 'jpg';
+                const fname = `${r.partner_name}_${r.task_name}_${id}_${i+1}.${ext}`;
+                const buf   = Buffer.from(b64, 'base64');
+                const created = await drive.files.create({
+                  requestBody: { name: fname, parents: [taskDirId] },
+                  media: { mimeType: mime, body: Readable.from(buf) },
+                  fields: 'id',
+                  supportsAllDrives: true,
+                });
+                driveIds.push({ drive_id: created.data.id, name: fname, mime });
+              }
+              await WorklogReports.update(id, { drive_attachments: driveIds });
+              console.log(`[Drive] 回報 ${id} 核可後上傳 ${driveIds.length} 張附件完成`);
+            } catch(de) { console.error('[Drive] 回報附件上傳失敗', de.message); }
+          })();
+        }
       }
     }
     res.json({ ok: true });

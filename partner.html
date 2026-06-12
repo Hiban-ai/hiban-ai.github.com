@@ -212,6 +212,7 @@ textarea.form-input{resize:none}
 #gae-card.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
 #gae-card .gae-card-title{font-family:'Noto Serif TC',serif;font-size:1.15rem;font-weight:800;margin-bottom:.7rem;color:var(--text)}
 #gae-card .gae-card-row{font-size:.88rem;color:var(--text-m);margin-bottom:.45rem;line-height:1.6}
+#gae-card .gae-card-row b{white-space:pre-wrap}
 #gae-card .gae-card-row b{color:var(--text)}
 #gae-card .gae-card-price{font-family:serif;font-weight:800;font-size:1.3rem;color:var(--yellow);margin:.5rem 0 1rem}
 #gae-card .gae-card-btns{display:flex;gap:.6rem;margin-top:.6rem}
@@ -379,6 +380,7 @@ textarea.form-input{resize:none}
     <div class="gae-card-row">數量：<b id="aa-qty"></b> 件</div>
     <div class="gae-card-row" id="aa-deadline-row">期限：<b id="aa-deadline"></b></div>
     <div class="gae-card-price" id="aa-price"></div>
+    <div style="font-size:.8rem;color:var(--text-s);text-align:center;margin-top:.7rem">📂 請前往任務區查看</div>
   </div>
 </div>
 
@@ -1071,7 +1073,7 @@ function buildTaskCards(list) {
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
       <div style="display:flex;gap:.5rem">
         <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
         <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif">❌ 拒絕</button>
@@ -1098,7 +1100,7 @@ function buildTaskCardsReadonly(list) {
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
     </div>`
   }).join('');
 }
@@ -1178,7 +1180,7 @@ function renderActive(list) {
       </div>
       <div style="margin-bottom:.5rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
-        <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6">${a.notes || ''}</div>
+        <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes || ''}</div>
       </div>
       <div style="margin-bottom:.6rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">督導意見</div>

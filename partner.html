@@ -210,6 +210,7 @@ textarea.form-input{resize:none}
 #gae-envelope.open .gae-flap{transform:rotateX(180deg)}
 #gae-card{position:absolute;background:#fff;border-radius:18px;padding:1.6rem 1.7rem;width:340px;max-width:90vw;box-shadow:0 24px 70px rgba(0,0,0,.4);opacity:0;transform:translateY(30px) scale(.9);transition:opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1);border-top:6px solid var(--blue);pointer-events:none}
 #gae-card.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.gae-mascot{display:block;width:90px;height:auto;margin:-2.6rem auto .3rem;position:relative}
 #gae-card .gae-card-title{font-family:'Noto Serif TC',serif;font-size:1.15rem;font-weight:800;margin-bottom:.7rem;color:var(--text)}
 #gae-card .gae-card-row{font-size:.88rem;color:var(--text-m);margin-bottom:.45rem;line-height:1.6}
 #gae-card .gae-card-row b{white-space:pre-wrap}
@@ -354,7 +355,9 @@ textarea.form-input{resize:none}
     <div class="gae-flap"></div>
   </div>
   <div id="gae-card">
+    <img class="gae-mascot" src="assets/mascot.png" alt="">
     <div class="gae-card-title" id="gae-task-name"></div>
+    <div class="gae-card-row" style="font-weight:700;color:var(--blue)">你有一筆搶單任務！</div>
     <div class="gae-card-row">數量：<b id="gae-slots"></b></div>
     <div class="gae-card-row" id="gae-notes-row">補充說明：<b id="gae-notes"></b></div>
     <div class="gae-card-price" id="gae-price"></div>
@@ -376,7 +379,9 @@ textarea.form-input{resize:none}
     </div>
   </div>
   <div id="aa-card">
+    <img class="gae-mascot" src="assets/mascot.png" alt="">
     <div class="gae-card-title" id="aa-task-name"></div>
+    <div class="gae-card-row" style="font-weight:700;color:var(--blue)">你有一個指名任務！</div>
     <div class="gae-card-row">數量：<b id="aa-qty"></b> 件</div>
     <div class="gae-card-row" id="aa-deadline-row">期限：<b id="aa-deadline"></b></div>
     <div class="gae-card-price" id="aa-price"></div>

@@ -1311,6 +1311,8 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
       partner_id: req.session.user.id,
       partner_name: req.session.user.real_name,
       task_name: a.task_name,
+      task_no: a.task_no || null,
+      company: a.company || '',
       task_quantity: a.quantity,
       completed_qty: parseInt(completed_qty) || 0,
       url: url || '',

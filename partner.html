@@ -1208,7 +1208,7 @@ function renderActive(list) {
           <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
           <div style="margin-top:.2rem;display:flex;gap:.35rem;flex-wrap:wrap">
             ${a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : ''}
-            ${a.grab_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span>` : ''}
+            ${a.grab_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#E07830,#F0A030);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span>` : ''}
           </div>
         </div>
         <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>

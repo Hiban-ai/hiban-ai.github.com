@@ -197,6 +197,19 @@ textarea.form-input{resize:none}
 #grab-success-overlay .gso-title{font-family:'Noto Serif TC',serif;font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.35);margin-bottom:.4rem}
 #grab-success-overlay .gso-sub{font-size:1rem;font-weight:700;color:#FFE9A8;text-shadow:0 1px 6px rgba(0,0,0,.3)}
 
+/* 任務核可：放鞭炮慶祝動畫 */
+#fw-overlay{position:fixed;inset:0;z-index:10002;display:none;align-items:center;justify-content:center;overflow:hidden;background:rgba(20,30,50,0);transition:background .4s}
+#fw-overlay.show{display:flex;background:rgba(20,30,50,.4)}
+#fw-overlay .fw-particle{position:absolute;font-size:1.8rem;opacity:0;will-change:transform,opacity;animation:fw-burst 1s ease-out forwards}
+@keyframes fw-burst{
+  0%{opacity:1;transform:translate(0,0) scale(.4) rotate(0deg)}
+  100%{opacity:0;transform:translate(var(--fw-x),var(--fw-y)) scale(1.1) rotate(var(--fw-r))}
+}
+#fw-overlay .fw-text{position:relative;text-align:center;opacity:0;transform:scale(.5);transition:opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1)}
+#fw-overlay.show .fw-text.go{opacity:1;transform:scale(1)}
+#fw-overlay .fw-line1{font-family:'Noto Serif TC',serif;font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);margin-bottom:.3rem}
+#fw-overlay .fw-line2{font-size:1.3rem;font-weight:700;color:#FFE9A8;letter-spacing:1px;text-shadow:0 1px 6px rgba(0,0,0,.35)}
+
 /* 新搶單任務通知動畫 */
 #grab-alert-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,.55);backdrop-filter:blur(3px)}
 #grab-alert-overlay.show{display:flex}
@@ -321,6 +334,14 @@ textarea.form-input{resize:none}
 <body>
 
 <!-- 任務冒險錄：完成動畫 -->
+<!-- 任務核可：放鞭炮慶祝 -->
+<div id="fw-overlay">
+  <div class="fw-text">
+    <div class="fw-line1">🎉 恭喜，任務成功完成 🎉</div>
+    <div class="fw-line2">Congratulations</div>
+  </div>
+</div>
+
 <div id="task-complete-overlay">
   <div id="tco-card">
     <div id="tco-sparkle-wrap"></div>
@@ -1749,7 +1770,37 @@ function spawnSparkles(card) {
   }
 }
 
+function showFireworksOverlay() {
+  const overlay = document.getElementById('fw-overlay');
+  overlay.querySelectorAll('.fw-particle').forEach(el => el.remove());
+  overlay.querySelector('.fw-text').classList.remove('go');
+  overlay.classList.remove('show');
+  const emojis = ['🎉','🎊','✨','🧨','🎆','🎇'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    p.className = 'fw-particle';
+    p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 280;
+    p.style.setProperty('--fw-x', (Math.cos(angle)*dist) + 'px');
+    p.style.setProperty('--fw-y', (Math.sin(angle)*dist) + 'px');
+    p.style.setProperty('--fw-r', (Math.random()*360 - 180) + 'deg');
+    p.style.left = '50%';
+    p.style.top = '50%';
+    p.style.animationDelay = (Math.random()*0.3) + 's';
+    overlay.appendChild(p);
+  }
+  overlay.classList.add('show');
+  setTimeout(() => overlay.querySelector('.fw-text').classList.add('go'), 200);
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    overlay.querySelector('.fw-text').classList.remove('go');
+    overlay.querySelectorAll('.fw-particle').forEach(el => el.remove());
+  }, 2600);
+}
+
 async function playCompletionAnimation(data) {
+  showFireworksOverlay();
   const overlay = document.getElementById('task-complete-overlay');
   const card = document.getElementById('tco-card');
   const icons = ['🏅','🎯','🚀','⚡','🔥','🏆','💎'];

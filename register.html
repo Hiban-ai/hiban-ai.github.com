@@ -152,18 +152,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   <div class="card" id="step1" style="display:none">
     <div class="card-title">🪪 上傳身分證明</div>
     <div class="card-desc">上傳後點「下一步辨識」，AI 將自動抓取姓名、身分證字號、生日、地址</div>
-    <div class="error-msg" id="err1"></div>
+    <div class="error-msg" id="err1" role="alert"></div>
 
     <div class="form-group">
       <label class="form-label">身分證正面<span class="req-mark">＊</span></label>
       <div class="upload-slot">
         <div class="upload-zone" id="uz-id-front">
-          <input type="file" accept="image/*" onchange="handleCropUpload(this,'front')">
+          <input type="file" accept="image/*" aria-label="上傳身分證正面" onchange="handleCropUpload(this,'front')">
           <div class="uz-icon">🪪</div>
           <div class="uz-text">點擊選擇身分證正面<br><span style="font-size:.7rem">JPG / PNG，建議在明亮處拍攝</span></div>
         </div>
         <div class="thumb-preview" id="thumb-front">
-          <button class="thumb-delete" onclick="deleteUpload('front')" title="刪除重新上傳">✕</button>
+          <button class="thumb-delete" onclick="deleteUpload('front')" title="刪除重新上傳" aria-label="刪除已上傳的圖片，重新上傳">✕</button>
         </div>
       </div>
     </div>
@@ -172,12 +172,12 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <label class="form-label">身分證反面<span class="req-mark">＊</span></label>
       <div class="upload-slot">
         <div class="upload-zone" id="uz-id-back">
-          <input type="file" accept="image/*" onchange="handleCropUpload(this,'back')">
+          <input type="file" accept="image/*" aria-label="上傳身分證反面" onchange="handleCropUpload(this,'back')">
           <div class="uz-icon">🪪</div>
           <div class="uz-text">點擊選擇身分證反面</div>
         </div>
         <div class="thumb-preview" id="thumb-back">
-          <button class="thumb-delete" onclick="deleteUpload('back')" title="刪除重新上傳">✕</button>
+          <button class="thumb-delete" onclick="deleteUpload('back')" title="刪除重新上傳" aria-label="刪除已上傳的圖片，重新上傳">✕</button>
         </div>
       </div>
     </div>
@@ -195,14 +195,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <div class="ai-spinner"></div>
       <span id="ai-id-text">身分證辨識中，請稍候…</span>
     </div>
-    <div class="error-msg" id="err2"></div>
+    <div class="error-msg" id="err2" role="alert"></div>
 
     <div class="form-group">
-      <label class="form-label">姓名<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-realname" type="text" placeholder="身分證上的姓名">
+      <label class="form-label" for="reg-realname">姓名<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-realname" type="text" placeholder="身分證上的姓名" autocomplete="name">
     </div>
     <div class="form-group">
-      <label class="form-label">性別<span class="req-mark">＊</span></label>
+      <label class="form-label" for="reg-gender">性別<span class="req-mark">＊</span></label>
       <select class="form-select" id="reg-gender">
         <option value="">請選擇</option>
         <option value="M">男性（Male / M）</option>
@@ -211,32 +211,32 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">身分證字號<span class="req-mark">＊</span></label>
+      <label class="form-label" for="reg-idnum">身分證字號<span class="req-mark">＊</span></label>
       <input class="form-input" id="reg-idnum" type="text" placeholder="例：A123456789" maxlength="10" oninput="this.value=this.value.toUpperCase()">
     </div>
     <div class="form-group">
-      <label class="form-label">生日（西元）<span class="req-mark">＊</span></label>
-      <div class="birthday-row">
-        <select class="form-select" id="bday-year"><option value="">年</option></select>
-        <select class="form-select" id="bday-month"><option value="">月</option></select>
-        <select class="form-select" id="bday-day"><option value="">日</option></select>
+      <label class="form-label" id="reg-bday-label">生日（西元）<span class="req-mark">＊</span></label>
+      <div class="birthday-row" role="group" aria-labelledby="reg-bday-label">
+        <select class="form-select" id="bday-year" aria-label="出生年"><option value="">年</option></select>
+        <select class="form-select" id="bday-month" aria-label="出生月"><option value="">月</option></select>
+        <select class="form-select" id="bday-day" aria-label="出生日"><option value="">日</option></select>
       </div>
       <input type="hidden" id="reg-birthday">
     </div>
     <div class="form-group">
-      <label class="form-label">戶籍地址<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址">
+      <label class="form-label" for="reg-address">戶籍地址<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址" autocomplete="street-address">
     </div>
     <div class="form-group">
-      <label class="form-label">聯絡電話<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-phone" type="tel" placeholder="例：0912345678" maxlength="10">
+      <label class="form-label" for="reg-phone">聯絡電話<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-phone" type="tel" placeholder="例：0912345678" maxlength="10" autocomplete="tel">
     </div>
     <div class="form-group">
-      <label class="form-label">電子信箱<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-email" type="email" placeholder="例：example@gmail.com">
+      <label class="form-label" for="reg-email">電子信箱<span class="req-mark">＊</span></label>
+      <input class="form-input" id="reg-email" type="email" placeholder="例：example@gmail.com" autocomplete="email">
     </div>
     <div class="form-group">
-      <label class="form-label">身份別<span class="opt-mark">（選填）</span></label>
+      <label class="form-label" for="reg-identity">身份別<span class="opt-mark">（選填）</span></label>
       <select class="form-select" id="reg-identity" onchange="toggleDisabilityDoc()">
         <option value="">請選擇</option>
         <option>身心障礙者</option>
@@ -250,15 +250,15 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <!-- 身心障礙手冊（條件顯示） -->
     <div id="disability-doc-section" style="display:none">
       <div class="form-group">
-        <label class="form-label">身心障礙手冊<span class="req-mark">＊</span></label>
+        <label class="form-label" id="disability-doc-label">身心障礙手冊<span class="req-mark">＊</span></label>
         <div class="upload-slot">
           <div class="upload-zone" id="uz-disability">
-            <input type="file" accept="image/*" onchange="handleCropUpload(this,'disability')">
+            <input type="file" accept="image/*" aria-label="上傳身心障礙手冊" onchange="handleCropUpload(this,'disability')">
             <div class="uz-icon">📄</div>
             <div class="uz-text">點擊上傳身心障礙手冊<br><span style="font-size:.7rem">支援圖片</span></div>
           </div>
           <div class="thumb-preview" id="thumb-disability">
-            <button class="thumb-delete" onclick="deleteUpload('disability')" title="刪除重新上傳">✕</button>
+            <button class="thumb-delete" onclick="deleteUpload('disability')" title="刪除重新上傳" aria-label="刪除已上傳的圖片，重新上傳">✕</button>
           </div>
         </div>
       </div>
@@ -273,18 +273,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="card-title">🏦 上傳存摺封面</div>
     <div class="card-desc">AI 自動辨識銀行或郵局資訊並填入表單</div>
     <div class="req-hint">＊ 請確保帳號、戶名、銀行名稱清晰可見</div>
-    <div class="error-msg" id="err3"></div>
+    <div class="error-msg" id="err3" role="alert"></div>
 
     <div class="form-group">
       <label class="form-label">存摺封面<span class="req-mark">＊</span></label>
       <div class="upload-slot">
         <div class="upload-zone" id="uz-passbook">
-          <input type="file" accept="image/*" onchange="handleCropUpload(this,'bank')">
+          <input type="file" accept="image/*" aria-label="上傳存摺封面" onchange="handleCropUpload(this,'bank')">
           <div class="uz-icon">📒</div>
           <div class="uz-text">點擊上傳存摺封面<br><span style="font-size:.7rem">銀行存摺或郵局存簿皆可</span></div>
         </div>
         <div class="thumb-preview" id="thumb-bank">
-          <button class="thumb-delete" onclick="deleteUpload('bank')" title="刪除重新上傳">✕</button>
+          <button class="thumb-delete" onclick="deleteUpload('bank')" title="刪除重新上傳" aria-label="刪除已上傳的圖片，重新上傳">✕</button>
         </div>
       </div>
       <div class="ai-status" id="ai-status-bank" style="margin-top:.5rem">
@@ -297,19 +297,19 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div id="bank-fields" style="display:none">
       <div id="bank-type-label"></div>
       <div class="form-group">
-        <label class="form-label">戶名<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-holder">戶名<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-holder" placeholder="戶名">
       </div>
       <div class="form-group">
-        <label class="form-label">銀行名稱<span class="req-mark">＊</span><span class="opt-mark">含銀行代號</span></label>
+        <label class="form-label" for="reg-bank">銀行名稱<span class="req-mark">＊</span><span class="opt-mark">含銀行代號</span></label>
         <input class="form-input" id="reg-bank" placeholder="例：台灣銀行（004）">
       </div>
       <div class="form-group">
-        <label class="form-label">分行名稱<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-branch">分行名稱<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-branch" placeholder="例：板橋分行">
       </div>
       <div class="form-group">
-        <label class="form-label">帳號<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-account">帳號<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-account" placeholder="請輸入完整帳號">
       </div>
     </div>
@@ -318,19 +318,19 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div id="post-fields" style="display:none">
       <div id="post-type-label"></div>
       <div class="form-group">
-        <label class="form-label">戶名<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-post-holder">戶名<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-post-holder" placeholder="戶名">
       </div>
       <div class="form-group">
-        <label class="form-label">郵局名稱<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-post-branch">郵局名稱<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-post-branch" placeholder="例：臺北松江路郵局">
       </div>
       <div class="form-group">
-        <label class="form-label">郵局局號<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-post-office-code">郵局局號<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-post-office-code" placeholder="例：0001557">
       </div>
       <div class="form-group">
-        <label class="form-label">郵局帳號<span class="req-mark">＊</span></label>
+        <label class="form-label" for="reg-post-account">郵局帳號<span class="req-mark">＊</span></label>
         <input class="form-input" id="reg-post-account" placeholder="例：0966527">
       </div>
     </div>
@@ -360,9 +360,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 
 <!-- 裁切 Modal -->
 <div class="crop-modal" id="crop-modal">
-  <div class="crop-box">
-    <div class="crop-title">✂️ 裁切圖片（拖曳調整範圍）</div>
-    <div class="crop-canvas"><img id="crop-img" src=""></div>
+  <div class="crop-box" role="dialog" aria-modal="true" aria-label="裁切圖片">
+    <div class="crop-title" role="heading" aria-level="1">✂️ 裁切圖片（拖曳調整範圍）</div>
+    <div class="crop-canvas"><img id="crop-img" src="" alt="待裁切的圖片"></div>
     <div class="crop-actions">
       <button class="btn-crop-cancel" onclick="closeCropModal()">取消</button>
       <button class="btn-crop-ok" onclick="confirmCrop()">✓ 確認使用</button>

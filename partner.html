@@ -398,8 +398,8 @@ textarea.form-input{resize:none}
     <div class="pt-sidebar-logo">
       <div class="pt-logo-name">希絆雲作所</div>
       <div class="pt-char-row">
-        <div class="pt-char-ava" onclick="document.getElementById('ava-input').click()" title="點擊更換頭像">
-          <img id="ava-img">
+        <div class="pt-char-ava" onclick="document.getElementById('ava-input').click()" title="點擊更換頭像" aria-label="更換頭像">
+          <img id="ava-img" alt="">
           <span id="ava-emoji">🧑</span>
           <div class="ava-hover">換<br>頭像</div>
         </div>
@@ -420,7 +420,7 @@ textarea.form-input{resize:none}
       <div class="pt-exp-track"><div class="pt-exp-fill" id="pt-exp-fill" style="width:0%"></div></div>
     </div>
 
-    <div class="pt-menu">
+    <div class="pt-menu" role="navigation" aria-label="主選單">
       <div class="pt-menu-item active" onclick="switchPage('quests',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
       <div class="pt-menu-item" onclick="switchPage('tasks',this)">
         <span class="mi-icon">⚔️</span>任務
@@ -446,7 +446,7 @@ textarea.form-input{resize:none}
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
   <!-- 通知條（公告 + 問題回報合併） -->
-  <div id="ann-notify-bar" style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">
+  <div id="ann-notify-bar" aria-live="polite" style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
   </div>
@@ -701,17 +701,17 @@ textarea.form-input{resize:none}
             <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
               <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'sv-report')">
               <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-              <img id="issue-sv-report-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              <img id="issue-sv-report-img-prev-0" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
             </label>
             <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
               <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'sv-report')">
               <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-              <img id="issue-sv-report-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              <img id="issue-sv-report-img-prev-1" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
             </label>
             <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
               <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'sv-report')">
               <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-              <img id="issue-sv-report-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+              <img id="issue-sv-report-img-prev-2" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
             </label>
           </div>
         </div>
@@ -738,17 +738,17 @@ textarea.form-input{resize:none}
               <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'pt-admin')">
                 <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-                <img id="issue-pt-admin-img-prev-0" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+                <img id="issue-pt-admin-img-prev-0" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'pt-admin')">
                 <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-                <img id="issue-pt-admin-img-prev-1" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+                <img id="issue-pt-admin-img-prev-1" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
               <label style="width:68px;height:68px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
                 <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'pt-admin')">
                 <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem;color:var(--text-s)">📷</span>
-                <img id="issue-pt-admin-img-prev-2" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
+                <img id="issue-pt-admin-img-prev-2" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0">
               </label>
             </div>
           </div>
@@ -1306,8 +1306,8 @@ function handleReportImages(input) {
         const wrap = document.createElement('div');
         wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0';
         wrap.innerHTML = `
-          <img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
-          <button onclick="removeReportImg(${idx},this.closest('div'))"
+          <img src="${base64}" alt="已選擇的回報圖片" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+          <button aria-label="移除這張圖片" onclick="removeReportImg(${idx},this.closest('div'))"
             style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">✕</button>
         `;
         thumbs.appendChild(wrap);
@@ -2242,7 +2242,7 @@ function ptIssueCard(r, tab) {
     <div style="font-size:.75rem;color:var(--text-s)">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
     <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
       <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
-      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" alt="問題回報附圖 ${i+1}，點擊以新視窗開啟" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
       <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
       <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">${ptIssueRepliesHtml(r.replies||[])}</div>
       <div style="display:flex;gap:.5rem;align-items:center" onclick="event.stopPropagation()">

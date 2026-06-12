@@ -96,11 +96,12 @@ function showAnnDetail(ann, userId) {
     modal.id = '_ann_detail_modal';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto';
     modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    modal.addEventListener('keydown', e => { if (e.key === 'Escape') modal.style.display = 'none'; });
     document.body.appendChild(modal);
   }
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;width:min(600px,96vw);max-height:88vh;overflow-y:auto;padding:1.6rem;box-shadow:0 16px 48px rgba(13,74,114,.22);position:relative">
-      <button onclick="document.getElementById('_ann_detail_modal').style.display='none'"
+    <div role="dialog" aria-modal="true" aria-label="公告內容：${ann.title}" style="background:#fff;border-radius:16px;width:min(600px,96vw);max-height:88vh;overflow-y:auto;padding:1.6rem;box-shadow:0 16px 48px rgba(13,74,114,.22);position:relative">
+      <button onclick="document.getElementById('_ann_detail_modal').style.display='none'" aria-label="關閉公告視窗"
               style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.25rem;cursor:pointer;color:#7A9AAF;line-height:1">✕</button>
       <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.1rem;line-height:1.5;padding-right:2rem;margin-bottom:.75rem">${ann.title}</div>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.6rem;font-size:.73rem">
@@ -115,6 +116,8 @@ function showAnnDetail(ann, userId) {
       ${attHtml}
     </div>`;
   modal.style.display = 'flex';
+  const _closeBtn = modal.querySelector('button');
+  if (_closeBtn) _closeBtn.focus();
 }
 
 // 顯示 toast 通知
@@ -123,6 +126,8 @@ function showToast(msg, type = 'info') {
   if (!el) {
     el = document.createElement('div');
     el.id = '_toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
     el.style.cssText = `
       position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
       padding:.7rem 1.4rem;border-radius:24px;font-size:.88rem;font-weight:600;
@@ -140,3 +145,47 @@ function showToast(msg, type = 'info') {
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.style.opacity = '0'; }, 2800);
 }
+
+// ── 無障礙補強：讓 onclick 的 div/span/img 可用鍵盤操作 ──────
+// 1. 為所有帶 inline onclick 的非原生互動元素加上 tabindex 與 role="button"
+// 2. 聚焦時按 Enter / Space 等同點擊（Space 同時阻止頁面捲動）
+// 3. MutationObserver 涵蓋之後動態插入的元素（任務卡、清單列等）
+(function () {
+  const NATIVE = 'a,button,input,select,textarea,label';
+
+  function enhanceEl(el) {
+    if (el.nodeType !== 1 || !el.hasAttribute('onclick')) return;
+    if (el.matches(NATIVE)) return;
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+  }
+
+  function enhanceTree(root) {
+    if (root.nodeType !== 1) return;
+    enhanceEl(root);
+    root.querySelectorAll('[onclick]').forEach(enhanceEl);
+    // 頁面標題提供標題語意給螢幕報讀器（不改變外觀）
+    root.querySelectorAll('.page-title').forEach(t => {
+      if (!t.hasAttribute('role')) { t.setAttribute('role', 'heading'); t.setAttribute('aria-level', '1'); }
+    });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target;
+    if (el && el.nodeType === 1 && el.getAttribute('role') === 'button' &&
+        el.hasAttribute('onclick') && !el.matches(NATIVE)) {
+      e.preventDefault();
+      el.click();
+    }
+  });
+
+  function init() {
+    enhanceTree(document.body);
+    new MutationObserver(muts => {
+      muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) enhanceTree(n); }));
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();

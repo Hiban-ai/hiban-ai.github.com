@@ -214,7 +214,7 @@ textarea.form-input{resize:none}
       <div class="st-user-label" id="st-user-label">—</div>
     </div>
     <div class="st-sidebar-nav">
-      <div class="st-menu">
+      <div class="st-menu" role="navigation" aria-label="主選單">
         <div class="st-menu-group">管理</div>
         <div class="st-menu-item active" onclick="switchPage('dashboard',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
         <div class="st-menu-item" onclick="switchPage('accounts',this)">
@@ -241,12 +241,12 @@ textarea.form-input{resize:none}
   <!-- Main -->
   <div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
   <!-- 新公告通知條 -->
-  <div id="ann-notify-bar" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
+  <div id="ann-notify-bar" aria-live="polite" onclick="switchPage('notices',document.querySelector('[onclick*=notices]'))"
        style="display:none;background:linear-gradient(90deg,#EBF7FD,#D0EEFA);border-bottom:1.5px solid var(--border);padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--blue-d);cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem">
     <span>📢</span><span id="ann-notify-text">您有新公告</span>
     <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
   </div>
-  <div id="issue-notify-bar" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
+  <div id="issue-notify-bar" aria-live="polite" onclick="switchPage('issues',document.querySelector('[onclick*=issues]'))"
        style="display:none;background:linear-gradient(90deg,#FFF7E6,#FFE4A0);border-bottom:1.5px solid #FFB830;padding:.42rem 1.2rem;font-size:.82rem;font-weight:600;color:#7A5800;cursor:pointer;flex-shrink:0;align-items:center;gap:.6rem;overflow:hidden">
     <span style="flex-shrink:0">📝</span>
     <div style="overflow:hidden;flex:1"><span id="issue-notify-text" style="display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite">有新的問題回報待處理</span></div>
@@ -716,7 +716,7 @@ textarea.form-input{resize:none}
 </div>
 <!-- 圖片放大 lightbox -->
 <div id="img-lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;align-items:center;justify-content:center;cursor:zoom-out">
-  <img id="img-lightbox-img" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
+  <img id="img-lightbox-img" alt="放大檢視圖片" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
 </div>
 
 <!-- 公告新增/編輯 Modal -->
@@ -2230,7 +2230,7 @@ function issueCard(r, viewer) {
     <div style="font-size:.78rem;color:var(--text-s)">${r.reporter_name}（${roleMap2[r.reporter_role]||r.reporter_role}）· ${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
     <div id="issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
       <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
-      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" style="height:80px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" alt="問題回報附圖 ${i+1}，點擊以新視窗開啟" style="height:80px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
       ${r.assignment_name ? `<div style="font-size:.78rem;color:var(--text-s);margin-bottom:.5rem">📎 關聯任務：${r.assignment_name}</div>` : ''}
       <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.4rem">回覆紀錄</div>
       <div id="issue-replies-${r.id}" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem">

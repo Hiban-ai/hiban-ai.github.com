@@ -113,6 +113,20 @@ async function nextId(table) {
   });
 }
 
+// 依任務名稱產生序號（例如：清潔任務001、清潔搶單任務001）
+async function nextTaskNo(scope, taskName) {
+  const ref = db.collection('_meta').doc('taskNumbers');
+  const key = `${scope}__${taskName || ''}`;
+  const n = await db.runTransaction(async t => {
+    const doc  = await t.get(ref);
+    const data = doc.exists ? doc.data() : {};
+    const next = (data[key] || 0) + 1;
+    t.set(ref, { ...data, [key]: next }, { merge: true });
+    return next;
+  });
+  return String(n).padStart(3, '0');
+}
+
 // ── Users ─────────────────────────────────────────────────────
 const Users = {
   async all() {
@@ -207,8 +221,9 @@ const Assignments = {
     return snap.empty ? null : snap.docs[0].data();
   },
   async create(data) {
-    const id   = await nextId('assignments');
-    const item = { id, created_at: now(), ...data };
+    const id  = await nextId('assignments');
+    const no  = await nextTaskNo('assign', data.task_name);
+    const item = { id, created_at: now(), ...data, task_name: `${data.task_name}任務${no}` };
     await db.collection('assignments').doc(String(id)).set(item);
     return item;
   },
@@ -337,8 +352,9 @@ const GrabTasks = {
     return snap.empty ? null : snap.docs[0].data();
   },
   async create(data) {
-    const id   = await nextId('grab_tasks');
-    const item = { id, created_at: now(), grabbed_count: 0, status: 'open', ...data };
+    const id  = await nextId('grab_tasks');
+    const no  = await nextTaskNo('grab', data.task_name);
+    const item = { id, created_at: now(), grabbed_count: 0, status: 'open', ...data, task_name: `${data.task_name}搶單任務${no}` };
     await db.collection('grab_tasks').doc(String(id)).set(item);
     return item;
   },

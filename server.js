@@ -850,13 +850,13 @@ app.get('/api/custom-field-defs', async (req, res) => {
 
 app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) => {
   try {
-    const { label, type, options } = req.body;
+    const { label, type, options, task_name } = req.body;
     if (!label || !label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
     const validTypes = ['text','number','date','select'];
     const t = validTypes.includes(type) ? type : 'text';
     const snap = await cfCol().get();
     const ref = cfCol().doc();
-    const data = { label: label.trim(), type: t, sort: snap.size };
+    const data = { label: label.trim(), type: t, sort: snap.size, task_name: task_name || '' };
     if (t === 'select') data.options = Array.isArray(options) ? options.map(o=>String(o).trim()).filter(Boolean) : [];
     await ref.set(data);
     res.json({ ok: true, id: ref.id });
@@ -865,7 +865,7 @@ app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) =
 
 app.put('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res) => {
   try {
-    const { label, type, options, sort } = req.body;
+    const { label, type, options, sort, task_name } = req.body;
     const patch = {};
     if (label !== undefined) {
       if (!label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
@@ -879,6 +879,7 @@ app.put('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res
       patch.options = Array.isArray(options) ? options.map(o=>String(o).trim()).filter(Boolean) : [];
     }
     if (sort !== undefined) patch.sort = parseInt(sort) || 0;
+    if (task_name !== undefined) patch.task_name = task_name || '';
     await cfCol().doc(req.params.id).update(patch);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }

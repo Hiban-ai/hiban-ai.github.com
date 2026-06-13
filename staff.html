@@ -869,7 +869,7 @@ async function loadStaffGrab() {
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem">${t.company ? t.company+'：'+t.task_name : t.task_name}${t.task_no ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.25rem .75rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.85rem;font-weight:700">📋 #'+t.task_no+'</span>' : ''}</div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem">${t.company ? t.company+'：'+t.task_name : t.task_name}${t.task_no ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .5rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">📋 #'+t.task_no+'</span>' : ''}</div>
           <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem .75rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">
@@ -927,7 +927,7 @@ function renderStaffAssign() {
           return `
           <div style="background:#fff;border-radius:var(--r);padding:.85rem 1.1rem;box-shadow:var(--shadow);margin-bottom:.5rem;border-left:5px solid ${statusColor}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-              <div style="font-weight:700;font-size:.88rem">${a.company ? a.company+'：'+a.task_name : a.task_name}${a.task_no ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.25rem .75rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.85rem;font-weight:700">📋 #'+a.task_no+'</span>' : ''}</div>
+              <div style="font-weight:700;font-size:.88rem">${a.company ? a.company+'：'+a.task_name : a.task_name}${a.task_no ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .5rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">📋 #'+a.task_no+'</span>' : ''}</div>
               <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .75rem;font-size:.78rem;color:var(--text-m)">

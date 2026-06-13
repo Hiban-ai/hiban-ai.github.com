@@ -2210,21 +2210,25 @@ app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res)
 自訂欄位定義（label 必須完全照抄）：
 ${cfDesc}
 
-請回傳以下格式的 JSON：
-{
-  "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
-  "company": "從可選公司名稱中選最符合的，找不到則空字串",
-  "target_name": "從可選夥伴姓名中選最符合的，找不到則空字串",
-  "qty": "數量，數字字串，找不到則空字串",
-  "price": "單價，數字字串，找不到則空字串",
-  "deadline_days": "完成期限天數，數字字串，找不到則空字串",
-  "notes": "補充說明文字，找不到則空字串",
-  "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}]
-}
+請回傳一個 JSON 陣列，陣列中每個物件代表「一筆派案」，格式如下：
+[
+  {
+    "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
+    "company": "從可選公司名稱中選最符合的，找不到則空字串",
+    "target_name": "從可選夥伴姓名中選最符合的，找不到則空字串",
+    "qty": "數量，數字字串，找不到則空字串",
+    "price": "單價，數字字串，找不到則空字串",
+    "deadline_days": "完成期限天數，數字字串，找不到則空字串",
+    "notes": "補充說明文字，找不到則空字串",
+    "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}]
+  }
+]
 
-custom_fields 規則：
-- 若欄位名稱出現在上方「自訂欄位定義」中，label 必須與定義完全一致（且符合所選任務）。
-- 若文字內容（例如試算表）中出現上方定義以外的欄位/欄位標題（例如「評分」），且能解析出對應的值，也請一併放入 custom_fields，label 直接使用該欄位在原文中的名稱即可，不需事先定義。
+重要規則：
+- 若文字內容是表格（例如試算表，含表頭與多列資料），請忽略表頭，為「每一列資料」各產生一個物件，組成陣列（陣列長度 = 資料列數）。
+- 若文字內容只是單一段敘述（非表格），陣列內只放一個物件即可。
+- custom_fields：若欄位名稱出現在上方「自訂欄位定義」中，label 必須與定義完全一致（且符合所選任務）。若出現上方定義以外的欄位/欄位標題（例如「評分」），也請一併放入 custom_fields，label 直接使用該欄位在原文中的名稱即可，不需事先定義。
+- 只回傳 JSON 陣列，不要其他文字或說明。
 
 文字內容：
 """
@@ -2240,9 +2244,12 @@ ${text}
     if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
     const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     console.log('[Gemini extract-task raw]', raw.slice(0, 300));
-    const start = raw.indexOf('{');
+    // 找出第一個 [ 或 { 開始，計算括號平衡找出完整的 JSON（陣列或物件，避免AI多回傳內容導致解析失敗）
+    const arrIdx = raw.indexOf('['); const objIdx = raw.indexOf('{');
+    let start = -1, openCh, closeCh;
+    if (arrIdx !== -1 && (objIdx === -1 || arrIdx < objIdx)) { start = arrIdx; openCh = '['; closeCh = ']'; }
+    else if (objIdx !== -1) { start = objIdx; openCh = '{'; closeCh = '}'; }
     if (start === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
-    // 從第一個 { 開始，計算括號平衡找出完整的單一 JSON 物件（避免AI多回傳內容導致解析失敗）
     let depth = 0, end = -1, inStr = false, esc = false;
     for (let i = start; i < raw.length; i++) {
       const ch = raw[i];
@@ -2250,11 +2257,12 @@ ${text}
       if (ch === '\\') { esc = true; continue; }
       if (ch === '"') { inStr = !inStr; continue; }
       if (inStr) continue;
-      if (ch === '{') depth++;
-      else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+      if (ch === openCh) depth++;
+      else if (ch === closeCh) { depth--; if (depth === 0) { end = i; break; } }
     }
     if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
-    const data = JSON.parse(raw.slice(start, end + 1));
+    let data = JSON.parse(raw.slice(start, end + 1));
+    if (!Array.isArray(data)) data = [data];
     res.json({ ok: true, data });
   } catch(e) { console.error('[extract-task]', e); res.status(500).json({ error: e.message }); }
 });

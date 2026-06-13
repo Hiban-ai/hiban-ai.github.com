@@ -606,12 +606,11 @@ textarea.form-input{resize:none}
     <textarea class="form-input" id="ai-import-text" rows="8" placeholder="例如：幫我派一個口碑評論的案子給小美，遠東百貨，10則，每則80元，3天內完成，星星要4顆以上..." style="font-size:.88rem;margin-bottom:.75rem"></textarea>
     <button onclick="runAiImport()" id="ai-import-btn" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">🤖 開始解析並帶入表單</button>
     <div id="ai-import-preview" style="display:none;margin-top:.9rem;border-top:1.5px dashed var(--border);padding-top:.9rem">
-      <div style="font-size:.85rem;font-weight:700;margin-bottom:.5rem">📋 AI 解析結果預覽</div>
-      <div id="ai-import-preview-body" style="font-size:.83rem;color:var(--text);line-height:1.7;background:var(--bg-2);border-radius:var(--rs);padding:.6rem .8rem;margin-bottom:.75rem"></div>
-      <div style="display:flex;gap:.5rem">
-        <button onclick="aiImportEdit()" style="flex:1;padding:.65rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">📝 填入表單修改</button>
-        <button onclick="aiImportConfirm()" id="ai-import-confirm-btn" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer">✅ 一鍵派案</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div style="font-size:.85rem;font-weight:700" id="ai-import-preview-title">📋 AI 解析結果預覽</div>
+        <button onclick="aiImportConfirmAll()" id="ai-import-confirm-all-btn" style="padding:.35rem .8rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer">🚀 全部一鍵派案</button>
       </div>
+      <div id="ai-import-list" style="display:flex;flex-direction:column;gap:.6rem;max-height:320px;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -1767,14 +1766,14 @@ async function deleteCustomFieldDef(id) {
 }
 
 // ── AI 匯入派案資料 ────────────────────────────────────────────
-let _aiImportData = null;
+let _aiImportItems = []; // [{data, status:'pending'|'done'|'error', message}]
 let _aiImportPartners = null;
 
 function openAiImportMgr() {
   document.getElementById('ai-import-err').style.display = 'none';
   document.getElementById('ai-import-text').value = '';
   document.getElementById('ai-import-preview').style.display = 'none';
-  _aiImportData = null;
+  _aiImportItems = [];
   _aiImportPartners = null;
   document.getElementById('ai-import-overlay').classList.add('open');
 }
@@ -1782,7 +1781,7 @@ function closeAiImportMgr() {
   document.getElementById('ai-import-overlay').classList.remove('open');
 }
 
-function showAiImportPreview(data) {
+function aiImportItemSummary(data) {
   const rows = [
     ['任務', data.task_name], ['公司', data.company], ['夥伴', data.target_name],
     ['數量', data.qty], ['單價', data.price ? `$${data.price}` : ''],
@@ -1790,36 +1789,78 @@ function showAiImportPreview(data) {
     ['備註', data.notes],
   ];
   (data.custom_fields || []).forEach(f => rows.push([f.label, f.value]));
-  const html = rows.filter(([,v]) => v !== undefined && v !== null && v !== '')
-    .map(([k,v]) => `<div><b>${k}：</b>${v}</div>`).join('') || '<div style="color:var(--text-s)">AI 未解析出任何欄位</div>';
-  document.getElementById('ai-import-preview-body').innerHTML = html;
+  return rows.filter(([,v]) => v !== undefined && v !== null && v !== '')
+    .map(([k,v]) => `<b>${k}</b>：${v}`).join('　') || '（AI 未解析出任何欄位）';
+}
+
+function renderAiImportList() {
+  const title = document.getElementById('ai-import-preview-title');
+  const allBtn = document.getElementById('ai-import-confirm-all-btn');
+  title.textContent = `📋 AI 解析結果預覽（共 ${_aiImportItems.length} 筆）`;
+  allBtn.style.display = _aiImportItems.length > 1 ? 'block' : 'none';
+  const wrap = document.getElementById('ai-import-list');
+  wrap.innerHTML = _aiImportItems.map((item, i) => {
+    const statusBadge = item.status === 'done'
+      ? `<span style="color:#22b86b;font-weight:700">✅ 已派案</span>`
+      : item.status === 'error'
+        ? `<span style="color:var(--red);font-weight:700">⚠️ ${item.message || '失敗'}</span>`
+        : '';
+    return `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6">
+      <div style="margin-bottom:.4rem">${aiImportItemSummary(item.data)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+        <div>${statusBadge}</div>
+        <div style="display:flex;gap:.4rem">
+          <button onclick="aiImportEdit(${i})" style="padding:.3rem .7rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.78rem;font-weight:700;cursor:pointer">📝 填入表單</button>
+          <button onclick="aiImportConfirm(${i})" ${item.status==='done'?'disabled':''} style="padding:.3rem .7rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.78rem;font-weight:700;cursor:pointer;${item.status==='done'?'opacity:.5':''}">✅ 一鍵派案</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showAiImportPreview(items) {
+  _aiImportItems = items.map(data => ({ data, status: 'pending', message: '' }));
+  renderAiImportList();
   document.getElementById('ai-import-preview').style.display = 'block';
 }
 
-async function aiImportEdit() {
-  await applyAiImportData(_aiImportData, _aiImportPartners);
+async function aiImportEdit(i) {
+  await applyAiImportData(_aiImportItems[i].data, _aiImportPartners);
   closeAiImportMgr();
   showToast('已帶入 AI 解析結果，請確認後送出', 'success');
 }
 
-async function aiImportConfirm() {
-  const btn = document.getElementById('ai-import-confirm-btn');
-  btn.disabled = true;
-  btn.textContent = '派案中...';
+async function aiImportConfirm(i) {
+  const item = _aiImportItems[i];
   try {
-    await applyAiImportData(_aiImportData, _aiImportPartners);
+    await applyAiImportData(item.data, _aiImportPartners);
     await submitAssign();
     const assignErr = document.getElementById('assign-err');
     if (assignErr.style.display !== 'none' && assignErr.textContent) {
       throw new Error(assignErr.textContent);
     }
-    closeAiImportMgr();
+    item.status = 'done';
   } catch(e) {
-    showToast(e.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '✅ 一鍵派案';
+    item.status = 'error';
+    item.message = e.message;
   }
+  renderAiImportList();
+  if (_aiImportItems.every(it => it.status === 'done')) {
+    showToast('已全部派案完成！', 'success');
+    closeAiImportMgr();
+  }
+}
+
+async function aiImportConfirmAll() {
+  const btn = document.getElementById('ai-import-confirm-all-btn');
+  btn.disabled = true;
+  btn.textContent = '派案中...';
+  for (let i = 0; i < _aiImportItems.length; i++) {
+    if (_aiImportItems[i].status === 'done') continue;
+    await aiImportConfirm(i);
+  }
+  btn.disabled = false;
+  btn.textContent = '🚀 全部一鍵派案';
 }
 
 async function loadAiImportSheet() {
@@ -1865,7 +1906,6 @@ async function runAiImport() {
       customFields,
     });
     if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
-    _aiImportData = res.data;
     _aiImportPartners = partners;
     showAiImportPreview(res.data);
   } catch(e) {

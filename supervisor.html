@@ -605,6 +605,14 @@ textarea.form-input{resize:none}
     </div>
     <textarea class="form-input" id="ai-import-text" rows="8" placeholder="例如：幫我派一個口碑評論的案子給小美，遠東百貨，10則，每則80元，3天內完成，星星要4顆以上..." style="font-size:.88rem;margin-bottom:.75rem"></textarea>
     <button onclick="runAiImport()" id="ai-import-btn" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">🤖 開始解析並帶入表單</button>
+    <div id="ai-import-preview" style="display:none;margin-top:.9rem;border-top:1.5px dashed var(--border);padding-top:.9rem">
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:.5rem">📋 AI 解析結果預覽</div>
+      <div id="ai-import-preview-body" style="font-size:.83rem;color:var(--text);line-height:1.7;background:var(--bg-2);border-radius:var(--rs);padding:.6rem .8rem;margin-bottom:.75rem"></div>
+      <div style="display:flex;gap:.5rem">
+        <button onclick="aiImportEdit()" style="flex:1;padding:.65rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">📝 填入表單修改</button>
+        <button onclick="aiImportConfirm()" id="ai-import-confirm-btn" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer">✅ 一鍵派案</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1759,13 +1767,59 @@ async function deleteCustomFieldDef(id) {
 }
 
 // ── AI 匯入派案資料 ────────────────────────────────────────────
+let _aiImportData = null;
+let _aiImportPartners = null;
+
 function openAiImportMgr() {
   document.getElementById('ai-import-err').style.display = 'none';
   document.getElementById('ai-import-text').value = '';
+  document.getElementById('ai-import-preview').style.display = 'none';
+  _aiImportData = null;
+  _aiImportPartners = null;
   document.getElementById('ai-import-overlay').classList.add('open');
 }
 function closeAiImportMgr() {
   document.getElementById('ai-import-overlay').classList.remove('open');
+}
+
+function showAiImportPreview(data) {
+  const rows = [
+    ['任務', data.task_name], ['公司', data.company], ['夥伴', data.target_name],
+    ['數量', data.qty], ['單價', data.price ? `$${data.price}` : ''],
+    ['期限', data.deadline_days ? `${data.deadline_days} 天` : ''],
+    ['備註', data.notes],
+  ];
+  (data.custom_fields || []).forEach(f => rows.push([f.label, f.value]));
+  const html = rows.filter(([,v]) => v !== undefined && v !== null && v !== '')
+    .map(([k,v]) => `<div><b>${k}：</b>${v}</div>`).join('') || '<div style="color:var(--text-s)">AI 未解析出任何欄位</div>';
+  document.getElementById('ai-import-preview-body').innerHTML = html;
+  document.getElementById('ai-import-preview').style.display = 'block';
+}
+
+function aiImportEdit() {
+  applyAiImportData(_aiImportData, _aiImportPartners);
+  closeAiImportMgr();
+  showToast('已帶入 AI 解析結果，請確認後送出', 'success');
+}
+
+async function aiImportConfirm() {
+  const btn = document.getElementById('ai-import-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '派案中...';
+  try {
+    applyAiImportData(_aiImportData, _aiImportPartners);
+    await submitAssign();
+    const assignErr = document.getElementById('assign-err');
+    if (assignErr.style.display !== 'none' && assignErr.textContent) {
+      throw new Error(assignErr.textContent);
+    }
+    closeAiImportMgr();
+  } catch(e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✅ 一鍵派案';
+  }
 }
 
 async function loadAiImportSheet() {
@@ -1811,9 +1865,9 @@ async function runAiImport() {
       customFields,
     });
     if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
-    applyAiImportData(res.data, partners);
-    closeAiImportMgr();
-    showToast('已帶入 AI 解析結果，請確認後送出', 'success');
+    _aiImportData = res.data;
+    _aiImportPartners = partners;
+    showAiImportPreview(res.data);
   } catch(e) {
     errEl.textContent = e.message;
     errEl.style.display = 'block';

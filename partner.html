@@ -889,7 +889,7 @@ function taskLabelNo(a) {
   return a.task_no ? `${taskLabel(a)} #${a.task_no}` : taskLabel(a);
 }
 function taskNoBadge(a) {
-  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
+  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.3rem .8rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.9rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
 }
 
 function fmtDate(s) {
@@ -1207,8 +1207,8 @@ function renderActive(list) {
         <div>
           <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
           <div style="margin-top:.2rem;display:flex;gap:.35rem;flex-wrap:wrap">
-            ${a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : ''}
-            ${a.grab_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#E07830,#F0A030);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span>` : ''}
+            ${a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.3rem .8rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.9rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : ''}
+            ${a.grab_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.3rem .8rem;background:linear-gradient(135deg,#E07830,#F0A030);color:#fff;border-radius:20px;font-size:.9rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span>` : ''}
           </div>
         </div>
         <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
@@ -1625,7 +1625,7 @@ async function loadGrabZone() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
           <div>
             <div style="font-family:serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
-            ${t.task_no ? `<div style="margin-top:.2rem"><span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${t.task_no}</span></div>` : ''}
+            ${t.task_no ? `<div style="margin-top:.2rem"><span style="display:inline-flex;align-items:center;gap:.25rem;padding:.3rem .8rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.9rem;font-weight:700">📋 任務編號 #${t.task_no}</span></div>` : ''}
             ${alreadyGrabbed ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶到 <span style="font-size:.9rem">＃${t.my_grab_no}</span></div>` : ''}
           </div>
           <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow)">$${(t.unit_price||0).toLocaleString()}</div>

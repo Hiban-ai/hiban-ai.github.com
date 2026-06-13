@@ -863,6 +863,27 @@ app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.put('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { label, type, options, sort } = req.body;
+    const patch = {};
+    if (label !== undefined) {
+      if (!label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
+      patch.label = label.trim();
+    }
+    if (type !== undefined) {
+      const validTypes = ['text','number','date','select'];
+      patch.type = validTypes.includes(type) ? type : 'text';
+    }
+    if (options !== undefined) {
+      patch.options = Array.isArray(options) ? options.map(o=>String(o).trim()).filter(Boolean) : [];
+    }
+    if (sort !== undefined) patch.sort = parseInt(sort) || 0;
+    await cfCol().doc(req.params.id).update(patch);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.delete('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res) => {
   try {
     await cfCol().doc(req.params.id).delete();

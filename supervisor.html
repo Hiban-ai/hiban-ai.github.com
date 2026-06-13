@@ -557,8 +557,9 @@ textarea.form-input{resize:none}
       <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div id="cf-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">新增欄位</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem" id="cf-form-title">新增欄位</div>
     <div style="display:flex;flex-direction:column;gap:.5rem">
+      <input type="hidden" id="cf-edit-id">
       <input class="form-input" id="cf-add-label" placeholder="欄位名稱（例如：客戶編號）" style="font-size:.88rem">
       <select class="form-select" id="cf-add-type" onchange="cfToggleOptions()" style="font-size:.88rem">
         <option value="text">文字</option>
@@ -567,7 +568,10 @@ textarea.form-input{resize:none}
         <option value="select">選項（下拉）</option>
       </select>
       <input class="form-input" id="cf-add-options" placeholder="選項，以逗號分隔（例如：高,中,低）" style="font-size:.88rem;display:none">
-      <button onclick="addCustomFieldDef()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增欄位</button>
+      <div style="display:flex;gap:.5rem">
+        <button onclick="addCustomFieldDef()" id="cf-submit-btn" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增欄位</button>
+        <button onclick="cfCancelEdit()" id="cf-cancel-btn" style="display:none;flex-shrink:0;padding:.65rem 1rem;background:#fff;color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">取消</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1533,10 +1537,15 @@ function renderCfList() {
   if (!wrap) return;
   if (!_cfList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無自訂欄位</div>'; return; }
   const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  wrap.innerHTML = _cfList.map(f => `
+  wrap.innerHTML = _cfList.map((f, i) => `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
       <span>${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
-      <button onclick="deleteCustomFieldDef('${f.id}')" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+      <div style="display:flex;gap:.25rem;flex-shrink:0">
+        <button onclick="moveCustomFieldDef(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+        <button onclick="moveCustomFieldDef(${i},1)" ${i===_cfList.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===_cfList.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===_cfList.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+        <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
+        <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1545,7 +1554,32 @@ function cfToggleOptions() {
   document.getElementById('cf-add-options').style.display = type === 'select' ? 'block' : 'none';
 }
 
+function cfStartEdit(id) {
+  const f = _cfList.find(x => x.id === id);
+  if (!f) return;
+  document.getElementById('cf-edit-id').value = f.id;
+  document.getElementById('cf-add-label').value = f.label;
+  document.getElementById('cf-add-type').value = f.type;
+  document.getElementById('cf-add-options').value = (f.options||[]).join(',');
+  cfToggleOptions();
+  document.getElementById('cf-form-title').textContent = '修改欄位';
+  document.getElementById('cf-submit-btn').textContent = '儲存修改';
+  document.getElementById('cf-cancel-btn').style.display = 'block';
+}
+
+function cfCancelEdit() {
+  document.getElementById('cf-edit-id').value = '';
+  document.getElementById('cf-add-label').value = '';
+  document.getElementById('cf-add-options').value = '';
+  document.getElementById('cf-add-type').value = 'text';
+  cfToggleOptions();
+  document.getElementById('cf-form-title').textContent = '新增欄位';
+  document.getElementById('cf-submit-btn').textContent = '新增欄位';
+  document.getElementById('cf-cancel-btn').style.display = 'none';
+}
+
 async function addCustomFieldDef() {
+  const id    = document.getElementById('cf-edit-id').value;
   const label = document.getElementById('cf-add-label').value.trim();
   const type  = document.getElementById('cf-add-type').value;
   if (!label) return showToast('請輸入欄位名稱', 'error');
@@ -1553,11 +1587,28 @@ async function addCustomFieldDef() {
     .split(',').map(s=>s.trim()).filter(Boolean);
   if (type === 'select' && !options.length) return showToast('請輸入選項內容', 'error');
   try {
-    await API.post('/api/custom-field-defs', { label, type, options });
-    document.getElementById('cf-add-label').value = '';
-    document.getElementById('cf-add-options').value = '';
+    if (id) {
+      await API.put(`/api/custom-field-defs/${id}`, { label, type, options });
+      showToast('已儲存修改', 'success');
+    } else {
+      await API.post('/api/custom-field-defs', { label, type, options });
+      showToast('已新增欄位', 'success');
+    }
+    cfCancelEdit();
     await loadCustomFieldDefs();
-    showToast('已新增欄位', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function moveCustomFieldDef(idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= _cfList.length) return;
+  const a = _cfList[idx], b = _cfList[j];
+  try {
+    await Promise.all([
+      API.put(`/api/custom-field-defs/${a.id}`, { sort: b.sort }),
+      API.put(`/api/custom-field-defs/${b.id}`, { sort: a.sort }),
+    ]);
+    await loadCustomFieldDefs();
   } catch(e) { showToast(e.message, 'error'); }
 }
 

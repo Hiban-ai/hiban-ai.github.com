@@ -566,14 +566,15 @@ textarea.form-input{resize:none}
     <div id="fo-list" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.1rem"></div>
 
     <div style="border-top:1px dashed var(--border);margin-bottom:1rem"></div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">📋 選擇任務名稱</div>
+    <select class="form-select" id="cf-task-selector" onchange="cfOnTaskChange()" style="font-size:.88rem;margin-bottom:1rem">
+      <option value="">🌐 全部任務（共用欄位）</option>
+    </select>
     <div id="cf-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem" id="cf-form-title">新增欄位</div>
     <div style="display:flex;flex-direction:column;gap:.5rem">
       <input type="hidden" id="cf-edit-id">
       <input class="form-input" id="cf-add-label" placeholder="欄位名稱（例如：客戶編號）" style="font-size:.88rem">
-      <select class="form-select" id="cf-add-task" style="font-size:.88rem">
-        <option value="">適用：全部任務</option>
-      </select>
       <select class="form-select" id="cf-add-type" onchange="cfToggleOptions()" style="font-size:.88rem">
         <option value="text">文字</option>
         <option value="number">數字</option>
@@ -1416,9 +1417,9 @@ async function loadTaskTypes() {
     // 更新派案下拉
     const ttSel = document.getElementById('assign-task');
     if (ttSel) { const cur = ttSel.value; ttSel.innerHTML = '<option value="">請選擇任務</option>' + _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join(''); ttSel.value = cur; }
-    // 更新自訂欄位「適用任務」下拉
-    const cfTaskSel = document.getElementById('cf-add-task');
-    if (cfTaskSel) { const cur = cfTaskSel.value; cfTaskSel.innerHTML = '<option value="">適用：全部任務</option>' + _ttList.map(t => `<option value="${t.name}">僅：${t.name}</option>`).join(''); cfTaskSel.value = cur; }
+    // 更新自訂欄位管理「任務名稱」下拉
+    const cfTaskSel = document.getElementById('cf-task-selector');
+    if (cfTaskSel) { const cur = cfTaskSel.value; cfTaskSel.innerHTML = '<option value="">🌐 全部任務（共用欄位）</option>' + _ttList.map(t => `<option value="${t.name}">${t.name}</option>`).join(''); cfTaskSel.value = cur; }
   } catch {}
 }
 
@@ -1600,17 +1601,32 @@ function collectCustomFields() {
     .filter(f => f.value !== '');
 }
 
+function cfCurrentTask() {
+  return document.getElementById('cf-task-selector')?.value || '';
+}
+
+function cfFilteredList() {
+  const cur = cfCurrentTask();
+  return _cfList.filter(f => (f.task_name || '') === cur);
+}
+
+function cfOnTaskChange() {
+  cfCancelEdit();
+  renderCfList();
+}
+
 function renderCfList() {
   const wrap = document.getElementById('cf-list');
   if (!wrap) return;
-  if (!_cfList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無自訂欄位</div>'; return; }
+  const list = cfFilteredList();
+  if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">此任務尚無自訂欄位</div>'; return; }
   const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  wrap.innerHTML = _cfList.map((f, i) => `
+  wrap.innerHTML = list.map((f, i) => `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
-      <span>${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}${f.task_name ? '・僅：'+f.task_name : '・全部任務'}）</span></span>
+      <span>${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
       <div style="display:flex;gap:.25rem;flex-shrink:0">
         <button onclick="moveCustomFieldDef(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-        <button onclick="moveCustomFieldDef(${i},1)" ${i===_cfList.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===_cfList.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===_cfList.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+        <button onclick="moveCustomFieldDef(${i},1)" ${i===list.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===list.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===list.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
         <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
         <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
       </div>
@@ -1627,7 +1643,6 @@ function cfStartEdit(id) {
   if (!f) return;
   document.getElementById('cf-edit-id').value = f.id;
   document.getElementById('cf-add-label').value = f.label;
-  document.getElementById('cf-add-task').value = f.task_name || '';
   document.getElementById('cf-add-type').value = f.type;
   document.getElementById('cf-add-options').value = (f.options||[]).join(',');
   cfToggleOptions();
@@ -1639,7 +1654,6 @@ function cfStartEdit(id) {
 function cfCancelEdit() {
   document.getElementById('cf-edit-id').value = '';
   document.getElementById('cf-add-label').value = '';
-  document.getElementById('cf-add-task').value = '';
   document.getElementById('cf-add-options').value = '';
   document.getElementById('cf-add-type').value = 'text';
   cfToggleOptions();
@@ -1652,7 +1666,7 @@ async function addCustomFieldDef() {
   const id    = document.getElementById('cf-edit-id').value;
   const label = document.getElementById('cf-add-label').value.trim();
   const type  = document.getElementById('cf-add-type').value;
-  const task_name = document.getElementById('cf-add-task').value;
+  const task_name = cfCurrentTask();
   if (!label) return showToast('請輸入欄位名稱', 'error');
   const options = document.getElementById('cf-add-options').value
     .split(',').map(s=>s.trim()).filter(Boolean);
@@ -1671,9 +1685,10 @@ async function addCustomFieldDef() {
 }
 
 async function moveCustomFieldDef(idx, dir) {
+  const list = cfFilteredList();
   const j = idx + dir;
-  if (j < 0 || j >= _cfList.length) return;
-  const a = _cfList[idx], b = _cfList[j];
+  if (j < 0 || j >= list.length) return;
+  const a = list[idx], b = list[j];
   try {
     await Promise.all([
       API.put(`/api/custom-field-defs/${a.id}`, { sort: b.sort }),
@@ -1693,6 +1708,7 @@ async function deleteCustomFieldDef(id) {
 }
 
 function openCfMgr() {
+  cfCancelEdit();
   loadCustomFieldDefs();
   renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');

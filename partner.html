@@ -1087,6 +1087,12 @@ async function completeTask(id, btn) {
   } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
 }
 
+// 動態自訂欄位顯示
+function customFieldsHtml(fields) {
+  if (!fields || !fields.length) return '';
+  return `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">${fields.map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>`;
+}
+
 // 完整卡片（含接案/拒絕按鈕）
 function buildTaskCards(list) {
   const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
@@ -1109,6 +1115,7 @@ function buildTaskCards(list) {
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
+      ${customFieldsHtml(a.custom_fields)}
       <div style="display:flex;gap:.5rem">
         <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
         <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif">❌ 拒絕</button>
@@ -1139,6 +1146,7 @@ function buildTaskCardsReadonly(list) {
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
+      ${customFieldsHtml(a.custom_fields)}
     </div>`
   }).join('');
 }
@@ -1223,6 +1231,7 @@ function renderActive(list) {
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
         <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes || ''}</div>
       </div>
+      ${customFieldsHtml(a.custom_fields)}
       <div style="margin-bottom:.6rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">督導意見</div>
         <div style="max-height:calc(1.6em * 4 + .8rem);overflow-y:auto;background:var(--orange-p);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid rgba(240,120,64,.25);min-height:2rem;line-height:1.6">
@@ -1640,6 +1649,7 @@ async function loadGrabZone() {
           </div>
         </div>
         <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">⏰ 截止：${(t.deadline||'').slice(0,16)}</div>
+        ${customFieldsHtml(t.custom_fields)}
         ${alreadyGrabbed
           ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`
           : remaining === 0

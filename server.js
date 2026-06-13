@@ -835,9 +835,44 @@ app.delete('/api/task-types/:id', requireRole('supervisor'), async (req, res) =>
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── 自訂欄位管理 ──────────────────────────────────────────────
+const cfCol = () => require('firebase-admin').firestore().collection('custom_field_defs');
+
+app.get('/api/custom-field-defs', async (req, res) => {
+  try {
+    const snap = await cfCol().orderBy('sort','asc').get();
+    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  } catch {
+    const snap = await cfCol().get();
+    res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  }
+});
+
+app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { label, type, options } = req.body;
+    if (!label || !label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
+    const validTypes = ['text','number','date','select'];
+    const t = validTypes.includes(type) ? type : 'text';
+    const snap = await cfCol().get();
+    const ref = cfCol().doc();
+    const data = { label: label.trim(), type: t, sort: snap.size };
+    if (t === 'select') data.options = Array.isArray(options) ? options.map(o=>String(o).trim()).filter(Boolean) : [];
+    await ref.set(data);
+    res.json({ ok: true, id: ref.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res) => {
+  try {
+    await cfCol().doc(req.params.id).delete();
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days } = req.body;
+    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields } = req.body;
     if (!task_name || !quantity || !unit_price) return res.status(400).json({ error: '缺少必填欄位' });
     if (assign_type === 'individual' && !target_partner_id) return res.status(400).json({ error: '請選擇指派對象' });
     const qty = parseInt(quantity), price = parseInt(unit_price);
@@ -858,6 +893,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
       status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
+      custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
     });
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -1128,7 +1164,7 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields } = req.body;
     if (!task_name || !unit_price || !total_slots || !deadline)
       return res.status(400).json({ error: '缺少必填欄位' });
     const slots = parseInt(total_slots);
@@ -1144,6 +1180,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       notes: notes || '',
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
+      custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
     });
     cacheDel('grab-tasks-open');
     res.json({ ok: true, id: item.id });

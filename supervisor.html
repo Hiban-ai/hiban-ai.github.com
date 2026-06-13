@@ -392,6 +392,12 @@ textarea.form-input{resize:none}
             <textarea class="form-input" id="assign-notes" rows="3" placeholder="特別提醒或指示...（選填）" style="flex:1"></textarea>
           </div>
 
+          <!-- 自訂欄位 -->
+          <div id="assign-custom-fields" style="display:flex;flex-direction:column;gap:.75rem"></div>
+          <div style="display:flex;justify-content:flex-end">
+            <button onclick="openCfMgr()" type="button" style="display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️ 自訂欄位</button>
+          </div>
+
         </div>
         <button id="assign-submit-btn" onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>
@@ -539,6 +545,29 @@ textarea.form-input{resize:none}
     <div id="tt-panel-delete" style="display:none;flex-direction:column;gap:.6rem">
       <select class="form-select" id="tt-del-sel" style="font-size:.88rem"><option value="">請選擇要刪除的項目</option></select>
       <button onclick="deleteTaskType()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 自訂欄位管理 overlay -->
+<div class="pw-overlay" id="cf-overlay">
+  <div class="pw-box" style="width:360px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理</div>
+      <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <div id="cf-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">新增欄位</div>
+    <div style="display:flex;flex-direction:column;gap:.5rem">
+      <input class="form-input" id="cf-add-label" placeholder="欄位名稱（例如：客戶編號）" style="font-size:.88rem">
+      <select class="form-select" id="cf-add-type" onchange="cfToggleOptions()" style="font-size:.88rem">
+        <option value="text">文字</option>
+        <option value="number">數字</option>
+        <option value="date">日期</option>
+        <option value="select">選項（下拉）</option>
+      </select>
+      <input class="form-input" id="cf-add-options" placeholder="選項，以逗號分隔（例如：高,中,低）" style="font-size:.88rem;display:none">
+      <button onclick="addCustomFieldDef()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增欄位</button>
     </div>
   </div>
 </div>
@@ -843,9 +872,11 @@ async function submitAssign() {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
         deadline_days: parseInt(days),
+        custom_fields: collectCustomFields(),
       });
       showToast('搶單任務已建立！', 'success');
       ['assign-company','assign-task','assign-qty','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
+      renderAssignCustomFields();
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
@@ -862,9 +893,11 @@ async function submitAssign() {
         deadline_days: parseInt(days),
         assign_type: target === 'all' ? 'all' : 'individual',
         target_partner_id: target === 'all' ? null : parseInt(target),
+        custom_fields: collectCustomFields(),
       });
       showToast('派案成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-qty','assign-price','assign-notes','assign-days'].forEach(id => document.getElementById(id).value = '');
+      renderAssignCustomFields();
       document.getElementById('assign-total').textContent = '$0';
       loadAssignHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
@@ -900,6 +933,7 @@ async function loadGrabHistory() {
           <div>👥 名額 <strong>${t.grabbed_count} / ${t.total_slots}</strong></div>
           <div>⏰ 截止 <strong>${(t.deadline||'').slice(0,16)}</strong></div>
         </div>
+        ${t.custom_fields && t.custom_fields.length ? `<div style="display:flex;flex-direction:column;gap:.2rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">${customFieldsHtml(t.custom_fields)}</div>` : ''}
         <div id="grab-rec-${t.id}">
           <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開搶單明細（${t.grabbed_count} 筆）</button>
         </div>
@@ -971,10 +1005,17 @@ async function loadAssignHistory() {
           <div><span style="color:var(--text-s);width:72px;display:inline-block">單價／總價</span>$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
           <div><span style="color:var(--text-s);width:72px;display:inline-block">完成期限</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'天' : '—')}</div>
           ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">補充說明</span><div style="font-family:'標楷體','DFKai-SB',serif;max-height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
+          ${customFieldsHtml(a.custom_fields)}
         </div>
       </div>`
     }).join('');
   } catch(e) { console.error(e); }
+}
+
+// 動態自訂欄位顯示
+function customFieldsHtml(fields) {
+  if (!fields || !fields.length) return '';
+  return fields.map(f => `<div><span style="color:var(--text-s);width:72px;display:inline-block">${f.label}</span>${f.value}</div>`).join('');
 }
 
 async function loadPartners() {
@@ -1138,6 +1179,7 @@ async function init() {
   loadPartners();
   loadTaskTypes();
   loadCompanies();
+  loadCustomFieldDefs();
   loadAnnouncements(); // 背景載入，不阻塞
   syncIssueNotifyBar();
   loadDashboard();
@@ -1445,6 +1487,95 @@ function openTaskTypesMgr() {
 }
 function closeTaskTypesMgr() {
   document.getElementById('task-types-overlay').classList.remove('open');
+}
+
+// ── 自訂欄位管理 ──────────────────────────────────────────────
+let _cfList = [];
+
+async function loadCustomFieldDefs() {
+  try {
+    _cfList = await API.get('/api/custom-field-defs');
+    renderAssignCustomFields();
+    renderCfList();
+  } catch {}
+}
+
+function renderAssignCustomFields() {
+  const wrap = document.getElementById('assign-custom-fields');
+  if (!wrap) return;
+  wrap.innerHTML = _cfList.map(f => {
+    let input;
+    if (f.type === 'select') {
+      input = `<select class="form-select cf-input" data-label="${f.label}" style="flex:1">
+        <option value="">請選擇</option>
+        ${(f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}
+      </select>`;
+    } else {
+      const type = f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text');
+      input = `<input class="form-input cf-input" data-label="${f.label}" type="${type}" style="flex:1">`;
+    }
+    return `
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">${f.label}</label>
+      ${input}
+    </div>`;
+  }).join('');
+}
+
+function collectCustomFields() {
+  return [...document.querySelectorAll('#assign-custom-fields .cf-input')]
+    .map(el => ({ label: el.dataset.label, value: el.value }))
+    .filter(f => f.value !== '');
+}
+
+function renderCfList() {
+  const wrap = document.getElementById('cf-list');
+  if (!wrap) return;
+  if (!_cfList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無自訂欄位</div>'; return; }
+  const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
+  wrap.innerHTML = _cfList.map(f => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
+      <span>${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
+      <button onclick="deleteCustomFieldDef('${f.id}')" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`).join('');
+}
+
+function cfToggleOptions() {
+  const type = document.getElementById('cf-add-type').value;
+  document.getElementById('cf-add-options').style.display = type === 'select' ? 'block' : 'none';
+}
+
+async function addCustomFieldDef() {
+  const label = document.getElementById('cf-add-label').value.trim();
+  const type  = document.getElementById('cf-add-type').value;
+  if (!label) return showToast('請輸入欄位名稱', 'error');
+  const options = document.getElementById('cf-add-options').value
+    .split(',').map(s=>s.trim()).filter(Boolean);
+  if (type === 'select' && !options.length) return showToast('請輸入選項內容', 'error');
+  try {
+    await API.post('/api/custom-field-defs', { label, type, options });
+    document.getElementById('cf-add-label').value = '';
+    document.getElementById('cf-add-options').value = '';
+    await loadCustomFieldDefs();
+    showToast('已新增欄位', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCustomFieldDef(id) {
+  if (!confirm('是否確定刪除此自訂欄位？')) return;
+  try {
+    await API.delete(`/api/custom-field-defs/${id}`);
+    await loadCustomFieldDefs();
+    showToast('已刪除', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openCfMgr() {
+  loadCustomFieldDefs();
+  document.getElementById('cf-overlay').classList.add('open');
+}
+function closeCfMgr() {
+  document.getElementById('cf-overlay').classList.remove('open');
 }
 
 // ── 任務紀錄 ──────────────────────────────────────────────────

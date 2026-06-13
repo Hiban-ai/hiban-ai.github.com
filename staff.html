@@ -935,6 +935,7 @@ function renderStaffAssign() {
               <div>數量：${a.quantity||'—'}</div>
               <div>截止：${(a.deadline||'').slice(0,10)||'—'}</div>
             </div>
+            ${a.custom_fields && a.custom_fields.length ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.78rem;color:var(--text-m)">${a.custom_fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>` : ''}
           </div>`;
         }).join('')}
       </div>`;

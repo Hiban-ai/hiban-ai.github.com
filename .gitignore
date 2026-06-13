@@ -8,3 +8,4 @@ firebase-key.json
 *.json.bak
 get_refresh_token.js
 traffic_stats.json
+cookies.txt

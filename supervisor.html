@@ -1741,6 +1741,9 @@ async function deleteCustomFieldDef(id) {
 
 function openCfMgr() {
   cfCancelEdit();
+  const cfSel = document.getElementById('cf-task-selector');
+  const curTask = document.getElementById('assign-task')?.value || '';
+  if (cfSel) cfSel.value = curTask;
   loadCustomFieldDefs();
   renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');

@@ -331,7 +331,7 @@ textarea.form-input{resize:none}
 
           <div data-field="task" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
-            <select class="form-select" id="assign-task" style="flex:1" onchange="renderAssignCustomFields()">
+            <select class="form-select" id="assign-task" style="flex:1" onchange="renderAssignCustomFields();applyFieldOrder()">
               <option value="">請選擇任務</option>
             </select>
             <button onclick="openTaskTypesMgr()" title="管理任務項目" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
@@ -1532,11 +1532,12 @@ let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
 function isFixedToken(token) { return Object.prototype.hasOwnProperty.call(FIELD_ORDER_LABELS, token); }
 function cfIdFromToken(token) { return token.startsWith('cf:') ? token.slice(3) : null; }
 
-function cfTokenVisible(token) {
+function cfTokenVisible(token, taskName) {
   if (isFixedToken(token)) return true;
+  if (taskName === undefined) taskName = cfCurrentTask();
   const id = cfIdFromToken(token);
   const f = _cfList.find(x => x.id === id);
-  return !!f && (f.task_name || '') === cfCurrentTask();
+  return !!f && (f.task_name || '') === taskName;
 }
 
 async function loadFieldOrder() {
@@ -1564,17 +1565,22 @@ function syncFieldOrderTokens() {
 
 function applyFieldOrder() {
   const container = document.querySelector('#row-assign-target').closest('[data-field]').parentElement;
+  const curTask = document.getElementById('assign-task')?.value || '';
   let customPlaced = false;
   _fieldOrder.forEach(token => {
     if (isFixedToken(token)) {
       const el = container.querySelector(`[data-field="${token}"]`);
       if (el) container.appendChild(el);
-    } else if (!customPlaced) {
+    } else if (!customPlaced && cfTokenVisible(token, curTask)) {
       const el = container.querySelector(`[data-field="custom"]`);
       if (el) container.appendChild(el);
       customPlaced = true;
     }
   });
+  if (!customPlaced) {
+    const el = container.querySelector(`[data-field="custom"]`);
+    if (el) container.appendChild(el);
+  }
 }
 
 function renderFieldOrderList() {

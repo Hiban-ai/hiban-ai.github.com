@@ -1919,6 +1919,22 @@ async function applyAiImportData(data, partners) {
       catch(e) { console.error('[AI匯入] 建立自訂欄位失敗', f.label, e); }
     }
     await loadCustomFieldDefs();
+  }
+
+  // 依 AI 解析出的順序排列自訂欄位（取代原本固定加在最後的順序）
+  const incomingIds = incoming.map(f => {
+    const c = _cfList.find(c => c.label === f.label && (!c.task_name || c.task_name === curTask));
+    return c ? `cf:${c.id}` : null;
+  }).filter(Boolean);
+  if (incomingIds.length) {
+    const existingIdx = incomingIds.map(t => _fieldOrder.indexOf(t)).filter(i => i >= 0);
+    const insertAt = existingIdx.length ? Math.min(...existingIdx) : _fieldOrder.length;
+    const rest = _fieldOrder.filter(t => !incomingIds.includes(t));
+    _fieldOrder = [...rest.slice(0, insertAt), ...incomingIds, ...rest.slice(insertAt)];
+    try { await API.put('/api/field-order', { order: _fieldOrder }); } catch(e) { console.error('[AI匯入] 儲存欄位順序失敗', e); }
+  }
+
+  if (missing.length || incomingIds.length) {
     renderAssignCustomFields();
     applyFieldOrder();
   }

@@ -2201,7 +2201,11 @@ app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res)
       `- ${f.label}（${f.type}${f.options && f.options.length ? '，選項：' + f.options.join('/') : ''}${f.task_name ? '，僅用於任務「' + f.task_name + '」' : '，所有任務通用'}）`
     ).join('\n') || '（無）';
 
+    const todayStr = nowTW().split(' ')[0]; // YYYY/MM/DD
+
     const prompt = `你是任務派案助手。請從以下文字中解析出派案資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
+
+今天日期：${todayStr}
 
 可選任務名稱：${(tasks || []).join('、')}
 可選公司名稱：${(companies || []).join('、')}
@@ -2218,7 +2222,7 @@ ${cfDesc}
     "target_name": "從可選夥伴姓名中選最符合的，找不到則空字串",
     "qty": "數量，數字字串，找不到則空字串",
     "price": "單價，數字字串，找不到則空字串",
-    "deadline_days": "完成期限天數，數字字串，找不到則空字串",
+    "deadline_days": "完成期限天數，數字字串。若原文是天數（例如「3天內」）直接使用；若原文是日期（例如「2026/06/20」或「6/20」），請換算成從今天日期到該日期的剩餘天數（至少為1）；找不到則空字串",
     "notes": "補充說明文字，找不到則空字串",
     "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}]
   }

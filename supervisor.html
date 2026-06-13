@@ -598,6 +598,11 @@ textarea.form-input{resize:none}
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上客戶訊息、Email、LINE 對話等文字，AI 會自動辨識公司、任務、數量、單價、期限、夥伴與自訂欄位，並填入下方派案表單供你確認。</div>
     <div id="ai-import-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或貼上 Google 試算表連結（需設為「知道連結的人皆可查看」，將讀取第一個工作表）</div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+      <input class="form-input" id="ai-import-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." style="flex:1;font-size:.85rem">
+      <button onclick="loadAiImportSheet()" id="ai-import-sheet-btn" style="flex-shrink:0;padding:.65rem 1rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">讀取</button>
+    </div>
     <textarea class="form-input" id="ai-import-text" rows="8" placeholder="例如：幫我派一個口碑評論的案子給小美，遠東百貨，10則，每則80元，3天內完成，星星要4顆以上..." style="font-size:.88rem;margin-bottom:.75rem"></textarea>
     <button onclick="runAiImport()" id="ai-import-btn" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">🤖 開始解析並帶入表單</button>
   </div>
@@ -1761,6 +1766,28 @@ function openAiImportMgr() {
 }
 function closeAiImportMgr() {
   document.getElementById('ai-import-overlay').classList.remove('open');
+}
+
+async function loadAiImportSheet() {
+  const url = document.getElementById('ai-import-sheet-url').value.trim();
+  const errEl = document.getElementById('ai-import-err');
+  errEl.style.display = 'none';
+  if (!url) { errEl.textContent = '請輸入 Google 試算表連結'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('ai-import-sheet-btn');
+  btn.disabled = true;
+  btn.textContent = '讀取中...';
+  try {
+    const res = await API.post('/api/sheet-fetch', { url });
+    if (!res.ok) throw new Error(res.error || '讀取失敗');
+    document.getElementById('ai-import-text').value = res.text;
+    showToast('已讀取試算表內容，請按下方按鈕解析', 'success');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '讀取';
+  }
 }
 
 async function runAiImport() {

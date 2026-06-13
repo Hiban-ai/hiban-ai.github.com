@@ -2148,6 +2148,36 @@ app.post('/api/gemini/extract-bank', async (req, res) => {
   } catch(e) { console.error('[extract-bank]', e); res.status(500).json({ error: e.message }); }
 });
 
+function httpsGetText(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, r => {
+      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+        return httpsGetText(r.headers.location).then(resolve, reject);
+      }
+      if (r.statusCode !== 200) return reject(new Error(`讀取失敗（HTTP ${r.statusCode}），請確認試算表已設為「知道連結的人皆可查看」`));
+      let d = '';
+      r.on('data', c => d += c);
+      r.on('end', () => resolve(d));
+    }).on('error', reject);
+  });
+}
+
+app.post('/api/sheet-fetch', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || !/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(url)) {
+      return res.status(400).json({ error: '請輸入有效的 Google 試算表連結' });
+    }
+    const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    if (!m) return res.status(400).json({ error: '無法解析試算表 ID' });
+    const gidMatch = url.match(/[#&]gid=(\d+)/);
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv` + (gidMatch ? `&gid=${gidMatch[1]}` : '');
+    const text = await httpsGetText(exportUrl);
+    if (text.startsWith('<')) return res.status(400).json({ error: '無法讀取，請確認試算表已設為「知道連結的人皆可查看」' });
+    res.json({ ok: true, text: text.slice(0, 20000) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res) => {
   try {
     const { text, tasks, companies, partners, customFields } = req.body;

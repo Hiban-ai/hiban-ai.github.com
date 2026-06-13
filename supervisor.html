@@ -1869,6 +1869,7 @@ async function runAiImport() {
     _aiImportPartners = partners;
     showAiImportPreview(res.data);
   } catch(e) {
+    console.error('[AI匯入]', e);
     errEl.textContent = e.message;
     errEl.style.display = 'block';
   } finally {

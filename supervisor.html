@@ -1537,7 +1537,7 @@ function cfTokenVisible(token, taskName) {
   if (taskName === undefined) taskName = cfCurrentTask();
   const id = cfIdFromToken(token);
   const f = _cfList.find(x => x.id === id);
-  return !!f && (f.task_name || '') === taskName;
+  return !!f && (!f.task_name || f.task_name === taskName);
 }
 
 async function loadFieldOrder() {

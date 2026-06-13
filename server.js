@@ -2240,8 +2240,20 @@ ${text}
     if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
     const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     console.log('[Gemini extract-task raw]', raw.slice(0, 300));
-    const start = raw.indexOf('{'); const end = raw.lastIndexOf('}');
-    if (start === -1 || end === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+    const start = raw.indexOf('{');
+    if (start === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+    // 從第一個 { 開始，計算括號平衡找出完整的單一 JSON 物件（避免AI多回傳內容導致解析失敗）
+    let depth = 0, end = -1, inStr = false, esc = false;
+    for (let i = start; i < raw.length; i++) {
+      const ch = raw[i];
+      if (esc) { esc = false; continue; }
+      if (ch === '\\') { esc = true; continue; }
+      if (ch === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
     const data = JSON.parse(raw.slice(start, end + 1));
     res.json({ ok: true, data });
   } catch(e) { console.error('[extract-task]', e); res.status(500).json({ error: e.message }); }

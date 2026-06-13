@@ -306,6 +306,7 @@ textarea.form-input{resize:none}
         <div style="display:flex;flex-direction:column;gap:.75rem">
 
           <!-- 指定派案：指派給 -->
+          <div data-field="target">
           <div id="row-assign-target" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">指派給</label>
             <select class="form-select" id="assign-target" style="flex:1" onchange="updateAssignLabel()">
@@ -314,12 +315,13 @@ textarea.form-input{resize:none}
           </div>
 
           <!-- 搶單模式：名額總數 -->
-          <div id="row-grab-slots" style="display:none;align-items:center;gap:.75rem">
+          <div id="row-grab-slots" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">名額總數</label>
             <input class="form-input" type="number" id="grab-slots" min="1" placeholder="共幾個名額" style="flex:1">
           </div>
+          </div>
 
-          <div style="display:flex;align-items:center;gap:.75rem">
+          <div data-field="company" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">公司</label>
             <select class="form-select" id="assign-company" style="flex:1">
               <option value="">請選擇公司</option>
@@ -327,7 +329,7 @@ textarea.form-input{resize:none}
             <button onclick="openCompanyMgr()" title="管理公司" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
           </div>
 
-          <div style="display:flex;align-items:center;gap:.75rem">
+          <div data-field="task" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
             <select class="form-select" id="assign-task" style="flex:1">
               <option value="">請選擇任務</option>
@@ -335,12 +337,12 @@ textarea.form-input{resize:none}
             <button onclick="openTaskTypesMgr()" title="管理任務項目" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
           </div>
 
-          <div style="display:flex;align-items:center;gap:.75rem">
+          <div data-field="qty" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">數量</label>
             <input class="form-input" type="number" id="assign-qty" min="1" placeholder="請輸入數量" style="flex:1" oninput="calcAssignTotal()">
           </div>
 
-          <div style="display:flex;align-items:center;gap:.75rem">
+          <div data-field="price" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">單價</label>
             <div style="flex:1;position:relative">
               <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
@@ -348,12 +350,13 @@ textarea.form-input{resize:none}
             </div>
           </div>
 
-          <div style="display:flex;align-items:center;gap:.75rem">
+          <div data-field="total" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">總價</label>
             <div style="flex:1;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.72rem 1rem;font-family:'Noto Serif TC',serif;font-weight:700;color:var(--blue-d);font-size:1rem" id="assign-total">$0</div>
           </div>
 
           <!-- 指定派案：X天 -->
+          <div data-field="deadline">
           <div id="row-deadline-days" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">完成期限</label>
             <div style="flex:1;display:flex;align-items:center;gap:.5rem">
@@ -362,7 +365,7 @@ textarea.form-input{resize:none}
             </div>
           </div>
           <!-- 搶單模式：截止日期 + 時間 -->
-          <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem">
+          <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s)">截止日期與時間</label>
             <div class="gdp-wrap">
               <div class="gdp-selects">
@@ -386,16 +389,19 @@ textarea.form-input{resize:none}
             </div>
             <input type="hidden" id="grab-deadline">
           </div>
+          </div>
 
-          <div style="display:flex;align-items:flex-start;gap:.75rem">
+          <div data-field="notes" style="display:flex;align-items:flex-start;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.7rem">補充說明</label>
             <textarea class="form-input" id="assign-notes" rows="3" placeholder="特別提醒或指示...（選填）" style="flex:1"></textarea>
           </div>
 
           <!-- 自訂欄位 -->
+          <div data-field="custom">
           <div id="assign-custom-fields" style="display:flex;flex-direction:column;gap:.75rem"></div>
-          <div style="display:flex;justify-content:flex-end">
+          <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
             <button onclick="openCfMgr()" type="button" style="display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️ 自訂欄位</button>
+          </div>
           </div>
 
         </div>
@@ -556,6 +562,10 @@ textarea.form-input{resize:none}
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理</div>
       <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">📐 欄位顯示順序（含原有欄位）</div>
+    <div id="fo-list" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.1rem"></div>
+
+    <div style="border-top:1px dashed var(--border);margin-bottom:1rem"></div>
     <div id="cf-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem" id="cf-form-title">新增欄位</div>
     <div style="display:flex;flex-direction:column;gap:.5rem">
@@ -1184,6 +1194,7 @@ async function init() {
   loadTaskTypes();
   loadCompanies();
   loadCustomFieldDefs();
+  loadFieldOrder();
   loadAnnouncements(); // 背景載入，不阻塞
   syncIssueNotifyBar();
   loadDashboard();
@@ -1504,6 +1515,55 @@ async function loadCustomFieldDefs() {
   } catch {}
 }
 
+// ── 派案表單欄位排序 ──────────────────────────────────────────
+const FIELD_ORDER_LABELS = {
+  target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
+  price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明',
+  custom: '🔧 自訂欄位區塊',
+};
+let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
+
+async function loadFieldOrder() {
+  try {
+    const res = await API.get('/api/field-order');
+    _fieldOrder = res.order || _fieldOrder;
+  } catch {}
+  applyFieldOrder();
+  renderFieldOrderList();
+}
+
+function applyFieldOrder() {
+  const container = document.querySelector('#row-assign-target').closest('[data-field]').parentElement;
+  _fieldOrder.forEach(key => {
+    const el = container.querySelector(`[data-field="${key}"]`);
+    if (el) container.appendChild(el);
+  });
+}
+
+function renderFieldOrderList() {
+  const wrap = document.getElementById('fo-list');
+  if (!wrap) return;
+  wrap.innerHTML = _fieldOrder.map((key, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
+      <span>${FIELD_ORDER_LABELS[key]}</span>
+      <div style="display:flex;gap:.25rem;flex-shrink:0">
+        <button onclick="moveFieldOrder(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+        <button onclick="moveFieldOrder(${i},1)" ${i===_fieldOrder.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===_fieldOrder.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===_fieldOrder.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+      </div>
+    </div>`).join('');
+}
+
+async function moveFieldOrder(idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= _fieldOrder.length) return;
+  [_fieldOrder[idx], _fieldOrder[j]] = [_fieldOrder[j], _fieldOrder[idx]];
+  applyFieldOrder();
+  renderFieldOrderList();
+  try {
+    await API.put('/api/field-order', { order: _fieldOrder });
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
 function renderAssignCustomFields() {
   const wrap = document.getElementById('assign-custom-fields');
   if (!wrap) return;
@@ -1623,6 +1683,7 @@ async function deleteCustomFieldDef(id) {
 
 function openCfMgr() {
   loadCustomFieldDefs();
+  renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');
 }
 function closeCfMgr() {

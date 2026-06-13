@@ -891,6 +891,28 @@ app.delete('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, 
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── 派案表單欄位排序 ────────────────────────────────────────
+const DEFAULT_FIELD_ORDER = ['target','company','task','qty','price','total','deadline','notes','custom'];
+
+app.get('/api/field-order', async (req, res) => {
+  try {
+    const doc = await firestoreDb.collection('settings').doc('fieldOrder').get();
+    const order = doc.exists && Array.isArray(doc.data().order) ? doc.data().order : DEFAULT_FIELD_ORDER;
+    const merged = [...order, ...DEFAULT_FIELD_ORDER.filter(k => !order.includes(k))];
+    res.json({ order: merged });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/field-order', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { order } = req.body;
+    if (!Array.isArray(order) || !DEFAULT_FIELD_ORDER.every(k => order.includes(k)))
+      return res.status(400).json({ error: '欄位順序資料不正確' });
+    await firestoreDb.collection('settings').doc('fieldOrder').set({ order });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
     const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields } = req.body;

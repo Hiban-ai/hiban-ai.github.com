@@ -1517,6 +1517,7 @@ async function loadCustomFieldDefs() {
   try {
     _cfList = await API.get('/api/custom-field-defs');
     renderAssignCustomFields();
+    syncFieldOrderTokens();
     renderFieldOrderList();
   } catch {}
 }
@@ -1525,59 +1526,98 @@ async function loadCustomFieldDefs() {
 const FIELD_ORDER_LABELS = {
   target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
   price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明',
-  custom: '🔧 自訂欄位區塊',
 };
 let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
+
+function isFixedToken(token) { return Object.prototype.hasOwnProperty.call(FIELD_ORDER_LABELS, token); }
+function cfIdFromToken(token) { return token.startsWith('cf:') ? token.slice(3) : null; }
+
+function cfTokenVisible(token) {
+  if (isFixedToken(token)) return true;
+  const id = cfIdFromToken(token);
+  const f = _cfList.find(x => x.id === id);
+  return !!f && (f.task_name || '') === cfCurrentTask();
+}
 
 async function loadFieldOrder() {
   try {
     const res = await API.get('/api/field-order');
-    _fieldOrder = res.order || _fieldOrder;
+    _fieldOrder = (res.order || _fieldOrder).filter(t => t !== 'custom');
   } catch {}
+  syncFieldOrderTokens();
   applyFieldOrder();
   renderFieldOrderList();
 }
 
+// 確保所有固定欄位 + 自訂欄位都有對應的排序項目
+function syncFieldOrderTokens() {
+  Object.keys(FIELD_ORDER_LABELS).forEach(key => {
+    if (!_fieldOrder.includes(key)) _fieldOrder.push(key);
+  });
+  _cfList.forEach(f => {
+    const token = `cf:${f.id}`;
+    if (!_fieldOrder.includes(token)) _fieldOrder.push(token);
+  });
+  const validCfIds = new Set(_cfList.map(f => f.id));
+  _fieldOrder = _fieldOrder.filter(t => isFixedToken(t) || validCfIds.has(cfIdFromToken(t)));
+}
+
 function applyFieldOrder() {
   const container = document.querySelector('#row-assign-target').closest('[data-field]').parentElement;
-  _fieldOrder.forEach(key => {
-    const el = container.querySelector(`[data-field="${key}"]`);
-    if (el) container.appendChild(el);
+  let customPlaced = false;
+  _fieldOrder.forEach(token => {
+    if (isFixedToken(token)) {
+      const el = container.querySelector(`[data-field="${token}"]`);
+      if (el) container.appendChild(el);
+    } else if (!customPlaced) {
+      const el = container.querySelector(`[data-field="custom"]`);
+      if (el) container.appendChild(el);
+      customPlaced = true;
+    }
   });
 }
 
 function renderFieldOrderList() {
   const wrap = document.getElementById('fo-list');
   if (!wrap) return;
-  const fixedHtml = _fieldOrder.map((key, i) => `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
-      <span>${FIELD_ORDER_LABELS[key]}</span>
-      <div style="display:flex;gap:.25rem;flex-shrink:0">
-        <button onclick="moveFieldOrder(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-        <button onclick="moveFieldOrder(${i},1)" ${i===_fieldOrder.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===_fieldOrder.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===_fieldOrder.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
-      </div>
-    </div>`).join('');
-
-  const list = cfFilteredList();
   const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  const cfHtml = list.map((f, i) => `
+  const visible = _fieldOrder.filter(cfTokenVisible);
+  wrap.innerHTML = visible.map((token, i) => {
+    const cfId = cfIdFromToken(token);
+    if (!cfId) {
+      return `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
+        <span>${FIELD_ORDER_LABELS[token]}</span>
+        <div style="display:flex;gap:.25rem;flex-shrink:0">
+          <button onclick="moveFieldOrder('${token}',-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+          <button onclick="moveFieldOrder('${token}',1)" ${i===visible.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===visible.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===visible.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+        </div>
+      </div>`;
+    }
+    const f = _cfList.find(x => x.id === cfId);
+    if (!f) return '';
+    return `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--blue);border-radius:var(--rs);font-size:.85rem;background:var(--blue-p)">
       <span>🔧 ${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
       <div style="display:flex;gap:.25rem;flex-shrink:0">
-        <button onclick="moveCustomFieldDef(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-        <button onclick="moveCustomFieldDef(${i},1)" ${i===list.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===list.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===list.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+        <button onclick="moveFieldOrder('${token}',-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+        <button onclick="moveFieldOrder('${token}',1)" ${i===visible.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===visible.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===visible.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
         <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
         <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
       </div>
-    </div>`).join('');
-
-  wrap.innerHTML = fixedHtml + cfHtml;
+    </div>`;
+  }).join('');
 }
 
-async function moveFieldOrder(idx, dir) {
-  const j = idx + dir;
-  if (j < 0 || j >= _fieldOrder.length) return;
-  [_fieldOrder[idx], _fieldOrder[j]] = [_fieldOrder[j], _fieldOrder[idx]];
+async function moveFieldOrder(token, dir) {
+  const visible = _fieldOrder.filter(cfTokenVisible);
+  const vi = visible.indexOf(token);
+  const vj = vi + dir;
+  if (vi < 0 || vj < 0 || vj >= visible.length) return;
+  const other = visible[vj];
+  const i = _fieldOrder.indexOf(token);
+  const j = _fieldOrder.indexOf(other);
+  [_fieldOrder[i], _fieldOrder[j]] = [_fieldOrder[j], _fieldOrder[i]];
   applyFieldOrder();
   renderFieldOrderList();
   try {
@@ -1677,20 +1717,7 @@ async function addCustomFieldDef() {
     }
     cfCancelEdit();
     await loadCustomFieldDefs();
-  } catch(e) { showToast(e.message, 'error'); }
-}
-
-async function moveCustomFieldDef(idx, dir) {
-  const list = cfFilteredList();
-  const j = idx + dir;
-  if (j < 0 || j >= list.length) return;
-  const a = list[idx], b = list[j];
-  try {
-    await Promise.all([
-      API.put(`/api/custom-field-defs/${a.id}`, { sort: b.sort }),
-      API.put(`/api/custom-field-defs/${b.id}`, { sort: a.sort }),
-    ]);
-    await loadCustomFieldDefs();
+    await API.put('/api/field-order', { order: _fieldOrder });
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1698,6 +1725,8 @@ async function deleteCustomFieldDef(id) {
   if (!confirm('是否確定刪除此自訂欄位？')) return;
   try {
     await API.delete(`/api/custom-field-defs/${id}`);
+    _fieldOrder = _fieldOrder.filter(t => t !== `cf:${id}`);
+    await API.put('/api/field-order', { order: _fieldOrder });
     await loadCustomFieldDefs();
     showToast('已刪除', 'success');
   } catch(e) { showToast(e.message, 'error'); }

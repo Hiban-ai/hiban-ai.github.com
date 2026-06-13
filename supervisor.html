@@ -1635,7 +1635,8 @@ function renderAssignCustomFields() {
   const wrap = document.getElementById('assign-custom-fields');
   if (!wrap) return;
   const curTask = document.getElementById('assign-task')?.value || '';
-  const list = _cfList.filter(f => !f.task_name || f.task_name === curTask);
+  const list = _cfList.filter(f => !f.task_name || f.task_name === curTask)
+    .sort((a, b) => _fieldOrder.indexOf(`cf:${a.id}`) - _fieldOrder.indexOf(`cf:${b.id}`));
   wrap.innerHTML = list.map(f => {
     let input;
     if (f.type === 'select') {

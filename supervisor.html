@@ -1587,7 +1587,7 @@ function renderFieldOrderList() {
   const wrap = document.getElementById('fo-list');
   if (!wrap) return;
   const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  const visible = _fieldOrder.filter(cfTokenVisible);
+  const visible = _fieldOrder.filter(t => cfTokenVisible(t));
   wrap.innerHTML = visible.map((token, i) => {
     const cfId = cfIdFromToken(token);
     if (!cfId) {
@@ -1616,7 +1616,7 @@ function renderFieldOrderList() {
 }
 
 async function moveFieldOrder(token, dir) {
-  const visible = _fieldOrder.filter(cfTokenVisible);
+  const visible = _fieldOrder.filter(t => cfTokenVisible(t));
   const vi = visible.indexOf(token);
   const vj = vi + dir;
   if (vi < 0 || vj < 0 || vj >= visible.length) return;

@@ -821,9 +821,16 @@ app.post('/api/task-types', requireRole('supervisor'), async (req, res) => {
 
 app.put('/api/task-types/:id', requireRole('supervisor'), async (req, res) => {
   try {
-    const { name } = req.body;
-    if (!name || !name.trim()) return res.status(400).json({ error: '請輸入任務名稱' });
-    await ttCol().doc(req.params.id).update({ name: name.trim() });
+    const { name, default_price } = req.body;
+    const update = {};
+    if (name !== undefined) {
+      if (!name.trim()) return res.status(400).json({ error: '請輸入任務名稱' });
+      update.name = name.trim();
+    }
+    if (default_price !== undefined) {
+      update.default_price = (default_price === '' || default_price === null) ? null : parseInt(default_price);
+    }
+    await ttCol().doc(req.params.id).update(update);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

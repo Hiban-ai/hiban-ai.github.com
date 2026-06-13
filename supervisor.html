@@ -332,7 +332,7 @@ textarea.form-input{resize:none}
 
           <div data-field="task" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">選擇任務</label>
-            <select class="form-select" id="assign-task" style="flex:1" onchange="renderAssignCustomFields();applyFieldOrder()">
+            <select class="form-select" id="assign-task" style="flex:1" onchange="renderAssignCustomFields();applyFieldOrder();applyTaskDefaultPrice()">
               <option value="">請選擇任務</option>
             </select>
             <button onclick="openTaskTypesMgr()" title="管理任務項目" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
@@ -349,6 +349,7 @@ textarea.form-input{resize:none}
               <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
               <input class="form-input" type="number" id="assign-price" min="0" placeholder="每件單價" style="padding-left:1.8rem" oninput="calcAssignTotal()">
             </div>
+            <button onclick="openTaskPriceMgr()" title="設定各任務預設單價" style="flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️</button>
           </div>
 
           <div data-field="total" style="display:flex;align-items:center;gap:.75rem">
@@ -553,6 +554,18 @@ textarea.form-input{resize:none}
       <select class="form-select" id="tt-del-sel" style="font-size:.88rem"><option value="">請選擇要刪除的項目</option></select>
       <button onclick="deleteTaskType()" style="width:100%;padding:.65rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">刪除</button>
     </div>
+  </div>
+</div>
+
+<!-- 任務預設單價設定 overlay -->
+<div class="pw-overlay" id="task-price-overlay">
+  <div class="pw-box" style="width:340px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 任務預設單價</div>
+      <button onclick="closeTaskPriceMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.8rem">設定每個任務的預設單價，選擇任務時會自動帶入單價，仍可手動修改。留空代表不自動帶入。</div>
+    <div id="task-price-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
   </div>
 </div>
 
@@ -1426,6 +1439,41 @@ function openCompanyMgr() {
 }
 function closeCompanyMgr() {
   document.getElementById('company-overlay').classList.remove('open');
+}
+
+// ── 任務預設單價設定 ──────────────────────────────────────────
+function applyTaskDefaultPrice() {
+  const taskName = document.getElementById('assign-task').value;
+  const t = _ttList.find(x => x.name === taskName);
+  if (t && t.default_price != null && t.default_price !== '') {
+    document.getElementById('assign-price').value = t.default_price;
+    calcAssignTotal();
+  }
+}
+
+function openTaskPriceMgr() {
+  const wrap = document.getElementById('task-price-list');
+  wrap.innerHTML = _ttList.map(t => `
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <div style="flex:1;font-size:.85rem">${t.name}</div>
+      <div style="position:relative;width:110px">
+        <span style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--text-s);font-size:.85rem">$</span>
+        <input class="form-input tp-input" type="number" min="0" data-id="${t.id}" value="${t.default_price ?? ''}" placeholder="不自動帶入" style="padding-left:1.5rem;font-size:.85rem" onchange="saveTaskPrice(this)">
+      </div>
+    </div>`).join('');
+  document.getElementById('task-price-overlay').classList.add('open');
+}
+function closeTaskPriceMgr() {
+  document.getElementById('task-price-overlay').classList.remove('open');
+}
+async function saveTaskPrice(input) {
+  const id = input.dataset.id;
+  const val = input.value.trim();
+  try {
+    await API.put(`/api/task-types/${id}`, { default_price: val === '' ? null : val });
+    const t = _ttList.find(x => x.id === id);
+    if (t) t.default_price = val === '' ? null : parseInt(val);
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 // ── 任務類型管理 ──────────────────────────────────────────────

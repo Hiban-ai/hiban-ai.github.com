@@ -1796,8 +1796,8 @@ function showAiImportPreview(data) {
   document.getElementById('ai-import-preview').style.display = 'block';
 }
 
-function aiImportEdit() {
-  applyAiImportData(_aiImportData, _aiImportPartners);
+async function aiImportEdit() {
+  await applyAiImportData(_aiImportData, _aiImportPartners);
   closeAiImportMgr();
   showToast('已帶入 AI 解析結果，請確認後送出', 'success');
 }
@@ -1807,7 +1807,7 @@ async function aiImportConfirm() {
   btn.disabled = true;
   btn.textContent = '派案中...';
   try {
-    applyAiImportData(_aiImportData, _aiImportPartners);
+    await applyAiImportData(_aiImportData, _aiImportPartners);
     await submitAssign();
     const assignErr = document.getElementById('assign-err');
     if (assignErr.style.display !== 'none' && assignErr.textContent) {
@@ -1878,7 +1878,7 @@ async function runAiImport() {
   }
 }
 
-function applyAiImportData(data, partners) {
+async function applyAiImportData(data, partners) {
   if (data.task_name) {
     const taskSel = document.getElementById('assign-task');
     if ([...taskSel.options].some(o => o.value === data.task_name)) {
@@ -1910,9 +1910,22 @@ function applyAiImportData(data, partners) {
   if (data.notes) document.getElementById('assign-notes').value = data.notes;
   calcAssignTotal();
 
-  (data.custom_fields || []).forEach(f => {
+  const curTask = document.getElementById('assign-task').value;
+  const incoming = (data.custom_fields || []).filter(f => f.value !== undefined && f.value !== '');
+  const missing = incoming.filter(f => !_cfList.some(c => c.label === f.label && (!c.task_name || c.task_name === curTask)));
+  if (missing.length) {
+    for (const f of missing) {
+      try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask }); }
+      catch(e) { console.error('[AI匯入] 建立自訂欄位失敗', f.label, e); }
+    }
+    await loadCustomFieldDefs();
+    renderAssignCustomFields();
+    applyFieldOrder();
+  }
+
+  incoming.forEach(f => {
     const input = document.querySelector(`#assign-custom-fields .cf-input[data-label="${f.label}"]`);
-    if (input && f.value !== undefined && f.value !== '') input.value = f.value;
+    if (input) input.value = f.value;
   });
 }
 

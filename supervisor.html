@@ -562,15 +562,14 @@ textarea.form-input{resize:none}
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理</div>
       <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">📐 欄位顯示順序（含原有欄位）</div>
-    <div id="fo-list" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.1rem"></div>
-
-    <div style="border-top:1px dashed var(--border);margin-bottom:1rem"></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">📋 選擇任務名稱</div>
     <select class="form-select" id="cf-task-selector" onchange="cfOnTaskChange()" style="font-size:.88rem;margin-bottom:1rem">
       <option value="">🌐 全部任務（共用欄位）</option>
     </select>
-    <div id="cf-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">📐 欄位顯示順序（含原有欄位）</div>
+    <div id="fo-list" style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.1rem"></div>
+
+    <div style="border-top:1px dashed var(--border);margin-bottom:1rem"></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem" id="cf-form-title">新增欄位</div>
     <div style="display:flex;flex-direction:column;gap:.5rem">
       <input type="hidden" id="cf-edit-id">
@@ -1518,7 +1517,7 @@ async function loadCustomFieldDefs() {
   try {
     _cfList = await API.get('/api/custom-field-defs');
     renderAssignCustomFields();
-    renderCfList();
+    renderFieldOrderList();
   } catch {}
 }
 
@@ -1550,7 +1549,7 @@ function applyFieldOrder() {
 function renderFieldOrderList() {
   const wrap = document.getElementById('fo-list');
   if (!wrap) return;
-  wrap.innerHTML = _fieldOrder.map((key, i) => `
+  const fixedHtml = _fieldOrder.map((key, i) => `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
       <span>${FIELD_ORDER_LABELS[key]}</span>
       <div style="display:flex;gap:.25rem;flex-shrink:0">
@@ -1558,6 +1557,21 @@ function renderFieldOrderList() {
         <button onclick="moveFieldOrder(${i},1)" ${i===_fieldOrder.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===_fieldOrder.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===_fieldOrder.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
       </div>
     </div>`).join('');
+
+  const list = cfFilteredList();
+  const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
+  const cfHtml = list.map((f, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--blue);border-radius:var(--rs);font-size:.85rem;background:var(--blue-p)">
+      <span>🔧 ${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
+      <div style="display:flex;gap:.25rem;flex-shrink:0">
+        <button onclick="moveCustomFieldDef(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+        <button onclick="moveCustomFieldDef(${i},1)" ${i===list.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===list.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===list.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+        <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
+        <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+      </div>
+    </div>`).join('');
+
+  wrap.innerHTML = fixedHtml + cfHtml;
 }
 
 async function moveFieldOrder(idx, dir) {
@@ -1612,25 +1626,7 @@ function cfFilteredList() {
 
 function cfOnTaskChange() {
   cfCancelEdit();
-  renderCfList();
-}
-
-function renderCfList() {
-  const wrap = document.getElementById('cf-list');
-  if (!wrap) return;
-  const list = cfFilteredList();
-  if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">此任務尚無自訂欄位</div>'; return; }
-  const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  wrap.innerHTML = list.map((f, i) => `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
-      <span>${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
-      <div style="display:flex;gap:.25rem;flex-shrink:0">
-        <button onclick="moveCustomFieldDef(${i},-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-        <button onclick="moveCustomFieldDef(${i},1)" ${i===list.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===list.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===list.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
-        <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
-        <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
-      </div>
-    </div>`).join('');
+  renderFieldOrderList();
 }
 
 function cfToggleOptions() {

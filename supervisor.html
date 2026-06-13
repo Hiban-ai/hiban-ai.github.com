@@ -300,6 +300,7 @@ textarea.form-input{resize:none}
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
                     style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s">🎯 搶單模式</button>
           </div>
+          <button onclick="openAiImportMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🤖 AI 匯入</button>
         </div>
 
         <div id="assign-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
@@ -586,6 +587,19 @@ textarea.form-input{resize:none}
         <button onclick="cfCancelEdit()" id="cf-cancel-btn" style="display:none;flex-shrink:0;padding:.65rem 1rem;background:#fff;color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">取消</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="pw-overlay" id="ai-import-overlay">
+  <div class="pw-box" style="width:480px;max-height:88vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🤖 AI 匯入派案資料</div>
+      <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上客戶訊息、Email、LINE 對話等文字，AI 會自動辨識公司、任務、數量、單價、期限、夥伴與自訂欄位，並填入下方派案表單供你確認。</div>
+    <div id="ai-import-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <textarea class="form-input" id="ai-import-text" rows="8" placeholder="例如：幫我派一個口碑評論的案子給小美，遠東百貨，10則，每則80元，3天內完成，星星要4顆以上..." style="font-size:.88rem;margin-bottom:.75rem"></textarea>
+    <button onclick="runAiImport()" id="ai-import-btn" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">🤖 開始解析並帶入表單</button>
   </div>
 </div>
 
@@ -1737,6 +1751,78 @@ async function deleteCustomFieldDef(id) {
     await loadCustomFieldDefs();
     showToast('已刪除', 'success');
   } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ── AI 匯入派案資料 ────────────────────────────────────────────
+function openAiImportMgr() {
+  document.getElementById('ai-import-err').style.display = 'none';
+  document.getElementById('ai-import-text').value = '';
+  document.getElementById('ai-import-overlay').classList.add('open');
+}
+function closeAiImportMgr() {
+  document.getElementById('ai-import-overlay').classList.remove('open');
+}
+
+async function runAiImport() {
+  const text = document.getElementById('ai-import-text').value.trim();
+  const errEl = document.getElementById('ai-import-err');
+  errEl.style.display = 'none';
+  if (!text) { errEl.textContent = '請輸入要解析的文字'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('ai-import-btn');
+  btn.disabled = true;
+  btn.textContent = '🤖 解析中...';
+  try {
+    const partners = [...document.getElementById('assign-target').options]
+      .filter(o => o.value).map(o => ({ id: o.value, name: o.textContent }));
+    const customFields = _cfList.map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
+    const res = await API.post('/api/gemini/extract-task', {
+      text,
+      tasks: _ttList.map(t => t.name),
+      companies: _coList.map(c => c.name),
+      partners: partners.map(p => p.name),
+      customFields,
+    });
+    if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
+    applyAiImportData(res.data, partners);
+    closeAiImportMgr();
+    showToast('已帶入 AI 解析結果，請確認後送出', 'success');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 開始解析並帶入表單';
+  }
+}
+
+function applyAiImportData(data, partners) {
+  if (data.task_name) {
+    const taskSel = document.getElementById('assign-task');
+    if ([...taskSel.options].some(o => o.value === data.task_name)) {
+      taskSel.value = data.task_name;
+      renderAssignCustomFields();
+      applyFieldOrder();
+    }
+  }
+  if (data.company) {
+    const coSel = document.getElementById('assign-company');
+    if ([...coSel.options].some(o => o.value === data.company)) coSel.value = data.company;
+  }
+  if (data.target_name) {
+    const p = (partners || []).find(p => p.name === data.target_name);
+    if (p) document.getElementById('assign-target').value = p.id;
+  }
+  if (data.qty)  document.getElementById('assign-qty').value = data.qty;
+  if (data.price) document.getElementById('assign-price').value = data.price;
+  if (data.deadline_days) document.getElementById('assign-days').value = data.deadline_days;
+  if (data.notes) document.getElementById('assign-notes').value = data.notes;
+  calcAssignTotal();
+
+  (data.custom_fields || []).forEach(f => {
+    const input = document.querySelector(`#assign-custom-fields .cf-input[data-label="${f.label}"]`);
+    if (input && f.value !== undefined && f.value !== '') input.value = f.value;
+  });
 }
 
 function openCfMgr() {

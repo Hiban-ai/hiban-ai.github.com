@@ -2148,6 +2148,59 @@ app.post('/api/gemini/extract-bank', async (req, res) => {
   } catch(e) { console.error('[extract-bank]', e); res.status(500).json({ error: e.message }); }
 });
 
+app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { text, tasks, companies, partners, customFields } = req.body;
+    if (!text || !text.trim()) return res.status(400).json({ error: '請輸入要解析的文字' });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
+
+    const cfDesc = (customFields || []).map(f =>
+      `- ${f.label}（${f.type}${f.options && f.options.length ? '，選項：' + f.options.join('/') : ''}${f.task_name ? '，僅用於任務「' + f.task_name + '」' : '，所有任務通用'}）`
+    ).join('\n') || '（無）';
+
+    const prompt = `你是任務派案助手。請從以下文字中解析出派案資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
+
+可選任務名稱：${(tasks || []).join('、')}
+可選公司名稱：${(companies || []).join('、')}
+可選夥伴姓名：${(partners || []).join('、')}
+
+自訂欄位定義（label 必須完全照抄）：
+${cfDesc}
+
+請回傳以下格式的 JSON：
+{
+  "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
+  "company": "從可選公司名稱中選最符合的，找不到則空字串",
+  "target_name": "從可選夥伴姓名中選最符合的，找不到則空字串",
+  "qty": "數量，數字字串，找不到則空字串",
+  "price": "單價，數字字串，找不到則空字串",
+  "deadline_days": "完成期限天數，數字字串，找不到則空字串",
+  "notes": "補充說明文字，找不到則空字串",
+  "custom_fields": [{"label":"自訂欄位名稱（須與上方定義名稱完全一致，且符合所選任務）","value":"解析出的值"}]
+}
+
+文字內容：
+"""
+${text}
+"""`;
+
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.1 }
+    });
+
+    const result = await geminiPost(apiKey, body);
+    if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
+    const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('[Gemini extract-task raw]', raw.slice(0, 300));
+    const start = raw.indexOf('{'); const end = raw.lastIndexOf('}');
+    if (start === -1 || end === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+    const data = JSON.parse(raw.slice(start, end + 1));
+    res.json({ ok: true, data });
+  } catch(e) { console.error('[extract-task]', e); res.status(500).json({ error: e.message }); }
+});
+
 // ── Firebase Client Config（給前端 onSnapshot 用）────────────
 app.get('/api/firebase-config', requireAuth, (req, res) => {
   res.json({

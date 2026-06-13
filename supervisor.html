@@ -1800,8 +1800,8 @@ async function runAiImport() {
   btn.disabled = true;
   btn.textContent = '🤖 解析中...';
   try {
-    const partners = [...document.getElementById('assign-target').options]
-      .filter(o => o.value).map(o => ({ id: o.value, name: o.textContent }));
+    const allPartners = await API.get('/api/users-list?role=partner&scope=all');
+    const partners = (allPartners || []).map(p => ({ id: String(p.id), name: p.real_name }));
     const customFields = _cfList.map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
     const res = await API.post('/api/gemini/extract-task', {
       text,
@@ -1838,7 +1838,16 @@ function applyAiImportData(data, partners) {
   }
   if (data.target_name) {
     const p = (partners || []).find(p => p.name === data.target_name);
-    if (p) document.getElementById('assign-target').value = p.id;
+    if (p) {
+      const targetSel = document.getElementById('assign-target');
+      if (![...targetSel.options].some(o => o.value === p.id)) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        targetSel.appendChild(opt);
+      }
+      targetSel.value = p.id;
+    }
   }
   if (data.qty)  document.getElementById('assign-qty').value = data.qty;
   if (data.price) document.getElementById('assign-price').value = data.price;

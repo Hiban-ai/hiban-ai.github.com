@@ -104,10 +104,10 @@ app.get('/api/users-list', async (req, res) => {
   }
   let filtered = users.filter(u => u.status === 'active');
   if (role) filtered = filtered.filter(u => u.role === role);
-  if (req.session.user?.role === 'supervisor' && role === 'partner') {
+  if (req.session.user?.role === 'supervisor' && role === 'partner' && req.query.scope !== 'all') {
     filtered = filtered.filter(u => u.supervisor_id === req.session.user.id);
   }
-  res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname, login_dates: u.login_dates || [] })));
+  res.json(filtered.map(u => ({ id: u.id, username: u.username, real_name: u.real_name, nickname: u.nickname, login_dates: u.login_dates || [], supervisor_id: u.supervisor_id })));
 });
 
 app.post('/api/login', async (req, res) => {
@@ -926,6 +926,18 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
     dlBase.setDate(dlBase.getDate() + ddays);
     const p = n => String(n).padStart(2,'0');
     const deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+    let supervisor_id = req.session.user.id;
+    let supervisor_name = req.session.user.real_name;
+    if (assign_type === 'individual' && target_partner_id) {
+      const targetPartner = await Users.byId(parseInt(target_partner_id));
+      if (targetPartner && targetPartner.supervisor_id && targetPartner.supervisor_id !== req.session.user.id) {
+        const ownSupervisor = await Users.byId(targetPartner.supervisor_id);
+        if (ownSupervisor) {
+          supervisor_id = ownSupervisor.id;
+          supervisor_name = ownSupervisor.real_name;
+        }
+      }
+    }
     const item = await Assignments.create({
       task_name, company: company || '', quantity: qty, unit_price: price, total_price: qty * price,
       notes: notes || '',
@@ -934,8 +946,8 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
       assigned_at,
       assign_type: assign_type || 'individual',
       target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
-      supervisor_id: req.session.user.id,
-      supervisor_name: req.session.user.real_name,
+      supervisor_id,
+      supervisor_name,
       status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
       custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
     });

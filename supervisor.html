@@ -319,6 +319,10 @@ textarea.form-input{resize:none}
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">名額總數</label>
             <input class="form-input" type="number" id="grab-slots" min="1" placeholder="共幾個名額" style="flex:1">
           </div>
+          <div id="row-grab-per-limit" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">每人上限</label>
+            <input class="form-input" type="number" id="grab-per-limit" min="1" value="1" placeholder="每人最多可搶幾個名額" style="flex:1">
+          </div>
           </div>
 
           <div data-field="company" style="display:flex;align-items:center;gap:.75rem">
@@ -930,6 +934,7 @@ function setAssignMode(mode) {
   document.getElementById('mode-btn-grab').style.color        = isGrab ? '#fff' : 'var(--text-s)';
   document.getElementById('row-assign-target').style.display  = isGrab ? 'none' : 'flex';
   document.getElementById('row-grab-slots').style.display     = isGrab ? 'flex' : 'none';
+  document.getElementById('row-grab-per-limit').style.display  = isGrab ? 'flex' : 'none';
   document.getElementById('row-deadline-days').style.display  = 'flex';
   document.getElementById('row-grab-deadline').style.display  = isGrab ? 'flex' : 'none';
   document.getElementById('assign-submit-btn').textContent    = isGrab ? '🎯 建立搶單' : '確認派案 ✓';
@@ -970,17 +975,20 @@ async function submitAssign() {
     // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
     try {
+      const perLimit = document.getElementById('grab-per-limit').value;
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
         deadline_days: parseInt(days),
         custom_fields: collectCustomFields(),
         slot_data: _aiGrabSlotData || [],
+        per_person_limit: parseInt(perLimit) || 1,
       });
       _aiGrabSlotData = null;
       showToast('搶單任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
+      document.getElementById('grab-per-limit').value = '1';
       renderAssignCustomFields();
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
@@ -1027,7 +1035,7 @@ async function loadGrabHistory() {
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
             ${t.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(t)}</div>` : ''}
-            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.per_person_limit > 1 ? ` ・ 每人上限 ${t.per_person_limit}` : ''}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>

@@ -1586,7 +1586,7 @@ async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
   try {
     const list = await API.get('/api/grab-tasks');
-    const available = list.filter(t => !t.my_grab_no && t.grabbed_count < t.total_slots);
+    const available = list.filter(t => (t.my_grab_count||0) < (t.per_person_limit||1) && t.grabbed_count < t.total_slots);
 
     // 側邊選單 badge
     const badge = document.getElementById('badge-grab');
@@ -1628,6 +1628,7 @@ async function loadGrabZone() {
     wrap.innerHTML = available.map(t => {
       const remaining  = t.total_slots - t.grabbed_count;
       const alreadyGrabbed = false;
+      const myCount    = t.my_grab_count || 0;
       const pctFill    = Math.round((t.grabbed_count / t.total_slots) * 100);
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'}">
@@ -1635,7 +1636,7 @@ async function loadGrabZone() {
           <div>
             <div style="font-family:serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
             ${t.task_no ? `<div style="margin-top:.2rem"><span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${t.task_no}</span></div>` : ''}
-            ${alreadyGrabbed ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶到 <span style="font-size:.9rem">＃${t.my_grab_no}</span></div>` : ''}
+            ${myCount > 0 ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶 ${t.my_grab_nos.map(n=>'＃'+n).join('、')}</div>` : ''}
           </div>
           <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow)">$${(t.unit_price||0).toLocaleString()}</div>
         </div>

@@ -2015,15 +2015,8 @@ function showAiImportGrabPreview(data) {
    .map(([k,v]) => `<b>${k}</b>：${v}`).join('　');
 
   const wrap = document.getElementById('ai-import-list');
-  wrap.innerHTML = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">${summaryRows || '（AI 未解析出共同欄位）'}</div>` +
-    `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
-      <b style="flex-shrink:0">搶單截止：</b>
-      <input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;padding:.4rem;font-size:.82rem">
-      <span>天後的 23:59</span>
-    </div>` +
-    `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
-      <b style="flex-shrink:0">每人上限：</b>
-      <input type="number" id="ai-grab-per-limit" class="form-input" min="0" value="1" placeholder="0=不限" style="width:48px;flex:none;padding:.4rem;font-size:.82rem">
+  wrap.innerHTML = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">
+      ${summaryRows ? summaryRows+'　' : ''}<b>搶單截止</b>：<input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">天後的23:59　<b>每人上限</b>：<input type="number" id="ai-grab-per-limit" class="form-input" min="0" value="1" placeholder="0=不限" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">
     </div>` +
     _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
       <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}

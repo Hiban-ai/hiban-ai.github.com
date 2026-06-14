@@ -1421,6 +1421,18 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       return { recId: nextRecId, grabNo: grabNoStr, task };
     });
 
+    // 完成期限：若該名額有自己的 deadline_days，依此換算；否則用搶單任務整體的截止日期
+    const slot = result.task.slot_data && result.task.slot_data[parseInt(result.grabNo)-1];
+    let deadline_days = result.task.deadline_days || null;
+    let deadline_date = result.task.deadline.slice(0,10);
+    if (slot && parseInt(slot.deadline_days) >= 1) {
+      deadline_days = parseInt(slot.deadline_days);
+      const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+      dlBase.setDate(dlBase.getDate() + deadline_days);
+      const p = n => String(n).padStart(2,'0');
+      deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+    }
+
     // Transaction 外建立 assignment（自動接受）
     const assignment = await Assignments.create({
       task_name:       result.task.task_name,
@@ -1429,8 +1441,8 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       unit_price:      result.task.unit_price,
       total_price:     result.task.unit_price,
       notes:           result.task.notes || '',
-      deadline_days:   result.task.deadline_days || null,
-      deadline_date:   result.task.deadline.slice(0,10),
+      deadline_days,
+      deadline_date,
       assigned_at:     nowTW(),
       assign_type:     'grab',
       target_partner_id: partnerId,
@@ -2285,16 +2297,19 @@ ${cfDesc}
   "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
   "company": "從可選公司名稱中選最符合的，找不到則空字串",
   "unit_price": "單價，數字字串，找不到則空字串",
-  "deadline_days": "完成期限天數，數字字串。若原文是天數直接使用；若是日期，請換算成從今天到該日期的剩餘天數（至少為1）；找不到則空字串",
   "notes": "整體備註文字，找不到則空字串",
   "slots": [
-    { "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}] }
+    {
+      "deadline_days": "此名額的完成期限天數，數字字串。若原文是天數直接使用；若是日期，請換算成從今天到該日期的剩餘天數（至少為1）；找不到則空字串",
+      "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}]
+    }
   ]
 }
 
 重要規則：
 - 文字內容通常是表格（含表頭與多列資料），請忽略表頭，為「每一列資料」各產生一個 slots 陣列元素（依原始順序，陣列長度 = 資料列數，也就是搶單總名額數）。
-- task_name / company / unit_price / deadline_days / notes 這些欄位通常每列相同，取共同值或第一筆即可，不放入 slots。
+- task_name / company / unit_price / notes 這些欄位通常每列相同，取共同值或第一筆即可，不放入 slots。
+- deadline_days（完成期限）每一列可能不同，請務必逐列分別解析，放入該列對應的 slots 元素中。
 - custom_fields：若欄位名稱出現在上方「自訂欄位定義」中，label 必須與定義完全一致。若出現定義以外的欄位（例如「評分」、「補充說明」），也請一併放入 custom_fields，label 直接使用該欄位在原文中的名稱即可。
 - 只回傳 JSON 物件，不要其他文字或說明。
 

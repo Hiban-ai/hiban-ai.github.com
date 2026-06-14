@@ -1963,8 +1963,10 @@ async function aiImportConfirmAll() {
 }
 
 function aiImportGrabSlotSummary(slot) {
-  return (slot.custom_fields || []).filter(f => f.value !== undefined && f.value !== '')
-    .map(f => `<b>${f.label}</b>：${f.value}`).join('　') || '（無自訂欄位資料）';
+  const parts = (slot.custom_fields || []).filter(f => f.value !== undefined && f.value !== '')
+    .map(f => `<b>${f.label}</b>：${f.value}`);
+  if (slot.deadline_days) parts.unshift(`<b>期限</b>：${slot.deadline_days} 天`);
+  return parts.join('　') || '（無資料）';
 }
 
 function showAiImportGrabPreview(data) {
@@ -1979,7 +1981,6 @@ function showAiImportGrabPreview(data) {
   const summaryRows = [
     ['任務', data.task_name], ['公司', data.company],
     ['單價', data.unit_price ? `$${data.unit_price}` : ''],
-    ['期限', data.deadline_days ? `${data.deadline_days} 天` : ''],
     ['備註', data.notes],
   ].filter(([,v]) => v !== undefined && v !== null && v !== '')
    .map(([k,v]) => `<b>${k}</b>：${v}`).join('　');
@@ -2011,7 +2012,8 @@ async function aiImportGrabConfirm(data) {
       if ([...coSel.options].some(o => o.value === data.company)) coSel.value = data.company;
     }
     if (data.unit_price) document.getElementById('assign-price').value = data.unit_price;
-    if (data.deadline_days) document.getElementById('assign-days').value = data.deadline_days;
+    const firstDays = _aiGrabSlotData.find(s => s.deadline_days)?.deadline_days;
+    if (firstDays) document.getElementById('assign-days').value = firstDays;
     if (data.notes) document.getElementById('assign-notes').value = data.notes;
     document.getElementById('grab-slots').value = _aiGrabSlotData.length;
     calcAssignTotal();

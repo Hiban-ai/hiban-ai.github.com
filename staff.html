@@ -1692,7 +1692,7 @@ async function changePassword() {
   const current=document.getElementById('prof-cpw-current').value;
   const newPw=document.getElementById('prof-cpw-new').value;
   const confirm=document.getElementById('prof-cpw-confirm').value;
-  if(newPw.length<4){err.textContent='新密碼至少4碼';err.style.display='block';return;}
+  if(newPw.length<6||newPw.length>12){err.textContent='新密碼須為6～12碼';err.style.display='block';return;}
   if(newPw!==confirm){err.textContent='兩次輸入不一致';err.style.display='block';return;}
   try{
     await API.post('/api/change-password',{current_password:current,new_password:newPw});

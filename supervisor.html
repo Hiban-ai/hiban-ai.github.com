@@ -1988,9 +1988,9 @@ function showAiImportGrabPreview(data) {
   const wrap = document.getElementById('ai-import-list');
   wrap.innerHTML = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">${summaryRows || '（AI 未解析出共同欄位）'}</div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
-      <b style="flex-shrink:0">搶單截止日期與時間</b>
-      <input type="date" id="ai-grab-deadline-date" class="form-input" style="flex:1;font-size:.82rem">
-      <input type="time" id="ai-grab-deadline-time" class="form-input" value="23:59" style="width:110px;font-size:.82rem">
+      <b style="flex-shrink:0">搶單截止：</b>
+      <input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:70px;font-size:.82rem">
+      <span>天後的 23:59</span>
     </div>` +
     _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
       <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}
@@ -2001,9 +2001,8 @@ function showAiImportGrabPreview(data) {
 
 async function aiImportGrabConfirm(data) {
   const btn = document.getElementById('ai-import-confirm-all-btn');
-  const dlDate = document.getElementById('ai-grab-deadline-date').value;
-  const dlTime = document.getElementById('ai-grab-deadline-time').value;
-  if (!dlDate) { showToast('請選擇搶單截止日期', 'error'); return; }
+  const dlDays = parseInt(document.getElementById('ai-grab-deadline-days').value);
+  if (!dlDays || dlDays < 1) { showToast('請輸入搶單截止天數', 'error'); return; }
   btn.disabled = true;
   try {
     if (data.task_name) {
@@ -2026,16 +2025,17 @@ async function aiImportGrabConfirm(data) {
     document.getElementById('grab-slots').value = _aiGrabSlotData.length;
     calcAssignTotal();
 
-    // 套用搶單截止日期與時間到主表單的日期選擇器
-    const [y, m] = dlDate.split('-');
-    const [hh, mm] = dlTime.split(':');
+    // 套用搶單截止日期（N天後 23:59）到主表單的日期選擇器
+    const dl = new Date();
+    dl.setDate(dl.getDate() + dlDays);
+    const dlDate = `${dl.getFullYear()}-${String(dl.getMonth()+1).padStart(2,'0')}-${String(dl.getDate()).padStart(2,'0')}`;
     gdpInit();
-    document.getElementById('gdp-year').value = String(parseInt(y));
-    document.getElementById('gdp-month').value = String(parseInt(m));
+    document.getElementById('gdp-year').value = String(dl.getFullYear());
+    document.getElementById('gdp-month').value = String(dl.getMonth()+1);
     gdpUpdateGrid();
     gdpSelectDay(dlDate);
-    document.getElementById('gdp-hour').value = hh;
-    document.getElementById('gdp-min').value = mm;
+    document.getElementById('gdp-hour').value = '23';
+    document.getElementById('gdp-min').value = '59';
     gdpUpdateHint();
 
     // 確保自訂欄位定義存在（彙整所有名額出現過的 label）

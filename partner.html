@@ -1230,10 +1230,10 @@ function renderActive(list) {
         ${a.accepted_at ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">📌 接案：${fmtDate(a.accepted_at)}</span>` : ''}
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
       </div>
-      <div style="margin-bottom:.5rem">
+      ${a.notes ? `<div style="margin-bottom:.5rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
-        <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes || ''}</div>
-      </div>
+        <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes}</div>
+      </div>` : ''}
       ${customFieldsHtml(a.custom_fields)}
       <div style="margin-bottom:.6rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">督導意見</div>

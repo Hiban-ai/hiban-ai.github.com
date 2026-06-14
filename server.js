@@ -1331,17 +1331,11 @@ app.get('/api/grab-tasks/all', requireRole('staff'), async (req, res) => {
 // 管理員取得所有指派任務（依夥伴分組統計用）
 app.get('/api/admin/assignments', requireRole('staff'), async (req, res) => {
   try {
-    const list = await Assignments.all();
-    const enriched = await Promise.all(list.map(async a => {
-      let partner_name = null;
-      if (a.accepted_by) {
-        const u = await Users.byId(a.accepted_by);
-        partner_name = u ? u.real_name : null;
-      } else if (a.target_partner_id) {
-        const u = await Users.byId(a.target_partner_id);
-        partner_name = u ? u.real_name : null;
-      }
-      return { ...a, partner_name };
+    const [list, allUsers] = await Promise.all([Assignments.all(), Users.all()]);
+    const userName = id => allUsers.find(u => u.id === id)?.real_name || null;
+    const enriched = list.map(a => ({
+      ...a,
+      partner_name: a.accepted_by ? userName(a.accepted_by) : (a.target_partner_id ? userName(a.target_partner_id) : null),
     }));
     res.json(enriched);
   } catch(e) { res.status(500).json({ error: e.message }); }

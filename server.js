@@ -1468,6 +1468,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
     });
     // 更新 grab_record 存 assignment_id
     await firestoreDb.collection('grab_records').doc(String(result.recId)).update({ assignment_id: assignment.id });
+    cacheDel('grab-tasks-open');
 
     res.json({ ok: true, grab_no: result.grabNo, assignment_id: assignment.id });
   } catch(e) {

@@ -378,11 +378,13 @@ textarea.form-input{resize:none}
     <div class="gae-card-title" id="gae-task-name"></div>
     <div class="gae-card-row" style="font-weight:700;color:var(--blue)">你有一筆搶單任務！</div>
     <div class="gae-card-row">數量：<b id="gae-slots"></b></div>
+    <div class="gae-card-row">剩餘：<b id="gae-remaining"></b></div>
     <div class="gae-card-row" id="gae-perlimit-row">每人可搶：<b id="gae-perlimit"></b></div>
     <div class="gae-card-row" id="gae-notes-row">補充說明：<b id="gae-notes"></b></div>
     <div class="gae-card-price" id="gae-price"></div>
     <div class="gae-card-btns">
       <button class="gae-btn-grab" id="gae-grab-btn" onclick="grabAlertGrab()">🎯 搶單</button>
+      <button class="gae-btn-cancel" onclick="grabAlertGoToZone()">前往搶單區</button>
       <button class="gae-btn-cancel" onclick="grabAlertCancel()">取消</button>
     </div>
   </div>
@@ -2030,6 +2032,7 @@ function showNextGrabAlert() {
 
   document.getElementById('gae-task-name').textContent = taskLabelNo(t);
   document.getElementById('gae-slots').textContent = t.total_slots + ' 個';
+  document.getElementById('gae-remaining').textContent = (t.total_slots - t.grabbed_count) + ' 個';
   const perlimitRow = document.getElementById('gae-perlimit-row');
   if (t.per_person_limit && t.per_person_limit !== 1) {
     document.getElementById('gae-perlimit').textContent = t.per_person_limit === 0 ? '不限' : (t.per_person_limit + ' 個');
@@ -2095,6 +2098,12 @@ async function grabAlertGrab() {
 
 function grabAlertCancel() {
   closeGrabAlert();
+}
+
+function grabAlertGoToZone() {
+  closeGrabAlert();
+  const menuItem = document.querySelector('.pt-menu-item[onclick*="\'grab\'"]');
+  switchPage('grab', menuItem);
 }
 
 // ── 飛鴿傳書：新指派任務通知 ──────────────────────────────────

@@ -857,13 +857,15 @@ app.get('/api/custom-field-defs', async (req, res) => {
 
 app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) => {
   try {
-    const { label, type, options, task_name } = req.body;
+    const { label, type, options, task_name, scope } = req.body;
     if (!label || !label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
     const validTypes = ['text','number','date','select'];
     const t = validTypes.includes(type) ? type : 'text';
+    const validScopes = ['','assign','grab'];
+    const sc = validScopes.includes(scope) ? scope : '';
     const snap = await cfCol().get();
     const ref = cfCol().doc();
-    const data = { label: label.trim(), type: t, sort: snap.size, task_name: task_name || '' };
+    const data = { label: label.trim(), type: t, sort: snap.size, task_name: task_name || '', scope: sc };
     if (t === 'select') data.options = Array.isArray(options) ? options.map(o=>String(o).trim()).filter(Boolean) : [];
     await ref.set(data);
     res.json({ ok: true, id: ref.id });
@@ -872,7 +874,7 @@ app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) =
 
 app.put('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res) => {
   try {
-    const { label, type, options, sort, task_name } = req.body;
+    const { label, type, options, sort, task_name, scope } = req.body;
     const patch = {};
     if (label !== undefined) {
       if (!label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
@@ -887,6 +889,10 @@ app.put('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res
     }
     if (sort !== undefined) patch.sort = parseInt(sort) || 0;
     if (task_name !== undefined) patch.task_name = task_name || '';
+    if (scope !== undefined) {
+      const validScopes = ['','assign','grab'];
+      patch.scope = validScopes.includes(scope) ? scope : '';
+    }
     await cfCol().doc(req.params.id).update(patch);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -1296,7 +1302,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
     const slots = parseInt(total_slots);
     const price = parseInt(unit_price);
     const ddays = parseInt(deadline_days) || null;
-    const perLimit = (parseInt(per_person_limit) >= 1) ? parseInt(per_person_limit) : 1;
+    const perLimit = (parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1; // 0 = 不限數量
     if (slots < 1) return res.status(400).json({ error: '總名額至少 1' });
     const item = await GrabTasks.create({
       task_name, company: company || '',
@@ -1404,8 +1410,8 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       const nowStr = nowTW().slice(0,16); // YYYY/MM/DD HH:MM
       if (task.deadline <= nowStr) throw new Error('搶單時間已截止');
       if (task.grabbed_count >= task.total_slots) throw new Error('名額已滿');
-      const perLimit = task.per_person_limit || 1;
-      if (myGrabsSnap.size >= perLimit) throw new Error('您已達此搶單每人上限');
+      const perLimit = task.per_person_limit ?? 1;
+      if (perLimit > 0 && myGrabsSnap.size >= perLimit) throw new Error('您已達此搶單每人上限');
 
       const counters   = counterDoc.exists ? counterDoc.data() : {};
       const nextRecId  = (counters['grab_records'] || 0) + 1;

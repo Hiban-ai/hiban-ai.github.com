@@ -319,9 +319,9 @@ textarea.form-input{resize:none}
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">名額總數</label>
             <input class="form-input" type="number" id="grab-slots" min="1" placeholder="共幾個名額" style="flex:1">
           </div>
-          <div id="row-grab-per-limit" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">每人上限</label>
-            <input class="form-input" type="number" id="grab-per-limit" min="1" value="1" placeholder="每人最多可搶幾個名額" style="flex:1">
+          <div id="row-grab-per-limit" style="display:none;align-items:center;gap:.5rem;margin-top:.75rem">
+            <input type="checkbox" id="grab-allow-multi" style="width:18px;height:18px;flex-shrink:0">
+            <label for="grab-allow-multi" style="font-size:.82rem;color:var(--text-s)">允許同一人搶多個名額（不限數量）</label>
           </div>
           </div>
 
@@ -602,6 +602,11 @@ textarea.form-input{resize:none}
         <option value="select">選項（下拉）</option>
       </select>
       <input class="form-input" id="cf-add-options" placeholder="選項，以逗號分隔（例如：高,中,低）" style="font-size:.88rem;display:none">
+      <select class="form-select" id="cf-add-scope" style="font-size:.88rem">
+        <option value="">兩者皆可（指派／搶單）</option>
+        <option value="assign">僅用於指派</option>
+        <option value="grab">僅用於搶單</option>
+      </select>
       <div style="display:flex;gap:.5rem">
         <button onclick="addCustomFieldDef()" id="cf-submit-btn" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增欄位</button>
         <button onclick="cfCancelEdit()" id="cf-cancel-btn" style="display:none;flex-shrink:0;padding:.65rem 1rem;background:#fff;color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">取消</button>
@@ -935,6 +940,9 @@ function setAssignMode(mode) {
   document.getElementById('row-assign-target').style.display  = isGrab ? 'none' : 'flex';
   document.getElementById('row-grab-slots').style.display     = isGrab ? 'flex' : 'none';
   document.getElementById('row-grab-per-limit').style.display  = isGrab ? 'flex' : 'none';
+  document.querySelector('[data-field="qty"]').style.display  = isGrab ? 'none' : 'flex';
+  renderAssignCustomFields();
+  applyFieldOrder();
   document.getElementById('row-deadline-days').style.display  = 'flex';
   document.getElementById('row-grab-deadline').style.display  = isGrab ? 'flex' : 'none';
   document.getElementById('assign-submit-btn').textContent    = isGrab ? '🎯 建立搶單' : '確認派案 ✓';
@@ -959,7 +967,7 @@ async function submitAssign() {
   const notes   = document.getElementById('assign-notes').value;
   if (!company) { err.textContent = '請選擇公司';     err.style.display = 'block'; return; }
   if (!task)    { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
-  if (!qty || parseInt(qty) < 1)    { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
+  if (assignMode !== 'grab' && (!qty || parseInt(qty) < 1)) { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
   if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
 
   if (assignMode === 'grab') {
@@ -975,20 +983,20 @@ async function submitAssign() {
     // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
     try {
-      const perLimit = document.getElementById('grab-per-limit').value;
+      const allowMulti = document.getElementById('grab-allow-multi').checked;
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
         deadline_days: parseInt(days),
         custom_fields: collectCustomFields(),
         slot_data: _aiGrabSlotData || [],
-        per_person_limit: parseInt(perLimit) || 1,
+        per_person_limit: allowMulti ? 0 : 1,
       });
       _aiGrabSlotData = null;
       showToast('搶單任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
-      document.getElementById('grab-per-limit').value = '1';
+      document.getElementById('grab-allow-multi').checked = false;
       renderAssignCustomFields();
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
@@ -1035,7 +1043,7 @@ async function loadGrabHistory() {
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
             ${t.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(t)}</div>` : ''}
-            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.per_person_limit > 1 ? ` ・ 每人上限 ${t.per_person_limit}` : ''}</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.per_person_limit === 0 ? ' ・ 每人不限數量' : ''}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
@@ -1672,12 +1680,17 @@ let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
 function isFixedToken(token) { return Object.prototype.hasOwnProperty.call(FIELD_ORDER_LABELS, token); }
 function cfIdFromToken(token) { return token.startsWith('cf:') ? token.slice(3) : null; }
 
+function cfVisibleInMode(f, mode) {
+  return !f.scope || f.scope === mode;
+}
+
 function cfTokenVisible(token, taskName) {
   if (isFixedToken(token)) return true;
   if (taskName === undefined) taskName = cfCurrentTask();
   const id = cfIdFromToken(token);
   const f = _cfList.find(x => x.id === id);
-  return !!f && (!f.task_name || f.task_name === taskName);
+  const mode = assignMode === 'grab' ? 'grab' : 'assign';
+  return !!f && (!f.task_name || f.task_name === taskName) && cfVisibleInMode(f, mode);
 }
 
 async function loadFieldOrder() {
@@ -1775,7 +1788,8 @@ function renderAssignCustomFields() {
   const wrap = document.getElementById('assign-custom-fields');
   if (!wrap) return;
   const curTask = document.getElementById('assign-task')?.value || '';
-  const list = _cfList.filter(f => !f.task_name || f.task_name === curTask)
+  const mode = assignMode === 'grab' ? 'grab' : 'assign';
+  const list = _cfList.filter(f => (!f.task_name || f.task_name === curTask) && cfVisibleInMode(f, mode))
     .sort((a, b) => _fieldOrder.indexOf(`cf:${a.id}`) - _fieldOrder.indexOf(`cf:${b.id}`));
   wrap.innerHTML = list.map(f => {
     let input;
@@ -1828,6 +1842,7 @@ function cfStartEdit(id) {
   document.getElementById('cf-add-label').value = f.label;
   document.getElementById('cf-add-type').value = f.type;
   document.getElementById('cf-add-options').value = (f.options||[]).join(',');
+  document.getElementById('cf-add-scope').value = f.scope || '';
   cfToggleOptions();
   document.getElementById('cf-form-title').textContent = '修改欄位';
   document.getElementById('cf-submit-btn').textContent = '儲存修改';
@@ -1839,6 +1854,7 @@ function cfCancelEdit() {
   document.getElementById('cf-add-label').value = '';
   document.getElementById('cf-add-options').value = '';
   document.getElementById('cf-add-type').value = 'text';
+  document.getElementById('cf-add-scope').value = '';
   cfToggleOptions();
   document.getElementById('cf-form-title').textContent = '新增欄位';
   document.getElementById('cf-submit-btn').textContent = '新增欄位';
@@ -1850,16 +1866,17 @@ async function addCustomFieldDef() {
   const label = document.getElementById('cf-add-label').value.trim();
   const type  = document.getElementById('cf-add-type').value;
   const task_name = cfCurrentTask();
+  const scope = document.getElementById('cf-add-scope').value;
   if (!label) return showToast('請輸入欄位名稱', 'error');
   const options = document.getElementById('cf-add-options').value
     .split(',').map(s=>s.trim()).filter(Boolean);
   if (type === 'select' && !options.length) return showToast('請輸入選項內容', 'error');
   try {
     if (id) {
-      await API.put(`/api/custom-field-defs/${id}`, { label, type, options, task_name });
+      await API.put(`/api/custom-field-defs/${id}`, { label, type, options, task_name, scope });
       showToast('已儲存修改', 'success');
     } else {
-      await API.post('/api/custom-field-defs', { label, type, options, task_name });
+      await API.post('/api/custom-field-defs', { label, type, options, task_name, scope });
       showToast('已新增欄位', 'success');
     }
     cfCancelEdit();
@@ -2012,9 +2029,8 @@ function showAiImportGrabPreview(data) {
       <span>天後的 23:59</span>
     </div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
-      <b style="flex-shrink:0">每人上限：</b>
-      <input type="number" id="ai-grab-per-limit" class="form-input" min="1" value="1" style="width:70px;font-size:.82rem">
-      <span>個名額</span>
+      <input type="checkbox" id="ai-grab-allow-multi" style="width:18px;height:18px;flex-shrink:0">
+      <label for="ai-grab-allow-multi">允許同一人搶多個名額（不限數量）</label>
     </div>` +
     _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
       <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}
@@ -2047,7 +2063,7 @@ async function aiImportGrabConfirm(data) {
     if (firstDays) document.getElementById('assign-days').value = firstDays;
     if (data.notes) document.getElementById('assign-notes').value = data.notes;
     document.getElementById('grab-slots').value = _aiGrabSlotData.length;
-    document.getElementById('grab-per-limit').value = parseInt(document.getElementById('ai-grab-per-limit').value) || 1;
+    document.getElementById('grab-allow-multi').checked = document.getElementById('ai-grab-allow-multi').checked;
     calcAssignTotal();
 
     // 套用搶單截止日期（N天後 23:59）到主表單的日期選擇器
@@ -2073,7 +2089,7 @@ async function aiImportGrabConfirm(data) {
     const missing = incoming.filter(f => !_cfList.some(c => c.label === f.label && (!c.task_name || c.task_name === curTask)));
     if (missing.length) {
       for (const f of missing) {
-        try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask }); }
+        try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask, scope: 'grab' }); }
         catch(e) { console.error('[AI匯入搶單] 建立自訂欄位失敗', f.label, e); }
       }
       await loadCustomFieldDefs();
@@ -2144,7 +2160,9 @@ async function runAiImport() {
   try {
     const allPartners = await API.get('/api/users-list?role=partner&scope=all');
     const partners = (allPartners || []).map(p => ({ id: String(p.id), name: p.real_name }));
-    const customFields = _cfList.map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
+    const cfMode = assignMode === 'grab' ? 'grab' : 'assign';
+    const customFields = _cfList.filter(f => cfVisibleInMode(f, cfMode))
+      .map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
     if (assignMode === 'grab') {
       const res = await API.post('/api/gemini/extract-task', {
         text,
@@ -2215,7 +2233,7 @@ async function applyAiImportData(data, partners) {
   const missing = incoming.filter(f => !_cfList.some(c => c.label === f.label && (!c.task_name || c.task_name === curTask)));
   if (missing.length) {
     for (const f of missing) {
-      try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask }); }
+      try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask, scope: 'assign' }); }
       catch(e) { console.error('[AI匯入] 建立自訂欄位失敗', f.label, e); }
     }
     await loadCustomFieldDefs();

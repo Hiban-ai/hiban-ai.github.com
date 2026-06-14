@@ -962,6 +962,69 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── 督導預警公告 ──────────────────────────────────────────────
+app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) => {
+  try {
+    const supId = req.session.user.id;
+    const todayStr = nowTW().split(' ')[0]; // YYYY/MM/DD
+    const toDate = s => s ? new Date(s.replace(/\//g, '-').slice(0,10)) : null;
+    const today = toDate(todayStr);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+
+    const myAssignments = await Assignments.forSupervisor(supId);
+    const allUsers = await Users.all();
+    const userName = id => allUsers.find(u => u.id === id)?.real_name || '';
+
+    // 1. 任務逾期 / 即將逾期（pending 或 accepted，尚未完成）
+    const overdue = [], dueSoon = [];
+    myAssignments.forEach(a => {
+      if (!['pending','accepted'].includes(a.status) || !a.deadline_date) return;
+      const d = toDate(a.deadline_date);
+      if (d < today) overdue.push(a);
+      else if (d.getTime() === today.getTime() || d.getTime() === tomorrow.getTime()) dueSoon.push(a);
+    });
+
+    // 2. 待審核 WorkLog
+    const pendingWorklogs = await WorklogReports.pendingForSupervisor(supId);
+
+    // 3. 被拒絕需重新指派
+    const rejected = myAssignments.filter(a => a.status === 'rejected');
+
+    // 4. 搶單名額未滿且即將/已截止
+    const myGrabTasks = await GrabTasks.forSupervisor(supId);
+    const grabUnfilled = myGrabTasks.filter(t => {
+      if (t.status !== 'open') return false;
+      if ((t.grabbed_count||0) >= t.total_slots) return false;
+      if (!t.deadline) return false;
+      const d = toDate(t.deadline);
+      return d <= tomorrow;
+    });
+
+    // 5. 旗下夥伴久未登入（7天以上未登入或從未登入）
+    const myPartners = allUsers.filter(u => u.role === 'partner' && u.status === 'active' && u.supervisor_id === supId);
+    const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
+    const inactivePartners = myPartners.filter(u => {
+      const dates = u.login_dates || [];
+      if (!dates.length) return true;
+      const last = toDate(dates[dates.length-1]);
+      return !last || last < sevenDaysAgo;
+    });
+
+    // 6. 新核准夥伴尚未設定督導
+    const unassignedPartners = allUsers.filter(u => u.role === 'partner' && u.status === 'active' && !u.supervisor_id);
+
+    res.json({
+      overdue: overdue.map(a => ({ id: a.id, task_name: a.task_name, deadline_date: a.deadline_date, partner_name: userName(a.target_partner_id) })),
+      due_soon: dueSoon.map(a => ({ id: a.id, task_name: a.task_name, deadline_date: a.deadline_date, partner_name: userName(a.target_partner_id) })),
+      pending_worklogs: pendingWorklogs.map(r => ({ id: r.id, assignment_id: r.assignment_id })),
+      rejected: rejected.map(a => ({ id: a.id, task_name: a.task_name, reject_reason: a.reject_reason })),
+      grab_unfilled: grabUnfilled.map(t => ({ id: t.id, task_name: t.task_name, grabbed_count: t.grabbed_count||0, total_slots: t.total_slots, deadline: t.deadline })),
+      inactive_partners: inactivePartners.map(u => ({ id: u.id, real_name: u.real_name, login_dates: u.login_dates||[] })),
+      unassigned_partners: unassignedPartners.map(u => ({ id: u.id, real_name: u.real_name })),
+    });
+  } catch(e) { console.error('[supervisor/alerts]', e); res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/assignments/pending', requireRole('partner'), async (req, res) => {
   try {
     res.json(await Assignments.pendingForPartner(req.session.user.id));

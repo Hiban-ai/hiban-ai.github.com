@@ -208,8 +208,7 @@ textarea.form-input{resize:none}
     <!-- Alerts -->
     <div class="page-section" id="page-alerts">
       <div class="page-title">⚠️ 預警通知</div>
-      <div class="alert-card ac-red"><span style="font-size:1.1rem">🔴</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">陳小明 — 5天未登入</div><div style="font-size:.8rem;color:var(--text-m)">上次登入：3/15 · 未接任何任務</div></div><button class="alert-action">聯繫夥伴</button></div>
-      <div class="alert-card ac-orange"><span style="font-size:1.1rem">⚠️</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">林阿華 — 任務卡關</div><div style="font-size:.8rem;color:var(--text-m)">口碑任務已3天未更新進度</div></div><button class="alert-action">協助解決</button></div>
+      <div id="alerts-list"><div style="font-size:.82rem;color:var(--text-s)">載入中…</div></div>
     </div>
 
     <!-- Partners -->
@@ -653,6 +652,44 @@ textarea.form-input{resize:none}
 
 <script src="shared.js"></script>
 <script>
+// ── 預警公告 ──────────────────────────────────────────────────
+async function loadAlerts() {
+  const listEl = document.getElementById('alerts-list');
+  const dashEl = document.getElementById('dashboard-alerts');
+  try {
+    const a = await API.get('/api/supervisor/alerts');
+    const groups = [
+      { key: 'overdue', icon: '🔴', cls: 'ac-red', title: n => `任務已逾期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
+      { key: 'due_soon', icon: '🟠', cls: 'ac-orange', title: n => `任務即將到期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
+      { key: 'pending_worklogs', icon: '📝', cls: 'ac-orange', title: n => `待審核 WorkLog（${n}）`, item: x => `任務 #${x.assignment_id} 的回報待審核` },
+      { key: 'rejected', icon: '↩️', cls: 'ac-red', title: n => `被拒絕需重新指派（${n}）`, item: x => `${x.task_name}${x.reject_reason ? '：'+x.reject_reason : ''}` },
+      { key: 'grab_unfilled', icon: '🎯', cls: 'ac-orange', title: n => `搶單名額未滿且即將截止（${n}）`, item: x => `${x.task_name} — ${x.grabbed_count}/${x.total_slots} 已搶，截止 ${x.deadline}` },
+      { key: 'inactive_partners', icon: '😴', cls: 'ac-red', title: n => `夥伴久未登入（${n}）`, item: x => `${x.real_name} — ${x.login_dates.length ? '上次登入 '+x.login_dates[x.login_dates.length-1] : '尚未登入過'}` },
+      { key: 'unassigned_partners', icon: '❓', cls: 'ac-orange', title: n => `夥伴尚未設定督導（${n}）`, item: x => `${x.real_name}` },
+    ];
+
+    let totalCount = 0;
+    let html = '';
+    let dashHtml = '';
+    groups.forEach(g => {
+      const arr = a[g.key] || [];
+      if (!arr.length) return;
+      totalCount += arr.length;
+      html += `<div class="alert-card ${g.cls}"><span style="font-size:1.1rem">${g.icon}</span><div style="flex:1">
+        <div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${g.title(arr.length)}</div>
+        <div style="font-size:.8rem;color:var(--text-m);line-height:1.6">${arr.slice(0,5).map(x=>g.item(x)).join('<br>')}${arr.length>5?`<br>...等共 ${arr.length} 筆`:''}</div>
+      </div></div>`;
+      dashHtml += `<div style="font-size:.82rem;padding:.3rem 0;border-bottom:1px solid var(--border)">${g.icon} ${g.title(arr.length)}</div>`;
+    });
+
+    if (listEl) listEl.innerHTML = html || `<div style="font-size:.85rem;color:var(--text-s)">目前沒有需要注意的事項 🎉</div>`;
+    if (dashEl) dashEl.innerHTML = dashHtml || `<div style="font-size:.82rem;color:var(--text-s)">目前沒有需要注意的事項 🎉</div>`;
+  } catch(e) {
+    if (listEl) listEl.innerHTML = `<div style="font-size:.85rem;color:var(--red)">載入失敗：${e.message}</div>`;
+    if (dashEl) dashEl.innerHTML = `<div style="font-size:.82rem;color:var(--red)">載入失敗</div>`;
+  }
+}
+
 function switchPage(name, el) {
   document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
@@ -665,6 +702,7 @@ function switchPage(name, el) {
     try { renderAnnList(); } catch(e) {}
   }
   if (name === 'issues') { loadIssuesSvInbox(); }
+  if (name === 'alerts') loadAlerts();
 }
 
 // 日期格式化：YYYY/MM/DD hh:mm:ss
@@ -1241,6 +1279,7 @@ async function init() {
   loadFieldOrder();
   loadAnnouncements(); // 背景載入，不阻塞
   syncIssueNotifyBar();
+  loadAlerts();
   loadDashboard();
 }
 init();

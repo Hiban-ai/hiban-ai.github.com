@@ -2011,6 +2011,11 @@ function showAiImportGrabPreview(data) {
       <input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:70px;font-size:.82rem">
       <span>天後的 23:59</span>
     </div>` +
+    `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
+      <b style="flex-shrink:0">每人上限：</b>
+      <input type="number" id="ai-grab-per-limit" class="form-input" min="1" value="1" style="width:70px;font-size:.82rem">
+      <span>個名額</span>
+    </div>` +
     _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
       <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}
     </div>`).join('');
@@ -2042,6 +2047,7 @@ async function aiImportGrabConfirm(data) {
     if (firstDays) document.getElementById('assign-days').value = firstDays;
     if (data.notes) document.getElementById('assign-notes').value = data.notes;
     document.getElementById('grab-slots').value = _aiGrabSlotData.length;
+    document.getElementById('grab-per-limit').value = parseInt(document.getElementById('ai-grab-per-limit').value) || 1;
     calcAssignTotal();
 
     // 套用搶單截止日期（N天後 23:59）到主表單的日期選擇器

@@ -319,9 +319,9 @@ textarea.form-input{resize:none}
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">名額總數</label>
             <input class="form-input" type="number" id="grab-slots" min="1" placeholder="共幾個名額" style="flex:1">
           </div>
-          <div id="row-grab-per-limit" style="display:none;align-items:center;gap:.5rem;margin-top:.75rem">
-            <input type="checkbox" id="grab-allow-multi" style="width:18px;height:18px;flex-shrink:0">
-            <label for="grab-allow-multi" style="font-size:.82rem;color:var(--text-s)">允許同一人搶多個名額（不限數量）</label>
+          <div id="row-grab-per-limit" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">每人上限</label>
+            <input class="form-input" type="number" id="grab-per-limit" min="0" value="1" placeholder="0=不限數量" style="flex:1">
           </div>
           </div>
 
@@ -983,20 +983,20 @@ async function submitAssign() {
     // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
     try {
-      const allowMulti = document.getElementById('grab-allow-multi').checked;
+      const perLimit = parseInt(document.getElementById('grab-per-limit').value);
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
         deadline_days: parseInt(days),
         custom_fields: collectCustomFields(),
         slot_data: _aiGrabSlotData || [],
-        per_person_limit: allowMulti ? 0 : 1,
+        per_person_limit: (perLimit >= 0) ? perLimit : 1,
       });
       _aiGrabSlotData = null;
       showToast('搶單任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
-      document.getElementById('grab-allow-multi').checked = false;
+      document.getElementById('grab-per-limit').value = '1';
       renderAssignCustomFields();
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
@@ -1043,7 +1043,7 @@ async function loadGrabHistory() {
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
             ${t.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(t)}</div>` : ''}
-            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.per_person_limit === 0 ? ' ・ 每人不限數量' : ''}</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.per_person_limit === 0 ? ' ・ 每人不限數量' : (t.per_person_limit > 1 ? ` ・ 每人上限${t.per_person_limit}張` : '')}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
@@ -2029,8 +2029,8 @@ function showAiImportGrabPreview(data) {
       <span>天後的 23:59</span>
     </div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
-      <input type="checkbox" id="ai-grab-allow-multi" style="width:18px;height:18px;flex-shrink:0">
-      <label for="ai-grab-allow-multi">允許同一人搶多個名額（不限數量）</label>
+      <b style="flex-shrink:0">每人上限：</b>
+      <input type="number" id="ai-grab-per-limit" class="form-input" min="0" value="1" placeholder="0=不限數量" style="width:70px;font-size:.82rem">
     </div>` +
     _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
       <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}
@@ -2063,7 +2063,7 @@ async function aiImportGrabConfirm(data) {
     if (firstDays) document.getElementById('assign-days').value = firstDays;
     if (data.notes) document.getElementById('assign-notes').value = data.notes;
     document.getElementById('grab-slots').value = _aiGrabSlotData.length;
-    document.getElementById('grab-allow-multi').checked = document.getElementById('ai-grab-allow-multi').checked;
+    document.getElementById('grab-per-limit').value = document.getElementById('ai-grab-per-limit').value;
     calcAssignTotal();
 
     // 套用搶單截止日期（N天後 23:59）到主表單的日期選擇器

@@ -497,8 +497,14 @@ textarea.form-input{resize:none}
     </div>
     <div style="display:flex;gap:.5rem;margin-bottom:1rem">
       <button onclick="coShowMode('add')"    id="co-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">＋ 新增</button>
+      <button onclick="coShowMode('import')" id="co-btn-import" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">⬇ 匯入</button>
       <button onclick="coShowMode('edit')"   id="co-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✎ 修改</button>
       <button onclick="coShowMode('delete')" id="co-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✕ 刪除</button>
+    </div>
+    <div id="co-panel-import" style="display:none;flex-direction:column;gap:.6rem">
+      <div style="font-size:.8rem;color:var(--text-s)">一行一個公司名稱，或用逗號分隔，可一次貼上多筆。</div>
+      <textarea class="form-input" id="co-import-text" placeholder="例如：&#10;iNclo電視&#10;希絆科技&#10;範例公司" style="font-size:.88rem;min-height:120px;line-height:1.6;resize:vertical"></textarea>
+      <button onclick="importCompanies()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">匯入</button>
     </div>
     <div id="co-panel-add" style="display:none;flex-direction:column;gap:.6rem">
       <div id="co-add-list" style="display:flex;flex-direction:column;gap:.4rem">
@@ -533,8 +539,14 @@ textarea.form-input{resize:none}
     <!-- 操作選擇 -->
     <div style="display:flex;gap:.5rem;margin-bottom:1rem">
       <button onclick="ttShowMode('add')"    id="tt-btn-add"    style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">＋ 新增</button>
+      <button onclick="ttShowMode('import')" id="tt-btn-import" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">⬇ 匯入</button>
       <button onclick="ttShowMode('edit')"   id="tt-btn-edit"   style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✎ 修改</button>
       <button onclick="ttShowMode('delete')" id="tt-btn-delete" style="flex:1;padding:.55rem;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text-m);transition:all .2s">✕ 刪除</button>
+    </div>
+    <div id="tt-panel-import" style="display:none;flex-direction:column;gap:.6rem">
+      <div style="font-size:.8rem;color:var(--text-s)">一行一個任務名稱（可含 emoji），或用逗號分隔，可一次貼上多筆。</div>
+      <textarea class="form-input" id="tt-import-text" placeholder="例如：&#10;口碑評論&#10;SEO文案撰寫&#10;廣告圖設計" style="font-size:.88rem;min-height:120px;line-height:1.6;resize:vertical"></textarea>
+      <button onclick="importTaskTypes()" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">匯入</button>
     </div>
     <!-- 新增面板 -->
     <div id="tt-panel-add" style="display:none;flex-direction:column;gap:.6rem">
@@ -1420,7 +1432,7 @@ async function loadCompanies() {
 }
 
 function coShowMode(mode) {
-  ['add','edit','delete'].forEach(m => {
+  ['add','import','edit','delete'].forEach(m => {
     document.getElementById('co-panel-'+m).style.display = m === mode ? 'flex' : 'none';
     const btn = document.getElementById('co-btn-'+m);
     const active = m === mode;
@@ -1457,6 +1469,19 @@ async function addCompany() {
     </div>`;
     await loadCompanies();
     showToast(`已新增 ${names.length} 項`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function importCompanies() {
+  const names = document.getElementById('co-import-text').value
+    .split(/[\n,，、]/).map(s => s.trim()).filter(Boolean);
+  if (!names.length) return showToast('請輸入公司名稱', 'error');
+  if (!confirm(`是否匯入 ${names.length} 間公司？`)) return;
+  try {
+    for (const name of names) await API.post('/api/companies', { name });
+    document.getElementById('co-import-text').value = '';
+    await loadCompanies();
+    showToast(`已匯入 ${names.length} 間公司`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1567,7 +1592,7 @@ async function loadTaskTypes() {
 }
 
 function ttShowMode(mode) {
-  ['add','edit','delete'].forEach(m => {
+  ['add','import','edit','delete'].forEach(m => {
     document.getElementById('tt-panel-'+m).style.display = m === mode ? 'flex' : 'none';
     const btn = document.getElementById('tt-btn-'+m);
     const active = m === mode;
@@ -1609,6 +1634,19 @@ async function addTaskType() {
     </div>`;
     await loadTaskTypes();
     showToast(`已新增 ${names.length} 項`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function importTaskTypes() {
+  const names = document.getElementById('tt-import-text').value
+    .split(/[\n,，、]/).map(s => s.trim()).filter(Boolean);
+  if (!names.length) return showToast('請輸入任務名稱', 'error');
+  if (!confirm(`是否匯入 ${names.length} 個任務項目？`)) return;
+  try {
+    for (const name of names) await API.post('/api/task-types', { name });
+    document.getElementById('tt-import-text').value = '';
+    await loadTaskTypes();
+    showToast(`已匯入 ${names.length} 個任務項目`, 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
 

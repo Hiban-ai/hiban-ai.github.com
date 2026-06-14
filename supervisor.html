@@ -671,13 +671,17 @@ async function loadAlerts() {
     let totalCount = 0;
     let html = '';
     let dashHtml = '';
-    groups.forEach(g => {
+    groups.forEach((g, gi) => {
       const arr = a[g.key] || [];
       if (!arr.length) return;
       totalCount += arr.length;
-      html += `<div class="alert-card ${g.cls}"><span style="font-size:1.1rem">${g.icon}</span><div style="flex:1">
+      const visible = arr.slice(0,5).map(x=>g.item(x)).join('<br>');
+      const rest = arr.slice(5).map(x=>g.item(x)).join('<br>');
+      const moreId = `alert-more-${gi}`;
+      html += `<div class="alert-card ${g.cls}" style="${rest?'cursor:pointer':''}" ${rest?`onclick="const m=document.getElementById('${moreId}'),t=this.querySelector('.alert-more-toggle');const open=m.style.display==='block';m.style.display=open?'none':'block';t.textContent=open?'...等共 ${arr.length} 筆，點此展開 ▼':'收合 ▲'"`:''}><span style="font-size:1.1rem">${g.icon}</span><div style="flex:1">
         <div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${g.title(arr.length)}</div>
-        <div style="font-size:.8rem;color:var(--text-m);line-height:1.6">${arr.slice(0,5).map(x=>g.item(x)).join('<br>')}${arr.length>5?`<br>...等共 ${arr.length} 筆`:''}</div>
+        <div style="font-size:.8rem;color:var(--text-m);line-height:1.6">${visible}</div>
+        ${rest?`<div id="${moreId}" style="display:none;font-size:.8rem;color:var(--text-m);line-height:1.6;margin-top:.2rem">${rest}</div><div class="alert-more-toggle" style="font-size:.78rem;color:var(--blue);margin-top:.3rem;font-weight:700">...等共 ${arr.length} 筆，點此展開 ▼</div>`:''}
       </div></div>`;
       dashHtml += `<div style="font-size:.82rem;padding:.3rem 0;border-bottom:1px solid var(--border)">${g.icon} ${g.title(arr.length)}</div>`;
     });

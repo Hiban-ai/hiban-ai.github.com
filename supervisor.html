@@ -564,7 +564,11 @@ textarea.form-input{resize:none}
       <button onclick="closeTaskPriceMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.8rem">設定每個任務的預設單價，選擇任務時會自動帶入單價，仍可手動修改。留空代表不自動帶入。</div>
-    <div id="task-price-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
+    <div id="task-price-list" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.8rem"></div>
+    <div style="display:flex;gap:.5rem">
+      <button onclick="saveTaskPrices()" style="flex:1;padding:.6rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer">儲存</button>
+      <button onclick="closeTaskPriceMgr()" style="flex:1;padding:.6rem;background:#fff;color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer">取消</button>
+    </div>
   </div>
 </div>
 
@@ -1503,7 +1507,7 @@ function openTaskPriceMgr() {
       <div style="flex:1;font-size:.85rem">${t.name}</div>
       <div style="position:relative;width:110px">
         <span style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--text-s);font-size:.85rem">$</span>
-        <input class="form-input tp-input" type="number" min="0" data-id="${t.id}" value="${t.default_price ?? ''}" placeholder="不自動帶入" style="padding-left:1.5rem;font-size:.85rem" onchange="saveTaskPrice(this)">
+        <input class="form-input tp-input" type="number" min="0" data-id="${t.id}" value="${t.default_price ?? ''}" placeholder="不自動帶入" style="padding-left:1.5rem;font-size:.85rem">
       </div>
     </div>`).join('');
   document.getElementById('task-price-overlay').classList.add('open');
@@ -1511,13 +1515,20 @@ function openTaskPriceMgr() {
 function closeTaskPriceMgr() {
   document.getElementById('task-price-overlay').classList.remove('open');
 }
-async function saveTaskPrice(input) {
-  const id = input.dataset.id;
-  const val = input.value.trim();
+async function saveTaskPrices() {
+  const inputs = [...document.querySelectorAll('#task-price-list .tp-input')];
   try {
-    await API.put(`/api/task-types/${id}`, { default_price: val === '' ? null : val });
-    const t = _ttList.find(x => x.id === id);
-    if (t) t.default_price = val === '' ? null : parseInt(val);
+    for (const input of inputs) {
+      const id = input.dataset.id;
+      const val = input.value.trim();
+      const t = _ttList.find(x => x.id === id);
+      const newVal = val === '' ? null : parseInt(val);
+      if ((t?.default_price ?? null) === newVal) continue;
+      await API.put(`/api/task-types/${id}`, { default_price: newVal });
+      if (t) t.default_price = newVal;
+    }
+    showToast('已儲存', 'success');
+    closeTaskPriceMgr();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -2159,6 +2170,7 @@ async function applyAiImportData(data, partners) {
       taskSel.value = data.task_name;
       renderAssignCustomFields();
       applyFieldOrder();
+      applyTaskDefaultPrice();
     }
   }
   if (data.company) {

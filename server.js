@@ -2155,9 +2155,10 @@ function geminiPost(apiKey, bodyStr) {
       headers: { 'Content-Type': 'application/json', 'Transfer-Encoding': 'chunked' }
     };
     const req2 = https.request(options, r => {
-      let d = '';
-      r.on('data', c => d += c);
+      const chunks = [];
+      r.on('data', c => chunks.push(c));
       r.on('end', () => {
+        const d = Buffer.concat(chunks).toString('utf8');
         try { resolve(JSON.parse(d)); }
         catch(e) { reject(new Error('Gemini 回傳非 JSON：' + d.slice(0,200))); }
       });

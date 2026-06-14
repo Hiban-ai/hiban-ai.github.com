@@ -1987,6 +1987,11 @@ function showAiImportGrabPreview(data) {
 
   const wrap = document.getElementById('ai-import-list');
   wrap.innerHTML = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">${summaryRows || '（AI 未解析出共同欄位）'}</div>` +
+    `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem">
+      <b style="flex-shrink:0">搶單截止日期與時間</b>
+      <input type="date" id="ai-grab-deadline-date" class="form-input" style="flex:1;font-size:.82rem">
+      <input type="time" id="ai-grab-deadline-time" class="form-input" value="23:59" style="width:110px;font-size:.82rem">
+    </div>` +
     _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
       <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}
     </div>`).join('');
@@ -1996,6 +2001,9 @@ function showAiImportGrabPreview(data) {
 
 async function aiImportGrabConfirm(data) {
   const btn = document.getElementById('ai-import-confirm-all-btn');
+  const dlDate = document.getElementById('ai-grab-deadline-date').value;
+  const dlTime = document.getElementById('ai-grab-deadline-time').value;
+  if (!dlDate) { showToast('請選擇搶單截止日期', 'error'); return; }
   btn.disabled = true;
   try {
     if (data.task_name) {
@@ -2017,6 +2025,18 @@ async function aiImportGrabConfirm(data) {
     if (data.notes) document.getElementById('assign-notes').value = data.notes;
     document.getElementById('grab-slots').value = _aiGrabSlotData.length;
     calcAssignTotal();
+
+    // 套用搶單截止日期與時間到主表單的日期選擇器
+    const [y, m] = dlDate.split('-');
+    const [hh, mm] = dlTime.split(':');
+    gdpInit();
+    document.getElementById('gdp-year').value = String(parseInt(y));
+    document.getElementById('gdp-month').value = String(parseInt(m));
+    gdpUpdateGrid();
+    gdpSelectDay(dlDate);
+    document.getElementById('gdp-hour').value = hh;
+    document.getElementById('gdp-min').value = mm;
+    gdpUpdateHint();
 
     // 確保自訂欄位定義存在（彙整所有名額出現過的 label）
     const curTask = document.getElementById('assign-task').value;
@@ -2057,7 +2077,7 @@ async function aiImportGrabConfirm(data) {
     });
 
     closeAiImportMgr();
-    showToast(`已帶入 ${_aiGrabSlotData.length} 個名額的資料，請選擇搶單截止日期後送出`, 'success');
+    showToast(`已帶入 ${_aiGrabSlotData.length} 個名額的資料，請確認後送出`, 'success');
   } catch(e) {
     showToast(e.message, 'error');
   } finally {

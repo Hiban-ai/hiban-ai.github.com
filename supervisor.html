@@ -580,7 +580,7 @@ textarea.form-input{resize:none}
 <div class="pw-overlay" id="cf-overlay">
   <div class="pw-box" style="width:480px;max-height:88vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理</div>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理<span id="cf-mgr-mode-label" style="font-size:.8rem;color:var(--text-s);font-weight:400"></span></div>
       <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.4rem">📋 選擇任務名稱</div>
@@ -602,11 +602,6 @@ textarea.form-input{resize:none}
         <option value="select">選項（下拉）</option>
       </select>
       <input class="form-input" id="cf-add-options" placeholder="選項，以逗號分隔（例如：高,中,低）" style="font-size:.88rem;display:none">
-      <select class="form-select" id="cf-add-scope" style="font-size:.88rem">
-        <option value="">兩者皆可（指派／搶單）</option>
-        <option value="assign">僅用於指派</option>
-        <option value="grab">僅用於搶單</option>
-      </select>
       <div style="display:flex;gap:.5rem">
         <button onclick="addCustomFieldDef()" id="cf-submit-btn" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">新增欄位</button>
         <button onclick="cfCancelEdit()" id="cf-cancel-btn" style="display:none;flex-shrink:0;padding:.65rem 1rem;background:#fff;color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">取消</button>
@@ -1842,7 +1837,6 @@ function cfStartEdit(id) {
   document.getElementById('cf-add-label').value = f.label;
   document.getElementById('cf-add-type').value = f.type;
   document.getElementById('cf-add-options').value = (f.options||[]).join(',');
-  document.getElementById('cf-add-scope').value = f.scope || '';
   cfToggleOptions();
   document.getElementById('cf-form-title').textContent = '修改欄位';
   document.getElementById('cf-submit-btn').textContent = '儲存修改';
@@ -1854,7 +1848,6 @@ function cfCancelEdit() {
   document.getElementById('cf-add-label').value = '';
   document.getElementById('cf-add-options').value = '';
   document.getElementById('cf-add-type').value = 'text';
-  document.getElementById('cf-add-scope').value = '';
   cfToggleOptions();
   document.getElementById('cf-form-title').textContent = '新增欄位';
   document.getElementById('cf-submit-btn').textContent = '新增欄位';
@@ -1866,14 +1859,14 @@ async function addCustomFieldDef() {
   const label = document.getElementById('cf-add-label').value.trim();
   const type  = document.getElementById('cf-add-type').value;
   const task_name = cfCurrentTask();
-  const scope = document.getElementById('cf-add-scope').value;
+  const scope = assignMode === 'grab' ? 'grab' : 'assign';
   if (!label) return showToast('請輸入欄位名稱', 'error');
   const options = document.getElementById('cf-add-options').value
     .split(',').map(s=>s.trim()).filter(Boolean);
   if (type === 'select' && !options.length) return showToast('請輸入選項內容', 'error');
   try {
     if (id) {
-      await API.put(`/api/custom-field-defs/${id}`, { label, type, options, task_name, scope });
+      await API.put(`/api/custom-field-defs/${id}`, { label, type, options, task_name });
       showToast('已儲存修改', 'success');
     } else {
       await API.post('/api/custom-field-defs', { label, type, options, task_name, scope });
@@ -2268,6 +2261,7 @@ function openCfMgr() {
   const cfSel = document.getElementById('cf-task-selector');
   const curTask = document.getElementById('assign-task')?.value || '';
   if (cfSel) cfSel.value = curTask;
+  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（搶單欄位）' : '（指派欄位）';
   loadCustomFieldDefs();
   renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');

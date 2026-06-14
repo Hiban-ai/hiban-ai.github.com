@@ -971,7 +971,9 @@ async function submitAssign() {
         total_slots: parseInt(slots), deadline: dl,
         deadline_days: parseInt(days),
         custom_fields: collectCustomFields(),
+        slot_data: _aiGrabSlotData || [],
       });
+      _aiGrabSlotData = null;
       showToast('搶單任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
@@ -1861,6 +1863,7 @@ async function deleteCustomFieldDef(id) {
 // ── AI 匯入派案資料 ────────────────────────────────────────────
 let _aiImportItems = []; // [{data, status:'pending'|'done'|'error', message}]
 let _aiImportPartners = null;
+let _aiGrabSlotData = null; // [{custom_fields:[{label,value}]}] for grab mode
 
 function openAiImportMgr() {
   document.getElementById('ai-import-err').style.display = 'none';
@@ -1868,6 +1871,9 @@ function openAiImportMgr() {
   document.getElementById('ai-import-preview').style.display = 'none';
   _aiImportItems = [];
   _aiImportPartners = null;
+  _aiGrabSlotData = null;
+  document.getElementById('ai-import-confirm-all-btn').onclick = aiImportConfirmAll;
+  document.getElementById('ai-import-confirm-all-btn').textContent = '🚀 全部一鍵派案';
   document.getElementById('ai-import-overlay').classList.add('open');
 }
 function closeAiImportMgr() {
@@ -1956,6 +1962,107 @@ async function aiImportConfirmAll() {
   btn.textContent = '🚀 全部一鍵派案';
 }
 
+function aiImportGrabSlotSummary(slot) {
+  return (slot.custom_fields || []).filter(f => f.value !== undefined && f.value !== '')
+    .map(f => `<b>${f.label}</b>：${f.value}`).join('　') || '（無自訂欄位資料）';
+}
+
+function showAiImportGrabPreview(data) {
+  _aiGrabSlotData = data.slots || [];
+  const title = document.getElementById('ai-import-preview-title');
+  const allBtn = document.getElementById('ai-import-confirm-all-btn');
+  title.textContent = `📋 AI 解析結果預覽（共 ${_aiGrabSlotData.length} 個名額）`;
+  allBtn.style.display = 'block';
+  allBtn.textContent = `✅ 建立搶單（${_aiGrabSlotData.length} 個名額）`;
+  allBtn.onclick = () => aiImportGrabConfirm(data);
+
+  const summaryRows = [
+    ['任務', data.task_name], ['公司', data.company],
+    ['單價', data.unit_price ? `$${data.unit_price}` : ''],
+    ['期限', data.deadline_days ? `${data.deadline_days} 天` : ''],
+    ['備註', data.notes],
+  ].filter(([,v]) => v !== undefined && v !== null && v !== '')
+   .map(([k,v]) => `<b>${k}</b>：${v}`).join('　');
+
+  const wrap = document.getElementById('ai-import-list');
+  wrap.innerHTML = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">${summaryRows || '（AI 未解析出共同欄位）'}</div>` +
+    _aiGrabSlotData.map((slot, i) => `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.5rem .8rem;font-size:.8rem;line-height:1.5">
+      <b style="color:var(--blue-d)">＃${i+1}</b>　${aiImportGrabSlotSummary(slot)}
+    </div>`).join('');
+
+  document.getElementById('ai-import-preview').style.display = 'block';
+}
+
+async function aiImportGrabConfirm(data) {
+  const btn = document.getElementById('ai-import-confirm-all-btn');
+  btn.disabled = true;
+  try {
+    if (data.task_name) {
+      const taskSel = document.getElementById('assign-task');
+      if ([...taskSel.options].some(o => o.value === data.task_name)) {
+        taskSel.value = data.task_name;
+        renderAssignCustomFields();
+        applyFieldOrder();
+        applyTaskDefaultPrice();
+      }
+    }
+    if (data.company) {
+      const coSel = document.getElementById('assign-company');
+      if ([...coSel.options].some(o => o.value === data.company)) coSel.value = data.company;
+    }
+    if (data.unit_price) document.getElementById('assign-price').value = data.unit_price;
+    if (data.deadline_days) document.getElementById('assign-days').value = data.deadline_days;
+    if (data.notes) document.getElementById('assign-notes').value = data.notes;
+    document.getElementById('grab-slots').value = _aiGrabSlotData.length;
+    calcAssignTotal();
+
+    // 確保自訂欄位定義存在（彙整所有名額出現過的 label）
+    const curTask = document.getElementById('assign-task').value;
+    const allLabels = new Map();
+    _aiGrabSlotData.forEach(slot => (slot.custom_fields || []).forEach(f => {
+      if (f.value !== undefined && f.value !== '') allLabels.set(f.label, f);
+    }));
+    const incoming = [...allLabels.values()];
+    const missing = incoming.filter(f => !_cfList.some(c => c.label === f.label && (!c.task_name || c.task_name === curTask)));
+    if (missing.length) {
+      for (const f of missing) {
+        try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask }); }
+        catch(e) { console.error('[AI匯入搶單] 建立自訂欄位失敗', f.label, e); }
+      }
+      await loadCustomFieldDefs();
+    }
+
+    const incomingIds = incoming.map(f => {
+      const c = _cfList.find(c => c.label === f.label && (!c.task_name || c.task_name === curTask));
+      return c ? `cf:${c.id}` : null;
+    }).filter(Boolean);
+    if (incomingIds.length) {
+      const existingIdx = incomingIds.map(t => _fieldOrder.indexOf(t)).filter(i => i >= 0);
+      const insertAt = existingIdx.length ? Math.min(...existingIdx) : _fieldOrder.length;
+      const rest = _fieldOrder.filter(t => !incomingIds.includes(t));
+      _fieldOrder = [...rest.slice(0, insertAt), ...incomingIds, ...rest.slice(insertAt)];
+      try { await API.put('/api/field-order', { order: _fieldOrder }); } catch(e) { console.error('[AI匯入搶單] 儲存欄位順序失敗', e); }
+    }
+    if (missing.length || incomingIds.length) {
+      renderAssignCustomFields();
+      applyFieldOrder();
+    }
+
+    // 1號名額的自訂欄位帶入表單預覽（僅供督導確認，實際依各名額存入 slot_data）
+    (_aiGrabSlotData[0]?.custom_fields || []).forEach(f => {
+      const input = document.querySelector(`#assign-custom-fields .cf-input[data-label="${f.label}"]`);
+      if (input) input.value = f.value;
+    });
+
+    closeAiImportMgr();
+    showToast(`已帶入 ${_aiGrabSlotData.length} 個名額的資料，請選擇搶單截止日期後送出`, 'success');
+  } catch(e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function loadAiImportSheet() {
   const url = document.getElementById('ai-import-sheet-url').value.trim();
   const errEl = document.getElementById('ai-import-err');
@@ -1991,6 +2098,18 @@ async function runAiImport() {
     const allPartners = await API.get('/api/users-list?role=partner&scope=all');
     const partners = (allPartners || []).map(p => ({ id: String(p.id), name: p.real_name }));
     const customFields = _cfList.map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
+    if (assignMode === 'grab') {
+      const res = await API.post('/api/gemini/extract-task', {
+        text,
+        tasks: _ttList.map(t => t.name),
+        companies: _coList.map(c => c.name),
+        customFields,
+        mode: 'grab',
+      });
+      if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
+      showAiImportGrabPreview(res.data);
+      return;
+    }
     const res = await API.post('/api/gemini/extract-task', {
       text,
       tasks: _ttList.map(t => t.name),

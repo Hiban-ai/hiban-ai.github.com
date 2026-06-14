@@ -1290,7 +1290,7 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data } = req.body;
     if (!task_name || !unit_price || !total_slots || !deadline)
       return res.status(400).json({ error: '缺少必填欄位' });
     const slots = parseInt(total_slots);
@@ -1307,6 +1307,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
       custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
+      slot_data: Array.isArray(slot_data) ? slot_data : [],
     });
     cacheDel('grab-tasks-open');
     res.json({ ok: true, id: item.id });
@@ -1441,6 +1442,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       grab_no:         result.grabNo,
       status:          'accepted',
       rejected_by: [], reject_reason: null,
+      custom_fields:   (result.task.slot_data && result.task.slot_data[parseInt(result.grabNo)-1]?.custom_fields) || result.task.custom_fields || [],
     });
     // 更新 grab_record 存 assignment_id
     await firestoreDb.collection('grab_records').doc(String(result.recId)).update({ assignment_id: assignment.id });
@@ -2256,7 +2258,7 @@ app.post('/api/sheet-fetch', requireRole('supervisor'), async (req, res) => {
 
 app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res) => {
   try {
-    const { text, tasks, companies, partners, customFields } = req.body;
+    const { text, tasks, companies, partners, customFields, mode } = req.body;
     if (!text || !text.trim()) return res.status(400).json({ error: '請輸入要解析的文字' });
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
@@ -2266,6 +2268,65 @@ app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res)
     ).join('\n') || '（無）';
 
     const todayStr = nowTW().split(' ')[0]; // YYYY/MM/DD
+
+    if (mode === 'grab') {
+      const grabPrompt = `你是任務派案助手。請從以下文字中解析出「搶單任務」資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
+
+今天日期：${todayStr}
+
+可選任務名稱：${(tasks || []).join('、')}
+可選公司名稱：${(companies || []).join('、')}
+
+自訂欄位定義（label 必須完全照抄）：
+${cfDesc}
+
+請回傳一個 JSON 物件（不是陣列），格式如下：
+{
+  "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
+  "company": "從可選公司名稱中選最符合的，找不到則空字串",
+  "unit_price": "單價，數字字串，找不到則空字串",
+  "deadline_days": "完成期限天數，數字字串。若原文是天數直接使用；若是日期，請換算成從今天到該日期的剩餘天數（至少為1）；找不到則空字串",
+  "notes": "整體備註文字，找不到則空字串",
+  "slots": [
+    { "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}] }
+  ]
+}
+
+重要規則：
+- 文字內容通常是表格（含表頭與多列資料），請忽略表頭，為「每一列資料」各產生一個 slots 陣列元素（依原始順序，陣列長度 = 資料列數，也就是搶單總名額數）。
+- task_name / company / unit_price / deadline_days / notes 這些欄位通常每列相同，取共同值或第一筆即可，不放入 slots。
+- custom_fields：若欄位名稱出現在上方「自訂欄位定義」中，label 必須與定義完全一致。若出現定義以外的欄位（例如「評分」、「補充說明」），也請一併放入 custom_fields，label 直接使用該欄位在原文中的名稱即可。
+- 只回傳 JSON 物件，不要其他文字或說明。
+
+文字內容：
+"""
+${text}
+"""`;
+
+      const body = JSON.stringify({
+        contents: [{ parts: [{ text: grabPrompt }] }],
+        generationConfig: { temperature: 0.1 }
+      });
+      const result = await geminiPost(apiKey, body);
+      if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
+      const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      console.log('[Gemini extract-task grab raw]', raw.slice(0, 300));
+      const objIdx = raw.indexOf('{');
+      if (objIdx === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+      let depth = 0, end = -1, inStr = false, esc = false;
+      for (let i = objIdx; i < raw.length; i++) {
+        const ch = raw[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\') { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{') depth++;
+        else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+      }
+      if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
+      const data = JSON.parse(raw.slice(objIdx, end + 1));
+      return res.json({ ok: true, data });
+    }
 
     const prompt = `你是任務派案助手。請從以下文字中解析出派案資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
 

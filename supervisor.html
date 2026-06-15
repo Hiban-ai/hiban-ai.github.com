@@ -295,9 +295,11 @@ textarea.form-input{resize:none}
           <span style="font-size:.82rem;color:var(--text-s);font-weight:600">派案模式</span>
           <div style="display:flex;border-radius:20px;overflow:hidden;border:1.5px solid var(--border)">
             <button id="mode-btn-normal" onclick="setAssignMode('normal')"
-                    style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:var(--blue-d);color:#fff;transition:all .2s">📋 指定派案</button>
+                    style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:var(--blue-d);color:#fff;transition:all .2s">📋 指派任務(件)</button>
+            <button id="mode-btn-hourly" onclick="setAssignMode('hourly')"
+                    style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">⏱️ 指派任務(小時)</button>
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
-                    style="padding:.3rem .85rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s">🎯 搶單模式</button>
+                    style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🎯 搶單模式</button>
           </div>
           <button onclick="openAiImportMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🤖 AI 匯入</button>
         </div>
@@ -358,6 +360,22 @@ textarea.form-input{resize:none}
           <div data-field="total" style="display:flex;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">總價</label>
             <div style="flex:1;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.72rem 1rem;font-family:'Noto Serif TC',serif;font-weight:700;color:var(--blue-d);font-size:1rem" id="assign-total">$0</div>
+          </div>
+
+          <!-- 指派任務(小時)：工作內容 -->
+          <div data-field="work-content" style="display:none;align-items:flex-start;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.7rem">工作內容</label>
+            <textarea class="form-input" id="assign-work-content" rows="2" placeholder="本次工作內容說明..." style="flex:1"></textarea>
+          </div>
+
+          <!-- 指派任務(小時)：時薪 -->
+          <div data-field="hourly" style="display:none;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">時薪</label>
+            <div style="flex:1;position:relative">
+              <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
+              <input class="form-input" type="number" id="assign-hourly-wage" min="0" placeholder="每小時金額" style="padding-left:1.8rem">
+              <span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:var(--text-s);font-size:.8rem">/ 小時</span>
+            </div>
           </div>
 
           <!-- 指定派案：X天 -->
@@ -935,24 +953,37 @@ function gdpUpdateHint() {
   document.getElementById('gdp-hint').textContent = `截止：${ds.replace(/-/g,'/')} ${hh}:${mm}`;
 }
 
-// ── 搶單模式切換 ──────────────────────────────────────────────
-let assignMode = 'normal'; // 'normal' | 'grab'
+// ── 派案模式切換 ──────────────────────────────────────────────
+let assignMode = 'normal'; // 'normal'(件) | 'hourly'(小時) | 'grab'(搶單)
 function setAssignMode(mode) {
   assignMode = mode;
-  const isGrab = mode === 'grab';
-  document.getElementById('mode-btn-normal').style.background = isGrab ? '#fff' : 'var(--blue-d)';
-  document.getElementById('mode-btn-normal').style.color       = isGrab ? 'var(--text-s)' : '#fff';
-  document.getElementById('mode-btn-grab').style.background   = isGrab ? 'var(--blue-d)' : '#fff';
-  document.getElementById('mode-btn-grab').style.color        = isGrab ? '#fff' : 'var(--text-s)';
-  document.getElementById('row-assign-target').style.display  = isGrab ? 'none' : 'flex';
-  document.getElementById('row-grab-slots').style.display     = isGrab ? 'flex' : 'none';
-  document.getElementById('row-grab-per-limit').style.display  = isGrab ? 'flex' : 'none';
-  document.querySelector('[data-field="qty"]').style.display  = isGrab ? 'none' : 'flex';
+  const isGrab   = mode === 'grab';
+  const isHourly = mode === 'hourly';
+  const isNormal = mode === 'normal';
+  // 三個模式按鈕的選中樣式
+  [['mode-btn-normal', isNormal], ['mode-btn-hourly', isHourly], ['mode-btn-grab', isGrab]].forEach(([id, on]) => {
+    const b = document.getElementById(id);
+    b.style.background = on ? 'var(--blue-d)' : '#fff';
+    b.style.color      = on ? '#fff' : 'var(--text-s)';
+  });
+  // 指派給：件 / 小時 顯示，搶單隱藏
+  document.getElementById('row-assign-target').style.display = isGrab ? 'none' : 'flex';
+  // 搶單專屬
+  document.getElementById('row-grab-slots').style.display    = isGrab ? 'flex' : 'none';
+  document.getElementById('row-grab-per-limit').style.display = isGrab ? 'flex' : 'none';
+  document.getElementById('row-grab-deadline').style.display = isGrab ? 'flex' : 'none';
+  // 數量/單價/總價：只有「件」用
+  document.querySelector('[data-field="qty"]').style.display   = isNormal ? 'flex' : 'none';
+  document.querySelector('[data-field="price"]').style.display = isNormal ? 'flex' : 'none';
+  document.querySelector('[data-field="total"]').style.display = isNormal ? 'flex' : 'none';
+  // 工作內容/時薪：只有「小時」用
+  document.querySelector('[data-field="work-content"]').style.display = isHourly ? 'flex' : 'none';
+  document.querySelector('[data-field="hourly"]').style.display       = isHourly ? 'flex' : 'none';
+  // 完成期限：件用天數、搶單用天數；小時不需
+  document.getElementById('row-deadline-days').style.display = isHourly ? 'none' : 'flex';
   renderAssignCustomFields();
   applyFieldOrder();
-  document.getElementById('row-deadline-days').style.display  = 'flex';
-  document.getElementById('row-grab-deadline').style.display  = isGrab ? 'flex' : 'none';
-  document.getElementById('assign-submit-btn').textContent    = isGrab ? '🎯 建立搶單' : '確認派案 ✓';
+  document.getElementById('assign-submit-btn').textContent = isGrab ? '🎯 建立搶單' : (isHourly ? '⏱️ 指派(小時)' : '確認派案 ✓');
   document.getElementById('assign-err').style.display = 'none';
   if (isGrab) gdpInit();
 }
@@ -974,6 +1005,31 @@ async function submitAssign() {
   const notes   = document.getElementById('assign-notes').value;
   if (!company) { err.textContent = '請選擇公司';     err.style.display = 'block'; return; }
   if (!task)    { err.textContent = '請選擇任務類型'; err.style.display = 'block'; return; }
+
+  if (assignMode === 'hourly') {
+    // 指派任務(小時)
+    const target = document.getElementById('assign-target').value;
+    const workContent = document.getElementById('assign-work-content').value.trim();
+    const wage = document.getElementById('assign-hourly-wage').value;
+    if (!target) { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
+    if (!wage || parseInt(wage) < 0) { err.textContent = '請填寫時薪'; err.style.display = 'block'; return; }
+    try {
+      await API.post('/api/assignments', {
+        company, task_name: task, notes,
+        assign_type: 'hourly',
+        hourly_wage: parseInt(wage),
+        work_content: workContent,
+        target_partner_id: target === 'all' ? null : parseInt(target),
+        custom_fields: collectCustomFields(),
+      });
+      showToast('指派(小時)成功！', 'success');
+      ['assign-target','assign-company','assign-task','assign-notes','assign-work-content','assign-hourly-wage'].forEach(id => document.getElementById(id).value = '');
+      renderAssignCustomFields();
+      loadAssignHistory();
+    } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+    return;
+  }
+
   if (assignMode !== 'grab' && (!qty || parseInt(qty) < 1)) { err.textContent = '請填寫數量'; err.style.display = 'block'; return; }
   if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
 
@@ -1130,9 +1186,20 @@ async function loadAssignHistory() {
         </div>
         <div style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m)">
           <div><span style="color:var(--text-s);width:72px;display:inline-block">指派給</span>${a.partner_name || (a.assign_type==='all'?'全部夥伴':'—')}</div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${a.quantity} 件</div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">單價／總價</span>$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
-          <div><span style="color:var(--text-s);width:72px;display:inline-block">完成期限</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'天' : '—')}</div>
+          ${a.assign_type === 'hourly' ? `
+            <div><span style="color:var(--text-s);width:72px;display:inline-block">時薪</span>$${(a.hourly_wage||0).toLocaleString()} / 小時</div>
+            ${a.work_content ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">工作內容</span><div style="flex:1;white-space:pre-wrap;line-height:1.6">${a.work_content}</div></div>` : ''}
+            ${a.work_start ? `
+              <div><span style="color:var(--text-s);width:72px;display:inline-block">開始時間</span>${a.work_start}</div>
+              <div><span style="color:var(--text-s);width:72px;display:inline-block">完成時間</span>${a.work_end}</div>
+              <div><span style="color:var(--text-s);width:72px;display:inline-block">總時數</span>${Math.floor((a.work_minutes||0)/60)} 小時 ${(a.work_minutes||0)%60} 分</div>
+              <div><span style="color:var(--text-s);width:72px;display:inline-block">總金額</span><strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
+            ` : `<div style="font-size:.78rem;color:var(--text-s)">（夥伴回報執行時間後自動計算總金額）</div>`}
+          ` : `
+            <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${a.quantity} 件</div>
+            <div><span style="color:var(--text-s);width:72px;display:inline-block">單價／總價</span>$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
+            <div><span style="color:var(--text-s);width:72px;display:inline-block">完成期限</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'天' : '—')}</div>
+          `}
           ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">補充說明</span><div style="font-family:'標楷體','DFKai-SB',serif;max-height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
           ${customFieldsHtml(a.custom_fields)}
         </div>

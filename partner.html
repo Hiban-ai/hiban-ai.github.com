@@ -806,9 +806,22 @@ textarea.form-input{resize:none}
     <div class="overlay-title">📝 任務回報</div>
     <div class="overlay-desc" id="report-task-name" style="font-weight:600;color:var(--text)"></div>
 
-    <div class="form-group" style="margin-top:.75rem">
+    <div class="form-group" style="margin-top:.75rem" id="report-qty-group">
       <label class="form-label">完成數量</label>
       <input class="form-input" type="number" id="report-qty" min="1" value="1">
+    </div>
+
+    <!-- 指派任務(小時)：執行時間 -->
+    <div id="report-hourly-group" style="display:none">
+      <div class="form-group" style="margin-top:.75rem">
+        <label class="form-label">開始時間 <span class="req-mark" style="color:var(--red)">＊</span></label>
+        <input class="form-input" type="datetime-local" id="report-work-start" oninput="calcReportHourly()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">完成時間 <span class="req-mark" style="color:var(--red)">＊</span></label>
+        <input class="form-input" type="datetime-local" id="report-work-end" oninput="calcReportHourly()">
+      </div>
+      <div id="report-hourly-calc" style="display:none;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.6rem .8rem;font-size:.85rem;color:var(--blue-d);font-weight:700;margin-bottom:.75rem"></div>
     </div>
 
     <div class="form-group">
@@ -1079,8 +1092,11 @@ function renderCompleted(list) {
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">✅ 已完成</span>
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件</span>
+        ${a.assign_type === 'hourly'
+          ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ ${Math.floor((a.work_minutes||0)/60)}時${(a.work_minutes||0)%60}分・$${(a.total_price||0).toLocaleString()}</span>`
+          : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件</span>`}
       </div>
+      ${a.assign_type === 'hourly' && a.work_start ? `<div style="font-size:.78rem;color:var(--text-s);line-height:1.7">🕐 ${a.work_start} ～ ${a.work_end}</div>` : ''}
       <div style="font-size:.78rem;color:var(--text-s)">完成時間：${fmtDate(a.completed_at)}</div>
     </div>`
   }).join('');
@@ -1120,7 +1136,7 @@ function buildTaskCards(list) {
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
         ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
+        ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
@@ -1151,7 +1167,7 @@ function buildTaskCardsReadonly(list) {
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
         ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
+        ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
@@ -1234,8 +1250,14 @@ function renderActive(list) {
         ${statusTag}
         ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
         ${a.accepted_at ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">📌 接案：${fmtDate(a.accepted_at)}</span>` : ''}
-        <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>
+        ${a.assign_type === 'hourly'
+          ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>`
+          : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
       </div>
+      ${a.assign_type === 'hourly' && a.work_content ? `<div style="margin-bottom:.5rem"><div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">工作內容</div><div style="font-size:14px;color:#000;white-space:pre-wrap;line-height:1.6">${a.work_content}</div></div>` : ''}
+      ${a.assign_type === 'hourly' && a.work_start ? `<div style="margin-bottom:.5rem;background:var(--blue-p);border:1px solid var(--blue-pp);border-radius:var(--rs);padding:.5rem .7rem;font-size:.8rem;color:var(--blue-d);line-height:1.7">
+        🕐 開始：${a.work_start}<br>🏁 完成：${a.work_end}<br>⏳ 總時數：${Math.floor((a.work_minutes||0)/60)} 小時 ${(a.work_minutes||0)%60} 分　💰 總金額：<b>$${(a.total_price||0).toLocaleString()}</b>
+      </div>` : ''}
       ${a.notes ? `<div style="margin-bottom:.5rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
         <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes}</div>
@@ -1252,7 +1274,7 @@ function renderActive(list) {
         </div>
       </div>
       <div class="at-prog" style="margin-bottom:.6rem"><div class="at-prog-fill" style="width:10%"></div></div>
-      <button onclick="${reviewing ? '' : `openReport(${a.id},'${a.task_name}')`}"
+      <button onclick="${reviewing ? '' : `openReport(${a.id},'${(a.task_name||'').replace(/'/g,'&#39;')}','${a.assign_type||''}',${a.hourly_wage||0})`}"
         ${reviewing ? 'disabled' : ''}
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:sans-serif">
         ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
@@ -1278,7 +1300,7 @@ function buildRejectedCards(list) {
     return '<div style="background:#fff;border-radius:var(--rs);padding:.65rem .85rem;border-left:4px solid var(--orange);box-shadow:0 2px 8px rgba(240,120,64,.10);margin-bottom:.5rem">'
       + '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:' + (last ? '.4rem' : '0') + '">'
       + '<div style="flex:1;min-width:0;font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(a) + '</div>'
-      + '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="flex-shrink:0;padding:.32rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap">📝 修改</button>'
+      + '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;,&#39;' + (a.assign_type||'') + '&#39;,' + (a.hourly_wage||0) + ')" style="flex-shrink:0;padding:.32rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap">📝 修改</button>'
       + '</div>'
       + commentBlock
       + '</div>';
@@ -1293,7 +1315,7 @@ function buildActiveCardsOverview(list) {
     var reviewing = a.review_status === 'reviewing';
     var taskName = (a.task_name || '').replace(/'/g, '&#39;');
     var deadlineInfo = a.deadline_date ? '期限：' + fmtDay(a.deadline_date) : (a.deadline_days ? a.deadline_days + '天' : '');
-    var reportBtn = reviewing ? '' : '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;)" style="flex-shrink:0;padding:.35rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">回報</button>';
+    var reportBtn = reviewing ? '' : '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;,&#39;' + (a.assign_type||'') + '&#39;,' + (a.hourly_wage||0) + ')" style="flex-shrink:0;padding:.35rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">回報</button>';
     return '<div style="background:#fff;border-radius:var(--r);padding:.85rem 1rem;border-left:5px solid var(--green);box-shadow:0 4px 16px rgba(46,170,122,.10);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem">'
       + '<div style="flex:1;min-width:0">'
       + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(a) + '</div>'
@@ -1326,9 +1348,12 @@ async function rejectTask(id, btn) {
 let reportAssignmentId = null;
 let reportImages = [];
 
-function openReport(assignmentId, taskName) {
+let reportHourly = false, reportHourlyWage = 0;
+function openReport(assignmentId, taskName, assignType, hourlyWage) {
   reportAssignmentId = assignmentId;
   reportImages = [];
+  reportHourly = assignType === 'hourly';
+  reportHourlyWage = parseInt(hourlyWage) || 0;
   document.getElementById('report-task-name').textContent = taskName;
   document.getElementById('report-qty').value = '1';
   document.getElementById('report-url').value = '';
@@ -1336,7 +1361,26 @@ function openReport(assignmentId, taskName) {
   document.getElementById('report-thumbnails').innerHTML = '';
   document.getElementById('report-err').style.display = 'none';
   document.getElementById('report-img-input').value = '';
+  // 小時任務：顯示執行時間、隱藏完成數量
+  document.getElementById('report-qty-group').style.display = reportHourly ? 'none' : '';
+  document.getElementById('report-hourly-group').style.display = reportHourly ? '' : 'none';
+  document.getElementById('report-work-start').value = '';
+  document.getElementById('report-work-end').value = '';
+  document.getElementById('report-hourly-calc').style.display = 'none';
   document.getElementById('report-overlay').classList.add('open');
+}
+
+// 即時計算總時數與金額
+function calcReportHourly() {
+  const sv = document.getElementById('report-work-start').value;
+  const ev = document.getElementById('report-work-end').value;
+  const box = document.getElementById('report-hourly-calc');
+  if (!sv || !ev) { box.style.display = 'none'; return; }
+  const mins = Math.round((new Date(ev) - new Date(sv)) / 60000);
+  if (isNaN(mins) || mins <= 0) { box.style.display = 'none'; return; }
+  const total = Math.round(mins / 60 * reportHourlyWage);
+  box.textContent = `總時數：${Math.floor(mins/60)} 小時 ${mins%60} 分 ・ 時薪 $${reportHourlyWage.toLocaleString()} ・ 總金額 $${total.toLocaleString()}`;
+  box.style.display = 'block';
 }
 
 function closeReport() {
@@ -1392,8 +1436,17 @@ function removeReportImg(idx, el) {
 async function submitReport() {
   const err = document.getElementById('report-err');
   err.style.display = 'none';
-  const qty = document.getElementById('report-qty').value;
-  if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
+  let workStart = '', workEnd = '';
+  if (reportHourly) {
+    workStart = document.getElementById('report-work-start').value;
+    workEnd   = document.getElementById('report-work-end').value;
+    if (!workStart || !workEnd) { err.textContent='請填寫開始與完成時間'; err.style.display='block'; return; }
+    if (new Date(workEnd) <= new Date(workStart)) { err.textContent='完成時間需晚於開始時間'; err.style.display='block'; return; }
+  } else {
+    const qty = document.getElementById('report-qty').value;
+    if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
+  }
+  const qty   = document.getElementById('report-qty').value;
   const url   = document.getElementById('report-url').value.trim();
   const notes = document.getElementById('report-notes').value.trim();
   const imgData = reportImages.map(img => ({ name: img.name, data: img.data }));
@@ -1403,6 +1456,7 @@ async function submitReport() {
       completed_qty: parseInt(qty) || 0,
       url, notes,
       images: imgData,
+      work_start: workStart, work_end: workEnd,
     });
     closeReport();
     showToast('回報已送出 ✓', 'success');

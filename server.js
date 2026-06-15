@@ -942,19 +942,18 @@ app.put('/api/field-order', requireRole('supervisor'), async (req, res) => {
 
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields } = req.body;
-    if (!task_name || !quantity || !unit_price) return res.status(400).json({ error: '缺少必填欄位' });
+    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content } = req.body;
+    const isHourly = assign_type === 'hourly';
+    if (!task_name) return res.status(400).json({ error: '缺少必填欄位' });
+    if (!isHourly && (!quantity || !unit_price)) return res.status(400).json({ error: '缺少必填欄位' });
+    if (isHourly && (hourly_wage === undefined || parseInt(hourly_wage) < 0)) return res.status(400).json({ error: '請填寫時薪' });
     if (assign_type === 'individual' && !target_partner_id) return res.status(400).json({ error: '請選擇指派對象' });
-    const qty = parseInt(quantity), price = parseInt(unit_price);
-    const ddays = (parseInt(deadline_days) >= 1) ? parseInt(deadline_days) : 7;
     const assigned_at = nowTW();
-    const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
-    dlBase.setDate(dlBase.getDate() + ddays);
-    const p = n => String(n).padStart(2,'0');
-    const deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+    // 指派給特定夥伴時，沿用該夥伴的負責督導
+    const indivTarget = (assign_type === 'individual' || isHourly) && target_partner_id;
     let supervisor_id = req.session.user.id;
     let supervisor_name = req.session.user.real_name;
-    if (assign_type === 'individual' && target_partner_id) {
+    if (indivTarget) {
       const targetPartner = await Users.byId(parseInt(target_partner_id));
       if (targetPartner && targetPartner.supervisor_id && targetPartner.supervisor_id !== req.session.user.id) {
         const ownSupervisor = await Users.byId(targetPartner.supervisor_id);
@@ -964,19 +963,39 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
         }
       }
     }
-    const item = await Assignments.create({
-      task_name, company: company || '', quantity: qty, unit_price: price, total_price: qty * price,
-      notes: notes || '',
-      deadline_days: ddays,
-      deadline_date,
-      assigned_at,
-      assign_type: assign_type || 'individual',
-      target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
-      supervisor_id,
-      supervisor_name,
-      status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
-      custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
-    });
+
+    let data;
+    if (isHourly) {
+      data = {
+        task_name, company: company || '', notes: notes || '',
+        assign_type: 'hourly',
+        hourly_wage: parseInt(hourly_wage),
+        work_content: work_content || '',
+        quantity: null, unit_price: null, total_price: 0,
+        work_start: null, work_end: null, work_minutes: null,
+        target_partner_id: target_partner_id ? parseInt(target_partner_id) : null,
+        assigned_at, supervisor_id, supervisor_name,
+        status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
+        custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
+      };
+    } else {
+      const qty = parseInt(quantity), price = parseInt(unit_price);
+      const ddays = (parseInt(deadline_days) >= 1) ? parseInt(deadline_days) : 7;
+      const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+      dlBase.setDate(dlBase.getDate() + ddays);
+      const p = n => String(n).padStart(2,'0');
+      const deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+      data = {
+        task_name, company: company || '', quantity: qty, unit_price: price, total_price: qty * price,
+        notes: notes || '', deadline_days: ddays, deadline_date, assigned_at,
+        assign_type: assign_type || 'individual',
+        target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
+        supervisor_id, supervisor_name,
+        status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
+        custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
+      };
+    }
+    const item = await Assignments.create(data);
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1496,10 +1515,27 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
 // ── 任務回報 ──────────────────────────────────────────────────
 app.post('/api/reports', requireRole('partner'), async (req, res) => {
   try {
-    const { assignment_id, url, notes, images, completed_qty } = req.body;
+    const { assignment_id, url, notes, images, completed_qty, work_start, work_end } = req.body;
     if (!assignment_id) return res.status(400).json({ error: 'Missing assignment_id' });
     const a = await Assignments.byId(parseInt(assignment_id));
     if (!a || a.accepted_by !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+    const isHourly = a.assign_type === 'hourly';
+    let hourlyFields = {};       // 存到 report 的小時資訊
+    let assignHourlyPatch = {};  // 同步回寫 assignment 的小時資訊
+    if (isHourly) {
+      if (!work_start || !work_end) return res.status(400).json({ error: '請填寫開始與完成時間' });
+      const s = new Date(work_start), e = new Date(work_end);
+      if (isNaN(s) || isNaN(e)) return res.status(400).json({ error: '時間格式不正確' });
+      const minutes = Math.round((e - s) / 60000);
+      if (minutes <= 0) return res.status(400).json({ error: '完成時間需晚於開始時間' });
+      const wage = parseInt(a.hourly_wage) || 0;
+      const total = Math.round(minutes / 60 * wage);
+      const fmt = d => { const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+      hourlyFields = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, hourly_wage: wage, total_price: total };
+      assignHourlyPatch = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, total_price: total };
+    }
+
     const report = await WorklogReports.create({
       assignment_id: parseInt(assignment_id),
       supervisor_id: a.supervisor_id || null,
@@ -1513,10 +1549,12 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
       url: url || '',
       notes: notes || '',
       images: images || [],
+      assign_type: a.assign_type || 'individual',
+      ...hourlyFields,
       status: 'pending',
     });
-    // 標記 assignment 為審核中，避免重複送出
-    await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing' });
+    // 標記 assignment 為審核中，避免重複送出；小時任務同步寫入時間與總金額
+    await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing', ...assignHourlyPatch });
     res.json({ ok: true, id: report.id });
   } catch(e) {
     const msg = e.message || '';

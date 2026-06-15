@@ -874,7 +874,7 @@ app.post('/api/custom-field-defs', requireRole('supervisor'), async (req, res) =
     if (!label || !label.trim()) return res.status(400).json({ error: '請輸入欄位名稱' });
     const validTypes = ['text','number','date','select'];
     const t = validTypes.includes(type) ? type : 'text';
-    const validScopes = ['','assign','grab'];
+    const validScopes = ['','assign','grab','hourly'];
     const sc = validScopes.includes(scope) ? scope : '';
     const snap = await cfCol().get();
     const ref = cfCol().doc();
@@ -903,7 +903,7 @@ app.put('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, res
     if (sort !== undefined) patch.sort = parseInt(sort) || 0;
     if (task_name !== undefined) patch.task_name = task_name || '';
     if (scope !== undefined) {
-      const validScopes = ['','assign','grab'];
+      const validScopes = ['','assign','grab','hourly'];
       patch.scope = validScopes.includes(scope) ? scope : '';
     }
     await cfCol().doc(req.params.id).update(patch);

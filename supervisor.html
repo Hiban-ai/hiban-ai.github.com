@@ -289,7 +289,7 @@ textarea.form-input{resize:none}
     <!-- Tasks sv -->
     <div class="page-section" id="page-tasks-sv">
       <div class="page-title">⚔️ 任務派案</div>
-      <div class="card" style="max-width:540px;margin-bottom:1.5rem">
+      <div class="card" style="max-width:720px;margin-bottom:1.5rem">
         <!-- 搶單模式切換 -->
         <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1.5px dashed var(--border)">
           <span style="font-size:.82rem;color:var(--text-s);font-weight:600">派案模式</span>
@@ -1783,13 +1783,17 @@ function cfIdFromToken(token) { return token.startsWith('cf:') ? token.slice(3) 
 function cfVisibleInMode(f, mode) {
   return !f.scope || f.scope === mode;
 }
+// 目前模式對應的自訂欄位範圍：件/小時/搶單 各自獨立
+function cfCurrentMode() {
+  return assignMode === 'grab' ? 'grab' : assignMode === 'hourly' ? 'hourly' : 'assign';
+}
 
 function cfTokenVisible(token, taskName) {
   if (isFixedToken(token)) return true;
   if (taskName === undefined) taskName = cfCurrentTask();
   const id = cfIdFromToken(token);
   const f = _cfList.find(x => x.id === id);
-  const mode = assignMode === 'grab' ? 'grab' : 'assign';
+  const mode = cfCurrentMode();
   return !!f && (!f.task_name || f.task_name === taskName) && cfVisibleInMode(f, mode);
 }
 
@@ -1834,6 +1838,12 @@ function applyFieldOrder() {
     const el = container.querySelector(`[data-field="custom"]`);
     if (el) container.appendChild(el);
   }
+  // 小時模式欄位（工作內容、時薪）固定排在「選擇任務」之後
+  const taskEl = container.querySelector('[data-field="task"]');
+  const wcEl   = container.querySelector('[data-field="work-content"]');
+  const hrEl   = container.querySelector('[data-field="hourly"]');
+  if (taskEl && wcEl) taskEl.after(wcEl);
+  if (wcEl && hrEl)  wcEl.after(hrEl);
 }
 
 function renderFieldOrderList() {
@@ -1888,7 +1898,7 @@ function renderAssignCustomFields() {
   const wrap = document.getElementById('assign-custom-fields');
   if (!wrap) return;
   const curTask = document.getElementById('assign-task')?.value || '';
-  const mode = assignMode === 'grab' ? 'grab' : 'assign';
+  const mode = cfCurrentMode();
   const list = _cfList.filter(f => (!f.task_name || f.task_name === curTask) && cfVisibleInMode(f, mode))
     .sort((a, b) => _fieldOrder.indexOf(`cf:${a.id}`) - _fieldOrder.indexOf(`cf:${b.id}`));
   wrap.innerHTML = list.map(f => {
@@ -1964,7 +1974,7 @@ async function addCustomFieldDef() {
   const label = document.getElementById('cf-add-label').value.trim();
   const type  = document.getElementById('cf-add-type').value;
   const task_name = cfCurrentTask();
-  const scope = assignMode === 'grab' ? 'grab' : 'assign';
+  const scope = cfCurrentMode();
   if (!label) return showToast('請輸入欄位名稱', 'error');
   const options = document.getElementById('cf-add-options').value
     .split(',').map(s=>s.trim()).filter(Boolean);
@@ -2259,7 +2269,7 @@ async function runAiImport() {
   try {
     const allPartners = await API.get('/api/users-list?role=partner&scope=all');
     const partners = (allPartners || []).map(p => ({ id: String(p.id), name: p.real_name }));
-    const cfMode = assignMode === 'grab' ? 'grab' : 'assign';
+    const cfMode = cfCurrentMode();
     const customFields = _cfList.filter(f => cfVisibleInMode(f, cfMode))
       .map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
     if (assignMode === 'grab') {
@@ -2368,7 +2378,7 @@ function openCfMgr() {
   const cfSel = document.getElementById('cf-task-selector');
   const curTask = document.getElementById('assign-task')?.value || '';
   if (cfSel) cfSel.value = curTask;
-  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（搶單欄位）' : '（指派欄位）';
+  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（搶單欄位）' : assignMode === 'hourly' ? '（小時欄位）' : '（指派(件)欄位）';
   loadCustomFieldDefs();
   renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');

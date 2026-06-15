@@ -401,7 +401,6 @@ textarea.form-input{resize:none}
     <div class="gae-body">
       <div class="gae-back-icon">✉️</div>
       <div class="gae-back-text">你的專屬任務</div>
-      <button class="aa-open-btn" onclick="assignAlertOpen()">📬 打開</button>
     </div>
   </div>
   <div id="aa-card">
@@ -2231,12 +2230,15 @@ function showNextAssignAlert() {
   void pigeon.offsetWidth;
   pigeon.classList.add('fly-in');
 
-  // 鴿子飛抵後拋下信件，自己飛走
+  // 鴿子飛抵後拋下信件、自己飛走，接著自動打開卡片（不需手動按「打開」）
   _clearTimers(_assignAlertTimers);
   _assignAlertTimers.push(setTimeout(() => {
     envelope.classList.add('drop');
     pigeon.classList.add('fly-out');
   }, 1200));
+  _assignAlertTimers.push(setTimeout(() => {
+    assignAlertOpen();
+  }, 2100));
 }
 
 function assignAlertOpen() {

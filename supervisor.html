@@ -1751,25 +1751,18 @@ function syncFieldOrderTokens() {
 
 function applyFieldOrder() {
   const container = document.querySelector('#row-assign-target').closest('[data-field]').parentElement;
-  const curTask = document.getElementById('assign-task')?.value || '';
-  let customPlaced = false;
   _fieldOrder.forEach(token => {
     if (isFixedToken(token)) {
       const el = container.querySelector(`[data-field="${token}"]`);
       if (el) container.appendChild(el);
-    } else if (!customPlaced && cfTokenVisible(token, curTask)) {
-      const el = container.querySelector(`[data-field="custom"]`);
-      if (el) container.appendChild(el);
-      customPlaced = true;
     }
   });
-  if (!customPlaced) {
-    const el = container.querySelector(`[data-field="custom"]`);
-    if (el) container.appendChild(el);
-  }
-  // 補充說明固定在最下面（自訂欄位之後）
+  // 補充說明固定在最下面（自訂欄位之前）
   const notesEl = container.querySelector('[data-field="notes"]');
   if (notesEl) container.appendChild(notesEl);
+  // 自訂欄位置於最後
+  const customEl = container.querySelector('[data-field="custom"]');
+  if (customEl) container.appendChild(customEl);
 }
 
 function renderFieldOrderList() {

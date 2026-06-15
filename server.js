@@ -906,7 +906,7 @@ app.delete('/api/custom-field-defs/:id', requireRole('supervisor'), async (req, 
 });
 
 // ── 派案表單欄位排序 ────────────────────────────────────────
-const DEFAULT_FIELD_ORDER = ['target','company','task','qty','price','total','deadline','notes'];
+const DEFAULT_FIELD_ORDER = ['target','company','task','qty','price','total','deadline'];
 
 app.get('/api/field-order', async (req, res) => {
   try {

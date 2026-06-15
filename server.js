@@ -924,18 +924,19 @@ const DEFAULT_FIELD_ORDER = ['target','company','task','qty','price','total','de
 app.get('/api/field-order', async (req, res) => {
   try {
     const doc = await firestoreDb.collection('settings').doc('fieldOrder').get();
-    const order = doc.exists && Array.isArray(doc.data().order) ? doc.data().order : DEFAULT_FIELD_ORDER;
-    const merged = [...order, ...DEFAULT_FIELD_ORDER.filter(k => !order.includes(k))];
-    res.json({ order: merged });
+    const d = doc.exists ? doc.data() : {};
+    // 新格式：各模式各一份 orders；舊格式：單一 order（前端會套到件模式）
+    res.json({ orders: (d.orders && typeof d.orders === 'object') ? d.orders : null,
+               order: Array.isArray(d.order) ? d.order : null });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.put('/api/field-order', requireRole('supervisor'), async (req, res) => {
   try {
-    const { order } = req.body;
-    if (!Array.isArray(order) || !DEFAULT_FIELD_ORDER.every(k => order.includes(k)))
+    const { orders } = req.body;
+    if (!orders || typeof orders !== 'object' || Array.isArray(orders))
       return res.status(400).json({ error: '欄位順序資料不正確' });
-    await firestoreDb.collection('settings').doc('fieldOrder').set({ order });
+    await firestoreDb.collection('settings').doc('fieldOrder').set({ orders });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

@@ -981,6 +981,7 @@ function setAssignMode(mode) {
   document.querySelector('[data-field="hourly"]').style.display       = isHourly ? 'flex' : 'none';
   // 完成期限：件用天數、搶單用天數；小時不需
   document.getElementById('row-deadline-days').style.display = isHourly ? 'none' : 'flex';
+  _fieldOrder = _modeOrders[curModeKey()];  // 切換到該模式的欄位順序
   renderAssignCustomFields();
   applyFieldOrder();
   document.getElementById('assign-submit-btn').textContent = isGrab ? '🎯 建立搶單' : (isHourly ? '⏱️ 指派(小時)' : '確認派案 ✓');
@@ -1783,10 +1784,22 @@ const MODE_FIXED_ORDER = {
   hourly: ['task','company','target','work-content','hourly','notes'],
   grab:   ['target','company','task','deadline','notes'],
 };
-function modeFixedOrder() { return MODE_FIXED_ORDER[assignMode] || MODE_FIXED_ORDER.normal; }
-let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
+function modeFixedOrder() { return MODE_FIXED_ORDER[curModeKey()]; }
+// 每個模式各自一份可排序的欄位順序（固定欄位＋自訂欄位）
+const MODE_SCOPE = { normal: 'assign', hourly: 'hourly', grab: 'grab' };
+function curModeKey() { return MODE_FIXED_ORDER[assignMode] ? assignMode : 'normal'; }
+let _modeOrders = {
+  normal: [...MODE_FIXED_ORDER.normal],
+  hourly: [...MODE_FIXED_ORDER.hourly],
+  grab:   [...MODE_FIXED_ORDER.grab],
+};
+let _fieldOrder = _modeOrders.normal;  // 指向目前模式的順序陣列
+function setFieldOrder(arr) { _fieldOrder = arr; _modeOrders[curModeKey()] = arr; }
+async function saveOrders() {
+  try { await API.put('/api/field-order', { orders: _modeOrders }); } catch(e) { console.error('[儲存欄位順序]', e.message); }
+}
 
-function isFixedToken(token) { return Object.prototype.hasOwnProperty.call(FIELD_ORDER_LABELS, token); }
+function isFixedToken(token) { return !token.startsWith('cf:'); }
 function cfIdFromToken(token) { return token.startsWith('cf:') ? token.slice(3) : null; }
 
 function cfVisibleInMode(f, mode) {
@@ -1809,87 +1822,107 @@ function cfTokenVisible(token, taskName) {
 async function loadFieldOrder() {
   try {
     const res = await API.get('/api/field-order');
-    _fieldOrder = (res.order || _fieldOrder).filter(t => t !== 'custom');
+    if (res.orders && typeof res.orders === 'object') {
+      ['normal','hourly','grab'].forEach(mk => { if (Array.isArray(res.orders[mk])) _modeOrders[mk] = res.orders[mk]; });
+    } else if (Array.isArray(res.order)) {
+      // 舊格式：套用到「件」模式
+      _modeOrders.normal = res.order.filter(t => t !== 'custom');
+    }
   } catch {}
+  _fieldOrder = _modeOrders[curModeKey()];
   syncFieldOrderTokens();
   applyFieldOrder();
   renderFieldOrderList();
 }
 
-// 確保所有固定欄位 + 自訂欄位都有對應的排序項目
+// 確保每個模式：固定欄位齊全（依預設順序補）、含該模式範圍的自訂欄位、移除無效項
 function syncFieldOrderTokens() {
-  Object.keys(FIELD_ORDER_LABELS).forEach(key => {
-    if (!_fieldOrder.includes(key)) _fieldOrder.push(key);
+  const validCf = id => _cfList.some(f => f.id === id);
+  ['normal','hourly','grab'].forEach(mk => {
+    let arr = _modeOrders[mk] || [];
+    // 補齊該模式的固定欄位（保持既有相對順序，缺的依預設位置插入）
+    MODE_FIXED_ORDER[mk].forEach((t, idx) => { if (!arr.includes(t)) arr.splice(Math.min(idx, arr.length), 0, t); });
+    // 補齊該模式範圍的自訂欄位（插在 notes 之前）
+    _cfList.forEach(f => {
+      if (!cfVisibleInMode(f, MODE_SCOPE[mk])) return;
+      const tk = `cf:${f.id}`;
+      if (!arr.includes(tk)) { const ni = arr.indexOf('notes'); if (ni >= 0) arr.splice(ni, 0, tk); else arr.push(tk); }
+    });
+    // 移除：非本模式的固定欄位、不存在或非本模式範圍的自訂欄位
+    const fixedSet = new Set(MODE_FIXED_ORDER[mk]);
+    arr = arr.filter(t => {
+      if (!t.startsWith('cf:')) return fixedSet.has(t);
+      const f = _cfList.find(x => x.id === cfIdFromToken(t));
+      return f && cfVisibleInMode(f, MODE_SCOPE[mk]);
+    });
+    _modeOrders[mk] = arr;
   });
-  _cfList.forEach(f => {
-    const token = `cf:${f.id}`;
-    if (!_fieldOrder.includes(token)) _fieldOrder.push(token);
-  });
-  const validCfIds = new Set(_cfList.map(f => f.id));
-  _fieldOrder = _fieldOrder.filter(t => isFixedToken(t) || validCfIds.has(cfIdFromToken(t)));
+  _fieldOrder = _modeOrders[curModeKey()];
 }
 
 function applyFieldOrder() {
   const container = document.querySelector('#row-assign-target').closest('[data-field]').parentElement;
-  // 依目前模式的固定欄位順序排列；自訂欄位放在「補充說明」之前
-  modeFixedOrder().forEach(tok => {
-    if (tok === 'notes') {
-      const custom = container.querySelector('[data-field="custom"]');
-      if (custom) container.appendChild(custom);
+  const curTask = document.getElementById('assign-task')?.value || '';
+  let customPlaced = false;
+  _fieldOrder.forEach(token => {
+    if (isFixedToken(token)) {
+      const el = container.querySelector(`[data-field="${token}"]`);
+      if (el) container.appendChild(el);
+    } else if (!customPlaced && cfTokenVisible(token, curTask)) {
+      const el = container.querySelector('[data-field="custom"]');
+      if (el) container.appendChild(el);
+      customPlaced = true;
     }
-    const el = container.querySelector(`[data-field="${tok}"]`);
-    if (el) container.appendChild(el);
   });
-}
-
-// 取得目前模式、目前任務下可見的自訂欄位（依 _fieldOrder 排序）
-function visibleCustomFields() {
-  const curTask = cfCurrentTask();
-  const mode = cfCurrentMode();
-  return _cfList
-    .filter(f => (!f.task_name || f.task_name === curTask) && cfVisibleInMode(f, mode))
-    .sort((a, b) => _fieldOrder.indexOf(`cf:${a.id}`) - _fieldOrder.indexOf(`cf:${b.id}`));
+  if (!customPlaced) {
+    const el = container.querySelector('[data-field="custom"]');
+    if (el) container.appendChild(el);
+  }
 }
 
 function renderFieldOrderList() {
   const wrap = document.getElementById('fo-list');
   if (!wrap) return;
   const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  const customs = visibleCustomFields();
-  const fixedRow = tok => `
-      <div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem;color:var(--text-m);background:var(--bg)">
-        <span style="color:var(--text-s);font-size:.72rem">原有</span><span>${fieldLabel(tok)}</span>
+  const visible = _fieldOrder.filter(t => cfTokenVisible(t));
+  const arrows = (token, i) => `
+        <button onclick="moveFieldOrder('${token}',-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+        <button onclick="moveFieldOrder('${token}',1)" ${i===visible.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===visible.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===visible.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>`;
+  wrap.innerHTML = visible.map((token, i) => {
+    const cfId = cfIdFromToken(token);
+    if (!cfId) {
+      return `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
+        <span><span style="color:var(--text-s);font-size:.72rem;margin-right:.3rem">原有</span>${fieldLabel(token)}</span>
+        <div style="display:flex;gap:.25rem;flex-shrink:0">${arrows(token, i)}</div>
       </div>`;
-  const cfRow = (f, ci) => `
+    }
+    const f = _cfList.find(x => x.id === cfId);
+    if (!f) return '';
+    return `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--blue);border-radius:var(--rs);font-size:.85rem;background:var(--blue-p)">
       <span>🔧 ${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
-      <div style="display:flex;gap:.25rem;flex-shrink:0">
-        <button onclick="moveCustomField('${f.id}',-1)" ${ci===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${ci===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${ci===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-        <button onclick="moveCustomField('${f.id}',1)" ${ci===customs.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${ci===customs.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${ci===customs.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+      <div style="display:flex;gap:.25rem;flex-shrink:0">${arrows(token, i)}
         <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
         <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
       </div>
     </div>`;
-  let html = '';
-  modeFixedOrder().forEach(tok => {
-    if (tok === 'notes') customs.forEach((f, ci) => { html += cfRow(f, ci); });
-    html += fixedRow(tok);
-  });
-  wrap.innerHTML = html;
+  }).join('');
 }
 
-// 只調整自訂欄位之間的順序
-async function moveCustomField(id, dir) {
-  const customs = visibleCustomFields().map(f => `cf:${f.id}`);
-  const vi = customs.indexOf(`cf:${id}`);
+// 調整目前模式的欄位順序（固定欄位＋自訂欄位皆可）
+async function moveFieldOrder(token, dir) {
+  const visible = _fieldOrder.filter(t => cfTokenVisible(t));
+  const vi = visible.indexOf(token);
   const vj = vi + dir;
-  if (vi < 0 || vj < 0 || vj >= customs.length) return;
-  const i = _fieldOrder.indexOf(customs[vi]);
-  const j = _fieldOrder.indexOf(customs[vj]);
+  if (vi < 0 || vj < 0 || vj >= visible.length) return;
+  const other = visible[vj];
+  const i = _fieldOrder.indexOf(token);
+  const j = _fieldOrder.indexOf(other);
   [_fieldOrder[i], _fieldOrder[j]] = [_fieldOrder[j], _fieldOrder[i]];
   applyFieldOrder();
   renderFieldOrderList();
-  try { await API.put('/api/field-order', { order: _fieldOrder }); } catch(e) { showToast(e.message, 'error'); }
+  saveOrders();
 }
 
 function renderAssignCustomFields() {
@@ -1987,7 +2020,7 @@ async function addCustomFieldDef() {
     }
     cfCancelEdit();
     await loadCustomFieldDefs();
-    await API.put('/api/field-order', { order: _fieldOrder });
+    await saveOrders();
   } catch(e) { showToast(e.message, 'error'); }
 }
 
@@ -1995,9 +2028,8 @@ async function deleteCustomFieldDef(id) {
   if (!confirm('是否確定刪除此自訂欄位？')) return;
   try {
     await API.delete(`/api/custom-field-defs/${id}`);
-    _fieldOrder = _fieldOrder.filter(t => t !== `cf:${id}`);
-    await API.put('/api/field-order', { order: _fieldOrder });
-    await loadCustomFieldDefs();
+    await loadCustomFieldDefs();  // 會自動從各模式順序移除此欄位
+    await saveOrders();
     showToast('已刪除', 'success');
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -2206,8 +2238,8 @@ async function aiImportGrabConfirm(data) {
       const existingIdx = incomingIds.map(t => _fieldOrder.indexOf(t)).filter(i => i >= 0);
       const insertAt = existingIdx.length ? Math.min(...existingIdx) : _fieldOrder.length;
       const rest = _fieldOrder.filter(t => !incomingIds.includes(t));
-      _fieldOrder = [...rest.slice(0, insertAt), ...incomingIds, ...rest.slice(insertAt)];
-      try { await API.put('/api/field-order', { order: _fieldOrder }); } catch(e) { console.error('[AI匯入搶單] 儲存欄位順序失敗', e); }
+      setFieldOrder([...rest.slice(0, insertAt), ...incomingIds, ...rest.slice(insertAt)]);
+      await saveOrders();
     }
     if (missing.length || incomingIds.length) {
       renderAssignCustomFields();
@@ -2356,8 +2388,8 @@ async function applyAiImportData(data, partners) {
     const existingIdx = incomingIds.map(t => _fieldOrder.indexOf(t)).filter(i => i >= 0);
     const insertAt = existingIdx.length ? Math.min(...existingIdx) : _fieldOrder.length;
     const rest = _fieldOrder.filter(t => !incomingIds.includes(t));
-    _fieldOrder = [...rest.slice(0, insertAt), ...incomingIds, ...rest.slice(insertAt)];
-    try { await API.put('/api/field-order', { order: _fieldOrder }); } catch(e) { console.error('[AI匯入] 儲存欄位順序失敗', e); }
+    setFieldOrder([...rest.slice(0, insertAt), ...incomingIds, ...rest.slice(insertAt)]);
+    await saveOrders();
   }
 
   if (missing.length || incomingIds.length) {

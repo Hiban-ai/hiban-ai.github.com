@@ -1775,6 +1775,15 @@ const FIELD_ORDER_LABELS = {
   target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
   price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明',
 };
+const EXTRA_FIELD_LABELS = { 'work-content': '工作內容', 'hourly': '時薪' };
+function fieldLabel(tok) { return FIELD_ORDER_LABELS[tok] || EXTRA_FIELD_LABELS[tok] || tok; }
+// 各模式的固定欄位順序（含該模式專屬欄位）
+const MODE_FIXED_ORDER = {
+  normal: ['target','company','task','qty','price','total','deadline','notes'],
+  hourly: ['task','company','target','work-content','hourly','notes'],
+  grab:   ['target','company','task','deadline','notes'],
+};
+function modeFixedOrder() { return MODE_FIXED_ORDER[assignMode] || MODE_FIXED_ORDER.normal; }
 let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
 
 function isFixedToken(token) { return Object.prototype.hasOwnProperty.call(FIELD_ORDER_LABELS, token); }
@@ -1822,76 +1831,65 @@ function syncFieldOrderTokens() {
 
 function applyFieldOrder() {
   const container = document.querySelector('#row-assign-target').closest('[data-field]').parentElement;
-  const curTask = document.getElementById('assign-task')?.value || '';
-  let customPlaced = false;
-  _fieldOrder.forEach(token => {
-    if (isFixedToken(token)) {
-      const el = container.querySelector(`[data-field="${token}"]`);
-      if (el) container.appendChild(el);
-    } else if (!customPlaced && cfTokenVisible(token, curTask)) {
-      const el = container.querySelector(`[data-field="custom"]`);
-      if (el) container.appendChild(el);
-      customPlaced = true;
+  // 依目前模式的固定欄位順序排列；自訂欄位放在「補充說明」之前
+  modeFixedOrder().forEach(tok => {
+    if (tok === 'notes') {
+      const custom = container.querySelector('[data-field="custom"]');
+      if (custom) container.appendChild(custom);
     }
-  });
-  if (!customPlaced) {
-    const el = container.querySelector(`[data-field="custom"]`);
+    const el = container.querySelector(`[data-field="${tok}"]`);
     if (el) container.appendChild(el);
-  }
-  // 小時模式欄位（工作內容、時薪）固定排在「選擇任務」之後
-  const taskEl = container.querySelector('[data-field="task"]');
-  const wcEl   = container.querySelector('[data-field="work-content"]');
-  const hrEl   = container.querySelector('[data-field="hourly"]');
-  if (taskEl && wcEl) taskEl.after(wcEl);
-  if (wcEl && hrEl)  wcEl.after(hrEl);
+  });
+}
+
+// 取得目前模式、目前任務下可見的自訂欄位（依 _fieldOrder 排序）
+function visibleCustomFields() {
+  const curTask = cfCurrentTask();
+  const mode = cfCurrentMode();
+  return _cfList
+    .filter(f => (!f.task_name || f.task_name === curTask) && cfVisibleInMode(f, mode))
+    .sort((a, b) => _fieldOrder.indexOf(`cf:${a.id}`) - _fieldOrder.indexOf(`cf:${b.id}`));
 }
 
 function renderFieldOrderList() {
   const wrap = document.getElementById('fo-list');
   if (!wrap) return;
   const typeLabel = { text:'文字', number:'數字', date:'日期', select:'選項' };
-  const visible = _fieldOrder.filter(t => cfTokenVisible(t));
-  wrap.innerHTML = visible.map((token, i) => {
-    const cfId = cfIdFromToken(token);
-    if (!cfId) {
-      return `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem">
-        <span>${FIELD_ORDER_LABELS[token]}</span>
-        <div style="display:flex;gap:.25rem;flex-shrink:0">
-          <button onclick="moveFieldOrder('${token}',-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-          <button onclick="moveFieldOrder('${token}',1)" ${i===visible.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===visible.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===visible.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
-        </div>
+  const customs = visibleCustomFields();
+  const fixedRow = tok => `
+      <div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);font-size:.85rem;color:var(--text-m);background:var(--bg)">
+        <span style="color:var(--text-s);font-size:.72rem">原有</span><span>${fieldLabel(tok)}</span>
       </div>`;
-    }
-    const f = _cfList.find(x => x.id === cfId);
-    if (!f) return '';
-    return `
+  const cfRow = (f, ci) => `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--blue);border-radius:var(--rs);font-size:.85rem;background:var(--blue-p)">
       <span>🔧 ${f.label} <span style="color:var(--text-s);font-size:.75rem">（${typeLabel[f.type]||f.type}${f.type==='select' && f.options ? '：'+f.options.join('/') : ''}）</span></span>
       <div style="display:flex;gap:.25rem;flex-shrink:0">
-        <button onclick="moveFieldOrder('${token}',-1)" ${i===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
-        <button onclick="moveFieldOrder('${token}',1)" ${i===visible.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${i===visible.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${i===visible.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
+        <button onclick="moveCustomField('${f.id}',-1)" ${ci===0?'disabled':''} title="上移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${ci===0?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${ci===0?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↑</button>
+        <button onclick="moveCustomField('${f.id}',1)" ${ci===customs.length-1?'disabled':''} title="下移" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:${ci===customs.length-1?'var(--border)':'var(--text-s)'};font-size:.85rem;cursor:${ci===customs.length-1?'default':'pointer'};line-height:1;display:flex;align-items:center;justify-content:center">↓</button>
         <button onclick="cfStartEdit('${f.id}')" title="修改" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--blue);font-size:.85rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">✎</button>
         <button onclick="deleteCustomFieldDef('${f.id}')" title="刪除" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:var(--red);font-size:.9rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
       </div>
     </div>`;
-  }).join('');
+  let html = '';
+  modeFixedOrder().forEach(tok => {
+    if (tok === 'notes') customs.forEach((f, ci) => { html += cfRow(f, ci); });
+    html += fixedRow(tok);
+  });
+  wrap.innerHTML = html;
 }
 
-async function moveFieldOrder(token, dir) {
-  const visible = _fieldOrder.filter(t => cfTokenVisible(t));
-  const vi = visible.indexOf(token);
+// 只調整自訂欄位之間的順序
+async function moveCustomField(id, dir) {
+  const customs = visibleCustomFields().map(f => `cf:${f.id}`);
+  const vi = customs.indexOf(`cf:${id}`);
   const vj = vi + dir;
-  if (vi < 0 || vj < 0 || vj >= visible.length) return;
-  const other = visible[vj];
-  const i = _fieldOrder.indexOf(token);
-  const j = _fieldOrder.indexOf(other);
+  if (vi < 0 || vj < 0 || vj >= customs.length) return;
+  const i = _fieldOrder.indexOf(customs[vi]);
+  const j = _fieldOrder.indexOf(customs[vj]);
   [_fieldOrder[i], _fieldOrder[j]] = [_fieldOrder[j], _fieldOrder[i]];
   applyFieldOrder();
   renderFieldOrderList();
-  try {
-    await API.put('/api/field-order', { order: _fieldOrder });
-  } catch(e) { showToast(e.message, 'error'); }
+  try { await API.put('/api/field-order', { order: _fieldOrder }); } catch(e) { showToast(e.message, 'error'); }
 }
 
 function renderAssignCustomFields() {

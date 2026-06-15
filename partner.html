@@ -1984,6 +1984,7 @@ let _grabAlertShowing = false;
 let _grabAlertCurrentId = null;
 let _grabAlertTimers = [];
 let _grabAlertSummary = false;  // 目前顯示的是否為「多筆彙總」卡
+let _alertShownAt = 0;          // 動畫開始時間，用於跳過緩衝
 function _clearTimers(arr){ arr.forEach(clearTimeout); arr.length = 0; }
 
 function _grabAlertSeenKey() {
@@ -2087,6 +2088,7 @@ function showNextGrabAlert() {
   envelope.classList.remove('fade');
   card.classList.remove('show');
   overlay.classList.add('show');
+  _alertShownAt = Date.now();
 
   // 彈出 1 秒 → 打開信封 1.5 秒 → 1.9 秒後卡片出現 → 信封淡出
   _clearTimers(_grabAlertTimers);
@@ -2223,6 +2225,7 @@ function showNextAssignAlert() {
   envelope.classList.remove('drop', 'hide');
   card.classList.remove('show');
   overlay.classList.add('show');
+  _alertShownAt = Date.now();
 
   // 強制重新觸發動畫
   void pigeon.offsetWidth;
@@ -2262,6 +2265,7 @@ function closeAssignAlert() {
 
 // 跳過動畫：動畫進行中→直接顯示卡片；卡片已顯示→關閉
 function _alertSkip() {
+  if (Date.now() - _alertShownAt < 800) return; // 緩衝：避免動畫剛出現就被誤觸跳過
   const gOverlay = document.getElementById('grab-alert-overlay');
   if (gOverlay.classList.contains('show')) {
     const card = document.getElementById('gae-card');

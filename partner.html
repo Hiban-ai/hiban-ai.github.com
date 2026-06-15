@@ -815,20 +815,31 @@ textarea.form-input{resize:none}
     <div id="report-hourly-group" style="display:none">
       <div class="form-group" style="margin-top:.75rem">
         <label class="form-label">開始時間 <span class="req-mark" style="color:var(--red)">＊</span></label>
-        <div style="display:flex;gap:.4rem;align-items:center">
-          <input class="form-input" type="date" id="report-start-date" oninput="calcReportHourly()" style="flex:1.6">
-          <select class="form-select" id="report-start-hh" onchange="calcReportHourly()" style="flex:1"></select>
+        <div style="display:flex;gap:.3rem;align-items:center">
+          <input class="form-input" type="number" id="report-start-yy" placeholder="年" oninput="calcReportHourly()" style="flex:1.4;text-align:center;padding:.5rem .3rem">
+          <span style="color:var(--text-s);font-size:.8rem">/</span>
+          <input class="form-input" type="number" id="report-start-mo" min="1" max="12" placeholder="月" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
+          <span style="color:var(--text-s);font-size:.8rem">/</span>
+          <input class="form-input" type="number" id="report-start-dd" min="1" max="31" placeholder="日" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
+          <span style="color:var(--text-s);width:.6rem"></span>
+          <input class="form-input" type="number" id="report-start-hh" min="0" max="23" placeholder="時" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
           <span style="color:var(--text-s);font-weight:700">:</span>
-          <select class="form-select" id="report-start-mm" onchange="calcReportHourly()" style="flex:1"></select>
+          <input class="form-input" type="number" id="report-start-mm" min="0" max="59" placeholder="分" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
         </div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.2rem">24 小時制（例：下午 2 點半 → 時填 14、分填 30）</div>
       </div>
       <div class="form-group">
         <label class="form-label">完成時間 <span class="req-mark" style="color:var(--red)">＊</span></label>
-        <div style="display:flex;gap:.4rem;align-items:center">
-          <input class="form-input" type="date" id="report-end-date" oninput="calcReportHourly()" style="flex:1.6">
-          <select class="form-select" id="report-end-hh" onchange="calcReportHourly()" style="flex:1"></select>
+        <div style="display:flex;gap:.3rem;align-items:center">
+          <input class="form-input" type="number" id="report-end-yy" placeholder="年" oninput="calcReportHourly()" style="flex:1.4;text-align:center;padding:.5rem .3rem">
+          <span style="color:var(--text-s);font-size:.8rem">/</span>
+          <input class="form-input" type="number" id="report-end-mo" min="1" max="12" placeholder="月" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
+          <span style="color:var(--text-s);font-size:.8rem">/</span>
+          <input class="form-input" type="number" id="report-end-dd" min="1" max="31" placeholder="日" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
+          <span style="color:var(--text-s);width:.6rem"></span>
+          <input class="form-input" type="number" id="report-end-hh" min="0" max="23" placeholder="時" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
           <span style="color:var(--text-s);font-weight:700">:</span>
-          <select class="form-select" id="report-end-mm" onchange="calcReportHourly()" style="flex:1"></select>
+          <input class="form-input" type="number" id="report-end-mm" min="0" max="59" placeholder="分" oninput="calcReportHourly()" style="flex:1;text-align:center;padding:.5rem .3rem">
         </div>
       </div>
       <div id="report-hourly-calc" style="display:none;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.6rem .8rem;font-size:.85rem;color:var(--blue-d);font-weight:700;margin-bottom:.75rem"></div>
@@ -1374,34 +1385,28 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   // 小時任務：顯示執行時間、隱藏完成數量
   document.getElementById('report-qty-group').style.display = reportHourly ? 'none' : '';
   document.getElementById('report-hourly-group').style.display = reportHourly ? '' : 'none';
-  if (reportHourly) populateTimeSelects();
-  // 日期預設帶入今天，時間下拉重設為未選
-  const today = (() => { const d = new Date(); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; })();
-  document.getElementById('report-start-date').value = today;
-  document.getElementById('report-end-date').value = today;
-  ['report-start-hh','report-start-mm','report-end-hh','report-end-mm'].forEach(id => document.getElementById(id).value = '');
+  // 年/月/日預設帶入今天，時/分清空
+  const d = new Date();
+  ['start','end'].forEach(w => {
+    document.getElementById(`report-${w}-yy`).value = d.getFullYear();
+    document.getElementById(`report-${w}-mo`).value = d.getMonth() + 1;
+    document.getElementById(`report-${w}-dd`).value = d.getDate();
+    document.getElementById(`report-${w}-hh`).value = '';
+    document.getElementById(`report-${w}-mm`).value = '';
+  });
   document.getElementById('report-hourly-calc').style.display = 'none';
   document.getElementById('report-overlay').classList.add('open');
 }
 
-// 產生時/分下拉選項（時 00-23、分 每 5 分鐘），只需建立一次
-let _timeSelectsReady = false;
-function populateTimeSelects() {
-  if (_timeSelectsReady) return;
-  const p = n => String(n).padStart(2,'0');
-  const hhOpts = '<option value="">時</option>' + Array.from({length:24}, (_,h)=>`<option value="${p(h)}">${p(h)}</option>`).join('');
-  const mmOpts = '<option value="">分</option>' + Array.from({length:60}, (_,m)=>`<option value="${p(m)}">${p(m)}</option>`).join('');
-  ['report-start-hh','report-end-hh'].forEach(id => document.getElementById(id).innerHTML = hhOpts);
-  ['report-start-mm','report-end-mm'].forEach(id => document.getElementById(id).innerHTML = mmOpts);
-  _timeSelectsReady = true;
-}
-
-// 組合日期+時間為 "YYYY-MM-DDTHH:MM"，缺一則回空字串
+// 由年/月/日 時:分 組成 "YYYY-MM-DDTHH:MM"（24 小時制），缺一或超出範圍則回空字串
 function reportDateTime(which) {
-  const d  = document.getElementById(`report-${which}-date`).value;
-  const hh = document.getElementById(`report-${which}-hh`).value;
-  const mm = document.getElementById(`report-${which}-mm`).value;
-  return (d && hh !== '' && mm !== '') ? `${d}T${hh}:${mm}` : '';
+  const g = k => document.getElementById(`report-${which}-${k}`).value;
+  const yy = parseInt(g('yy')), mo = parseInt(g('mo')), dd = parseInt(g('dd'));
+  const hh = parseInt(g('hh')), mm = parseInt(g('mm'));
+  if ([yy,mo,dd,hh,mm].some(n => isNaN(n))) return '';
+  if (yy < 2000 || mo < 1 || mo > 12 || dd < 1 || dd > 31 || hh < 0 || hh > 23 || mm < 0 || mm > 59) return '';
+  const p = n => String(n).padStart(2,'0');
+  return `${yy}-${p(mo)}-${p(dd)}T${p(hh)}:${p(mm)}`;
 }
 
 // 即時計算總時數與金額

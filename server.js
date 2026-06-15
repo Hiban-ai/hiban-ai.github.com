@@ -685,31 +685,40 @@ app.delete('/api/admin/users/:id', requireRole('staff'), async (req, res) => {
     const id = parseInt(req.params.id);
     if (id === req.session.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
 
-    // 刪 Drive 人員資料夾
+    // 刪 Drive 人員資料夾（身分證、存簿等）
     const user = await Users.byId(id);
-    if (user && user.real_name) {
+    if (user) {
       const drive  = getDrive();
       const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
       if (drive && rootId) {
+        const escName = (user.real_name || '').replace(/'/g, "\\'");
+        const folderIds = [];
         try {
-          // 找 人員資料 資料夾
-          const staffDirRes = await drive.files.list({
-            q: `name='人員資料' and '${rootId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-            fields: 'files(id)', supportsAllDrives: true, includeItemsFromAllDrives: true,
-          });
-          const staffDirId = staffDirRes.data.files[0]?.id;
-          if (staffDirId) {
-            // 找該人的子資料夾
-            const personRes = await drive.files.list({
-              q: `name='${user.real_name}' and '${staffDirId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          // 優先用上傳時記錄的資料夾 ID
+          if (user.drive_folder_id) folderIds.push(user.drive_folder_id);
+          // 後援：靠姓名查找（含舊資料；可能有同名多筆，全部刪）
+          if (escName) {
+            const staffDirRes = await drive.files.list({
+              q: `name='人員資料' and '${rootId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
               fields: 'files(id)', supportsAllDrives: true, includeItemsFromAllDrives: true,
             });
-            const personFolderId = personRes.data.files[0]?.id;
-            if (personFolderId) {
-              await drive.files.delete({ fileId: personFolderId, supportsAllDrives: true });
-              console.log(`[Drive] 已刪除 ${user.real_name} 的人員資料夾`);
+            const staffDirId = staffDirRes.data.files[0]?.id;
+            if (staffDirId) {
+              const personRes = await drive.files.list({
+                q: `name='${escName}' and '${staffDirId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+                fields: 'files(id)', supportsAllDrives: true, includeItemsFromAllDrives: true,
+              });
+              personRes.data.files.forEach(f => folderIds.push(f.id));
             }
           }
+          const uniq = [...new Set(folderIds)];
+          for (const fid of uniq) {
+            try {
+              await drive.files.delete({ fileId: fid, supportsAllDrives: true });
+              console.log(`[Drive] 已刪除 ${user.real_name} 的人員資料夾 ${fid}`);
+            } catch(de) { console.error(`[Drive] 刪除資料夾 ${fid} 失敗`, de.message); }
+          }
+          if (!uniq.length) console.warn(`[Drive] 找不到 ${user.real_name} 的人員資料夾，略過`);
         } catch(de) { console.error('[Drive] 刪除人員資料夾失敗', de.message); }
       }
     }
@@ -2183,6 +2192,8 @@ async function uploadUserToDrive(user, images) {
     if (images.front) await driveUploadImg(drive, '身分證正面.jpg', images.front, personId, true);
     if (images.back)  await driveUploadImg(drive, '身分證反面.jpg', images.back,  personId, true);
     if (images.bank)  await driveUploadImg(drive, `${bankLabel}.jpg`, images.bank, personId, true);
+    // 記下 Drive 資料夾 ID，刪除人員時可直接刪除（避免靠姓名查找失敗）
+    try { await Users.update(user.id, { drive_folder_id: personId }); } catch(e) { console.error('[Drive] 記錄資料夾ID失敗', e.message); }
     console.log(`[Drive] ${user.real_name} 資料上傳完成`);
   } catch(e) { console.error('[Drive upload]', e.message); }
 }

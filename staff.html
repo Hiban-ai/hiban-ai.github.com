@@ -325,8 +325,8 @@ textarea.form-input{resize:none}
         <div class="card" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>督導人員</th><th>操作</th></tr></thead>
-              <tbody id="tbody-partner"><tr><td colspan="8" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
+              <thead><tr><th>編號</th><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>督導人員</th><th>操作</th></tr></thead>
+              <tbody id="tbody-partner"><tr><td colspan="9" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1073,13 +1073,14 @@ function renderAccounts() {
     const tbody   = document.getElementById('tbody-'+role);
     const list    = usersCache.filter(u => u.role === role && u.status !== 'rejected');
     const isPartner = role === 'partner';
-    const colspan   = isPartner ? 8 : 7;
+    const colspan   = isPartner ? 9 : 7;
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-s);padding:1.5rem">尚無資料</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map(u => `
       <tr>
+        ${isPartner ? `<td style="white-space:nowrap;font-family:monospace;font-weight:700;color:var(--blue-d)">${u.partner_no ? 'P'+String(u.partner_no).padStart(3,'0') : '—'}</td>` : ''}
         <td style="white-space:nowrap;font-weight:600">${u.real_name}</td>
         <td style="white-space:nowrap"><span class="role-tag ${roleClass[u.role]||''}">${roleMap[u.role]||u.role}</span></td>
         <td style="white-space:nowrap;font-size:.82rem;font-family:monospace">${u.id_number||'—'}</td>

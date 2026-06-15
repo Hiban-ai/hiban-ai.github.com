@@ -151,6 +151,14 @@ const Users = {
     await db.collection('users').doc(String(id)).update(patch);
     return this.byId(id);
   },
+  // 核准工作夥伴時配發永久編號（從 1 開始），已有編號則不變
+  async assignPartnerNo(id) {
+    const u = await this.byId(id);
+    if (u && u.partner_no) return u.partner_no;
+    const no = await nextId('partner_no');
+    await db.collection('users').doc(String(id)).update({ partner_no: no });
+    return no;
+  },
   async delete(id) {
     await db.collection('users').doc(String(id)).delete();
   },

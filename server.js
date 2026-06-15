@@ -575,6 +575,7 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
       const sv = await Users.byId(parseInt(supervisor_id));
       if (!sv || sv.role !== 'supervisor') return res.status(400).json({ error: '無效的督導人員' });
       await Users.update(id, { status: 'active', supervisor_id: parseInt(supervisor_id) });
+      await Users.assignPartnerNo(id);  // 配發永久工作夥伴編號
     } else {
       await Users.update(id, { status: 'active' });
     }

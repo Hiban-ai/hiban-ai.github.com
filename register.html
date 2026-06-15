@@ -225,7 +225,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="form-group">
       <label class="form-label" for="reg-address">戶籍地址<span class="req-mark">＊</span></label>
-      <input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址" autocomplete="street-address">
+      <input class="form-input" id="reg-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址" autocomplete="street-address" oninput="syncMailingIfSame()">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="reg-mailing-address">通訊地址<span class="req-mark">＊</span></label>
+      <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-s);margin-bottom:.4rem;cursor:pointer">
+        <input type="checkbox" id="reg-same-address" onchange="toggleSameAddress()" style="width:16px;height:16px">同戶籍地址
+      </label>
+      <input class="form-input" id="reg-mailing-address" type="text" placeholder="縣市、鄉鎮市區、詳細地址" autocomplete="street-address">
     </div>
     <div class="form-group">
       <label class="form-label" for="reg-phone">聯絡電話<span class="req-mark">＊</span></label>
@@ -533,7 +540,7 @@ async function extractIdData(dataUrl) {
       let filled = 0;
       if (d.real_name)  { fillAI('reg-realname', d.real_name); filled++; }
       if (d.id_number)  { fillAI('reg-idnum', d.id_number); filled++; }
-      if (d.address)    { fillAI('reg-address', d.address); filled++; }
+      if (d.address)    { fillAI('reg-address', d.address); syncMailingIfSame(); filled++; }
       if (d.gender) {
         const g = d.gender.includes('男') ? 'M' : d.gender.includes('女') ? 'F' : '';
         if (g) { fillSelectAI('reg-gender', g); filled++; }
@@ -553,6 +560,27 @@ async function extractIdData(dataUrl) {
     console.error('[AI-ID error]', e);
     statusT.textContent = '辨識失敗，請手動填寫（' + e.message + '）';
     setTimeout(() => status.classList.remove('show'), 3000);
+  }
+}
+
+// ── 通訊地址：同戶籍地址 ──────────────────────────────────
+function toggleSameAddress() {
+  const same = document.getElementById('reg-same-address').checked;
+  const mailing = document.getElementById('reg-mailing-address');
+  if (same) {
+    mailing.value = document.getElementById('reg-address').value;
+    mailing.readOnly = true;
+    mailing.style.background = 'var(--bg)';
+    mailing.style.color = 'var(--text-s)';
+  } else {
+    mailing.readOnly = false;
+    mailing.style.background = '';
+    mailing.style.color = '';
+  }
+}
+function syncMailingIfSame() {
+  if (document.getElementById('reg-same-address').checked) {
+    document.getElementById('reg-mailing-address').value = document.getElementById('reg-address').value;
   }
 }
 
@@ -691,6 +719,7 @@ function validate(step) {
     if (!v('reg-email'))     return '請填寫電子信箱';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('reg-email'))) return '電子信箱格式不正確';
     if (!v('reg-address'))   return '請填寫戶籍地址';
+    if (!v('reg-mailing-address')) return '請填寫通訊地址';
     if (v('reg-identity') === '身心障礙者' && !uploads.disability) return '請上傳身心障礙手冊';
   }
   if (step === 3) {
@@ -730,6 +759,7 @@ async function submitRegister() {
       phone:        v('reg-phone'),
       email:        v('reg-email'),
       address:      v('reg-address'),
+      mailing_address: v('reg-mailing-address'),
       identity:     v('reg-identity') || null,
       bank_type:    bankType,
       bank_name:    isPost ? '中華郵政' : v('reg-bank'),
@@ -752,7 +782,8 @@ async function submitRegister() {
       ['生日', v('reg-birthday')],
       ['電話', v('reg-phone')],
       ['信箱', v('reg-email')],
-      ['地址', v('reg-address')],
+      ['戶籍地址', v('reg-address')],
+      ['通訊地址', v('reg-mailing-address')],
       ['身份別', v('reg-identity') || '—'],
     ];
     document.getElementById('summary-basic').innerHTML = basicRows.map(([l,val]) =>

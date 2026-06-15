@@ -1133,7 +1133,8 @@ async function openDetail(id) {
     ${row('生日', u.birthday)}
     ${row('電話', u.phone)}
     ${row('信箱', u.email)}
-    ${row('地址', u.address)}
+    ${row('戶籍地址', u.address)}
+    ${row('通訊地址', u.mailing_address || u.address)}
     ${row('身份別', u.identity||'—')}
     ${isPartner ? row('負責督導', svName) : ''}
     ${row('狀態', statusLabel[u.status]||u.status)}

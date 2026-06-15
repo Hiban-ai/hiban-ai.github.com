@@ -400,9 +400,9 @@ app.get('/api/profile', requireAuth, async (req, res) => {
   try {
     const u = await Users.byId(req.session.user.id);
     if (!u) return res.status(404).json({ error: 'Not found' });
-    const { id, username, real_name, role, status, id_number, birthday, phone, address, email,
+    const { id, username, real_name, role, status, id_number, birthday, phone, address, mailing_address, email,
             identity, bank_name, bank_branch, bank_account, bank_holder } = u;
-    res.json({ id, username, real_name, role, status, id_number, birthday, phone, address, email,
+    res.json({ id, username, real_name, role, status, id_number, birthday, phone, address, mailing_address, email,
                identity, bank_name, bank_branch, bank_account, bank_holder });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -410,7 +410,7 @@ app.get('/api/profile', requireAuth, async (req, res) => {
 app.put('/api/profile', requireAuth, async (req, res) => {
   try {
     const role    = req.session.user.role;
-    const allowed = ['phone','address','email'];
+    const allowed = ['phone','address','mailing_address','email'];
     const patch   = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) patch[f] = req.body[f]; });
     await Users.update(req.session.user.id, patch);
@@ -474,12 +474,13 @@ app.post('/api/register', async (req, res) => {
     if (!phone)     return res.status(400).json({ error: 'Missing phone' });
     if (!address)   return res.status(400).json({ error: 'Missing address' });
     const { email, gender, nickname, identity, bank_type, bank_name, bank_branch, bank_account, bank_holder, post_office_code,
-            id_front_b64, id_back_b64, bank_b64 } = req.body;
+            mailing_address, id_front_b64, id_back_b64, bank_b64 } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
     const base     = real_name.charCodeAt(0).toString(36);
     const username = await generateUsername('user_' + base);
     const newUser = await Users.create({
       username, real_name, id_number, birthday, phone, address,
+      mailing_address: mailing_address || address,
       email: email || null, gender: gender || null,
       nickname: nickname || null, identity: identity || null,
       bank_type: bank_type || null,
@@ -516,6 +517,8 @@ app.post('/api/register', async (req, res) => {
     <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600;width:90px">姓名</td><td style="padding:6px 12px">${real_name}</td></tr>
     <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">電話</td><td style="padding:6px 12px">${phone}</td></tr>
     <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">信箱</td><td style="padding:6px 12px">${email || '—'}</td></tr>
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">戶籍地址</td><td style="padding:6px 12px">${address || '—'}</td></tr>
+    <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">通訊地址</td><td style="padding:6px 12px">${mailing_address || address || '—'}</td></tr>
     <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">身份別</td><td style="padding:6px 12px">${identity || '—'}</td></tr>
     <tr><td style="padding:6px 12px;background:#f0f8fe;font-weight:600">申請時間</td><td style="padding:6px 12px">${new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei'})}</td></tr>
   </table>

@@ -1706,7 +1706,7 @@ async function loadCustomFieldDefs() {
 // ── 派案表單欄位排序 ──────────────────────────────────────────
 const FIELD_ORDER_LABELS = {
   target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
-  price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明',
+  price: '單價', total: '總價', deadline: '完成期限',
 };
 let _fieldOrder = Object.keys(FIELD_ORDER_LABELS);
 
@@ -1767,6 +1767,9 @@ function applyFieldOrder() {
     const el = container.querySelector(`[data-field="custom"]`);
     if (el) container.appendChild(el);
   }
+  // 補充說明固定在最下面（自訂欄位之後）
+  const notesEl = container.querySelector('[data-field="notes"]');
+  if (notesEl) container.appendChild(notesEl);
 }
 
 function renderFieldOrderList() {

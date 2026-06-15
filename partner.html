@@ -1370,7 +1370,11 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   // 小時任務：顯示執行時間、隱藏完成數量
   document.getElementById('report-qty-group').style.display = reportHourly ? 'none' : '';
   document.getElementById('report-hourly-group').style.display = reportHourly ? '' : 'none';
-  ['report-start-date','report-start-time','report-end-date','report-end-time'].forEach(id => document.getElementById(id).value = '');
+  ['report-start-time','report-end-time'].forEach(id => document.getElementById(id).value = '');
+  // 日期預設帶入今天
+  const today = (() => { const d = new Date(); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; })();
+  document.getElementById('report-start-date').value = today;
+  document.getElementById('report-end-date').value = today;
   document.getElementById('report-hourly-calc').style.display = 'none';
   document.getElementById('report-overlay').classList.add('open');
 }

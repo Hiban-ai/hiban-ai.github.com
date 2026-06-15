@@ -811,15 +811,21 @@ textarea.form-input{resize:none}
       <input class="form-input" type="number" id="report-qty" min="1" value="1">
     </div>
 
-    <!-- 指派任務(小時)：執行時間 -->
+    <!-- 指派任務(小時)：執行時間（日期 + 時間分開，較易操作） -->
     <div id="report-hourly-group" style="display:none">
       <div class="form-group" style="margin-top:.75rem">
         <label class="form-label">開始時間 <span class="req-mark" style="color:var(--red)">＊</span></label>
-        <input class="form-input" type="datetime-local" id="report-work-start" oninput="calcReportHourly()">
+        <div style="display:flex;gap:.5rem">
+          <input class="form-input" type="date" id="report-start-date" oninput="calcReportHourly()" style="flex:2">
+          <input class="form-input" type="time" id="report-start-time" oninput="calcReportHourly()" style="flex:1">
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">完成時間 <span class="req-mark" style="color:var(--red)">＊</span></label>
-        <input class="form-input" type="datetime-local" id="report-work-end" oninput="calcReportHourly()">
+        <div style="display:flex;gap:.5rem">
+          <input class="form-input" type="date" id="report-end-date" oninput="calcReportHourly()" style="flex:2">
+          <input class="form-input" type="time" id="report-end-time" oninput="calcReportHourly()" style="flex:1">
+        </div>
       </div>
       <div id="report-hourly-calc" style="display:none;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.6rem .8rem;font-size:.85rem;color:var(--blue-d);font-weight:700;margin-bottom:.75rem"></div>
     </div>
@@ -1364,16 +1370,22 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   // 小時任務：顯示執行時間、隱藏完成數量
   document.getElementById('report-qty-group').style.display = reportHourly ? 'none' : '';
   document.getElementById('report-hourly-group').style.display = reportHourly ? '' : 'none';
-  document.getElementById('report-work-start').value = '';
-  document.getElementById('report-work-end').value = '';
+  ['report-start-date','report-start-time','report-end-date','report-end-time'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('report-hourly-calc').style.display = 'none';
   document.getElementById('report-overlay').classList.add('open');
 }
 
+// 組合日期+時間為 "YYYY-MM-DDTHH:MM"，缺一則回空字串
+function reportDateTime(which) {
+  const d = document.getElementById(`report-${which}-date`).value;
+  const t = document.getElementById(`report-${which}-time`).value;
+  return (d && t) ? `${d}T${t}` : '';
+}
+
 // 即時計算總時數與金額
 function calcReportHourly() {
-  const sv = document.getElementById('report-work-start').value;
-  const ev = document.getElementById('report-work-end').value;
+  const sv = reportDateTime('start');
+  const ev = reportDateTime('end');
   const box = document.getElementById('report-hourly-calc');
   if (!sv || !ev) { box.style.display = 'none'; return; }
   const mins = Math.round((new Date(ev) - new Date(sv)) / 60000);
@@ -1438,9 +1450,9 @@ async function submitReport() {
   err.style.display = 'none';
   let workStart = '', workEnd = '';
   if (reportHourly) {
-    workStart = document.getElementById('report-work-start').value;
-    workEnd   = document.getElementById('report-work-end').value;
-    if (!workStart || !workEnd) { err.textContent='請填寫開始與完成時間'; err.style.display='block'; return; }
+    workStart = reportDateTime('start');
+    workEnd   = reportDateTime('end');
+    if (!workStart || !workEnd) { err.textContent='請完整填寫開始與完成的日期與時間'; err.style.display='block'; return; }
     if (new Date(workEnd) <= new Date(workStart)) { err.textContent='完成時間需晚於開始時間'; err.style.display='block'; return; }
   } else {
     const qty = document.getElementById('report-qty').value;

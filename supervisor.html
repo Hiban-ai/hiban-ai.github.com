@@ -2200,6 +2200,7 @@ async function runAiImport() {
         text,
         tasks: _ttList.map(t => t.name),
         companies: _coList.map(c => c.name),
+        partners: partners.map(p => p.name),
         customFields,
         mode: 'grab',
       });

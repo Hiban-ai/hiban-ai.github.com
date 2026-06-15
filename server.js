@@ -1586,6 +1586,8 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
         assign_type:   a ? a.assign_type    : (r.assign_type || 'individual'),
         work_content:  a ? a.work_content   : '',
         hourly_wage:   a ? a.hourly_wage    : (r.hourly_wage || null),
+        grab_no:       a ? a.grab_no        : (r.grab_no || null),
+        custom_fields: a ? (a.custom_fields || []) : [],
       };
     }));
     res.json(enriched);
@@ -1616,6 +1618,8 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
         assign_type:   a ? a.assign_type   : (r.assign_type || 'individual'),
         work_content:  a ? a.work_content  : '',
         hourly_wage:   a ? a.hourly_wage   : (r.hourly_wage || null),
+        grab_no:       a ? a.grab_no       : (r.grab_no || null),
+        custom_fields: a ? (a.custom_fields || []) : [],
       };
     }));
     res.json(enriched);

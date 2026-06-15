@@ -2133,9 +2133,37 @@ async function driveEnsureFolder(drive, name, parentId) {
   return f.data.id;
 }
 
-async function driveUploadImg(drive, name, b64, parentId) {
+// 浮水印：把 assets/watermark.png 疊到圖片上（縮放鋪滿），失敗則回傳原圖
+let _watermarkPromise = null;
+function loadWatermark() {
+  if (!_watermarkPromise) {
+    const Jimp = require('jimp');
+    const path = require('path');
+    _watermarkPromise = Jimp.read(path.join(__dirname, 'assets', 'watermark.png')).catch(e => {
+      console.error('[watermark] 載入失敗', e.message); return null;
+    });
+  }
+  return _watermarkPromise;
+}
+
+async function addWatermark(b64) {
+  try {
+    const Jimp = require('jimp');
+    const wm = await loadWatermark();
+    if (!wm) return Buffer.from(b64, 'base64');
+    const img = await Jimp.read(Buffer.from(b64, 'base64'));
+    const overlay = wm.clone().resize(img.bitmap.width, img.bitmap.height);
+    img.composite(overlay, 0, 0, { mode: Jimp.BLEND_SOURCE_OVER, opacitySource: 1, opacityDest: 1 });
+    return await img.quality(85).getBufferAsync(Jimp.MIME_JPEG);
+  } catch(e) {
+    console.error('[watermark] 套用失敗，使用原圖', e.message);
+    return Buffer.from(b64, 'base64');
+  }
+}
+
+async function driveUploadImg(drive, name, b64, parentId, watermark = false) {
   const { Readable } = require('stream');
-  const buf = Buffer.from(b64, 'base64');
+  const buf = watermark ? await addWatermark(b64) : Buffer.from(b64, 'base64');
   await drive.files.create({
     requestBody: { name, parents: [parentId] },
     media: { mimeType: 'image/jpeg', body: Readable.from(buf) },
@@ -2152,9 +2180,9 @@ async function uploadUserToDrive(user, images) {
     const staffDirId = await driveEnsureFolder(drive, '人員資料', rootId);
     const personId   = await driveEnsureFolder(drive, user.real_name, staffDirId);
     const bankLabel  = user.bank_type === 'post' ? '郵局存簿' : '銀行存摺';
-    if (images.front) await driveUploadImg(drive, '身分證正面.jpg', images.front, personId);
-    if (images.back)  await driveUploadImg(drive, '身分證反面.jpg', images.back,  personId);
-    if (images.bank)  await driveUploadImg(drive, `${bankLabel}.jpg`, images.bank, personId);
+    if (images.front) await driveUploadImg(drive, '身分證正面.jpg', images.front, personId, true);
+    if (images.back)  await driveUploadImg(drive, '身分證反面.jpg', images.back,  personId, true);
+    if (images.bank)  await driveUploadImg(drive, `${bankLabel}.jpg`, images.bank, personId, true);
     console.log(`[Drive] ${user.real_name} 資料上傳完成`);
   } catch(e) { console.error('[Drive upload]', e.message); }
 }

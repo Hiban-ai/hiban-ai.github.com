@@ -1583,6 +1583,9 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
         accepted_at:   a ? a.accepted_at    : null,
         deadline_date: a ? a.deadline_date  : null,
         assigned_at:   a ? a.assigned_at    : null,
+        assign_type:   a ? a.assign_type    : (r.assign_type || 'individual'),
+        work_content:  a ? a.work_content   : '',
+        hourly_wage:   a ? a.hourly_wage    : (r.hourly_wage || null),
       };
     }));
     res.json(enriched);
@@ -1610,6 +1613,9 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
         accepted_at:   a ? a.accepted_at   : null,
         deadline_date: a ? a.deadline_date : null,
         completed_at:  a ? a.completed_at  : null,
+        assign_type:   a ? a.assign_type   : (r.assign_type || 'individual'),
+        work_content:  a ? a.work_content  : '',
+        hourly_wage:   a ? a.hourly_wage   : (r.hourly_wage || null),
       };
     }));
     res.json(enriched);

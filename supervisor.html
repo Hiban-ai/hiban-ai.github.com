@@ -836,12 +836,21 @@ async function loadTaskReviews() {
           <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          ${r.assign_type === 'hourly' ? `
+            ${r.work_content ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:80px;flex-shrink:0">工作內容</span><div style="flex:1;white-space:pre-wrap;line-height:1.6">${r.work_content}</div></div>` : ''}
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">時薪</span>$${(r.hourly_wage||0).toLocaleString()} / 小時</div>
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">開始時間</span>${r.work_start || '—'}</div>
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">完成時間</span>${r.work_end || '—'}</div>
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">總時數</span>${Math.floor((r.work_minutes||0)/60)} 小時 ${(r.work_minutes||0)%60} 分</div>
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">總金額</span><strong style="color:var(--green)">$${(r.total_price||0).toLocaleString()}</strong></div>
+          ` : `
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
+            <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          `}
           ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
           ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>
+          ${r.assign_type === 'hourly' ? '' : `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>`}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">回報日期</span>${fmtDate(r.created_at)}</div>
         </div>
         ${r.images && r.images.length ? `
@@ -2484,12 +2493,21 @@ function renderTaskRecordsContent() {
         <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
-        ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
-        <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+        ${r.assign_type === 'hourly' ? `
+          ${r.work_content ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:80px;flex-shrink:0">工作內容</span><div style="flex:1;white-space:pre-wrap;line-height:1.6">${r.work_content}</div></div>` : ''}
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">時薪</span>$${(r.hourly_wage||0).toLocaleString()} / 小時</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">開始時間</span>${r.work_start || '—'}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成時間</span>${r.work_end || '—'}</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">總時數</span>${Math.floor((r.work_minutes||0)/60)} 小時 ${(r.work_minutes||0)%60} 分</div>
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">總金額</span><strong style="color:var(--green)">$${(r.total_price||0).toLocaleString()}</strong></div>
+        ` : `
+          ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+        `}
         ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
         ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
         ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}
-        ${r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
+        ${r.assign_type !== 'hourly' && r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
         ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成日期</span>${fmtDate(r.completed_at)}</div>`  : ''}
       </div>
       ${r.images && r.images.length ? `

@@ -1390,7 +1390,7 @@ function populateTimeSelects() {
   if (_timeSelectsReady) return;
   const p = n => String(n).padStart(2,'0');
   const hhOpts = '<option value="">時</option>' + Array.from({length:24}, (_,h)=>`<option value="${p(h)}">${p(h)}</option>`).join('');
-  const mmOpts = '<option value="">分</option>' + Array.from({length:12}, (_,i)=>`<option value="${p(i*5)}">${p(i*5)}</option>`).join('');
+  const mmOpts = '<option value="">分</option>' + Array.from({length:60}, (_,m)=>`<option value="${p(m)}">${p(m)}</option>`).join('');
   ['report-start-hh','report-end-hh'].forEach(id => document.getElementById(id).innerHTML = hhOpts);
   ['report-start-mm','report-end-mm'].forEach(id => document.getElementById(id).innerHTML = mmOpts);
   _timeSelectsReady = true;

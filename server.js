@@ -474,7 +474,7 @@ app.post('/api/register', async (req, res) => {
     if (!phone)     return res.status(400).json({ error: 'Missing phone' });
     if (!address)   return res.status(400).json({ error: 'Missing address' });
     const { email, gender, nickname, identity, bank_type, bank_name, bank_branch, bank_account, bank_holder, post_office_code,
-            mailing_address, id_front_b64, id_back_b64, bank_b64 } = req.body;
+            mailing_address, id_front_b64, id_back_b64, bank_b64, disability_b64 } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
     const base     = real_name.charCodeAt(0).toString(36);
     const username = await generateUsername('user_' + base);
@@ -492,9 +492,9 @@ app.post('/api/register', async (req, res) => {
     });
 
     // 儲存圖片（背景，不阻塞）
-    console.log(`[UserImages] front=${id_front_b64?.length||0} back=${id_back_b64?.length||0} bank=${bank_b64?.length||0}`);
-    if (id_front_b64 || id_back_b64 || bank_b64) {
-      UserImages.save(newUser.id, { front: id_front_b64||'', back: id_back_b64||'', bank: bank_b64||'' })
+    console.log(`[UserImages] front=${id_front_b64?.length||0} back=${id_back_b64?.length||0} bank=${bank_b64?.length||0} disability=${disability_b64?.length||0}`);
+    if (id_front_b64 || id_back_b64 || bank_b64 || disability_b64) {
+      UserImages.save(newUser.id, { front: id_front_b64||'', back: id_back_b64||'', bank: bank_b64||'', disability: disability_b64||'' })
         .catch(e => console.error('[UserImages.save]', e.message));
     } else {
       console.warn('[UserImages] 沒有收到任何圖片 b64，略過儲存');
@@ -2192,6 +2192,7 @@ async function uploadUserToDrive(user, images) {
     if (images.front) await driveUploadImg(drive, '身分證正面.jpg', images.front, personId, true);
     if (images.back)  await driveUploadImg(drive, '身分證反面.jpg', images.back,  personId, true);
     if (images.bank)  await driveUploadImg(drive, `${bankLabel}.jpg`, images.bank, personId, true);
+    if (images.disability) await driveUploadImg(drive, '身心障礙手冊.jpg', images.disability, personId, true);
     // 記下 Drive 資料夾 ID，刪除人員時可直接刪除（避免靠姓名查找失敗）
     try { await Users.update(user.id, { drive_folder_id: personId }); } catch(e) { console.error('[Drive] 記錄資料夾ID失敗', e.message); }
     console.log(`[Drive] ${user.real_name} 資料上傳完成`);

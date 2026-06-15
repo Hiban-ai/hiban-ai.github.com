@@ -685,6 +685,10 @@ textarea.form-input{resize:none}
             <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem" id="di-bank-label">存摺封面</div>
             <div id="di-bank" class="det-img-cell" style="height:110px"></div>
           </div>
+          <div id="di-disability-wrap" style="display:none">
+            <div style="font-size:.7rem;color:var(--text-s);margin-bottom:.2rem">身心障礙手冊</div>
+            <div id="di-disability" class="det-img-cell" style="height:110px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1151,6 +1155,7 @@ async function openDetail(id) {
     ['front','back','bank'].forEach(k => {
       document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">載入中…</span>';
     });
+    document.getElementById('di-disability-wrap').style.display = 'none';
     API.get(`/api/admin/users/${id}/images`).then(r => {
       const d = r.data || {};
       ['front','back','bank'].forEach(k => {
@@ -1162,6 +1167,11 @@ async function openDetail(id) {
           el.innerHTML = `<span style="font-size:.68rem;padding:.4rem;text-align:center;color:var(--text-s)">無圖片</span>`;
         }
       });
+      // 身心障礙手冊：有上傳才顯示
+      if (d.disability) {
+        document.getElementById('di-disability-wrap').style.display = 'block';
+        document.getElementById('di-disability').innerHTML = `<img src="data:image/jpeg;base64,${d.disability}" alt="身心障礙手冊" onclick="openLightbox(this.src)" style="cursor:zoom-in;width:100%;height:100%;object-fit:cover;display:block">`;
+      }
     }).catch(() => {
       ['front','back','bank'].forEach(k => {
         document.getElementById('di-'+k).innerHTML = '<span style="font-size:.7rem">載入失敗</span>';

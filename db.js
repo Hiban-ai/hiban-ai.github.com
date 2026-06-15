@@ -308,9 +308,9 @@ const WorklogReports = {
 
 // ── UserImages（申請圖片，壓縮 base64 分開存）─────────────────
 const UserImages = {
-  async save(userId, { front, back, bank }) {
+  async save(userId, { front, back, bank, disability }) {
     await db.collection('user_images').doc(String(userId)).set({
-      user_id: userId, front: front||'', back: back||'', bank: bank||'',
+      user_id: userId, front: front||'', back: back||'', bank: bank||'', disability: disability||'',
       saved_at: now()
     });
   },

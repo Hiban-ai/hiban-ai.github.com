@@ -770,6 +770,7 @@ async function submitRegister() {
       id_front_b64: uploads.front?.b64 || '',
       id_back_b64:  uploads.back?.b64  || '',
       bank_b64:     uploads.bank?.b64  || '',
+      disability_b64: uploads.disability?.b64 || '',
     });
     document.getElementById('result-username').textContent = res.username;
 

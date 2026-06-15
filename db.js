@@ -308,18 +308,42 @@ const WorklogReports = {
 
 // ── UserImages（申請圖片，壓縮 base64 分開存）─────────────────
 const UserImages = {
+  // 每張圖各存一份子文件 user_images/{id}/blobs/{kind}，避免單一文件超過 Firestore 1MiB 上限
   async save(userId, { front, back, bank, disability }) {
-    await db.collection('user_images').doc(String(userId)).set({
-      user_id: userId, front: front||'', back: back||'', bank: bank||'', disability: disability||'',
-      saved_at: now()
+    const ref  = db.collection('user_images').doc(String(userId));
+    const imgs = { front, back, bank, disability };
+    const batch = db.batch();
+    batch.set(ref, {
+      user_id: userId, saved_at: now(),
+      has: { front: !!front, back: !!back, bank: !!bank, disability: !!disability },
     });
+    for (const k of ['front','back','bank','disability']) {
+      const bref = ref.collection('blobs').doc(k);
+      if (imgs[k]) batch.set(bref, { data: imgs[k] });
+      else         batch.delete(bref);
+    }
+    await batch.commit();
   },
   async get(userId) {
-    const doc = await db.collection('user_images').doc(String(userId)).get();
-    return doc.exists ? doc.data() : null;
+    const ref = db.collection('user_images').doc(String(userId));
+    const doc = await ref.get();
+    if (!doc.exists) return null;
+    const data = doc.data();
+    // 舊格式：影像直接存在主文件
+    if (data.front || data.back || data.bank || data.disability) return data;
+    // 新格式：影像分開存在 blobs 子集合
+    const blobs = await ref.collection('blobs').get();
+    const out = { ...data };
+    blobs.docs.forEach(d => { out[d.id] = d.data().data; });
+    return out;
   },
   async delete(userId) {
-    await db.collection('user_images').doc(String(userId)).delete();
+    const ref   = db.collection('user_images').doc(String(userId));
+    const blobs = await ref.collection('blobs').get();
+    const batch = db.batch();
+    blobs.docs.forEach(d => batch.delete(d.ref));
+    batch.delete(ref);
+    await batch.commit();
   }
 };
 

@@ -2155,12 +2155,17 @@ function loadWatermark() {
   return _watermarkPromise;
 }
 
+const WM_MAX_DIM = 1600; // 處理前先縮圖，避免大照片吃爆記憶體（Railway）
 async function addWatermark(b64) {
   try {
     const Jimp = require('jimp');
     const wm = await loadWatermark();
     if (!wm) return Buffer.from(b64, 'base64');
     const img = await Jimp.read(Buffer.from(b64, 'base64'));
+    // 過大的照片先縮到最長邊 WM_MAX_DIM（審核足夠，記憶體大幅下降）
+    if (Math.max(img.bitmap.width, img.bitmap.height) > WM_MAX_DIM) {
+      img.scaleToFit(WM_MAX_DIM, WM_MAX_DIM);
+    }
     const overlay = wm.clone().resize(img.bitmap.width, img.bitmap.height);
     img.composite(overlay, 0, 0, { mode: Jimp.BLEND_SOURCE_OVER, opacitySource: 1, opacityDest: 1 });
     return await img.quality(85).getBufferAsync(Jimp.MIME_JPEG);

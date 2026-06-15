@@ -213,6 +213,8 @@ textarea.form-input{resize:none}
 /* 新搶單任務通知動畫 */
 #grab-alert-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,.55);backdrop-filter:blur(3px)}
 #grab-alert-overlay.show{display:flex}
+.alert-skip-btn{position:absolute;top:18px;right:18px;z-index:10;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);color:#fff;padding:.4rem .9rem;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;backdrop-filter:blur(2px)}
+.alert-skip-btn:hover{background:rgba(255,255,255,.3)}
 #gae-envelope{position:relative;width:640px;height:420px;max-width:90vw;animation:popIn 1s cubic-bezier(.34,1.56,.64,1)}
 #gae-envelope.fade{animation:gae-fade .5s ease forwards}
 @keyframes gae-fade{to{opacity:0;transform:scale(.85)}}
@@ -367,6 +369,7 @@ textarea.form-input{resize:none}
 
 <!-- 新搶單任務通知動畫 -->
 <div id="grab-alert-overlay">
+  <button class="alert-skip-btn" onclick="_alertSkip()" title="跳過動畫">跳過 ⏭</button>
   <div id="gae-envelope">
     <div class="gae-body">
       <div class="gae-back-icon">📋</div>
@@ -376,9 +379,9 @@ textarea.form-input{resize:none}
   </div>
   <div id="gae-card">
     <div class="gae-card-title" id="gae-task-name"></div>
-    <div class="gae-card-row" style="font-weight:700;color:var(--blue)">你有一筆搶單任務！</div>
-    <div class="gae-card-row">數量：<b id="gae-slots"></b></div>
-    <div class="gae-card-row">剩餘：<b id="gae-remaining"></b></div>
+    <div class="gae-card-row" id="gae-subtitle" style="font-weight:700;color:var(--blue)">你有一筆搶單任務！</div>
+    <div class="gae-card-row" id="gae-slots-row">數量：<b id="gae-slots"></b></div>
+    <div class="gae-card-row" id="gae-remaining-row">剩餘：<b id="gae-remaining"></b></div>
     <div class="gae-card-row" id="gae-perlimit-row">每人可搶：<b id="gae-perlimit"></b></div>
     <div class="gae-card-row" id="gae-notes-row">補充說明：<b id="gae-notes"></b></div>
     <div class="gae-card-price" id="gae-price"></div>
@@ -392,6 +395,7 @@ textarea.form-input{resize:none}
 
 <!-- 飛鴿傳書：新指派任務通知 -->
 <div id="assign-alert-overlay">
+  <button class="alert-skip-btn" onclick="_alertSkip()" title="跳過動畫">跳過 ⏭</button>
   <div id="aa-pigeon">🕊️</div>
   <div id="aa-envelope">
     <div class="gae-body">
@@ -402,11 +406,14 @@ textarea.form-input{resize:none}
   </div>
   <div id="aa-card">
     <div class="gae-card-title" id="aa-task-name"></div>
-    <div class="gae-card-row" style="font-weight:700;color:var(--blue)">你有一個指名任務！</div>
-    <div class="gae-card-row">數量：<b id="aa-qty"></b> 件</div>
+    <div class="gae-card-row" id="aa-subtitle" style="font-weight:700;color:var(--blue)">你有一個指名任務！</div>
+    <div class="gae-card-row" id="aa-qty-row">數量：<b id="aa-qty"></b> 件</div>
     <div class="gae-card-row" id="aa-deadline-row">期限：<b id="aa-deadline"></b></div>
     <div class="gae-card-price" id="aa-price"></div>
-    <div style="font-size:.8rem;color:var(--text-s);text-align:center;margin-top:.7rem">📂 請前往任務區查看</div>
+    <div id="aa-hint" style="font-size:.8rem;color:var(--text-s);text-align:center;margin-top:.7rem">📂 請前往任務區查看</div>
+    <div class="gae-card-btns" id="aa-summary-btns" style="display:none">
+      <button class="gae-btn-grab" onclick="assignAlertGoTo()">📂 前往任務區</button>
+    </div>
   </div>
 </div>
 
@@ -1975,6 +1982,9 @@ function showGrabSuccessOverlay(grabNo) {
 let _grabAlertQueue = [];
 let _grabAlertShowing = false;
 let _grabAlertCurrentId = null;
+let _grabAlertTimers = [];
+let _grabAlertSummary = false;  // 目前顯示的是否為「多筆彙總」卡
+function _clearTimers(arr){ arr.forEach(clearTimeout); arr.length = 0; }
 
 function _grabAlertSeenKey() {
   return 'grabAlertSeen_' + (meId || 'anon');
@@ -2005,11 +2015,14 @@ async function checkNewGrabTasks() {
     const list = await API.get('/api/grab-tasks');
     const seen = _grabAlertGetSeen();
     const news = list.filter(t => !seen.includes(t.id) && !t.my_grab_no && t.grabbed_count < t.total_slots);
-    news.forEach(t => {
-      _grabAlertMarkSeen(t.id);
-      _grabAlertQueue.push(t);
-    });
-    if (!_grabAlertShowing) showNextGrabAlert();
+    news.forEach(t => _grabAlertMarkSeen(t.id));
+    if (news.length === 1) {
+      _grabAlertQueue.push(news[0]);
+    } else if (news.length > 1) {
+      // 多筆只跳一次彙總卡
+      _grabAlertQueue.push({ _summary: true, count: news.length });
+    }
+    if (!_grabAlertShowing && _grabAlertQueue.length) showNextGrabAlert();
     // 若正在顯示的任務名額已滿，自動關閉
     if (_grabAlertShowing && _grabAlertCurrentId != null) {
       const cur = list.find(t => t.id === _grabAlertCurrentId);
@@ -2028,28 +2041,44 @@ function showNextGrabAlert() {
     return;
   }
   _grabAlertShowing = true;
-  _grabAlertCurrentId = t.id;
+  _grabAlertSummary = !!t._summary;
+  _grabAlertCurrentId = t._summary ? null : t.id;
 
-  document.getElementById('gae-task-name').textContent = taskLabelNo(t);
-  document.getElementById('gae-slots').textContent = t.total_slots + ' 個';
-  document.getElementById('gae-remaining').textContent = (t.total_slots - t.grabbed_count) + ' 個';
-  const perlimitRow = document.getElementById('gae-perlimit-row');
-  if (t.per_person_limit && t.per_person_limit !== 1) {
-    document.getElementById('gae-perlimit').textContent = t.per_person_limit === 0 ? '不限' : (t.per_person_limit + ' 個');
-    perlimitRow.style.display = '';
+  const detailRows = ['gae-slots-row','gae-remaining-row','gae-perlimit-row','gae-notes-row'];
+  if (t._summary) {
+    // 多筆彙總：只顯示筆數 + 前往搶單區
+    document.getElementById('gae-task-name').textContent = `有 ${t.count} 筆新搶單任務`;
+    document.getElementById('gae-subtitle').textContent = '快去搶單區看看吧！';
+    detailRows.forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById('gae-price').style.display = 'none';
+    document.getElementById('gae-grab-btn').style.display = 'none';
   } else {
-    perlimitRow.style.display = 'none';
+    document.getElementById('gae-task-name').textContent = taskLabelNo(t);
+    document.getElementById('gae-subtitle').textContent = '你有一筆搶單任務！';
+    document.getElementById('gae-slots-row').style.display = '';
+    document.getElementById('gae-remaining-row').style.display = '';
+    document.getElementById('gae-price').style.display = '';
+    document.getElementById('gae-grab-btn').style.display = '';
+    document.getElementById('gae-slots').textContent = t.total_slots + ' 個';
+    document.getElementById('gae-remaining').textContent = (t.total_slots - t.grabbed_count) + ' 個';
+    const perlimitRow = document.getElementById('gae-perlimit-row');
+    if (t.per_person_limit && t.per_person_limit !== 1) {
+      document.getElementById('gae-perlimit').textContent = t.per_person_limit === 0 ? '不限' : (t.per_person_limit + ' 個');
+      perlimitRow.style.display = '';
+    } else {
+      perlimitRow.style.display = 'none';
+    }
+    const notesRow = document.getElementById('gae-notes-row');
+    if (t.notes) {
+      document.getElementById('gae-notes').textContent = t.notes;
+      notesRow.style.display = '';
+    } else {
+      notesRow.style.display = 'none';
+    }
+    document.getElementById('gae-price').textContent = '💰 $' + (t.unit_price||0).toLocaleString();
+    document.getElementById('gae-grab-btn').disabled = false;
+    document.getElementById('gae-grab-btn').textContent = '🎯 搶單';
   }
-  const notesRow = document.getElementById('gae-notes-row');
-  if (t.notes) {
-    document.getElementById('gae-notes').textContent = t.notes;
-    notesRow.style.display = '';
-  } else {
-    notesRow.style.display = 'none';
-  }
-  document.getElementById('gae-price').textContent = '💰 $' + (t.unit_price||0).toLocaleString();
-  document.getElementById('gae-grab-btn').disabled = false;
-  document.getElementById('gae-grab-btn').textContent = '🎯 搶單';
 
   const overlay = document.getElementById('grab-alert-overlay');
   const envelope = document.getElementById('gae-envelope');
@@ -2060,21 +2089,18 @@ function showNextGrabAlert() {
   overlay.classList.add('show');
 
   // 彈出 1 秒 → 打開信封 1.5 秒 → 1.9 秒後卡片出現 → 信封淡出
-  setTimeout(() => {
-    envelope.classList.add('open');
-  }, 1000);
-  setTimeout(() => {
-    card.classList.add('show');
-  }, 1000 + 1900);
-  setTimeout(() => {
-    envelope.classList.add('fade');
-  }, 1000 + 1900 + 500);
+  _clearTimers(_grabAlertTimers);
+  _grabAlertTimers.push(setTimeout(() => { envelope.classList.add('open'); }, 1000));
+  _grabAlertTimers.push(setTimeout(() => { card.classList.add('show'); }, 1000 + 1900));
+  _grabAlertTimers.push(setTimeout(() => { envelope.classList.add('fade'); }, 1000 + 1900 + 500));
 }
 
 function closeGrabAlert() {
+  _clearTimers(_grabAlertTimers);
   document.getElementById('grab-alert-overlay').classList.remove('show');
   _grabAlertShowing = false;
   _grabAlertCurrentId = null;
+  _grabAlertSummary = false;
   // 接著顯示佇列中下一筆
   setTimeout(showNextGrabAlert, 300);
 }
@@ -2109,6 +2135,8 @@ function grabAlertGoToZone() {
 // ── 飛鴿傳書：新指派任務通知 ──────────────────────────────────
 let _assignAlertQueue = [];
 let _assignAlertShowing = false;
+let _assignAlertTimers = [];
+let _assignAlertSummary = false;
 
 function _assignAlertSeenKey() {
   return 'assignAlertSeen_' + (meId || 'anon');
@@ -2139,11 +2167,13 @@ async function checkNewAssignments() {
     const list = await API.get('/api/assignments/pending');
     const seen = _assignAlertGetSeen();
     const news = list.filter(a => !seen.includes(a.id));
-    news.forEach(a => {
-      _assignAlertMarkSeen(a.id);
-      _assignAlertQueue.push(a);
-    });
-    if (!_assignAlertShowing) showNextAssignAlert();
+    news.forEach(a => _assignAlertMarkSeen(a.id));
+    if (news.length === 1) {
+      _assignAlertQueue.push(news[0]);
+    } else if (news.length > 1) {
+      _assignAlertQueue.push({ _summary: true, count: news.length });
+    }
+    if (!_assignAlertShowing && _assignAlertQueue.length) showNextAssignAlert();
   } catch(e) { /* ignore */ }
 }
 
@@ -2153,20 +2183,36 @@ function showNextAssignAlert() {
   const a = _assignAlertQueue.shift();
   if (!a) { _assignAlertShowing = false; return; }
   _assignAlertShowing = true;
+  _assignAlertSummary = !!a._summary;
 
-  document.getElementById('aa-task-name').textContent = taskLabelNo(a);
-  document.getElementById('aa-qty').textContent = a.quantity;
-  const dlRow = document.getElementById('aa-deadline-row');
-  if (a.deadline_date) {
-    document.getElementById('aa-deadline').textContent = fmtDay(a.deadline_date);
-    dlRow.style.display = '';
-  } else if (a.deadline_days) {
-    document.getElementById('aa-deadline').textContent = a.deadline_days + ' 天';
-    dlRow.style.display = '';
+  if (a._summary) {
+    document.getElementById('aa-task-name').textContent = `你有 ${a.count} 筆新指派任務`;
+    document.getElementById('aa-subtitle').textContent = '快去任務區查看吧！';
+    document.getElementById('aa-qty-row').style.display = 'none';
+    document.getElementById('aa-deadline-row').style.display = 'none';
+    document.getElementById('aa-price').style.display = 'none';
+    document.getElementById('aa-hint').style.display = 'none';
+    document.getElementById('aa-summary-btns').style.display = '';
   } else {
-    dlRow.style.display = 'none';
+    document.getElementById('aa-subtitle').textContent = '你有一個指名任務！';
+    document.getElementById('aa-qty-row').style.display = '';
+    document.getElementById('aa-price').style.display = '';
+    document.getElementById('aa-hint').style.display = '';
+    document.getElementById('aa-summary-btns').style.display = 'none';
+    document.getElementById('aa-task-name').textContent = taskLabelNo(a);
+    document.getElementById('aa-qty').textContent = a.quantity;
+    const dlRow = document.getElementById('aa-deadline-row');
+    if (a.deadline_date) {
+      document.getElementById('aa-deadline').textContent = fmtDay(a.deadline_date);
+      dlRow.style.display = '';
+    } else if (a.deadline_days) {
+      document.getElementById('aa-deadline').textContent = a.deadline_days + ' 天';
+      dlRow.style.display = '';
+    } else {
+      dlRow.style.display = 'none';
+    }
+    document.getElementById('aa-price').textContent = '💰 $' + (a.total_price||0).toLocaleString();
   }
-  document.getElementById('aa-price').textContent = '💰 $' + (a.total_price||0).toLocaleString();
 
   const overlay  = document.getElementById('assign-alert-overlay');
   const pigeon   = document.getElementById('aa-pigeon');
@@ -2183,27 +2229,71 @@ function showNextAssignAlert() {
   pigeon.classList.add('fly-in');
 
   // 鴿子飛抵後拋下信件，自己飛走
-  setTimeout(() => {
+  _clearTimers(_assignAlertTimers);
+  _assignAlertTimers.push(setTimeout(() => {
     envelope.classList.add('drop');
     pigeon.classList.add('fly-out');
-  }, 1200);
+  }, 1200));
 }
 
 function assignAlertOpen() {
+  _clearTimers(_assignAlertTimers);
   const envelope = document.getElementById('aa-envelope');
   const card     = document.getElementById('aa-card');
   envelope.classList.add('hide');
   card.classList.add('show');
-  // 卡片顯示3秒後自動消失
-  setTimeout(() => {
-    closeAssignAlert();
-  }, 3000);
+  // 卡片顯示一段時間後自動消失（彙總卡停久一點讓使用者點前往）
+  _assignAlertTimers.push(setTimeout(() => { closeAssignAlert(); }, _assignAlertSummary ? 6000 : 3000));
+}
+
+function assignAlertGoTo() {
+  closeAssignAlert();
+  const menuItem = document.querySelector('.pt-menu-item[onclick*="\'tasks\'"]');
+  switchPage('tasks', menuItem);
 }
 
 function closeAssignAlert() {
+  _clearTimers(_assignAlertTimers);
   document.getElementById('assign-alert-overlay').classList.remove('show');
+  _assignAlertShowing = false;
+  _assignAlertSummary = false;
   setTimeout(showNextAssignAlert, 300);
 }
+
+// 跳過動畫：動畫進行中→直接顯示卡片；卡片已顯示→關閉
+function _alertSkip() {
+  const gOverlay = document.getElementById('grab-alert-overlay');
+  if (gOverlay.classList.contains('show')) {
+    const card = document.getElementById('gae-card');
+    if (!card.classList.contains('show')) {
+      _clearTimers(_grabAlertTimers);
+      document.getElementById('gae-envelope').classList.add('open');
+      card.classList.add('show');
+      setTimeout(() => document.getElementById('gae-envelope').classList.add('fade'), 50);
+    } else {
+      closeGrabAlert();
+    }
+    return;
+  }
+  const aOverlay = document.getElementById('assign-alert-overlay');
+  if (aOverlay.classList.contains('show')) {
+    const card = document.getElementById('aa-card');
+    if (!card.classList.contains('show')) assignAlertOpen();
+    else closeAssignAlert();
+  }
+}
+
+// 任意鍵（鍵盤）跳過
+document.addEventListener('keydown', () => _alertSkip());
+// 滑鼠跳過：動畫階段點任何處都跳過；卡片顯示後只有點背景才關閉（避免誤觸按鈕）
+['grab-alert-overlay','assign-alert-overlay'].forEach(ovId => {
+  const cardId = ovId === 'grab-alert-overlay' ? 'gae-card' : 'aa-card';
+  document.getElementById(ovId).addEventListener('click', e => {
+    const card = document.getElementById(cardId);
+    if (!card.classList.contains('show')) _alertSkip();
+    else if (e.target.id === ovId) _alertSkip();
+  });
+});
 
 async function doGrab(taskId, btn) {
   btn.disabled = true; btn.textContent = '搶單中…';

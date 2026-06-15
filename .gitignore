@@ -9,3 +9,5 @@ firebase-key.json
 get_refresh_token.js
 traffic_stats.json
 cookies.txt
+
+refresh_token.txt

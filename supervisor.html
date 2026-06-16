@@ -984,7 +984,7 @@ function setAssignMode(mode) {
   document.getElementById('row-grab-deadline').style.display = isGrab ? 'flex' : 'none';
   // 數量/單價/總價：只有「件」用
   document.querySelector('[data-field="qty"]').style.display   = isNormal ? 'flex' : 'none';
-  document.querySelector('[data-field="price"]').style.display = isNormal ? 'flex' : 'none';
+  document.querySelector('[data-field="price"]').style.display = isHourly ? 'none' : 'flex';
   document.querySelector('[data-field="total"]').style.display = isNormal ? 'flex' : 'none';
   // 工作內容/時薪：只有「小時」用
   document.querySelector('[data-field="work-content"]').style.display = isHourly ? 'flex' : 'none';
@@ -1792,7 +1792,7 @@ function fieldLabel(tok) { return FIELD_ORDER_LABELS[tok] || EXTRA_FIELD_LABELS[
 const MODE_FIXED_ORDER = {
   normal: ['target','company','task','qty','price','total','deadline','notes'],
   hourly: ['task','company','target','work-content','hourly','notes'],
-  grab:   ['target','company','task','deadline','notes'],
+  grab:   ['target','company','task','price','deadline','notes'],
 };
 function modeFixedOrder() { return MODE_FIXED_ORDER[curModeKey()]; }
 // 每個模式各自一份可排序的欄位順序（固定欄位＋自訂欄位）

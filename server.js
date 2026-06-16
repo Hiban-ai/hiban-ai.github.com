@@ -1932,24 +1932,26 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
     const wb = new ExcelJS.Workbook();
     wb.creator = '希絆雲作所';
     const ws = wb.addWorksheet('工作紀錄彙整');
+    ws.views = [{ zoomScale: 130 }]; // 開啟時放大顯示
     ws.columns = [
-      { header: '編號', key: 'pno',   width: 10 },
-      { header: '姓名', key: 'pname', width: 14 },
-      { header: '月份',         key: 'mon',   width: 8  },
-      { header: '日期',         key: 'date',  width: 14 },
-      { header: '星期',         key: 'week',  width: 8  },
-      { header: '時間',         key: 'time',  width: 14 },
-      { header: '單位別',       key: 'unit',  width: 18 },
-      { header: '工作內容',     key: 'task',  width: 22 },
-      { header: '時數',         key: 'hours', width: 10 },
-      { header: '時薪',         key: 'wage',  width: 10 },
-      { header: '小計',         key: 'sub',   width: 12 },
-      { header: '工作進度',     key: 'prog',  width: 10 },
-      { header: '備註',         key: 'note',  width: 20 },
+      { header: '編號', key: 'pno',   width: 12 },
+      { header: '姓名', key: 'pname', width: 16 },
+      { header: '月份',         key: 'mon',   width: 10 },
+      { header: '日期',         key: 'date',  width: 16 },
+      { header: '星期',         key: 'week',  width: 10 },
+      { header: '時間',         key: 'time',  width: 16 },
+      { header: '單位別',       key: 'unit',  width: 20 },
+      { header: '工作內容',     key: 'task',  width: 26 },
+      { header: '時數',         key: 'hours', width: 12 },
+      { header: '時薪',         key: 'wage',  width: 12 },
+      { header: '小計',         key: 'sub',   width: 14 },
+      { header: '工作進度',     key: 'prog',  width: 12 },
+      { header: '備註',         key: 'note',  width: 28 },
     ];
-    ws.getRow(1).font = { bold: true, size: 13, color:{ argb:'FFFFFFFF' } };
+    ws.getRow(1).font = { bold: true, size: 16, color:{ argb:'FFFFFFFF' } };
     ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
-    ws.getRow(1).height = 22;
+    ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+    ws.getRow(1).height = 30;
 
     rows.forEach((x, i) => {
       const a = x.a, u = uById(x.pid) || {};
@@ -1978,7 +1980,9 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
       // 小計 = 時數 × 時薪（Excel 公式，I=時數 J=時薪 K=小計；附快取結果確保各種開啟方式都顯示）
       const rn = r.number;
       ws.getCell(`K${rn}`).value = { formula: `I${rn}*J${rn}`, result: Math.round((hours || 0) * (wage || 0) * 100) / 100 };
-      r.font = { size: 12 };
+      r.font = { size: 14 };
+      r.height = 24;
+      r.alignment = { vertical: 'middle' };
       if (i % 2 === 1) r.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
     });
 

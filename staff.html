@@ -972,7 +972,7 @@ function initReportsPage() {
   const pSel = document.getElementById('wr-export-partner');
   if (pSel) {
     const cur = pSel.value;
-    const partners = (usersCache || []).filter(u => u.role === 'partner')
+    const partners = (usersCache || []).filter(u => u.role === 'partner' && u.status === 'active')
       .sort((a,b) => (a.partner_no||9999)-(b.partner_no||9999));
     pSel.innerHTML = '<option value="">全部夥伴</option>' + partners.map(p =>
       `<option value="${p.id}">${p.partner_no ? 'P'+String(p.partner_no).padStart(3,'0')+' ' : ''}${p.real_name}</option>`).join('');

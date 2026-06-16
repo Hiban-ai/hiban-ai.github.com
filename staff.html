@@ -384,7 +384,7 @@ textarea.form-input{resize:none}
       <div class="page-title">⚔️ 任務管理</div>
       <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
         <button onclick="toggleTaskStats('grab')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">🎯 搶單任務統計</button>
-        <button onclick="toggleTaskStats('assign')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">📋 指派任務統計</button>
+        <button onclick="toggleTaskStats('assign')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">📋 全部任務統計</button>
       </div>
 
       <!-- 搶單任務統計 -->
@@ -396,7 +396,7 @@ textarea.form-input{resize:none}
       <!-- 指派任務統計 -->
       <div id="assign-stats-section" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
-          <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 指派任務統計</div>
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務統計 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
           <select id="assign-stats-filter" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
             <option value="all">全部</option>
           </select>

@@ -1933,8 +1933,8 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
     wb.creator = '希絆雲作所';
     const ws = wb.addWorksheet('工作紀錄彙整');
     ws.columns = [
-      { header: '工作夥伴編號', key: 'pno',   width: 12 },
-      { header: '工作夥伴名稱', key: 'pname', width: 14 },
+      { header: '編號', key: 'pno',   width: 10 },
+      { header: '姓名', key: 'pname', width: 14 },
       { header: '月份',         key: 'mon',   width: 8  },
       { header: '日期',         key: 'date',  width: 14 },
       { header: '星期',         key: 'week',  width: 8  },

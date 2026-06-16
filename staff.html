@@ -410,6 +410,7 @@ textarea.form-input{resize:none}
             <select id="assign-stats-filter" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
               <option value="all">全部夥伴</option>
             </select>
+            <button onclick="exportWorkRecords()" style="padding:.4rem .9rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⬇ 匯出工作紀錄彙整</button>
           </div>
         </div>
         <div id="assign-stats-summary" style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-bottom:.75rem;padding:.6rem .9rem;background:var(--bg);border-radius:var(--rs)"></div>
@@ -926,6 +927,10 @@ async function loadStaffAssign() {
     if (names.includes(cur)) sel.value = cur;
     renderStaffAssign();
   } catch(e) { console.error('[staffAssign]', e.message); }
+}
+
+function exportWorkRecords() {
+  window.open('/api/admin/work-records/export', '_blank');
 }
 
 function renderStaffAssign() {

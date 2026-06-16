@@ -1901,6 +1901,94 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 工作紀錄彙整 Excel 匯出：GET /api/admin/work-records/export?year_month=2026-06
+app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const { year_month } = req.query; // 可選 YYYY-MM
+    const [fy, fm] = (year_month || '').split('-');
+    const fileLabel = (fy && fm) ? `工作紀錄彙整_${fy}年${parseInt(fm)}月` : '工作紀錄彙整';
+
+    const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
+    const uById = id => allUsers.find(u => u.id === id);
+    const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已退回' };
+    const weekCh = '日一二三四五六';
+
+    // 取每筆任務的參考開始時間（小時用 work_start，其餘用完成/接案/派案時間）
+    const refOf = a => (a.work_start || a.completed_at || a.accepted_at || a.assigned_at || '').trim();
+
+    let rows = allAssign
+      .map(a => ({ a, pid: a.accepted_by || a.target_partner_id }))
+      .filter(x => x.pid) // 需有對應夥伴
+      .filter(x => refOf(x.a)); // 需有日期
+    if (fy && fm) rows = rows.filter(x => refOf(x.a).slice(0,7) === `${fy}/${fm}`);
+    // 依夥伴編號、日期排序
+    rows.sort((x, y) => {
+      const nx = uById(x.pid)?.partner_no || 9999, ny = uById(y.pid)?.partner_no || 9999;
+      if (nx !== ny) return nx - ny;
+      return refOf(x.a).localeCompare(refOf(y.a));
+    });
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = '希絆雲作所';
+    const ws = wb.addWorksheet('工作紀錄彙整');
+    ws.columns = [
+      { header: '工作夥伴編號', key: 'pno',   width: 12 },
+      { header: '工作夥伴名稱', key: 'pname', width: 14 },
+      { header: '月份',         key: 'mon',   width: 8  },
+      { header: '日期',         key: 'date',  width: 14 },
+      { header: '星期',         key: 'week',  width: 8  },
+      { header: '時間',         key: 'time',  width: 14 },
+      { header: '單位別',       key: 'unit',  width: 18 },
+      { header: '工作內容',     key: 'task',  width: 22 },
+      { header: '時數',         key: 'hours', width: 10 },
+      { header: '時薪',         key: 'wage',  width: 10 },
+      { header: '小計',         key: 'sub',   width: 12 },
+      { header: '工作進度',     key: 'prog',  width: 10 },
+      { header: '備註',         key: 'note',  width: 20 },
+    ];
+    ws.getRow(1).font = { bold: true, size: 13, color:{ argb:'FFFFFFFF' } };
+    ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+    ws.getRow(1).height = 22;
+
+    rows.forEach((x, i) => {
+      const a = x.a, u = uById(x.pid) || {};
+      const ref = refOf(a);
+      const [yy, mm, dd] = ref.slice(0,10).split('/').map(Number);
+      const dow = (yy && mm && dd) ? new Date(yy, mm-1, dd).getDay() : null;
+      const isHourly = a.assign_type === 'hourly';
+      const timeStr = (isHourly && a.work_start && a.work_end) ? `${a.work_start.slice(11,16)}-${a.work_end.slice(11,16)}` : '';
+      const hours = isHourly ? Math.round((a.work_minutes || 0) / 60 * 100) / 100 : (a.quantity || 0);
+      const wage  = isHourly ? (a.hourly_wage || 0) : (a.unit_price || 0);
+      const r = ws.addRow({
+        pno:   u.partner_no ? 'P' + String(u.partner_no).padStart(3,'0') : '',
+        pname: u.real_name || '',
+        mon:   mm || '',
+        date:  ref.slice(0,10),
+        week:  dow != null ? '週' + weekCh[dow] : '',
+        time:  timeStr,
+        unit:  a.company || '',
+        task:  a.task_name || '',
+        hours: hours,
+        wage:  wage,
+        sub:   0,
+        prog:  (a.review_status === 'reviewing') ? '待審核' : (statusLabel[a.status] || a.status || ''),
+        note:  a.notes || '',
+      });
+      // 小計 = 時數 × 時薪（Excel 公式，I=時數 J=時薪 K=小計）
+      const rn = r.number;
+      ws.getCell(`K${rn}`).value = { formula: `I${rn}*J${rn}` };
+      r.font = { size: 12 };
+      if (i % 2 === 1) r.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="work-records.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 薪資通知寄信：POST /api/admin/payroll/send-email
 app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
   try {

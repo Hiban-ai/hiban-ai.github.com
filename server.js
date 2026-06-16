@@ -1975,9 +1975,9 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
         prog:  (a.review_status === 'reviewing') ? '待審核' : (statusLabel[a.status] || a.status || ''),
         note:  a.notes || '',
       });
-      // 小計 = 時數 × 時薪（Excel 公式，I=時數 J=時薪 K=小計）
+      // 小計 = 時數 × 時薪（Excel 公式，I=時數 J=時薪 K=小計；附快取結果確保各種開啟方式都顯示）
       const rn = r.number;
-      ws.getCell(`K${rn}`).value = { formula: `I${rn}*J${rn}` };
+      ws.getCell(`K${rn}`).value = { formula: `I${rn}*J${rn}`, result: Math.round((hours || 0) * (wage || 0) * 100) / 100 };
       r.font = { size: 12 };
       if (i % 2 === 1) r.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
     });

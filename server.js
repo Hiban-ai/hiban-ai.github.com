@@ -1905,12 +1905,16 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
 app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res) => {
   try {
     const ExcelJS = require('exceljs');
-    const { year_month } = req.query; // 可選 YYYY-MM
+    const { year_month, partner_id } = req.query; // 可選 YYYY-MM、夥伴 id
     const [fy, fm] = (year_month || '').split('-');
-    const fileLabel = (fy && fm) ? `工作紀錄彙整_${fy}年${parseInt(fm)}月` : '工作紀錄彙整';
 
     const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
     const uById = id => allUsers.find(u => String(u.id) === String(id));
+
+    const monPart  = (fy && fm) ? `_${fy}年${parseInt(fm)}月` : '';
+    const onePartner = partner_id ? uById(partner_id) : null;
+    const personPart = onePartner ? `_${onePartner.real_name}` : '';
+    const fileLabel = `工作紀錄彙整${personPart}${monPart}`;
     const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已退回' };
     const weekCh = '日一二三四五六';
 
@@ -1921,6 +1925,7 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
       .map(a => ({ a, pid: a.accepted_by || a.target_partner_id }))
       .filter(x => x.pid && uById(x.pid)) // 需有「存在的」對應夥伴（排除已刪除夥伴的孤兒任務）
       .filter(x => refOf(x.a)); // 需有日期
+    if (partner_id) rows = rows.filter(x => String(x.pid) === String(partner_id));
     if (fy && fm) rows = rows.filter(x => refOf(x.a).slice(0,7) === `${fy}/${fm}`);
     // 依夥伴編號、日期排序
     rows.sort((x, y) => {

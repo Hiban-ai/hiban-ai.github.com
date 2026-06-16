@@ -396,12 +396,23 @@ textarea.form-input{resize:none}
 
       <!-- 全部任務列表 -->
       <div id="assign-stats-section" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem">
           <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務列表 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
-          <select id="assign-stats-filter" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
-            <option value="all">全部</option>
-          </select>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <select id="assign-stats-status" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+              <option value="all">全部狀態</option>
+              <option value="pending">待回覆</option>
+              <option value="accepted">進行中</option>
+              <option value="reviewing">待審核</option>
+              <option value="completed">已完成</option>
+              <option value="rejected">已退回</option>
+            </select>
+            <select id="assign-stats-filter" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+              <option value="all">全部夥伴</option>
+            </select>
+          </div>
         </div>
+        <div id="assign-stats-summary" style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-bottom:.75rem;padding:.6rem .9rem;background:var(--bg);border-radius:var(--rs)"></div>
         <div id="staff-assign-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
       </div>
     </div>
@@ -877,7 +888,7 @@ async function loadStaffGrab() {
       const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
       const records = recordsList[i] || [];
       const grabbersHtml = records.length
-        ? `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem">${records.map(r => `<span style="font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:10px;background:var(--bg);color:var(--text-m);border:1px solid var(--border)">#${r.grab_no} ${r.partner_name||'—'}</span>`).join('')}</div>`
+        ? `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem">${records.map(r => `<span ${r.assignment_id?`onclick="showTaskDetail(${r.assignment_id})" style="cursor:pointer;font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:10px;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp)"`:`style="font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:10px;background:var(--bg);color:var(--text-m);border:1px solid var(--border)"`}>#${r.grab_no} ${r.partner_name||'—'}${r.assignment_id?' ›':''}</span>`).join('')}</div>`
         : `<div style="font-size:.74rem;color:var(--text-s);margin-top:.5rem">尚無人搶單</div>`;
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
@@ -921,9 +932,19 @@ function renderStaffAssign() {
   const wrap = document.getElementById('staff-assign-wrap');
   if (!wrap) return;
   const filter = document.getElementById('assign-stats-filter').value;
-  const list = filter === 'all' ? staffAssignCache : staffAssignCache.filter(a => (a.partner_name || '未指定') === filter);
+  const statusF = document.getElementById('assign-stats-status')?.value || 'all';
+  let list = filter === 'all' ? staffAssignCache : staffAssignCache.filter(a => (a.partner_name || '未指定') === filter);
+  if (statusF !== 'all') {
+    list = list.filter(a => statusF === 'reviewing' ? a.review_status === 'reviewing' : (a.status === statusF && a.review_status !== 'reviewing'));
+  }
+  // 小計
+  const sumEl = document.getElementById('assign-stats-summary');
+  if (sumEl) {
+    const totalAmt = list.reduce((s, a) => s + (a.total_price || 0), 0);
+    sumEl.innerHTML = `<span>共 <strong style="color:var(--blue-d)">${list.length}</strong> 筆</span><span>總金額 <strong style="color:var(--green)">$${totalAmt.toLocaleString()}</strong></span>`;
+  }
   try {
-    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無指派任務</div>'; return; }
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">無符合條件的任務</div>'; return; }
     const groups = {};
     list.forEach(a => {
       const name = a.partner_name || '未指定';
@@ -935,8 +956,8 @@ function renderStaffAssign() {
       <div style="margin-bottom:1rem">
         <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem;margin-bottom:.5rem;color:var(--blue)">👤 ${name}（${items.length}）</div>
         ${items.map(a => {
-          const statusMap = { pending: ['待回覆','var(--orange)'], accepted: ['進行中','var(--green)'], submitted: ['待審核','var(--blue)'], approved: ['已完成','var(--text-s)'], rejected: ['已退回','var(--red)'] };
-          const [statusLabel, statusColor] = statusMap[a.status] || [a.status, 'var(--text-s)'];
+          const statusMap = { pending: ['待回覆','var(--orange)'], accepted: ['進行中','var(--green)'], completed: ['已完成','var(--text-s)'], rejected: ['已退回','var(--red)'] };
+          const [statusLabel, statusColor] = a.review_status === 'reviewing' ? ['待審核','var(--blue)'] : (statusMap[a.status] || [a.status, 'var(--text-s)']);
           return `
           <div style="background:#fff;border-radius:var(--r);padding:.85rem 1.1rem;box-shadow:var(--shadow);margin-bottom:.5rem;border-left:5px solid ${statusColor}">
             ${(() => { const tb = a.assign_type==='hourly' ? ['⏱️ 指派(小時)','#E07830'] : a.assign_type==='grab' ? ['🎯 搶單'+(a.grab_no?' #'+a.grab_no:''),'#1A8AC0'] : ['📋 指派(件)','#6B7DB0']; return `
@@ -1857,17 +1878,23 @@ function togglePayrollPanel(panelId, arrowEl) {
   if (arrowEl) arrowEl.textContent = open ? '▼' : '▲';
 }
 
-// 任務單詳情（薪資統計點擊每張任務單）
+// 任務單詳情（薪資統計、搶單任務資訊皆可點擊）
 function findAssignment(id) {
+  const inAll = staffAssignCache.find(x => x.id === id);
+  if (inAll) return { a: inAll, partner: inAll.partner_name || '—' };
   for (const p of payrollCache) {
     const a = (p.records || []).find(x => x.id === id);
     if (a) return { a, partner: p.real_name };
   }
   return null;
 }
-function showTaskDetail(id) {
-  const found = findAssignment(id);
-  if (!found) return;
+async function showTaskDetail(id) {
+  let found = findAssignment(id);
+  if (!found) {
+    try { staffAssignCache = await API.get('/api/admin/assignments'); } catch(e) {}
+    found = findAssignment(id);
+  }
+  if (!found) { showToast('找不到任務資料', 'error'); return; }
   const a = found.a;
   const typeLabel = a.assign_type === 'hourly' ? '⏱️ 指派任務(小時)' : a.assign_type === 'grab' ? '🎯 搶單' : '📋 指派任務(件)';
   const row = (l, v) => `<div style="display:flex;gap:.5rem;padding:.32rem 0;border-bottom:1px solid var(--border-l)"><span style="color:var(--text-s);width:80px;flex-shrink:0;font-size:.82rem">${l}</span><span style="flex:1;font-size:.85rem">${v}</span></div>`;

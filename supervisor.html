@@ -214,12 +214,25 @@ textarea.form-input{resize:none}
     <!-- Partners -->
     <div class="page-section" id="page-partners">
       <div class="page-title">👥 夥伴管理</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <input id="sv-partner-search" oninput="renderSvPartners()" placeholder="🔍 搜尋姓名 / 編號" style="flex:1;min-width:160px;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif">
+        <select id="sv-partner-status" onchange="renderSvPartners()" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+          <option value="all">全部狀態</option>
+          <option value="active">正常</option>
+          <option value="inactive">停用</option>
+        </select>
+        <select id="sv-partner-sort" onchange="renderSvPartners()" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+          <option value="no">依編號</option>
+          <option value="income">依累計收入</option>
+          <option value="tasks">依本月完成</option>
+        </select>
+      </div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th scope="col">姓名</th><th scope="col">職業</th><th scope="col">本月任務</th><th scope="col">累計收入</th><th scope="col">最後回報</th><th scope="col">狀態</th></tr></thead>
+            <thead><tr><th scope="col">編號</th><th scope="col">姓名</th><th scope="col">電話</th><th scope="col">進行中</th><th scope="col">本月完成</th><th scope="col">累計收入</th><th scope="col">最後完成</th><th scope="col">狀態</th></tr></thead>
             <tbody id="sv-partner-tbody">
-              <tr><td colspan="6" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
+              <tr><td colspan="8" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1292,14 +1305,77 @@ async function loadPartners() {
     // 儀表板負責夥伴數
     const countEl = document.getElementById('dashboard-partner-count');
     if (countEl) countEl.textContent = users.length;
-    // 夥伴管理 table
-    const tbody = document.getElementById('sv-partner-tbody');
-    tbody.innerHTML = users.map(u=>`
-      <tr><td style="font-weight:700;color:var(--text)">${u.real_name}</td>
-      <td>⚔️ 文字學徒</td><td>3件</td><td>$350</td><td>今天</td>
-      <td><span class="status-badge sb-active">正常</span></td></tr>
-    `).join('');
+    // 夥伴管理 table（完整統計）
+    loadSvPartners();
   } catch {}
+}
+
+let svPartnerCache = [];
+async function loadSvPartners() {
+  try {
+    svPartnerCache = await API.get('/api/supervisor/partners');
+    renderSvPartners();
+  } catch(e) { console.error('[svPartners]', e.message); }
+}
+
+function renderSvPartners() {
+  const tbody = document.getElementById('sv-partner-tbody');
+  if (!tbody) return;
+  const q      = (document.getElementById('sv-partner-search')?.value || '').trim().toLowerCase();
+  const statusF= document.getElementById('sv-partner-status')?.value || 'all';
+  const sortF  = document.getElementById('sv-partner-sort')?.value || 'no';
+  let list = svPartnerCache.slice();
+  if (q) list = list.filter(p => (p.real_name||'').toLowerCase().includes(q) || ('p'+String(p.partner_no||'').padStart(3,'0')).includes(q) || String(p.partner_no||'').includes(q));
+  if (statusF !== 'all') list = list.filter(p => statusF === 'active' ? p.status === 'active' : p.status !== 'active');
+  if (sortF === 'income') list.sort((a,b)=> (b.total_income||0)-(a.total_income||0));
+  else if (sortF === 'tasks') list.sort((a,b)=> (b.month_tasks||0)-(a.month_tasks||0));
+  else list.sort((a,b)=> (a.partner_no||9999)-(b.partner_no||9999));
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-s);padding:1.5rem">無符合的夥伴</td></tr>'; return; }
+  tbody.innerHTML = list.map(p => {
+    const no = p.partner_no ? 'P'+String(p.partner_no).padStart(3,'0') : '—';
+    const stCls = p.status === 'active' ? 'sb-active' : (p.status === 'pending' ? 'sb-pending' : 'sb-warn');
+    const stTxt = p.status === 'active' ? '正常' : (p.status === 'pending' ? '待審核' : '停用');
+    const last = p.last_report ? fmtDay(p.last_report.slice(0,10)) : '—';
+    return `
+    <tr onclick="toggleSvPartnerDetail(${p.id})" style="cursor:pointer">
+      <td style="font-family:monospace;font-weight:700;color:var(--blue-d)">${no}</td>
+      <td style="font-weight:700;color:var(--text)">${p.real_name} <span style="color:var(--text-s);font-size:.7rem">▾</span></td>
+      <td style="font-size:.82rem">${p.phone||'—'}</td>
+      <td>${p.active_count||0}${p.reviewing_count?` <span style="color:var(--blue);font-size:.72rem">(待審${p.reviewing_count})</span>`:''}</td>
+      <td>${p.month_tasks||0} 件</td>
+      <td style="font-weight:700;color:var(--green)">$${(p.total_income||0).toLocaleString()}</td>
+      <td style="font-size:.82rem;color:var(--text-s)">${last}</td>
+      <td><span class="status-badge ${stCls}">${stTxt}</span></td>
+    </tr>
+    <tr id="sv-pd-${p.id}" style="display:none"><td colspan="8" style="background:var(--bg);padding:.8rem 1.1rem">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem .9rem;font-size:.82rem;color:var(--text-m)">
+        <div>編號：<b>${no}</b></div>
+        <div>電話：<b>${p.phone||'—'}</b></div>
+        <div>身份別：<b>${p.identity||'—'}</b></div>
+        <div>進行中：<b>${p.active_count||0}</b> 件</div>
+        <div>待審核：<b>${p.reviewing_count||0}</b> 件</div>
+        <div>已完成：<b>${p.completed_count||0}</b> 件</div>
+        <div>本月完成：<b>${p.month_tasks||0}</b> 件</div>
+        <div>本月收入：<b style="color:var(--green)">$${(p.month_income||0).toLocaleString()}</b></div>
+        <div>累計收入：<b style="color:var(--green)">$${(p.total_income||0).toLocaleString()}</b></div>
+      </div>
+      <div style="margin-top:.6rem"><button onclick="event.stopPropagation();gotoPartnerRecords('${(p.real_name||'').replace(/'/g,'&#39;')}')" style="padding:.4rem .9rem;background:#fff;color:var(--blue-d);border:1.5px solid var(--blue);border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer">📁 查看任務紀錄</button></div>
+    </td></tr>`;
+  }).join('');
+}
+
+function toggleSvPartnerDetail(id) {
+  const row = document.getElementById('sv-pd-'+id);
+  if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+
+function gotoPartnerRecords(name) {
+  switchPage('task-records', document.querySelector('[onclick*="task-records"]'));
+  // 任務紀錄頁載入後，若有人員分頁則自動選該夥伴
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('#task-records-tabs button');
+    tabs.forEach(b => { if (b.textContent.includes(name)) b.click(); });
+  }, 400);
 }
 
 // ── 個人資料 — 基本資料 ──

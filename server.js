@@ -1001,6 +1001,33 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 督導的夥伴清單（含統計）
+app.get('/api/supervisor/partners', requireRole('supervisor'), async (req, res) => {
+  try {
+    const supId = req.session.user.id;
+    const [users, assignments] = await Promise.all([Users.all(), Assignments.all()]);
+    const partners = users.filter(u => u.role === 'partner' && u.supervisor_id === supId);
+    const curYM = nowTW().slice(0, 7); // YYYY/MM
+    const result = partners.map(p => {
+      const mine      = assignments.filter(a => a.accepted_by === p.id);
+      const completed = mine.filter(a => a.status === 'completed');
+      const active    = mine.filter(a => a.status === 'accepted' && a.review_status !== 'reviewing');
+      const reviewing = mine.filter(a => a.review_status === 'reviewing');
+      const total_income = completed.reduce((s, a) => s + (a.total_price || 0), 0);
+      const month_income = completed.filter(a => (a.completed_at || '').slice(0,7) === curYM).reduce((s, a) => s + (a.total_price || 0), 0);
+      const month_tasks  = completed.filter(a => (a.completed_at || '').slice(0,7) === curYM).length;
+      const last_report  = completed.map(a => a.completed_at).filter(Boolean).sort().pop() || null;
+      return {
+        id: p.id, partner_no: p.partner_no || null, real_name: p.real_name,
+        phone: p.phone || '', status: p.status, identity: p.identity || '',
+        completed_count: completed.length, active_count: active.length, reviewing_count: reviewing.length,
+        total_income, month_income, month_tasks, last_report,
+      };
+    }).sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
+    res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── 督導預警公告 ──────────────────────────────────────────────
 app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) => {
   try {

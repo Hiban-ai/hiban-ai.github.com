@@ -1910,7 +1910,7 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
     const fileLabel = (fy && fm) ? `工作紀錄彙整_${fy}年${parseInt(fm)}月` : '工作紀錄彙整';
 
     const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
-    const uById = id => allUsers.find(u => u.id === id);
+    const uById = id => allUsers.find(u => String(u.id) === String(id));
     const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已退回' };
     const weekCh = '日一二三四五六';
 
@@ -1919,7 +1919,7 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
 
     let rows = allAssign
       .map(a => ({ a, pid: a.accepted_by || a.target_partner_id }))
-      .filter(x => x.pid) // 需有對應夥伴
+      .filter(x => x.pid && uById(x.pid)) // 需有「存在的」對應夥伴（排除已刪除夥伴的孤兒任務）
       .filter(x => refOf(x.a)); // 需有日期
     if (fy && fm) rows = rows.filter(x => refOf(x.a).slice(0,7) === `${fy}/${fm}`);
     // 依夥伴編號、日期排序

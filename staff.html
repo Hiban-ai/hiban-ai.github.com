@@ -723,6 +723,17 @@ textarea.form-input{resize:none}
   <img id="img-lightbox-img" alt="放大檢視圖片" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
 </div>
 
+<!-- 任務單詳情 -->
+<div id="task-detail-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:99998;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:var(--r);max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📄 任務單詳情</div>
+      <button onclick="closeTaskDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <div id="task-detail-body" style="padding:1.1rem 1.2rem"></div>
+  </div>
+</div>
+
 <!-- 公告新增/編輯 Modal -->
 <div class="confirm-overlay" id="ann-form-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
   <div class="confirm-box" style="width:min(580px,96vw);text-align:left;border-top-color:var(--blue);padding:1.5rem;max-height:90vh;overflow-y:auto">
@@ -934,12 +945,22 @@ function renderStaffAssign() {
               <div style="font-weight:700;font-size:.88rem">${a.company ? a.company+'：'+a.task_name : a.task_name}${a.task_no ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .5rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">📋 #'+a.task_no+'</span>' : ''}</div>
               <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
             </div>
+            <div style="font-size:.7rem;font-weight:700;margin-bottom:.25rem;color:var(--blue-d)">${a.assign_type==='hourly'?'⏱️ 小時':a.assign_type==='grab'?'🎯 搶單':'📋 件'}${a.grab_no?' #'+a.grab_no:''}</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .75rem;font-size:.78rem;color:var(--text-m)">
               <div>督導：${a.supervisor_name||'—'}</div>
-              <div>數量：${a.quantity||'—'}</div>
-              <div>截止：${(a.deadline||'').slice(0,10)||'—'}</div>
+              ${a.assign_type==='hourly' ? `
+                <div>時薪：$${(a.hourly_wage||0).toLocaleString()}</div>
+                <div>總金額：<strong style="color:var(--green)">$${(a.total_price||0).toLocaleString()}</strong></div>
+                ${a.work_start ? `<div style="grid-column:1/-1">時段：${a.work_start} ～ ${a.work_end}（${Math.floor((a.work_minutes||0)/60)}時${(a.work_minutes||0)%60}分）</div>` : '<div style="grid-column:2/-1;color:var(--text-s)">尚未回報執行時間</div>'}
+              ` : `
+                <div>數量：${a.quantity||'—'}</div>
+                <div>單價／總價：$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--green)">$${(a.total_price||0).toLocaleString()}</strong></div>
+                <div>截止：${a.deadline_date ? a.deadline_date.slice(0,10) : ((a.deadline||'').slice(0,10)||'—')}</div>
+              `}
             </div>
-            ${a.custom_fields && a.custom_fields.length ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.78rem;color:var(--text-m)">${a.custom_fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>` : ''}
+            ${a.work_content ? `<div style="margin-top:.3rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">工作內容：</span>${a.work_content}</div>` : ''}
+            ${a.notes ? `<div style="margin-top:.2rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">補充說明：</span>${a.notes}</div>` : ''}
+            ${a.custom_fields && a.custom_fields.length ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.78rem;color:var(--text-m)">${a.custom_fields.filter(f=>f.value!=='').map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>` : ''}
           </div>`;
         }).join('')}
       </div>`;
@@ -1795,12 +1816,15 @@ function renderPayroll() {
   listEl.innerHTML = filtered.map(p => {
     const total = p.records.reduce((s, a) => s + (a.total_price || 0), 0);
     const rows = p.records.map(a => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-size:.85rem;font-weight:600;color:var(--text-m)">${a.company ? a.company+'：'+a.task_name : a.task_name}${a.task_no ? ' #'+a.task_no : ''}</div>
+      <div onclick="showTaskDetail(${a.id})" style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem;font-weight:600;color:var(--text-m)">${a.assign_type==='hourly'?'⏱️ ':a.assign_type==='grab'?'🎯 ':'📋 '}${a.company ? a.company+'：'+a.task_name : a.task_name}${a.task_no ? ' #'+a.task_no : ''}${a.grab_no?' 搶'+a.grab_no:''}</div>
           <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${a.completed_at || '—'}</div>
         </div>
-        <div style="font-weight:700;color:var(--yellow);font-size:.92rem;white-space:nowrap">+$${(a.total_price||0).toLocaleString()}</div>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0">
+          <div style="font-weight:700;color:var(--yellow);font-size:.92rem;white-space:nowrap">+$${(a.total_price||0).toLocaleString()}</div>
+          <span style="color:var(--text-s);font-size:.8rem">›</span>
+        </div>
       </div>`).join('');
 
     return `
@@ -1829,6 +1853,49 @@ function togglePayrollPanel(panelId, arrowEl) {
   const open = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : '';
   if (arrowEl) arrowEl.textContent = open ? '▼' : '▲';
+}
+
+// 任務單詳情（薪資統計點擊每張任務單）
+function findAssignment(id) {
+  for (const p of payrollCache) {
+    const a = (p.records || []).find(x => x.id === id);
+    if (a) return { a, partner: p.real_name };
+  }
+  return null;
+}
+function showTaskDetail(id) {
+  const found = findAssignment(id);
+  if (!found) return;
+  const a = found.a;
+  const typeLabel = a.assign_type === 'hourly' ? '⏱️ 指派任務(小時)' : a.assign_type === 'grab' ? '🎯 搶單' : '📋 指派任務(件)';
+  const row = (l, v) => `<div style="display:flex;gap:.5rem;padding:.32rem 0;border-bottom:1px solid var(--border-l)"><span style="color:var(--text-s);width:80px;flex-shrink:0;font-size:.82rem">${l}</span><span style="flex:1;font-size:.85rem">${v}</span></div>`;
+  let body = '';
+  body += row('類型', typeLabel);
+  body += row('夥伴', found.partner);
+  body += row('公司', a.company || '—');
+  body += row('任務', a.task_name + (a.task_no ? ' #'+a.task_no : '') + (a.grab_no ? ' 搶單#'+a.grab_no : ''));
+  body += row('督導', a.supervisor_name || '—');
+  if (a.assign_type === 'hourly') {
+    if (a.work_content) body += row('工作內容', a.work_content);
+    body += row('時薪', '$' + (a.hourly_wage||0).toLocaleString() + ' / 小時');
+    body += row('開始時間', a.work_start || '—');
+    body += row('完成時間', a.work_end || '—');
+    body += row('總時數', Math.floor((a.work_minutes||0)/60) + ' 小時 ' + ((a.work_minutes||0)%60) + ' 分');
+    body += row('總金額', '<strong style="color:var(--green)">$' + (a.total_price||0).toLocaleString() + '</strong>');
+  } else {
+    body += row('數量', (a.quantity||'—') + ' 件');
+    body += row('單價／總價', '$' + (a.unit_price||0).toLocaleString() + ' ／ <strong style="color:var(--green)">$' + (a.total_price||0).toLocaleString() + '</strong>');
+    if (a.deadline_date) body += row('完成期限', a.deadline_date.slice(0,10));
+  }
+  if (a.notes) body += row('補充說明', a.notes);
+  (a.custom_fields || []).filter(f => f.value !== '').forEach(f => { body += row(f.label, f.value); });
+  body += row('接案時間', a.accepted_at || '—');
+  body += row('完成時間', a.completed_at || '—');
+  document.getElementById('task-detail-body').innerHTML = body;
+  document.getElementById('task-detail-overlay').style.display = 'flex';
+}
+function closeTaskDetail() {
+  document.getElementById('task-detail-overlay').style.display = 'none';
 }
 
 async function sendPayrollEmail(partnerId, btn) {

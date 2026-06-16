@@ -382,21 +382,22 @@ textarea.form-input{resize:none}
     <!-- 任務管理 -->
     <div class="page-section" id="page-tasks">
       <div class="page-title">⚔️ 任務管理</div>
-      <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
-        <button onclick="toggleTaskStats('grab')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">🎯 搶單任務統計</button>
-        <button onclick="toggleTaskStats('assign')" style="display:flex;align-items:center;gap:.5rem;padding:.85rem 1.3rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.92rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">📋 全部任務統計</button>
+      <!-- 分頁切換 -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.1rem">
+        <button id="ttab-assign" onclick="toggleTaskStats('assign')" style="padding:.7rem 1.3rem;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem;font-weight:700;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">📋 全部任務列表</button>
+        <button id="ttab-grab" onclick="toggleTaskStats('grab')" style="padding:.7rem 1.3rem;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem;font-weight:700;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">🎯 搶單任務資訊</button>
       </div>
 
-      <!-- 搶單任務統計 -->
+      <!-- 搶單任務資訊 -->
       <div id="grab-stats-section" style="display:none">
-        <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.75rem">🎯 搶單任務統計</div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.75rem">🎯 搶單任務資訊 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（每個搶單的名額與搶單者）</span></div>
         <div id="staff-grab-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
       </div>
 
-      <!-- 指派任務統計 -->
+      <!-- 全部任務列表 -->
       <div id="assign-stats-section" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
-          <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務統計 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務列表 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
           <select id="assign-stats-filter" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
             <option value="all">全部</option>
           </select>
@@ -848,19 +849,16 @@ textarea.form-input{resize:none}
 <script>
 // ── 任務管理：切換顯示區塊 ──────────────────────────────────
 function toggleTaskStats(which) {
-  const grabSec   = document.getElementById('grab-stats-section');
-  const assignSec = document.getElementById('assign-stats-section');
-  if (which === 'grab') {
-    const show = grabSec.style.display === 'none';
-    grabSec.style.display = show ? '' : 'none';
-    assignSec.style.display = 'none';
-    if (show) loadStaffGrab();
-  } else {
-    const show = assignSec.style.display === 'none';
-    assignSec.style.display = show ? '' : 'none';
-    grabSec.style.display = 'none';
-    if (show) loadStaffAssign();
+  const isGrab = which === 'grab';
+  document.getElementById('grab-stats-section').style.display   = isGrab ? '' : 'none';
+  document.getElementById('assign-stats-section').style.display = isGrab ? 'none' : '';
+  const on = '#155E8C', off = 'var(--text-s)';
+  const ga = document.getElementById('ttab-grab'), aa = document.getElementById('ttab-assign');
+  if (ga && aa) {
+    ga.style.color = isGrab ? on : off; ga.style.borderBottomColor = isGrab ? on : 'transparent';
+    aa.style.color = isGrab ? off : on; aa.style.borderBottomColor = isGrab ? 'transparent' : on;
   }
+  if (isGrab) loadStaffGrab(); else loadStaffAssign();
 }
 
 // ── 搶單統計（管理員）──────────────────────────────────────
@@ -1053,6 +1051,7 @@ function switchPage(name, el) {
   if (name === 'accounts') loadAccounts();
   if (name === 'forgot') loadForgotRequests();
   if (name === 'payroll') loadPayroll();
+  if (name === 'tasks') toggleTaskStats('assign');  // 進任務管理預設顯示「全部任務列表」
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }

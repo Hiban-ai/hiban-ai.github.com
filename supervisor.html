@@ -679,6 +679,31 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 已完成任務「重新退回」 overlay -->
+<div class="pw-overlay" id="rollback-overlay">
+  <div class="pw-box">
+    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">↩ 重新退回</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">選擇要退回的關卡並填寫原因。</div>
+    <input type="hidden" id="rollback-report-id">
+    <div id="rollback-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.8rem">
+      <label style="display:flex;align-items:flex-start;gap:.5rem;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:var(--rs);cursor:pointer">
+        <input type="radio" name="rollback-target" value="partner" checked style="margin-top:.2rem">
+        <span><b>🔁 退回工作夥伴（重做）</b><br><span style="font-size:.78rem;color:var(--text-s)">任務變回進行中，夥伴看到原因後重新執行與回報</span></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:.5rem;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:var(--rs);cursor:pointer">
+        <input type="radio" name="rollback-target" value="review" style="margin-top:.2rem">
+        <span><b>🔍 退回督導審核（重新審核）</b><br><span style="font-size:.78rem;color:var(--text-s)">報告回到待審核列表，由督導重新審核同一份回報</span></span>
+      </label>
+    </div>
+    <div class="form-group">
+      <textarea class="form-input" id="rollback-reason" rows="3" placeholder="請填寫退回原因..."></textarea>
+    </div>
+    <button class="btn-primary" style="background:var(--orange)" onclick="submitRollback()">確認退回</button>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeRollback()">取消</button>
+  </div>
+</div>
+
 <!-- 圖片放大 overlay -->
 <div id="img-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:.75rem">
   <div style="display:flex;gap:.75rem;align-items:center">
@@ -781,6 +806,7 @@ function downloadOverlayImg() {
 }
 
 async function approveReport(reportId, assignmentId) {
+  if (!confirm('確定要核可這筆任務回報嗎？\n核可後任務將標記為完成。')) return;
   try {
     await API.put(`/api/reports/${reportId}/approve`);
     showToast('已同意，任務標記為完成 ✓', 'success');
@@ -811,6 +837,34 @@ async function submitRejectReport() {
     await API.put(`/api/reports/${id}/reject`, { reason });
     closeRejectReport();
     showToast('已退回，意見已傳送給夥伴', 'warn');
+    loadTaskReviews();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+// ── 已完成任務「重新退回」 ──────────────────────────────────────
+function openRollback(reportId) {
+  document.getElementById('rollback-report-id').value = reportId;
+  document.getElementById('rollback-reason').value = '';
+  document.getElementById('rollback-err').style.display = 'none';
+  const r = document.querySelector('input[name="rollback-target"][value="partner"]');
+  if (r) r.checked = true;
+  document.getElementById('rollback-overlay').classList.add('open');
+}
+function closeRollback() {
+  document.getElementById('rollback-overlay').classList.remove('open');
+}
+async function submitRollback() {
+  const err    = document.getElementById('rollback-err');
+  err.style.display = 'none';
+  const id     = parseInt(document.getElementById('rollback-report-id').value);
+  const target = document.querySelector('input[name="rollback-target"]:checked')?.value;
+  const reason = document.getElementById('rollback-reason').value.trim();
+  if (!reason) { err.textContent = '請填寫退回原因'; err.style.display = 'block'; return; }
+  try {
+    await API.put(`/api/reports/${id}/rollback`, { target, reason });
+    closeRollback();
+    showToast(target === 'review' ? '已退回，報告回到待審核' : '已退回給工作夥伴重做', 'warn');
+    loadTaskRecords();
     loadTaskReviews();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
@@ -2524,6 +2578,9 @@ function renderTaskRecordsContent() {
           </div>
         `).join('')}
       </div>` : ''}
+      <div style="display:flex;justify-content:flex-end;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--border)">
+        <button onclick="openRollback(${r.id})" style="padding:.45rem 1rem;background:#fff;color:var(--orange);border:1.5px solid var(--orange);border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">↩ 重新退回</button>
+      </div>
     </div>`).join('');
 }
 

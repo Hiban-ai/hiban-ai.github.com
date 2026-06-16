@@ -1636,12 +1636,15 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
       .collection('worklog_reports').where('id','==',id).limit(1).get();
     if (!rSnap.empty) {
       const r   = rSnap.docs[0].data();
+      const aPrev = await Assignments.byId(r.assignment_id);
       await Assignments.update(r.assignment_id, {
         status: 'completed', completed_at: nowTW(), review_status: 'approved'
       });
       const a = await Assignments.byId(r.assignment_id);
-      if (a && a.accepted_by) {
+      // XP 只發一次（退回再核可不重複計分）
+      if (a && a.accepted_by && !(aPrev && aPrev.xp_granted)) {
         await grantTaskXP(a.accepted_by, a.task_name, a.company).catch(e => console.error('[grantTaskXP]', e.message));
+        await Assignments.update(r.assignment_id, { xp_granted: true });
       }
 
       // 督導核可後，背景上傳附件圖片至雲端
@@ -1701,6 +1704,41 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
       const comments = [...(a.supervisor_comments || []), { date, time, text: reason }];
       // 退回後清除 review_status，讓夥伴可重新送出
       await Assignments.update(r.assignment_id, { supervisor_comments: comments, review_status: null });
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 已完成任務「重新退回」：target = 'partner'(退回夥伴重做) | 'review'(退回督導重新審核)
+app.put('/api/reports/:id/rollback', requireRole('supervisor'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { target, reason } = req.body;
+    if (!['partner','review'].includes(target)) return res.status(400).json({ error: '請選擇退回關卡' });
+    if (!reason || !reason.trim()) return res.status(400).json({ error: '請填寫退回原因' });
+    const rSnap = await require('firebase-admin').firestore()
+      .collection('worklog_reports').where('id','==',id).limit(1).get();
+    if (rSnap.empty) return res.status(404).json({ error: '找不到回報' });
+    const r = rSnap.docs[0].data();
+    const a = await Assignments.byId(r.assignment_id);
+    if (!a) return res.status(404).json({ error: '找不到任務' });
+    const ts = nowTW();
+    const [date, time] = ts.split(' ');
+    const tag = target === 'partner' ? '【退回重做】' : '【退回重新審核】';
+    const comments = [...(a.supervisor_comments || []), { date, time, text: tag + reason.trim() }];
+
+    if (target === 'review') {
+      // 回到督導待審核：報告 pending、任務回到 reviewing
+      await WorklogReports.update(id, { status: 'pending' });
+      await Assignments.update(r.assignment_id, {
+        status: 'accepted', review_status: 'reviewing', completed_at: null, supervisor_comments: comments,
+      });
+    } else {
+      // 回到工作夥伴重做：報告 rejected、任務回到進行中、清除審核狀態
+      await WorklogReports.update(id, { status: 'rejected' });
+      await Assignments.update(r.assignment_id, {
+        status: 'accepted', review_status: null, completed_at: null, supervisor_comments: comments,
+      });
     }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }

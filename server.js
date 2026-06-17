@@ -543,7 +543,7 @@ app.get('/api/admin/users', requireRole('staff'), async (req, res) => {
 
 app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
   try {
-    const { role, real_name, id_number, birthday, phone, email, address, identity, is_admin } = req.body;
+    const { role, real_name, id_number, birthday, phone, email, address, mailing_address, identity, is_admin } = req.body;
     if (!['supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (!real_name || !id_number || !birthday || !phone) return res.status(400).json({ error: 'Missing required fields' });
     // 只有 system admin 才能建立 is_admin 帳號
@@ -554,6 +554,7 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
       username, real_name, id_number, birthday, phone,
       email:    email    || null,
       address:  address  || null,
+      mailing_address: mailing_address || address || null,
       identity: identity || null,
       is_admin: role === 'staff' && !!is_admin,
       role, status: 'active', is_first_login: true,
@@ -2525,9 +2526,9 @@ app.post('/api/gemini/extract-id', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(503).json({ error: 'GEMINI_API_KEY 未設定' });
 
-    const prompt = `這是一張中華民國身分證的正面和反面圖片。請提取以下資料，以 JSON 格式回傳，只回傳 JSON 不要其他文字：
-{"real_name":"姓名(從正面)","id_number":"身分證字號10碼英數(從正面)","birthday":"生日YYYY/MM/DD格式(從正面民國年轉換為西元)","gender":"性別男或女(從正面)","address":"完整戶籍地址(從反面)"}
-如果某欄位看不清楚請填空字串。`;
+    const prompt = `請判斷並提取圖片資料，只回傳 JSON 不要其他文字：
+{"is_id_card":true/false(這是否為中華民國身分證？非身分證請填 false),"quality":"good/blurry/glare/dark/cropped(影像品質：清晰good/模糊blurry/反光glare/太暗dark/裁切不全cropped)","warning":"若有品質或非身分證問題，用一句中文說明，例如『影像模糊，請重拍』；正常則空字串","real_name":"姓名(從正面)","id_number":"身分證字號10碼英數(從正面)","birthday":"生日YYYY/MM/DD格式(從正面民國年轉換為西元)","gender":"性別男或女(從正面)","address":"完整戶籍地址(從反面)"}
+看不清楚的欄位填空字串。`;
 
     const parts = [
       { text: prompt },

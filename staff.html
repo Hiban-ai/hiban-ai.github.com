@@ -673,7 +673,14 @@ textarea.form-input{resize:none}
       </div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" id="cu-email" placeholder="選填" type="email" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">戶籍地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1" oninput="cuSyncMailing()"></div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">通訊地址</label>
+        <div style="flex:1">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-s);margin-bottom:.3rem;cursor:pointer"><input type="checkbox" id="cu-same-address" onchange="cuToggleSameAddress()" style="width:15px;height:15px">同戶籍地址</label>
+          <input class="form-input" id="cu-mailing-address" placeholder="選填" style="width:100%">
+        </div>
+      </div>
       <div id="cu-admin-row" style="display:none;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--yellow-p);border-radius:var(--rs);border:1.5px solid var(--yellow)">
         <input type="checkbox" id="cu-is-admin" style="width:16px;height:16px;cursor:pointer">
         <label for="cu-is-admin" style="font-size:.88rem;font-weight:600;color:#7A5010;cursor:pointer">設定成系統管理者（可管理 admin 帳號）</label>
@@ -1635,9 +1642,11 @@ function openCreateUser(role) {
   const titles = { supervisor:'新增督導人員', staff:'新增管理人員' };
   document.getElementById('create-user-title').textContent = titles[role];
   document.getElementById('create-user-role').value = role;
-  ['cu-name','cu-id','cu-phone','cu-email','cu-address'].forEach(id => document.getElementById(id).value = '');
+  ['cu-name','cu-id','cu-phone','cu-email','cu-address','cu-mailing-address'].forEach(id => document.getElementById(id).value = '');
   ['cu-bday-year','cu-bday-month','cu-bday-day'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('cu-birthday').value = '';
+  document.getElementById('cu-same-address').checked = false;
+  cuToggleSameAddress();
   document.getElementById('cu-err').style.display = 'none';
   // 只有 system admin 新增管理人員時顯示「設定成系統管理者」
   const adminRow = document.getElementById('cu-admin-row');
@@ -1649,6 +1658,16 @@ function openCreateUser(role) {
 function closeCreateUser() {
   document.getElementById('create-user-overlay').classList.remove('open');
 }
+function cuToggleSameAddress() {
+  const same = document.getElementById('cu-same-address').checked;
+  const m = document.getElementById('cu-mailing-address');
+  if (same) { m.value = document.getElementById('cu-address').value; m.readOnly = true; m.style.background = 'var(--bg)'; }
+  else { m.readOnly = false; m.style.background = ''; }
+}
+function cuSyncMailing() {
+  if (document.getElementById('cu-same-address').checked)
+    document.getElementById('cu-mailing-address').value = document.getElementById('cu-address').value;
+}
 async function submitCreateUser() {
   const err = document.getElementById('cu-err');
   err.style.display = 'none';
@@ -1659,13 +1678,14 @@ async function submitCreateUser() {
   const phone     = document.getElementById('cu-phone').value.trim();
   const email    = document.getElementById('cu-email').value.trim();
   const address  = document.getElementById('cu-address').value.trim();
+  const mailing_address = document.getElementById('cu-mailing-address').value.trim();
   const is_admin = document.getElementById('cu-is-admin')?.checked || false;
   if (!real_name) { err.textContent='請填寫姓名'; err.style.display='block'; return; }
   if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
   if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
   if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
   try {
-    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, is_admin });
+    const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, mailing_address, is_admin });
     closeCreateUser();
     showToast(`帳號已建立：${res.username}`, 'success');
     loadAccounts();

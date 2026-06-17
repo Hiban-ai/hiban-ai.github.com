@@ -5,36 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>勞務報酬單</title>
 <style>
-  :root { --line:#333; }
   * { box-sizing:border-box; }
-  body { font-family:'Noto Sans TC','微軟正黑體',sans-serif; background:#e8eaed; margin:0; padding:24px; color:#111; }
-  .toolbar { max-width:760px; margin:0 auto 16px; display:flex; gap:.6rem; justify-content:flex-end; }
+  body { font-family:'Noto Sans TC','標楷體','DFKai-SB',serif; background:#e8eaed; margin:0; padding:24px; color:#111; }
+  .toolbar { max-width:900px; margin:0 auto 16px; display:flex; gap:.6rem; justify-content:flex-end; }
   .toolbar button { padding:.55rem 1.2rem; border:none; border-radius:8px; font-size:.9rem; font-weight:700; cursor:pointer; font-family:inherit; }
   .btn-print { background:#1A8AC0; color:#fff; }
   .btn-back { background:#fff; color:#555; border:1.5px solid #ccc; }
-  .sheet { max-width:760px; margin:0 auto; background:#fff; padding:40px 44px; box-shadow:0 4px 20px rgba(0,0,0,.12); }
-  .doc-company { text-align:center; font-size:15px; letter-spacing:2px; color:#333; }
-  .doc-title { text-align:center; font-size:26px; font-weight:800; letter-spacing:8px; margin:.2rem 0 .1rem; }
-  .doc-date { text-align:center; font-size:14px; color:#444; margin-bottom:18px; }
-  table.lr { width:100%; border-collapse:collapse; font-size:14.5px; }
-  table.lr th, table.lr td { border:1px solid var(--line); padding:9px 10px; vertical-align:middle; }
-  table.lr th { background:#f3f5f8; font-weight:700; width:96px; white-space:nowrap; text-align:center; }
-  .amt-grid { display:flex; }
-  .amt-grid .cell { flex:1; text-align:center; border-left:1px dashed #aaa; padding:2px 0; }
-  .amt-grid .cell:first-child { border-left:none; }
-  .amt-grid .u { font-size:11px; color:#888; }
-  .amt-grid .d { font-size:17px; font-weight:700; }
-  .big { font-size:16px; font-weight:700; letter-spacing:1px; }
-  .pick { display:flex; gap:1.4rem; flex-wrap:wrap; align-items:center; }
-  .pick .box { font-size:16px; margin-right:.3rem; }
-  .sign-row { display:flex; gap:0; margin-top:0; }
-  .sign-row td { height:64px; }
-  .note { font-size:12px; color:#777; margin-top:10px; line-height:1.6; }
+  .sheet { max-width:900px; margin:0 auto; background:#fff; padding:28px; box-shadow:0 4px 20px rgba(0,0,0,.12); }
+  table.lr { width:100%; border-collapse:collapse; font-size:16px; table-layout:fixed; }
+  table.lr td { border:1.5px solid #000; padding:8px 10px; vertical-align:middle; }
+  .t-company { text-align:center; font-size:20px; letter-spacing:2px; padding:12px; }
+  .t-title { text-align:center; font-size:19px; font-weight:700; letter-spacing:6px; background:#a9d08e; padding:8px; }
+  .lbl { width:110px; text-align:center; background:#fff; white-space:nowrap; }
+  .ctr { text-align:center; }
+  .boxname { display:inline-block; border:2px solid #000; padding:2px 18px; font-weight:700; }
+  .chk { font-size:17px; margin-right:.3rem; }
+  .amt td { text-align:center; }
+  .sigbox { border:2px solid #000; min-height:46px; }
   #err { max-width:760px; margin:40px auto; text-align:center; color:#c0392b; font-size:16px; }
   @media print {
     body { background:#fff; padding:0; }
     .toolbar { display:none; }
-    .sheet { box-shadow:none; max-width:none; padding:24px 28px; }
+    .sheet { box-shadow:none; max-width:none; padding:6mm; }
   }
 </style>
 </head>
@@ -45,50 +37,83 @@
   </div>
   <div id="err" style="display:none"></div>
   <div class="sheet" id="sheet" style="display:none">
-    <div class="doc-company" id="d-company">希絆股份有限公司</div>
-    <div class="doc-title">勞務報酬單</div>
-    <div class="doc-date" id="d-date"></div>
     <table class="lr">
-      <tr><th>姓名</th><td id="d-name"></td><th>身分證字號</th><td id="d-idno"></td></tr>
-      <tr><th>聯絡電話</th><td id="d-phone"></td><th>編號</th><td id="d-no"></td></tr>
-      <tr><th>戶籍地址</th><td colspan="3" id="d-addr"></td></tr>
+      <colgroup>
+        <col style="width:110px"><col style="width:170px"><col><col><col><col><col>
+      </colgroup>
+      <tr><td colspan="7" class="t-company" id="d-company">希絆股份有限公司</td></tr>
+      <tr><td colspan="7" class="t-title">勞務報酬單</td></tr>
+
       <tr>
-        <th>所得金額</th>
-        <td colspan="3">
-          <div class="amt-grid" id="d-amt-grid"></div>
-          <div style="text-align:right;font-size:13px;color:#555;margin-top:4px">（新臺幣 <span id="d-amt-cn" class="big"></span>）</div>
-        </td>
+        <td class="lbl">茲證明</td>
+        <td class="ctr"><span class="boxname" id="d-name"></span></td>
+        <td colspan="5">確實領取下列款項無誤</td>
       </tr>
-      <tr><th>代扣稅額</th><td colspan="3"><span id="d-tax-cn" class="big"></span> <span id="d-tax-note" style="font-size:12px;color:#888"></span></td></tr>
-      <tr><th>轉帳手續費</th><td colspan="3"><span id="d-fee" class="big"></span> <span id="d-fee-note" style="font-size:12px;color:#888"></span></td></tr>
-      <tr><th>實領金額</th><td colspan="3"><span id="d-net" class="big" style="color:#1A6FA0"></span>　（<span id="d-net-cn"></span>）</td></tr>
       <tr>
-        <th>支領方式</th>
-        <td colspan="3">
-          <div class="pick" style="margin-bottom:8px">
-            <span><span class="box" id="pick-bank">☑</span>銀行轉帳</span>
-            <span><span class="box">☐</span>現金</span>
-            <span><span class="box">☐</span>支票</span>
-          </div>
-          <table class="lr" style="font-size:13.5px">
-            <tr><th style="width:80px">銀行代碼</th><td id="d-bank-code"></td><th style="width:80px">分行</th><td id="d-bank-branch"></td></tr>
-            <tr><th>戶名</th><td id="d-bank-holder"></td><th>帳號</th><td id="d-bank-account"></td></tr>
-          </table>
-        </td>
+        <td class="lbl">工作內容：</td>
+        <td colspan="6" id="d-work"></td>
       </tr>
-      <tr class="sign-row"><th>受款人簽章</th><td></td><th>主管核章</th><td></td></tr>
+
+      <tr class="amt">
+        <td class="lbl">所得金額：<br>（中文大寫）</td>
+        <td class="ctr">新台幣</td>
+        <td id="amt-wan"></td><td id="amt-qian"></td><td id="amt-bai"></td><td id="amt-shi"></td><td id="amt-yuan"></td>
+      </tr>
+      <tr>
+        <td class="lbl">代扣稅額</td>
+        <td colspan="6" class="ctr" id="d-tax"></td>
+      </tr>
+
+      <!-- 支領方式 -->
+      <tr>
+        <td class="lbl" rowspan="4">支領方式：<br>（擇一勾選）</td>
+        <td colspan="2"><span class="chk" id="chk-post">☐</span>郵局轉帳(700)</td>
+        <td colspan="2">郵局：<span id="d-post-name"></span><br>戶名：<span id="d-post-holder"></span></td>
+        <td>局號：<span id="d-post-code"></span></td>
+        <td>帳號：<span id="d-post-acct"></span></td>
+      </tr>
+      <tr>
+        <td colspan="2" rowspan="2"><span class="chk" id="chk-bank">☐</span>銀行轉帳</td>
+        <td colspan="2">分行：<span id="d-bank-branch"></span></td>
+        <td colspan="2">銀行代碼：<span id="d-bank-code"></span></td>
+      </tr>
+      <tr>
+        <td colspan="2">戶名：<span id="d-bank-holder"></span></td>
+        <td colspan="2">銀行帳號：<span id="d-bank-acct"></span></td>
+      </tr>
+      <tr><td colspan="6"><span class="chk">☐</span>現金</td></tr>
+
+      <tr>
+        <td class="lbl">戶籍地址：</td>
+        <td colspan="6" id="d-addr"></td>
+      </tr>
+      <tr>
+        <td class="lbl" rowspan="2">通訊地址：</td>
+        <td colspan="6"><span class="chk" id="chk-same">☐</span>同戶籍地址</td>
+      </tr>
+      <tr>
+        <td colspan="6"><span class="chk" id="chk-diff">☐</span>非戶籍地址　<span id="d-maddr"></span></td>
+      </tr>
+
+      <tr>
+        <td class="lbl">聯絡電話：</td>
+        <td colspan="2" id="d-phone"></td>
+        <td colspan="4">身分證統一編號：<span id="d-idno"></span></td>
+      </tr>
+      <tr>
+        <td class="lbl">所得人簽章：</td>
+        <td colspan="2" class="sigbox"></td>
+        <td>領取日期：</td>
+        <td class="ctr"><span id="d-y"></span> 年</td>
+        <td class="ctr"><span id="d-m"></span> 月</td>
+        <td class="ctr">＿＿ 日</td>
+      </tr>
     </table>
-    <div class="note">
-      說明：1. 所得金額未達 20,000 元免扣繳所得稅。<br>
-      2. 達 20,000 元（含）以上，依規定代扣 10% 所得稅。<br>
-      3. 非本行（007 第一銀行）帳戶之轉帳，每筆扣手續費 15 元。
-    </div>
   </div>
 
 <script>
 const BIG = ['零','壹','貳','參','肆','伍','陸','柒','捌','玖'];
 const UNITS = ['元','拾','佰','仟','萬','拾萬','佰萬','仟萬','億'];
-// 依每個位數輸出大寫＋單位，最少補到「萬」位，最後加「整」
 function toCN(n) {
   n = Math.round(n || 0);
   if (n === 0) return '零元整';
@@ -99,67 +124,67 @@ function toCN(n) {
   for (let i = 0; i < L; i++) out += BIG[digits[i]] + UNITS[L - 1 - i];
   return out + '整';
 }
-// 金額分欄（萬/仟/佰/拾/元）
-function amtCells(n) {
+// 取某位數字大寫（place: 萬=4 仟=3 佰=2 拾=1 元=0）
+function placeCN(n, place, unit, withZheng) {
   n = Math.round(n || 0);
-  let digits = String(n).split('').map(Number);
-  while (digits.length < 5) digits.unshift(0);
-  const L = digits.length;
-  let html = '';
-  for (let i = 0; i < L; i++) {
-    html += `<div class="cell"><div class="u">${UNITS[L-1-i]}</div><div class="d">${BIG[digits[i]]}</div></div>`;
-  }
-  return html;
+  const digit = Math.floor(n / Math.pow(10, place)) % 10;
+  return BIG[digit] + unit + (withZheng ? '整' : '');
 }
 
 (async () => {
   const q = new URLSearchParams(location.search);
   const pid = q.get('partner_id'), ym = q.get('year_month');
   const errEl = document.getElementById('err');
-  if (!pid || !ym) { errEl.textContent = '缺少參數（partner_id / year_month）'; errEl.style.display = 'block'; return; }
+  if (!pid || !ym) { errEl.textContent = '缺少參數'; errEl.style.display = 'block'; return; }
   try {
     const r = await fetch(`/api/admin/labor-report?partner_id=${pid}&year_month=${ym}`);
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || '讀取失敗');
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
-    document.getElementById('d-company').textContent = d.company;
-    document.getElementById('d-date').textContent = `中華民國 ${d.year - 1911} 年 ${d.month} 月`;
-    document.getElementById('d-name').textContent = d.real_name;
-    document.getElementById('d-idno').textContent = d.id_number;
-    document.getElementById('d-phone').textContent = d.phone || '—';
-    document.getElementById('d-no').textContent = d.partner_no ? 'P' + String(d.partner_no).padStart(3,'0') : '—';
-    document.getElementById('d-addr').textContent = d.address || '—';
+    set('d-company', d.company);
+    set('d-name', d.real_name);
+    set('d-work', d.work_content || '勞務報酬');
 
     const amt = d.amount || 0;
-    document.getElementById('d-amt-grid').innerHTML = amtCells(amt);
-    document.getElementById('d-amt-cn').textContent = toCN(amt);
+    set('amt-wan',  placeCN(amt, 4, '萬'));
+    set('amt-qian', placeCN(amt, 3, '仟'));
+    set('amt-bai',  placeCN(amt, 2, '佰'));
+    set('amt-shi',  placeCN(amt, 1, '拾'));
+    set('amt-yuan', placeCN(amt, 0, '元', true));
 
-    // 代扣稅額
     const tax = amt >= 20000 ? Math.round(amt * 0.1) : 0;
-    document.getElementById('d-tax-cn').textContent = toCN(tax);
-    document.getElementById('d-tax-note').textContent = amt >= 20000 ? '（達2萬，扣10%）' : '（未達2萬，免扣）';
+    set('d-tax', toCN(tax) + (amt >= 20000 ? '' : ''));
 
-    // 手續費（非 007 扣 15）
-    const fee = (d.bank_code === '007') ? 0 : 15;
-    document.getElementById('d-fee').textContent = fee === 0 ? '零元整' : `${fee} 元`;
-    document.getElementById('d-fee-note').textContent = (d.bank_code === '007') ? '（本行免手續費）' : '（非007，扣15元）';
+    const isPost = d.bank_type === 'post';
+    document.getElementById('chk-post').textContent = isPost ? '■' : '☐';
+    document.getElementById('chk-bank').textContent = isPost ? '☐' : '■';
+    if (isPost) {
+      set('d-post-name', d.bank_name || '中華郵政');
+      set('d-post-holder', d.bank_holder);
+      set('d-post-code', d.post_office_code || (d.bank_account || '').split('-')[0] || '');
+      set('d-post-acct', d.bank_account);
+    } else {
+      set('d-bank-branch', d.bank_branch);
+      set('d-bank-code', d.bank_code ? `(${d.bank_code})` : '');
+      set('d-bank-holder', d.bank_holder);
+      set('d-bank-acct', d.bank_account);
+    }
 
-    // 實領
-    const net = amt - tax - fee;
-    document.getElementById('d-net').textContent = '$' + net.toLocaleString();
-    document.getElementById('d-net-cn').textContent = toCN(net);
+    set('d-addr', d.address || '—');
+    const same = !d.mailing_address || d.mailing_address === d.address;
+    document.getElementById('chk-same').textContent = same ? '■' : '☐';
+    document.getElementById('chk-diff').textContent = same ? '☐' : '■';
+    if (!same) set('d-maddr', d.mailing_address);
 
-    // 支領方式（預設銀行轉帳）
-    document.getElementById('d-bank-code').textContent = d.bank_code || '—';
-    document.getElementById('d-bank-branch').textContent = d.bank_branch || '—';
-    document.getElementById('d-bank-holder').textContent = d.bank_holder || '—';
-    document.getElementById('d-bank-account').textContent = d.bank_account || '—';
+    set('d-phone', d.phone || '—');
+    set('d-idno', d.id_number || '—');
+    set('d-y', d.year);
+    set('d-m', d.month);
 
     document.getElementById('sheet').style.display = 'block';
     document.title = `勞務報酬單_${d.real_name}_${d.year}年${d.month}月`;
-  } catch(e) {
-    errEl.textContent = e.message; errEl.style.display = 'block';
-  }
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
 })();
 </script>
 </body>

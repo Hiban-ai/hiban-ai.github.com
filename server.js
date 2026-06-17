@@ -2086,9 +2086,9 @@ app.get('/api/admin/labor-report', requireRole('staff'), async (req, res) => {
     const u = await Users.byId(parseInt(partner_id));
     if (!u) return res.status(404).json({ error: '找不到夥伴' });
     const all = await Assignments.all();
-    const amount = all
-      .filter(a => a.accepted_by === u.id && a.status === 'completed' && (a.completed_at || '').slice(0,7) === `${yy}/${mm}`)
-      .reduce((s, a) => s + (a.total_price || 0), 0);
+    const mine = all.filter(a => a.accepted_by === u.id && a.status === 'completed' && (a.completed_at || '').slice(0,7) === `${yy}/${mm}`);
+    const amount = mine.reduce((s, a) => s + (a.total_price || 0), 0);
+    const tasks = [...new Set(mine.map(a => a.task_name).filter(Boolean))];
     res.json({
       company: '希絆股份有限公司',
       year: yy, month: parseInt(mm),
@@ -2097,12 +2097,15 @@ app.get('/api/admin/labor-report', requireRole('staff'), async (req, res) => {
       id_number: u.id_number || '',
       phone: u.phone || '',
       address: u.address || '',
+      mailing_address: u.mailing_address || '',
+      work_content: tasks.join('、') || '勞務報酬',
       bank_type: u.bank_type || 'bank',
       bank_code: u.bank_type === 'post' ? '700' : (u.bank_code || ''),
       bank_name: u.bank_name || '',
       bank_branch: u.bank_branch || '',
       bank_account: u.bank_account || '',
       bank_holder: u.bank_holder || u.real_name || '',
+      post_office_code: u.post_office_code || '',
       amount,
     });
   } catch(e) { res.status(500).json({ error: e.message }); }

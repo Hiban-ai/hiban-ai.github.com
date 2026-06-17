@@ -448,6 +448,17 @@ textarea.form-input{resize:none}
           </div>
         </div>
 
+        <!-- 報表：勞務報酬單 -->
+        <div class="card">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">📄 勞務報酬單</div>
+          <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">單一夥伴單月的勞務報酬單（含金額中文大寫、代扣稅額、轉帳手續費、實領、支領方式）。開啟後可列印或另存 PDF。</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+            <select id="lr-partner" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)"></select>
+            <select id="lr-month" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)"></select>
+            <button onclick="openLaborReport()" style="padding:.5rem 1.1rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📄 產生勞報單</button>
+          </div>
+        </div>
+
         <!-- 之後可在此新增更多報表卡片 -->
 
       </div>
@@ -1004,6 +1015,35 @@ function initReportsPage() {
     ySel.innerHTML = opts;
     ySel.dataset.ready = '1';
   }
+  // 勞報單：夥伴 + 月份下拉
+  const lrP = document.getElementById('lr-partner');
+  if (lrP) {
+    const cur = lrP.value;
+    const partners = (usersCache || []).filter(u => u.role === 'partner' && u.status === 'active')
+      .sort((a,b) => (a.partner_no||9999)-(b.partner_no||9999));
+    lrP.innerHTML = partners.map(p =>
+      `<option value="${p.id}">${p.partner_no ? 'P'+String(p.partner_no).padStart(3,'0')+' ' : ''}${p.real_name}</option>`).join('');
+    lrP.value = cur;
+  }
+  const lrM = document.getElementById('lr-month');
+  if (lrM && !lrM.dataset.ready) {
+    const now = new Date();
+    let opts = '';
+    for (let i = 0; i < 18; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      opts += `<option value="${ym}">${d.getFullYear()} 年 ${d.getMonth()+1} 月</option>`;
+    }
+    lrM.innerHTML = opts;
+    lrM.dataset.ready = '1';
+  }
+}
+
+function openLaborReport() {
+  const pid = document.getElementById('lr-partner')?.value;
+  const ym  = document.getElementById('lr-month')?.value;
+  if (!pid) { showToast('請選擇夥伴', 'error'); return; }
+  window.open(`/labor-report.html?partner_id=${pid}&year_month=${ym}`, '_blank');
 }
 
 function exportWorkRecords() {

@@ -2077,6 +2077,37 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 勞務報酬單資料：GET /api/admin/labor-report?partner_id=X&year_month=YYYY-MM
+app.get('/api/admin/labor-report', requireRole('staff'), async (req, res) => {
+  try {
+    const { partner_id, year_month } = req.query;
+    if (!partner_id || !year_month) return res.status(400).json({ error: '缺少夥伴或月份' });
+    const [yy, mm] = year_month.split('-');
+    const u = await Users.byId(parseInt(partner_id));
+    if (!u) return res.status(404).json({ error: '找不到夥伴' });
+    const all = await Assignments.all();
+    const amount = all
+      .filter(a => a.accepted_by === u.id && a.status === 'completed' && (a.completed_at || '').slice(0,7) === `${yy}/${mm}`)
+      .reduce((s, a) => s + (a.total_price || 0), 0);
+    res.json({
+      company: '希絆股份有限公司',
+      year: yy, month: parseInt(mm),
+      partner_no: u.partner_no || null,
+      real_name: u.real_name || '',
+      id_number: u.id_number || '',
+      phone: u.phone || '',
+      address: u.address || '',
+      bank_type: u.bank_type || 'bank',
+      bank_code: u.bank_type === 'post' ? '700' : (u.bank_code || ''),
+      bank_name: u.bank_name || '',
+      bank_branch: u.bank_branch || '',
+      bank_account: u.bank_account || '',
+      bank_holder: u.bank_holder || u.real_name || '',
+      amount,
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 薪資通知寄信：POST /api/admin/payroll/send-email
 app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
   try {

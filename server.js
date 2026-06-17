@@ -2003,20 +2003,19 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
   try {
     const ExcelJS = require('exceljs');
     const year = String(req.query.year || new Date().getFullYear());
-    const fileLabel = `報稅格式_暨名冊總表_${year}`;
+    const fileLabel = `報稅格式_暨名冊總表_${year}年`;
 
     const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
     const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active')
       .sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
     const completed = allAssign.filter(a => a.status === 'completed');
 
-    // 匯款資料格式：郵局→(700)局號+帳號；銀行→(銀行名稱)帳號
+    // 匯款資料格式：郵局→(700)局號+帳號；銀行→(銀行代號)帳號（代號內含於 bank_name 括號中）
     const bankInfo = u => {
       if (u.bank_type === 'post') return `(700)${u.bank_account || ''}`;
-      const parts = [];
-      if (u.bank_name) parts.push(`(${u.bank_name})`);
-      if (u.bank_account) parts.push(u.bank_account);
-      return parts.join('');
+      const m = (u.bank_name || '').match(/[（(]\s*(\d{3,4})\s*[）)]/);
+      const code = m ? m[1] : '';
+      return code ? `(${code})${u.bank_account || ''}` : `(${u.bank_name || ''})${u.bank_account || ''}`;
     };
 
     const wb = new ExcelJS.Workbook();

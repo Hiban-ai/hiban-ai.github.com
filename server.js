@@ -1998,6 +1998,85 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 報稅格式_暨名冊總表 Excel 匯出：GET /api/admin/tax-report/export?year=2026
+app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const year = String(req.query.year || new Date().getFullYear());
+    const fileLabel = `報稅格式_暨名冊總表_${year}`;
+
+    const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
+    const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active')
+      .sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
+    const completed = allAssign.filter(a => a.status === 'completed');
+
+    // 匯款資料格式：郵局→(700)局號+帳號；銀行→(銀行名稱)帳號
+    const bankInfo = u => {
+      if (u.bank_type === 'post') return `(700)${u.bank_account || ''}`;
+      const parts = [];
+      if (u.bank_name) parts.push(`(${u.bank_name})`);
+      if (u.bank_account) parts.push(u.bank_account);
+      return parts.join('');
+    };
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = '希絆雲作所';
+    const ws = wb.addWorksheet('報稅格式_暨名冊總表');
+    ws.views = [{ zoomScale: 120 }];
+    const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+    ws.columns = [
+      { header: '編號',     key: 'no',    width: 8  },
+      { header: '分類',     key: 'cat',   width: 12 },
+      { header: '姓名',     key: 'name',  width: 14 },
+      { header: '匯款資料', key: 'bank',  width: 28 },
+      { header: '身分證字號', key: 'idno', width: 16 },
+      { header: '戶籍地址', key: 'addr',  width: 30 },
+      { header: '通訊地址', key: 'maddr', width: 30 },
+      { header: '電話',     key: 'phone', width: 14 },
+      ...monthNames.map(m => ({ header: m, key: m, width: 11 })),
+      { header: '合計',     key: 'total', width: 14 },
+    ];
+    ws.getRow(1).font = { bold: true, size: 14, color:{ argb:'FFFFFFFF' } };
+    ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+    ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+    ws.getRow(1).height = 28;
+
+    partners.forEach((p, idx) => {
+      const months = Array(12).fill(0);
+      completed.filter(a => a.accepted_by === p.id && (a.completed_at || '').slice(0,4) === year)
+        .forEach(a => {
+          const m = parseInt((a.completed_at || '').slice(5,7));
+          if (m >= 1 && m <= 12) months[m-1] += (a.total_price || 0);
+        });
+      const total = months.reduce((s, x) => s + x, 0);
+      const data = {
+        no:    idx + 1,
+        cat:   p.identity || '一般',
+        name:  p.real_name || '',
+        bank:  bankInfo(p),
+        idno:  p.id_number || '',
+        addr:  p.address || '',
+        maddr: p.mailing_address || p.address || '',
+        phone: p.phone || '',
+        total: 0,
+      };
+      monthNames.forEach((m, i) => { data[m] = months[i]; });
+      const r = ws.addRow(data);
+      // 合計 = SUM(一月:十二月)（I 至 T 欄）；附快取結果
+      const rn = r.number;
+      ws.getCell(`U${rn}`).value = { formula: `SUM(I${rn}:T${rn})`, result: total };
+      r.font = { size: 13 };
+      r.height = 22;
+      if (idx % 2 === 1) r.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="tax-report.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 薪資通知寄信：POST /api/admin/payroll/send-email
 app.post('/api/admin/payroll/send-email', requireRole('staff'), async (req, res) => {
   try {

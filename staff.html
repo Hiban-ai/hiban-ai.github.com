@@ -438,6 +438,16 @@ textarea.form-input{resize:none}
           </div>
         </div>
 
+        <!-- 報表：報稅格式_暨名冊總表 -->
+        <div class="card">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">📄 報稅格式_暨名冊總表</div>
+          <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">每位夥伴一列：編號、分類(身分別)、姓名、匯款資料、身分證、戶籍/通訊地址、電話，以及一～十二月各月所得（取已完成任務的完成月份金額）與全年合計。</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+            <select id="tax-export-year" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)"></select>
+            <button onclick="exportTaxReport()" style="padding:.5rem 1.1rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⬇ 匯出 Excel</button>
+          </div>
+        </div>
+
         <!-- 之後可在此新增更多報表卡片 -->
 
       </div>
@@ -978,6 +988,15 @@ function initReportsPage() {
       `<option value="${p.id}">${p.partner_no ? 'P'+String(p.partner_no).padStart(3,'0')+' ' : ''}${p.real_name}</option>`).join('');
     pSel.value = cur;
   }
+  // 報稅報表年份下拉
+  const ySel = document.getElementById('tax-export-year');
+  if (ySel && !ySel.dataset.ready) {
+    const y = new Date().getFullYear();
+    let opts = '';
+    for (let i = 0; i < 4; i++) opts += `<option value="${y-i}">${y-i} 年</option>`;
+    ySel.innerHTML = opts;
+    ySel.dataset.ready = '1';
+  }
 }
 
 function exportWorkRecords() {
@@ -987,6 +1006,11 @@ function exportWorkRecords() {
   if (ym)  qs.push('year_month=' + ym);
   if (pid) qs.push('partner_id=' + pid);
   window.open('/api/admin/work-records/export' + (qs.length ? '?' + qs.join('&') : ''), '_blank');
+}
+
+function exportTaxReport() {
+  const y = document.getElementById('tax-export-year')?.value || '';
+  window.open('/api/admin/tax-report/export' + (y ? '?year=' + y : ''), '_blank');
 }
 
 function renderStaffAssign() {

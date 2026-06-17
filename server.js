@@ -2010,12 +2010,10 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
       .sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
     const completed = allAssign.filter(a => a.status === 'completed');
 
-    // 匯款資料格式：郵局→(700)局號+帳號；銀行→(銀行代號)帳號（代號內含於 bank_name 括號中）
+    // 匯款資料：郵局→(700)局號+帳號；銀行→銀行名稱(含代號) + 帳號
     const bankInfo = u => {
-      if (u.bank_type === 'post') return `(700)${u.bank_account || ''}`;
-      const m = (u.bank_name || '').match(/[（(]\s*(\d{3,4})\s*[）)]/);
-      const code = m ? m[1] : '';
-      return code ? `(${code})${u.bank_account || ''}` : `(${u.bank_name || ''})${u.bank_account || ''}`;
+      if (u.bank_type === 'post') return `郵局(700) ${u.bank_account || ''}`.trim();
+      return `${u.bank_name || ''} ${u.bank_account || ''}`.trim();
     };
 
     const wb = new ExcelJS.Workbook();
@@ -2055,7 +2053,7 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
         bank:  bankInfo(p),
         idno:  p.id_number || '',
         addr:  p.address || '',
-        maddr: p.mailing_address || p.address || '',
+        maddr: (!p.mailing_address || p.mailing_address === p.address) ? '同戶籍地址' : p.mailing_address,
         phone: p.phone || '',
         total: 0,
       };

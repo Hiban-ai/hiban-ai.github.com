@@ -401,9 +401,9 @@ app.get('/api/profile', requireAuth, async (req, res) => {
     const u = await Users.byId(req.session.user.id);
     if (!u) return res.status(404).json({ error: 'Not found' });
     const { id, username, real_name, role, status, id_number, birthday, phone, address, mailing_address, email,
-            identity, bank_name, bank_branch, bank_account, bank_holder } = u;
+            identity, bank_type, bank_code, bank_name, bank_branch, bank_account, bank_holder } = u;
     res.json({ id, username, real_name, role, status, id_number, birthday, phone, address, mailing_address, email,
-               identity, bank_name, bank_branch, bank_account, bank_holder });
+               identity, bank_type, bank_code, bank_name, bank_branch, bank_account, bank_holder });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -421,8 +421,8 @@ app.put('/api/profile', requireAuth, async (req, res) => {
 app.put('/api/profile/bank', requireAuth, async (req, res) => {
   try {
     if (req.session.user.role !== 'partner') return res.status(403).json({ error: 'Forbidden' });
-    const { bank_name, bank_branch, bank_account, bank_holder } = req.body;
-    await Users.update(req.session.user.id, { bank_name, bank_branch, bank_account, bank_holder });
+    const { bank_code, bank_name, bank_branch, bank_account, bank_holder } = req.body;
+    await Users.update(req.session.user.id, { bank_code, bank_name, bank_branch, bank_account, bank_holder });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -473,7 +473,7 @@ app.post('/api/register', async (req, res) => {
     if (!birthday)  return res.status(400).json({ error: 'Missing birthday' });
     if (!phone)     return res.status(400).json({ error: 'Missing phone' });
     if (!address)   return res.status(400).json({ error: 'Missing address' });
-    const { email, gender, nickname, identity, bank_type, bank_name, bank_branch, bank_account, bank_holder, post_office_code,
+    const { email, gender, nickname, identity, bank_type, bank_code, bank_name, bank_branch, bank_account, bank_holder, post_office_code,
             mailing_address, id_front_b64, id_back_b64, bank_b64, disability_b64 } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
     const base     = real_name.charCodeAt(0).toString(36);
@@ -483,7 +483,7 @@ app.post('/api/register', async (req, res) => {
       mailing_address: mailing_address || address,
       email: email || null, gender: gender || null,
       nickname: nickname || null, identity: identity || null,
-      bank_type: bank_type || null,
+      bank_type: bank_type || null, bank_code: bank_code || null,
       bank_name: bank_name || null, bank_branch: bank_branch || null,
       bank_account: bank_account || null, bank_holder: bank_holder || null,
       post_office_code: post_office_code || null,
@@ -2010,10 +2010,12 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
       .sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
     const completed = allAssign.filter(a => a.status === 'completed');
 
-    // 匯款資料：郵局→(700)局號+帳號；銀行→銀行名稱(含代號) + 帳號
+    // 匯款資料：郵局→(700)局號+帳號；銀行→(銀行代號)帳號（代號取獨立欄位，無則從名稱括號擷取）
     const bankInfo = u => {
-      if (u.bank_type === 'post') return `郵局(700) ${u.bank_account || ''}`.trim();
-      return `${u.bank_name || ''} ${u.bank_account || ''}`.trim();
+      if (u.bank_type === 'post') return `(700)${u.bank_account || ''}`;
+      let code = u.bank_code || '';
+      if (!code) { const m = (u.bank_name || '').match(/[（(]\s*(\d{3,4})\s*[）)]/); if (m) code = m[1]; }
+      return code ? `(${code})${u.bank_account || ''}` : `${u.bank_name || ''} ${u.bank_account || ''}`.trim();
     };
 
     const wb = new ExcelJS.Workbook();

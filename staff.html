@@ -1253,6 +1253,7 @@ async function openDetail(id) {
     <div style="font-size:.78rem;font-weight:700;color:var(--text-m);margin:.75rem 0 .3rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)">🏦 收款資訊</div>
     ${row('類型', u.bank_type==='post'?'中華郵政':'一般銀行')}
     ${row('戶名', u.bank_holder)}
+    ${u.bank_type!=='post' ? row('銀行代號', u.bank_code||'—') : ''}
     ${row('銀行/郵局', u.bank_name)}
     ${row('分行', u.bank_branch)}
     ${row('帳號', u.bank_account)}

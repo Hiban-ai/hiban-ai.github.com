@@ -308,8 +308,12 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
         <input class="form-input" id="reg-holder" placeholder="戶名">
       </div>
       <div class="form-group">
-        <label class="form-label" for="reg-bank">銀行名稱<span class="req-mark">＊</span><span class="opt-mark">含銀行代號</span></label>
-        <input class="form-input" id="reg-bank" placeholder="例：台灣銀行（004）">
+        <label class="form-label" for="reg-bank-code">銀行代號<span class="req-mark">＊</span></label>
+        <input class="form-input" id="reg-bank-code" placeholder="3 碼，例：004" maxlength="4" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-bank">銀行名稱<span class="req-mark">＊</span></label>
+        <input class="form-input" id="reg-bank" placeholder="例：台灣銀行">
       </div>
       <div class="form-group">
         <label class="form-label" for="reg-branch">分行名稱<span class="req-mark">＊</span></label>
@@ -612,10 +616,10 @@ async function extractBankData(dataUrl) {
       } else {
         document.getElementById('post-fields').style.display = 'none';
         document.getElementById('bank-fields').style.display = 'block';
-        const bankLabel = d.bank_code ? `${d.bank_name || ''}（${d.bank_code}）` : (d.bank_name || '');
         document.getElementById('bank-type-label').innerHTML = '<span class="bank-type-badge badge-bank">🏦 一般銀行</span>';
         if (d.bank_holder)  fillAI('reg-holder', d.bank_holder);
-        if (bankLabel)      fillAI('reg-bank', bankLabel);
+        if (d.bank_code)    fillAI('reg-bank-code', d.bank_code);
+        if (d.bank_name)    fillAI('reg-bank', d.bank_name);
         if (d.bank_branch)  fillAI('reg-branch', d.bank_branch);
         if (d.bank_account) fillAI('reg-account', d.bank_account);
       }
@@ -732,6 +736,7 @@ function validate(step) {
       if (!v('reg-post-account'))      return '請填寫郵局帳號';
     } else {
       if (!v('reg-holder'))  return '請填寫戶名';
+      if (!v('reg-bank-code')) return '請填寫銀行代號';
       if (!v('reg-bank'))    return '請填寫銀行名稱';
       if (!v('reg-branch'))  return '請填寫分行名稱';
       if (!v('reg-account')) return '請填寫帳號';
@@ -762,6 +767,7 @@ async function submitRegister() {
       mailing_address: v('reg-mailing-address'),
       identity:     v('reg-identity') || null,
       bank_type:    bankType,
+      bank_code:    isPost ? '700' : v('reg-bank-code'),
       bank_name:    isPost ? '中華郵政' : v('reg-bank'),
       bank_branch:  isPost ? v('reg-post-branch') : v('reg-branch'),
       bank_account: isPost ? `${v('reg-post-office-code')}-${v('reg-post-account')}` : v('reg-account'),
@@ -803,6 +809,7 @@ async function submitRegister() {
       bankRows = [
         ['類型', '一般銀行'],
         ['戶名', v('reg-holder')],
+        ['銀行代號', v('reg-bank-code')],
         ['銀行', v('reg-bank')],
         ['分行', v('reg-branch')],
         ['帳號', v('reg-account')],

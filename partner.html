@@ -684,6 +684,7 @@ textarea.form-input{resize:none}
           <button id="bank-edit-btn" onclick="toggleBankEdit()" style="padding:.3rem .85rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:sans-serif">修改</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行代號</label><input class="form-input" id="prof-bank-code" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行名稱</label><input class="form-input" id="prof-bank-name" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">銀行帳號</label><input class="form-input" id="prof-bank-account" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
         </div>
@@ -1537,6 +1538,7 @@ function fillProfile(p) {
   document.getElementById('prof-birthday').value     = p.birthday     || '';
   document.getElementById('prof-phone').value        = p.phone        || '';
   document.getElementById('prof-address').value      = p.address      || '';
+  document.getElementById('prof-bank-code').value    = p.bank_code    || '';
   document.getElementById('prof-bank-name').value    = p.bank_name    || '';
   document.getElementById('prof-bank-account').value = p.bank_account || '';
 }
@@ -1575,23 +1577,26 @@ async function saveProfile() {
 }
 
 function toggleBankEdit() {
-  setFieldEditable(['prof-bank-name','prof-bank-account'], true);
+  setFieldEditable(['prof-bank-code','prof-bank-name','prof-bank-account'], true);
   document.getElementById('bank-edit-btn').style.display = 'none';
   document.getElementById('bank-save-row').style.display = 'flex';
 }
 function cancelBankEdit() {
+  document.getElementById('prof-bank-code').value    = profData.bank_code    || '';
   document.getElementById('prof-bank-name').value    = profData.bank_name    || '';
   document.getElementById('prof-bank-account').value = profData.bank_account || '';
-  setFieldEditable(['prof-bank-name','prof-bank-account'], false);
+  setFieldEditable(['prof-bank-code','prof-bank-name','prof-bank-account'], false);
   document.getElementById('bank-edit-btn').style.display = '';
   document.getElementById('bank-save-row').style.display = 'none';
 }
 async function saveBank() {
   try {
     await API.put('/api/profile/bank', {
+      bank_code:    document.getElementById('prof-bank-code').value,
       bank_name:    document.getElementById('prof-bank-name').value,
       bank_account: document.getElementById('prof-bank-account').value,
     });
+    profData.bank_code    = document.getElementById('prof-bank-code').value;
     profData.bank_name    = document.getElementById('prof-bank-name').value;
     profData.bank_account = document.getElementById('prof-bank-account').value;
     cancelBankEdit();

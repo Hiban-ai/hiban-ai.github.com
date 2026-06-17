@@ -144,7 +144,7 @@ function placeCN(n, place, unit, withZheng) {
 
     set('d-company', d.company);
     set('d-name', d.real_name);
-    set('d-work', d.work_content || '勞務報酬');
+    set('d-work', '稿費');
 
     const amt = d.amount || 0;
     set('amt-wan',  placeCN(amt, 4, '萬'));
@@ -160,10 +160,14 @@ function placeCN(n, place, unit, withZheng) {
     document.getElementById('chk-post').textContent = isPost ? '■' : '☐';
     document.getElementById('chk-bank').textContent = isPost ? '☐' : '■';
     if (isPost) {
+      // 帳號存成「局號-帳號」，拆開：局號取 post_office_code 或前段，帳號取後段
+      const acctParts = (d.bank_account || '').split('-');
+      const code = d.post_office_code || acctParts[0] || '';
+      const acct = acctParts.length > 1 ? acctParts.slice(1).join('-') : (d.bank_account || '');
       set('d-post-name', d.bank_name || '中華郵政');
       set('d-post-holder', d.bank_holder);
-      set('d-post-code', d.post_office_code || (d.bank_account || '').split('-')[0] || '');
-      set('d-post-acct', d.bank_account);
+      set('d-post-code', code);
+      set('d-post-acct', acct);
     } else {
       set('d-bank-branch', d.bank_branch);
       set('d-bank-code', d.bank_code ? `(${d.bank_code})` : '');

@@ -152,6 +152,12 @@ textarea.form-input{resize:none}
 .detail-overlay.open{display:flex;pointer-events:auto}
 .detail-box{background:#fff;border-radius:var(--r);width:520px;max-width:96vw;padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.2);border-top:4px solid var(--blue);animation:fadeUp .3s ease;margin:auto}
 .detail-row{display:flex;align-items:flex-start;gap:.5rem;padding:.55rem 0;border-bottom:1px solid var(--border-l)}
+.dm-tab{padding:.35rem .85rem;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:600;cursor:pointer;background:var(--bg);color:var(--text-m);font-family:'Noto Sans TC',sans-serif;transition:all .18s}
+.dm-tab:hover{background:#e8f4fb;color:var(--blue)}
+.dm-tab-active{background:var(--blue)!important;color:#fff!important}
+.dm-stat-card{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:.75rem 1rem;text-align:center}
+.dm-stat-num{font-size:1.5rem;font-weight:700;color:var(--blue)}
+.dm-stat-lbl{font-size:.75rem;color:var(--text-s);margin-top:.2rem}
 .detail-label{font-size:.8rem;color:var(--text-s);width:80px;flex-shrink:0;padding-top:.1rem}
 .detail-val{font-size:.9rem;font-weight:600;color:var(--text);flex:1;word-break:break-all}
 @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100vw)}}
@@ -550,6 +556,9 @@ textarea.form-input{resize:none}
           <button onclick="openSettingModal('contract')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
             <span>📄 合約設定</span><span style="color:var(--text-s)">›</span>
           </button>
+          <button onclick="openDataMgmt()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span>🗄️ 資料管理</span><span style="color:var(--text-s)">›</span>
+          </button>
         </div>
       </div>
     </div>
@@ -627,6 +636,136 @@ textarea.form-input{resize:none}
         <div style="display:flex;gap:.5rem;margin-top:.85rem">
           <button onclick="saveContract()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 14px rgba(72,180,232,.25);transition:all .25s">儲存合約</button>
           <button onclick="cancelContract()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 資料管理 overlay -->
+    <div class="detail-overlay" id="data-mgmt-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:700px;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🗄️ 資料管理</div>
+          <button onclick="closeDataMgmt()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <!-- tabs -->
+        <div style="display:flex;gap:.3rem;margin-bottom:1rem;border-bottom:2px solid var(--border);padding-bottom:.3rem">
+          <button id="dm-tab-stats"   onclick="switchDmTab('stats')"   class="dm-tab dm-tab-active">📊 概況</button>
+          <button id="dm-tab-archive" onclick="switchDmTab('archive')" class="dm-tab">📦 任務封存</button>
+          <button id="dm-tab-privacy" onclick="switchDmTab('privacy')" class="dm-tab">👤 個資管理</button>
+          <button id="dm-tab-sched"   onclick="switchDmTab('sched')"   class="dm-tab">⏰ 自動排程</button>
+        </div>
+        <!-- 概況 -->
+        <div id="dm-pane-stats">
+          <div id="dm-stats-loading" style="color:var(--text-s);font-size:.85rem">載入中…</div>
+          <div id="dm-stats-grid" style="display:none;grid-template-columns:repeat(3,1fr);gap:.6rem"></div>
+          <div id="dm-stats-warn" style="display:none;margin-top:.75rem;padding:.6rem .9rem;background:#fff8e1;border:1.5px solid #f9a825;border-radius:var(--rs);font-size:.82rem;color:#7a5c00"></div>
+        </div>
+        <!-- 任務封存 -->
+        <div id="dm-pane-archive" style="display:none">
+          <div style="font-size:.85rem;color:var(--text-s);margin-bottom:.85rem;line-height:1.7">
+            將「已完成」且超過指定月數的舊任務移至封存區，主集合變輕量查詢更快。封存資料可在報表匯出時選擇包含。
+          </div>
+          <div style="display:flex;gap:.6rem;align-items:flex-end;margin-bottom:.75rem">
+            <div>
+              <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.3rem">保留近幾個月的任務</div>
+              <select id="dm-archive-months" class="form-input" style="width:140px" onchange="dmPreviewArchive()">
+                <option value="6">6 個月</option>
+                <option value="12" selected>12 個月</option>
+                <option value="18">18 個月</option>
+                <option value="24">24 個月</option>
+              </select>
+            </div>
+            <button onclick="dmPreviewArchive()" class="action-btn" style="height:38px">預覽</button>
+          </div>
+          <div id="dm-archive-preview" style="font-size:.85rem;color:var(--text-s);margin-bottom:.75rem"></div>
+          <button onclick="dmExecArchive()" class="btn-primary" style="max-width:160px">執行封存</button>
+          <hr style="margin:1.2rem 0;border:none;border-top:1.5px solid var(--border)">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.6rem;color:var(--red)">⚠️ 永久刪除封存資料</div>
+          <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.7;padding:.6rem .9rem;background:#fff3f3;border:1.5px solid var(--red);border-radius:var(--rs)">
+            依勞基法第23條、稅捐稽徵法規定，薪資與工作紀錄需保存至少 <strong>5 年</strong>。本操作僅允許刪除封存集合中 5 年以上的資料，且不可復原。
+          </div>
+          <div style="display:flex;gap:.6rem;align-items:flex-end;margin-bottom:.75rem;flex-wrap:wrap">
+            <div>
+              <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.3rem">刪除幾年以前的封存資料</div>
+              <select id="dm-delete-months" class="form-input" style="width:160px" onchange="dmPreviewDelete()">
+                <option value="60">5 年前</option>
+                <option value="84">7 年前</option>
+                <option value="120">10 年前</option>
+              </select>
+            </div>
+            <button onclick="dmPreviewDelete()" class="action-btn" style="height:38px">預覽</button>
+          </div>
+          <div id="dm-delete-preview" style="font-size:.85rem;color:var(--text-s);margin-bottom:.75rem"></div>
+          <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.35rem">輸入 <strong>DELETE</strong> 確認：</div>
+          <div style="display:flex;gap:.5rem">
+            <input id="dm-delete-confirm" class="form-input" style="max-width:180px" placeholder="DELETE">
+            <button onclick="dmExecDelete()" style="padding:.5rem 1rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-weight:700;cursor:pointer;font-size:.85rem">永久刪除</button>
+          </div>
+        </div>
+        <!-- 個資管理 -->
+        <div id="dm-pane-privacy" style="display:none">
+          <div style="font-size:.85rem;color:var(--text-s);margin-bottom:.85rem;line-height:1.7">
+            依個資法，夥伴離職後個資應於特定目的消失時刪除；依勞基法，相關紀錄需保存 5 年。以下顯示保存期限即將到期（3 個月內）或已到期的停用帳號。
+          </div>
+          <div id="dm-privacy-loading" style="font-size:.85rem;color:var(--text-s)">載入中…</div>
+          <div id="dm-privacy-list"></div>
+        </div>
+        <!-- 自動排程 -->
+        <div id="dm-pane-sched" style="display:none">
+          <div style="font-size:.85rem;color:var(--text-s);margin-bottom:.85rem;line-height:1.7">
+            啟用後，系統將在每月指定日凌晨 03:00 自動把超過保留月數的已完成任務封存。
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.75rem;max-width:360px">
+            <label style="display:flex;align-items:center;gap:.6rem;font-size:.9rem;font-weight:700;cursor:pointer">
+              <input type="checkbox" id="dm-sched-enabled" style="width:16px;height:16px"> 啟用自動封存排程
+            </label>
+            <div>
+              <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.3rem">每月幾日執行</div>
+              <input id="dm-sched-day" type="number" class="form-input" style="max-width:100px" min="1" max="28" value="1">
+            </div>
+            <div>
+              <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.3rem">保留近幾個月</div>
+              <select id="dm-sched-months" class="form-input" style="max-width:140px">
+                <option value="6">6 個月</option>
+                <option value="12" selected>12 個月</option>
+                <option value="18">18 個月</option>
+                <option value="24">24 個月</option>
+              </select>
+            </div>
+            <div id="dm-sched-lastrun" style="font-size:.82rem;color:var(--text-s)"></div>
+            <button onclick="dmSaveSched()" class="btn-primary" style="max-width:140px">儲存設定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 離職確認 overlay -->
+    <div class="detail-overlay" id="deactivate-overlay">
+      <div class="detail-box" style="border-top-color:var(--red);width:460px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">⏸ 停用帳號／離職登記</div>
+          <button onclick="closeDeactivate()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div id="deactivate-name" style="font-size:.9rem;font-weight:700;margin-bottom:.85rem;color:var(--text-m)"></div>
+        <div class="form-group">
+          <label class="form-label">離職日期</label>
+          <input id="deactivate-left-at" type="date" class="form-input" onchange="updateRetainUntil()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">離職原因</label>
+          <select id="deactivate-reason" class="form-input">
+            <option value="自願離職">自願離職</option>
+            <option value="合約到期">合約到期</option>
+            <option value="終止合作">終止合作</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div style="font-size:.8rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#fff8e1;border:1.5px solid #f9a825;border-radius:var(--rs);line-height:1.7">
+          停用後帳號無法登入。依勞基法規定，個人資料將保存至 <strong id="deactivate-retain-until"></strong>（離職日起 5 年）。
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="confirmDeactivate()" style="flex:1;padding:.7rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認停用</button>
+          <button onclick="closeDeactivate()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
         </div>
       </div>
     </div>
@@ -1560,12 +1699,36 @@ async function submitApprove() {
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
-async function deactivateUser(id, name) {
-  openConfirm('⏸', '停用帳號', `確定要停用「${name}」的帳號？停用後無法登入。`, async () => {
-    await API.put(`/api/admin/users/${id}/deactivate`);
-    showToast(`已停用 ${name}`, 'warn');
+let _deactivateId = null;
+function deactivateUser(id, name) {
+  _deactivateId = id;
+  document.getElementById('deactivate-name').textContent = `帳號：${name}`;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('deactivate-left-at').value = today;
+  document.getElementById('deactivate-reason').value = '自願離職';
+  updateRetainUntil();
+  document.getElementById('deactivate-overlay').classList.add('open');
+}
+function updateRetainUntil() {
+  const d = new Date(document.getElementById('deactivate-left-at').value || new Date());
+  d.setFullYear(d.getFullYear() + 5);
+  document.getElementById('deactivate-retain-until').textContent =
+    d.toISOString().split('T')[0];
+}
+function closeDeactivate() {
+  document.getElementById('deactivate-overlay').classList.remove('open');
+  _deactivateId = null;
+}
+async function confirmDeactivate() {
+  if (!_deactivateId) return;
+  const left_at = document.getElementById('deactivate-left-at').value;
+  const left_reason = document.getElementById('deactivate-reason').value;
+  try {
+    await API.put(`/api/admin/users/${_deactivateId}/deactivate`, { left_at, left_reason });
+    showToast('已停用帳號', 'warn');
+    closeDeactivate();
     loadAccounts();
-  });
+  } catch(e) { showToast(e.message, 'error'); }
 }
 async function resetPassword(id, name) {
   openConfirm('🔑', '重設密碼', `確定要將「${name}」的密碼重設為 0000？\n下次登入需要修改密碼。`, async () => {
@@ -1925,6 +2088,166 @@ document.getElementById('confirm-ok-btn').onclick = async () => {
   }
   closeConfirm();
 };
+
+// ── 資料管理 ──────────────────────────────────────────
+function openDataMgmt() {
+  document.getElementById('data-mgmt-overlay').classList.add('open');
+  switchDmTab('stats');
+}
+function closeDataMgmt() {
+  document.getElementById('data-mgmt-overlay').classList.remove('open');
+}
+function switchDmTab(tab) {
+  ['stats','archive','privacy','sched'].forEach(t => {
+    document.getElementById('dm-pane-'+t).style.display = t === tab ? '' : 'none';
+    document.getElementById('dm-tab-'+t).classList.toggle('dm-tab-active', t === tab);
+  });
+  if (tab === 'stats')   loadDmStats();
+  if (tab === 'privacy') loadDmPrivacy();
+  if (tab === 'sched')   loadDmSched();
+}
+async function loadDmStats() {
+  const loading = document.getElementById('dm-stats-loading');
+  const grid    = document.getElementById('dm-stats-grid');
+  const warn    = document.getElementById('dm-stats-warn');
+  loading.style.display = ''; grid.style.display = 'none'; warn.style.display = 'none';
+  try {
+    const s = await API.get('/api/admin/db-stats');
+    const estMB = Math.round(s.estimated_kb / 1024 * 10) / 10;
+    const pct   = Math.round(estMB / 1024 * 100);
+    grid.style.display = 'grid';
+    grid.innerHTML = [
+      ['assignments',  s.assignments,  '任務總筆數'],
+      ['completed',    s.completed,    '已完成任務'],
+      ['worklog_reports', s.worklog_reports, '工作報告'],
+      ['grab_tasks',   s.grab_tasks,   '搶單任務'],
+      ['archived',     (s.archived_assignments||0)+(s.archived_worklog_reports||0), '已封存筆數'],
+      ['users',        s.users,        '帳號總數'],
+    ].map(([,num,lbl]) =>
+      `<div class="dm-stat-card"><div class="dm-stat-num">${num.toLocaleString()}</div><div class="dm-stat-lbl">${lbl}</div></div>`
+    ).join('');
+    loading.style.display = 'none';
+    // 容量警示
+    let warnHtml = `<strong>預估儲存量：${estMB} MB / 1,024 MB（免費方案）</strong>`;
+    warnHtml += `<div style="margin:.4rem 0;background:#ddd;border-radius:4px;height:8px"><div style="background:${pct>80?'#e53935':pct>50?'#f9a825':'#43a047'};width:${Math.min(pct,100)}%;height:100%;border-radius:4px"></div></div>`;
+    if (s.earliest_date) warnHtml += `<div>最早資料：${s.earliest_date}</div>`;
+    if (pct > 70) warnHtml += `<div style="margin-top:.3rem;color:#c62828">⚠️ 建議執行封存或升級付費方案</div>`;
+    warn.innerHTML = warnHtml; warn.style.display = '';
+  } catch(e) { loading.textContent = '載入失敗：' + e.message; }
+}
+async function dmPreviewArchive() {
+  const months = document.getElementById('dm-archive-months').value;
+  const el = document.getElementById('dm-archive-preview');
+  el.textContent = '計算中…';
+  try {
+    const r = await API.get(`/api/admin/data-preview?months=${months}&action=archive`);
+    el.textContent = `將封存 ${r.assignments.toLocaleString()} 筆任務、${r.worklog_reports.toLocaleString()} 筆報告（${r.cutoff} 以前完成）`;
+  } catch(e) { el.textContent = '預覽失敗：' + e.message; }
+}
+async function dmExecArchive() {
+  const months = document.getElementById('dm-archive-months').value;
+  const preview = document.getElementById('dm-archive-preview').textContent;
+  if (!preview || preview.includes('計算') || preview.includes('失敗')) {
+    await dmPreviewArchive(); return;
+  }
+  if (!confirm(`確定執行封存？\n${preview}\n\n此操作可在報表匯出時選擇包含封存資料。`)) return;
+  try {
+    const r = await API.post('/api/admin/data-archive', { retain_months: parseInt(months) });
+    showToast(`封存完成：任務 ${r.archived_assignments} 筆、報告 ${r.archived_worklog_reports} 筆`, 'success');
+    document.getElementById('dm-archive-preview').textContent = '';
+    loadDmStats();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+async function dmPreviewDelete() {
+  const months = document.getElementById('dm-delete-months').value;
+  const el = document.getElementById('dm-delete-preview');
+  el.textContent = '計算中…';
+  try {
+    const r = await API.get(`/api/admin/data-preview?months=${months}&action=delete`);
+    el.textContent = `將永久刪除封存中的 ${r.assignments.toLocaleString()} 筆任務、${r.worklog_reports.toLocaleString()} 筆報告`;
+  } catch(e) { el.textContent = '預覽失敗：' + e.message; }
+}
+async function dmExecDelete() {
+  const months = document.getElementById('dm-delete-months').value;
+  const confirmText = document.getElementById('dm-delete-confirm').value.trim();
+  const preview = document.getElementById('dm-delete-preview').textContent;
+  if (!preview || preview.includes('計算') || preview.includes('失敗')) {
+    await dmPreviewDelete(); return;
+  }
+  try {
+    const r = await API.post('/api/admin/data-delete', {
+      delete_before_months: parseInt(months), confirm_text: confirmText
+    });
+    showToast(`永久刪除完成：任務 ${r.deleted_assignments} 筆、報告 ${r.deleted_worklog_reports} 筆`, 'success');
+    document.getElementById('dm-delete-confirm').value = '';
+    document.getElementById('dm-delete-preview').textContent = '';
+    loadDmStats();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+async function loadDmPrivacy() {
+  const loading = document.getElementById('dm-privacy-loading');
+  const list    = document.getElementById('dm-privacy-list');
+  loading.style.display = ''; list.innerHTML = '';
+  try {
+    const data = await API.get('/api/admin/users/expiring-data');
+    loading.style.display = 'none';
+    if (!data.length) {
+      list.innerHTML = '<div style="font-size:.85rem;color:var(--text-s)">目前無即將到期或已到期的個資紀錄。</div>';
+      return;
+    }
+    list.innerHTML = data.map(u => {
+      const badge = u.expired
+        ? `<span style="background:#fdecea;color:#c62828;padding:.15rem .5rem;border-radius:4px;font-size:.75rem;font-weight:700">已到期</span>`
+        : `<span style="background:#fff8e1;color:#7a5c00;padding:.15rem .5rem;border-radius:4px;font-size:.75rem;font-weight:700">即將到期</span>`;
+      const anonBadge = u.data_anonymized
+        ? `<span style="background:#e8f5e9;color:#2e7d32;padding:.15rem .5rem;border-radius:4px;font-size:.75rem">已匿名</span>` : '';
+      const btns = u.data_anonymized ? '' :
+        `<div style="display:flex;gap:.4rem;margin-top:.5rem">
+          <button onclick="dmAnonymize(${u.id},'${u.real_name}')" class="action-btn" style="font-size:.78rem">匿名化</button>
+        </div>`;
+      return `<div style="padding:.75rem;border:1.5px solid ${u.expired?'var(--red)':'#f9a825'};border-radius:var(--rs);margin-bottom:.5rem;background:#fff">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem">
+          <strong style="font-size:.88rem">${u.real_name}</strong>
+          <span style="font-size:.78rem;color:var(--text-s)">${u.username}</span>
+          ${badge}${anonBadge}
+        </div>
+        <div style="font-size:.8rem;color:var(--text-s)">離職日：${u.left_at || '—'} ｜ 保存到期：${u.data_retain_until}</div>
+        ${btns}
+      </div>`;
+    }).join('');
+  } catch(e) { loading.textContent = '載入失敗：' + e.message; }
+}
+async function dmAnonymize(id, name) {
+  if (!confirm(`確定將「${name}」的個人資料匿名化？\n\n將清除：姓名、身分證號、電話、地址、銀行資料、身分證圖片。\n工作紀錄（金額/筆數）保留供統計用。\n\n此操作不可復原。`)) return;
+  try {
+    await API.put(`/api/admin/users/${id}/anonymize`);
+    showToast('匿名化完成', 'success');
+    loadDmPrivacy();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+async function loadDmSched() {
+  try {
+    const cfg = await API.get('/api/admin/auto-archive-config');
+    document.getElementById('dm-sched-enabled').checked = !!cfg.enabled;
+    document.getElementById('dm-sched-day').value = cfg.day || 1;
+    document.getElementById('dm-sched-months').value = String(cfg.retain_months || 12);
+    const lr = document.getElementById('dm-sched-lastrun');
+    if (cfg.last_run) {
+      lr.textContent = `上次執行：${cfg.last_run}${cfg.last_count != null ? `，封存 ${cfg.last_count} 筆` : ''}`;
+    } else {
+      lr.textContent = '尚未執行過';
+    }
+  } catch(e) { /* ignore */ }
+}
+async function dmSaveSched() {
+  const enabled = document.getElementById('dm-sched-enabled').checked;
+  const day     = parseInt(document.getElementById('dm-sched-day').value) || 1;
+  const retain_months = parseInt(document.getElementById('dm-sched-months').value) || 12;
+  try {
+    await API.put('/api/admin/auto-archive-config', { enabled, day, retain_months });
+    showToast('自動排程設定已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
 
 // ── 薪資管理 ──────────────────────────────────────────
 let payrollCache = [];

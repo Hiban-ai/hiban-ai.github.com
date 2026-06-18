@@ -5,6 +5,7 @@ const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
 const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
+const db = firestoreDb;
 
 // ── 記憶體快取（減少 Firestore 讀取次數）─────────────────────
 const _cache = {};
@@ -676,7 +677,20 @@ app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req,
 
 app.put('/api/admin/users/:id/deactivate', requireRole('staff'), async (req, res) => {
   try {
-    await Users.update(parseInt(req.params.id), { status: 'inactive' });
+    const { left_at, left_reason } = req.body || {};
+    const leftDate = left_at || nowTW().split('T')[0];
+    // 保存到期日 = 離職日 + 5 年
+    const retainUntil = (() => {
+      const d = new Date(leftDate); d.setFullYear(d.getFullYear() + 5);
+      return d.toISOString().split('T')[0];
+    })();
+    await Users.update(parseInt(req.params.id), {
+      status: 'inactive',
+      left_at: leftDate,
+      left_reason: left_reason || '',
+      data_retain_until: retainUntil,
+      data_anonymized: false,
+    });
     cacheDel('users-list');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -2809,6 +2823,215 @@ app.get('/api/firebase-config', requireAuth, (req, res) => {
     messagingSenderId: process.env.FIREBASE_SENDER_ID     || '',
     appId:             process.env.FIREBASE_APP_ID        || '',
   });
+});
+
+// ── 資料管理 ──────────────────────────────────────────────────
+
+// 概況統計
+app.get('/api/admin/db-stats', requireRole('staff'), async (req, res) => {
+  try {
+    const [uSnap, aSnap, wSnap, gSnap, arSnap, awSnap] = await Promise.all([
+      db.collection('users').get(),
+      db.collection('assignments').get(),
+      db.collection('worklog_reports').get(),
+      db.collection('grab_tasks').get(),
+      db.collection('archived_assignments').get(),
+      db.collection('archived_worklog_reports').get(),
+    ]);
+    const assignments = aSnap.docs.map(d => d.data());
+    const completed = assignments.filter(a => a.status === 'completed').length;
+    const allDates = assignments.map(a => a.created_at).filter(Boolean).sort();
+    const earliest = allDates[0] ? allDates[0].split('T')[0] : null;
+    // 預估容量（KB）：各集合文件數 × 平均大小
+    const estKB = Math.round(
+      uSnap.size * 4 + aSnap.size * 5 + wSnap.size * 3 +
+      gSnap.size * 4 + arSnap.size * 5 + awSnap.size * 3
+    );
+    res.json({
+      users: uSnap.size,
+      active_users: uSnap.docs.filter(d => d.data().status === 'active').length,
+      inactive_users: uSnap.docs.filter(d => d.data().status === 'inactive').length,
+      assignments: aSnap.size,
+      completed,
+      worklog_reports: wSnap.size,
+      grab_tasks: gSnap.size,
+      archived_assignments: arSnap.size,
+      archived_worklog_reports: awSnap.size,
+      earliest_date: earliest,
+      estimated_kb: estKB,
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 預覽封存/刪除筆數
+app.get('/api/admin/data-preview', requireRole('staff'), async (req, res) => {
+  try {
+    const months = parseInt(req.query.months) || 12;
+    const action = req.query.action || 'archive'; // archive | delete
+    const cutoff = (() => {
+      const d = new Date(); d.setMonth(d.getMonth() - months);
+      return d.toISOString().split('T')[0];
+    })();
+    const col = action === 'delete' ? 'archived_assignments' : 'assignments';
+    const wCol = action === 'delete' ? 'archived_worklog_reports' : 'worklog_reports';
+    const [aSnap, wSnap] = await Promise.all([
+      db.collection(col).get(),
+      db.collection(wCol).get(),
+    ]);
+    const aCount = aSnap.docs.filter(d => {
+      const data = d.data();
+      const dt = (action === 'archive' ? data.completed_at : data.archived_at) || data.created_at || '';
+      return data.status === 'completed' && dt.split('T')[0] < cutoff;
+    }).length;
+    const wCount = wSnap.docs.filter(d => {
+      const dt = d.data().archived_at || d.data().created_at || '';
+      return dt.split('T')[0] < cutoff;
+    }).length;
+    res.json({ assignments: aCount, worklog_reports: wCount, cutoff });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 執行封存
+app.post('/api/admin/data-archive', requireRole('staff'), async (req, res) => {
+  try {
+    const { retain_months } = req.body;
+    const months = parseInt(retain_months) || 12;
+    const cutoff = (() => {
+      const d = new Date(); d.setMonth(d.getMonth() - months);
+      return d.toISOString().split('T')[0];
+    })();
+    const aSnap = await db.collection('assignments').get();
+    const toArchive = aSnap.docs.filter(d => {
+      const data = d.data();
+      const dt = data.completed_at || data.created_at || '';
+      return data.status === 'completed' && dt.split('T')[0] < cutoff;
+    });
+    let aCount = 0, wCount = 0;
+    for (const doc of toArchive) {
+      const data = doc.data();
+      const archiveData = { ...data, archived_at: nowTW() };
+      await db.collection('archived_assignments').doc(doc.id).set(archiveData);
+      await db.collection('assignments').doc(doc.id).delete();
+      // 封存對應的 worklog_reports
+      const wSnap = await db.collection('worklog_reports')
+        .where('assignment_id', '==', data.id).get();
+      for (const wDoc of wSnap.docs) {
+        await db.collection('archived_worklog_reports').doc(wDoc.id)
+          .set({ ...wDoc.data(), archived_at: nowTW() });
+        await db.collection('worklog_reports').doc(wDoc.id).delete();
+        wCount++;
+      }
+      aCount++;
+    }
+    res.json({ ok: true, archived_assignments: aCount, archived_worklog_reports: wCount });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 永久刪除（封存集合，5年以上才允許）
+app.post('/api/admin/data-delete', requireRole('staff'), async (req, res) => {
+  try {
+    const { delete_before_months, confirm_text } = req.body;
+    if (confirm_text !== 'DELETE') return res.status(400).json({ error: '確認文字錯誤' });
+    const months = parseInt(delete_before_months) || 60;
+    if (months < 60) return res.status(400).json({ error: '依法規不得刪除未滿 5 年的資料' });
+    const cutoff = (() => {
+      const d = new Date(); d.setMonth(d.getMonth() - months);
+      return d.toISOString().split('T')[0];
+    })();
+    const [aSnap, wSnap] = await Promise.all([
+      db.collection('archived_assignments').get(),
+      db.collection('archived_worklog_reports').get(),
+    ]);
+    let aCount = 0, wCount = 0;
+    for (const doc of aSnap.docs) {
+      const dt = doc.data().archived_at || doc.data().completed_at || '';
+      if (dt.split('T')[0] < cutoff) {
+        await db.collection('archived_assignments').doc(doc.id).delete();
+        aCount++;
+      }
+    }
+    for (const doc of wSnap.docs) {
+      const dt = doc.data().archived_at || doc.data().created_at || '';
+      if (dt.split('T')[0] < cutoff) {
+        await db.collection('archived_worklog_reports').doc(doc.id).delete();
+        wCount++;
+      }
+    }
+    res.json({ ok: true, deleted_assignments: aCount, deleted_worklog_reports: wCount });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 個資即將/已到期清單
+app.get('/api/admin/users/expiring-data', requireRole('staff'), async (req, res) => {
+  try {
+    const snap = await db.collection('users')
+      .where('status', '==', 'inactive').get();
+    const today = new Date().toISOString().split('T')[0];
+    const warn = new Date(); warn.setMonth(warn.getMonth() + 3);
+    const warnStr = warn.toISOString().split('T')[0];
+    const list = snap.docs.map(d => d.data())
+      .filter(u => u.left_at && u.data_retain_until)
+      .map(u => ({
+        id: u.id,
+        real_name: u.real_name || '（未知）',
+        username: u.username,
+        left_at: u.left_at,
+        data_retain_until: u.data_retain_until,
+        data_anonymized: u.data_anonymized || false,
+        expired: u.data_retain_until < today,
+        expiring_soon: u.data_retain_until >= today && u.data_retain_until <= warnStr,
+      }))
+      .filter(u => u.expired || u.expiring_soon)
+      .sort((a, b) => a.data_retain_until.localeCompare(b.data_retain_until));
+    res.json(list);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 匿名化
+app.put('/api/admin/users/:id/anonymize', requireRole('staff'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const u = await Users.byId(id);
+    if (!u) return res.status(404).json({ error: '帳號不存在' });
+    if (u.status !== 'inactive') return res.status(400).json({ error: '僅停用帳號可匿名化' });
+    await Users.update(id, {
+      real_name: '（已匿名）',
+      id_number: '',
+      phone: '',
+      address: '',
+      mailing_address: '',
+      bank_account: '',
+      bank_holder: '',
+      bank_name: '',
+      bank_branch: '',
+      bank_code: '',
+      data_anonymized: true,
+    });
+    // 刪除身分證 / 存簿圖片
+    const imgSnap = await db.collection('users').doc(String(id))
+      .collection('blobs').get();
+    for (const d of imgSnap.docs) await d.ref.delete();
+    cacheDel('users-list');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 自動封存設定讀寫
+app.get('/api/admin/auto-archive-config', requireRole('staff'), async (req, res) => {
+  try {
+    const doc = await db.collection('settings').doc('auto_archive').get();
+    res.json(doc.exists ? doc.data() : { enabled: false, day: 1, retain_months: 12, last_run: null, last_count: 0 });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.put('/api/admin/auto-archive-config', requireRole('staff'), async (req, res) => {
+  try {
+    const { enabled, day, retain_months } = req.body;
+    await db.collection('settings').doc('auto_archive').set(
+      { enabled: !!enabled, day: parseInt(day)||1, retain_months: parseInt(retain_months)||12 },
+      { merge: true }
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 const PORT = process.env.PORT || 3000;

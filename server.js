@@ -2163,8 +2163,13 @@ app.get('/api/admin/labor-report', requireRole('staff'), async (req, res) => {
     const u = await Users.byId(parseInt(partner_id));
     if (!u) return res.status(404).json({ error: '找不到夥伴' });
     const all = await Assignments.all();
-    const mine = all.filter(a => a.accepted_by === u.id && a.status === 'completed' && (a.completed_at || '').slice(0,7) === `${yy}/${mm}`);
-    const amount = mine.reduce((s, a) => s + (a.total_price || 0), 0);
+    // 支援 completed_at 有無補零兩種格式（2026/06/05 及 2026/6/5）
+    const matchYM = (dt) => {
+      const d = dt || '';
+      return d.startsWith(`${yy}/${mm}`) || d.startsWith(`${yy}/${parseInt(mm)}/`);
+    };
+    const mine = all.filter(a => a.accepted_by === u.id && a.status === 'completed' && matchYM(a.completed_at));
+    const amount = mine.reduce((s, a) => s + (Number(a.total_price) || 0), 0);
     const tasks = [...new Set(mine.map(a => a.task_name).filter(Boolean))];
     res.json({
       company: '希絆股份有限公司',

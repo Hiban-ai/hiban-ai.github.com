@@ -1265,16 +1265,33 @@ function renderStaffAssign() {
   }
   if (monthF !== 'all') {
     const [y, m] = monthF.split('/');
+    const mInt = parseInt(m, 10);
     list = list.filter(a => {
-      const d = a.created_at || '';
-      return d.startsWith(y + '/' + m) || d.startsWith(y + '/' + parseInt(m) + '/');
+      const raw = a.created_at;
+      if (!raw) return false;
+      let d;
+      if (typeof raw === 'string') {
+        d = raw;
+      } else if (raw && typeof raw.toDate === 'function') {
+        // Firestore Timestamp → 台灣時間字串
+        const dt = raw.toDate();
+        const p = n => String(n).padStart(2,'0');
+        const tw = new Date(dt.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+        d = `${tw.getFullYear()}/${p(tw.getMonth()+1)}/${p(tw.getDate())}`;
+      } else {
+        d = String(raw);
+      }
+      // 支援 "YYYY/MM/DD" 及 "YYYY-MM-DD" 格式
+      const ds = d.replace(/-/g, '/');
+      return ds.startsWith(`${y}/${m}`) || ds.startsWith(`${y}/${mInt}/`);
     });
   }
   // 小計
   const sumEl = document.getElementById('assign-stats-summary');
   if (sumEl) {
     const totalAmt = list.reduce((s, a) => s + (a.total_price || 0), 0);
-    sumEl.innerHTML = `<span>共 <strong style="color:var(--blue-d)">${list.length}</strong> 筆</span><span>總金額 <strong style="color:var(--green)">$${totalAmt.toLocaleString()}</strong></span>`;
+    const monthLabel = monthF === 'all' ? '全部月份' : (() => { const [y,m]=monthF.split('/'); return `${y}年${parseInt(m)}月`; })();
+    sumEl.innerHTML = `<span>${monthLabel}：共 <strong style="color:var(--blue-d)">${list.length}</strong> 筆</span><span>總金額 <strong style="color:var(--green)">$${totalAmt.toLocaleString()}</strong></span>`;
   }
   try {
     if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">無符合條件的任務</div>'; return; }

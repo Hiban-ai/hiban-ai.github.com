@@ -1157,6 +1157,21 @@ app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) =>
     // 6. 新核准夥伴尚未設定督導
     const unassignedPartners = allUsers.filter(u => u.role === 'partner' && u.status === 'active' && !u.supervisor_id);
 
+    // 7. 夥伴當月任務金額接近 19,000 警示
+    const INCOME_WARN = 19000;
+    const curYM = nowTW().slice(0, 7); // "YYYY/MM"
+    const allAssign = await Assignments.all();
+    const incomeWarning = myPartners.map(p => {
+      const monthTasks = allAssign.filter(a =>
+        a.accepted_by === p.id &&
+        a.status !== 'rejected' &&
+        ((a.created_at || '').startsWith(curYM) || (a.created_at || '').startsWith(curYM.replace(/\/0(\d)$/, '/$1')))
+      );
+      const total = monthTasks.reduce((s, a) => s + (Number(a.total_price) || 0), 0);
+      if (total < INCOME_WARN) return null;
+      return { id: p.id, real_name: p.real_name, amount: total, task_count: monthTasks.length };
+    }).filter(Boolean);
+
     res.json({
       overdue: overdue.map(a => ({ id: a.id, task_name: a.task_name, deadline_date: a.deadline_date, partner_name: userName(a.target_partner_id) })),
       due_soon: dueSoon.map(a => ({ id: a.id, task_name: a.task_name, deadline_date: a.deadline_date, partner_name: userName(a.target_partner_id) })),
@@ -1165,6 +1180,7 @@ app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) =>
       grab_unfilled: grabUnfilled.map(t => ({ id: t.id, task_name: t.task_name, grabbed_count: t.grabbed_count||0, total_slots: t.total_slots, deadline: t.deadline })),
       inactive_partners: inactivePartners.map(u => ({ id: u.id, real_name: u.real_name, login_dates: u.login_dates||[] })),
       unassigned_partners: unassignedPartners.map(u => ({ id: u.id, real_name: u.real_name })),
+      income_warning: incomeWarning,
     });
   } catch(e) { console.error('[supervisor/alerts]', e); res.status(500).json({ error: e.message }); }
 });
@@ -2891,6 +2907,31 @@ app.get('/api/firebase-config', requireAuth, (req, res) => {
     messagingSenderId: process.env.FIREBASE_SENDER_ID     || '',
     appId:             process.env.FIREBASE_APP_ID        || '',
   });
+});
+
+// 更改任務完成日期（只能延後）
+app.put('/api/admin/assignments/:id/change-completed-at', requireRole('staff'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { new_date } = req.body; // "YYYY/MM/DD"
+    if (!new_date) return res.status(400).json({ error: '缺少日期' });
+    const a = await Assignments.byId(id);
+    if (!a) return res.status(404).json({ error: '任務不存在' });
+    if (a.status !== 'completed') return res.status(400).json({ error: '僅已完成任務可更改日期' });
+    // 保留原始時間，只換日期部分
+    const oldDate = (a.completed_at || '').split(' ')[0];
+    const oldTime = (a.completed_at || '').split(' ')[1] || '00:00:00';
+    if (new_date < oldDate) return res.status(400).json({ error: '新日期不能早於原完成日期' });
+    const staffName = req.session.user.real_name || req.session.user.username;
+    const patch = {
+      completed_at: `${new_date} ${oldTime}`,
+      completed_at_original: a.completed_at_original || a.completed_at,
+      completed_at_changed_by: staffName,
+      completed_at_changed_at: nowTW(),
+    };
+    await Assignments.update(id, patch);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── 資料管理 ──────────────────────────────────────────────────

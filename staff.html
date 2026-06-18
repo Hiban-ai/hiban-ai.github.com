@@ -406,6 +406,9 @@ textarea.form-input{resize:none}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem">
           <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務列表 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <select id="assign-stats-month" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+              <option value="all">全部月份</option>
+            </select>
             <select id="assign-stats-status" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
               <option value="all">全部狀態</option>
               <option value="pending">待回覆</option>
@@ -782,6 +785,32 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
+    <!-- 更改完成日期 overlay -->
+    <div class="detail-overlay" id="change-date-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:420px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">📅 更改完成日期</div>
+          <button onclick="closeChangeDate()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div id="cd-task-name" style="font-size:.88rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem"></div>
+        <div class="form-group">
+          <label class="form-label">目前完成日期</label>
+          <div id="cd-current-date" style="font-size:.88rem;padding:.5rem 0;color:var(--text-s)"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">新完成日期（只能延後）</label>
+          <input id="cd-new-date" type="date" class="form-input">
+        </div>
+        <div style="font-size:.8rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#e8f4fb;border:1.5px solid var(--blue);border-radius:var(--rs);line-height:1.7">
+          ⚠️ 僅能延後日期，不影響任務截止期限的告警設定。更改紀錄將標註管理人員姓名。
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="confirmChangeDate()" class="btn-primary" style="flex:1">確認更改</button>
+          <button onclick="closeChangeDate()" style="flex:1;padding:.7rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 問題管理 -->
     <div class="page-section" id="page-issues">
       <div class="page-title">📝 問題管理</div>
@@ -1129,6 +1158,7 @@ async function loadStaffAssign() {
     const cur = sel.value;
     sel.innerHTML = '<option value="all">全部</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
     if (names.includes(cur)) sel.value = cur;
+    buildAssignMonthFilter();
     renderStaffAssign();
   } catch(e) { console.error('[staffAssign]', e.message); }
 }
@@ -1211,14 +1241,34 @@ function exportTaxReport() {
   window.open('/api/admin/tax-report/export' + (y ? '?year=' + y : ''), '_blank');
 }
 
+function buildAssignMonthFilter() {
+  const sel = document.getElementById('assign-stats-month');
+  if (!sel || sel.options.length > 1) return;
+  const now = new Date();
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0');
+    const opt = document.createElement('option');
+    opt.value = `${y}/${m}`; opt.textContent = `${y}年${d.getMonth()+1}月`;
+    sel.appendChild(opt);
+  }
+}
 function renderStaffAssign() {
   const wrap = document.getElementById('staff-assign-wrap');
   if (!wrap) return;
-  const filter = document.getElementById('assign-stats-filter').value;
+  const filter  = document.getElementById('assign-stats-filter').value;
   const statusF = document.getElementById('assign-stats-status')?.value || 'all';
+  const monthF  = document.getElementById('assign-stats-month')?.value || 'all';
   let list = filter === 'all' ? staffAssignCache : staffAssignCache.filter(a => (a.partner_name || '未指定') === filter);
   if (statusF !== 'all') {
     list = list.filter(a => statusF === 'reviewing' ? a.review_status === 'reviewing' : (a.status === statusF && a.review_status !== 'reviewing'));
+  }
+  if (monthF !== 'all') {
+    const [y, m] = monthF.split('/');
+    list = list.filter(a => {
+      const d = a.created_at || '';
+      return d.startsWith(y + '/' + m) || d.startsWith(y + '/' + parseInt(m) + '/');
+    });
   }
   // 小計
   const sumEl = document.getElementById('assign-stats-summary');
@@ -1266,6 +1316,12 @@ function renderStaffAssign() {
             ${a.work_content ? `<div style="margin-top:.3rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">工作內容：</span>${a.work_content}</div>` : ''}
             ${a.notes ? `<div style="margin-top:.2rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">補充說明：</span>${a.notes}</div>` : ''}
             ${a.custom_fields && a.custom_fields.length ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.78rem;color:var(--text-m)">${a.custom_fields.filter(f=>f.value!=='').map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>` : ''}
+            ${a.status === 'completed' ? `
+            <div style="margin-top:.5rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <span style="font-size:.78rem;color:var(--text-s)">完成日期：${(a.completed_at||'').split(' ')[0]||'—'}</span>
+              <button onclick="openChangeDate(${a.id},'${(a.task_name||'').replace(/'/g,"\\'")}','${(a.completed_at||'').split(' ')[0]}')" style="padding:.18rem .6rem;font-size:.72rem;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:var(--rs);cursor:pointer">更改日期</button>
+              ${a.completed_at_changed_by ? `<span style="font-size:.7rem;color:var(--text-s)">由 ${a.completed_at_changed_by} 更改（原：${(a.completed_at_original||'').split(' ')[0]}）</span>` : ''}
+            </div>` : ''}
           </div>`;
         }).join('')}
       </div>`;
@@ -2140,6 +2196,39 @@ document.getElementById('confirm-ok-btn').onclick = async () => {
   }
   closeConfirm();
 };
+
+// ── 更改完成日期 ──────────────────────────────────────
+let _changeDateId = null;
+function openChangeDate(id, taskName, currentDate) {
+  _changeDateId = id;
+  document.getElementById('cd-task-name').textContent = taskName;
+  document.getElementById('cd-current-date').textContent = currentDate || '—';
+  // 最小日期 = 現有完成日期（轉成 input[date] 格式 YYYY-MM-DD）
+  const minDate = currentDate ? currentDate.replace(/\//g, '-') : '';
+  const inp = document.getElementById('cd-new-date');
+  inp.min = minDate;
+  inp.value = minDate;
+  document.getElementById('change-date-overlay').classList.add('open');
+}
+function closeChangeDate() {
+  document.getElementById('change-date-overlay').classList.remove('open');
+  _changeDateId = null;
+}
+async function confirmChangeDate() {
+  if (!_changeDateId) return;
+  const newDateInput = document.getElementById('cd-new-date').value; // "YYYY-MM-DD"
+  if (!newDateInput) { showToast('請選擇日期', 'error'); return; }
+  const currentDate = document.getElementById('cd-current-date').textContent.replace(/\//g,'-');
+  if (newDateInput < currentDate) { showToast('新日期不能早於原完成日期', 'error'); return; }
+  const newDate = newDateInput.replace(/-/g, '/'); // 轉回 "YYYY/MM/DD"
+  try {
+    await API.put(`/api/admin/assignments/${_changeDateId}/change-completed-at`, { new_date: newDate });
+    showToast('完成日期已更新', 'success');
+    closeChangeDate();
+    staffAssignCache = await API.get('/api/admin/assignments');
+    renderStaffAssign();
+  } catch(e) { showToast(e.message, 'error'); }
+}
 
 // ── 資料管理 ──────────────────────────────────────────
 function openDataMgmt() {

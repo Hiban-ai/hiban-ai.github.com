@@ -735,6 +735,7 @@ async function loadAlerts() {
   try {
     const a = await API.get('/api/supervisor/alerts');
     const groups = [
+      { key: 'income_warning', icon: '💰', cls: 'ac-red', title: n => `夥伴當月金額接近上限（${n}）`, item: x => `${x.real_name} — 當月累計 $${x.amount.toLocaleString()}（含未回覆/進行中/已完成，上限 $19,000）` },
       { key: 'overdue', icon: '🔴', cls: 'ac-red', title: n => `任務已逾期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
       { key: 'due_soon', icon: '🟠', cls: 'ac-orange', title: n => `任務即將到期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
       { key: 'pending_worklogs', icon: '📝', cls: 'ac-orange', title: n => `待審核 WorkLog（${n}）`, item: x => `任務 #${x.assignment_id} 的回報待審核` },

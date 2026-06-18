@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>產生浮水印</title></head>
+<body style="font-family:sans-serif;padding:20px;background:#f5f5f5">
+<h3>浮水印產生器</h3>
+<label>文字：<input id="txt" value="僅供希絆有限公司使用" style="width:300px;padding:4px"></label><br><br>
+<label>字級：<input id="size" type="number" value="52" min="20" max="120" style="width:80px;padding:4px"> px</label>&nbsp;&nbsp;
+<label>透明度：<input id="opacity" type="range" min="5" max="50" value="18"> <span id="op-val">18</span>%</label><br><br>
+<label>顏色：<input id="color" type="color" value="#505050"></label>&nbsp;&nbsp;
+<label>旋轉角度：<input id="angle" type="number" value="-35" min="-60" max="0" style="width:70px;padding:4px">°</label><br><br>
+<button onclick="generate()" style="padding:8px 20px;background:#1A8AC0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">產生預覽</button>
+<button onclick="download()" style="padding:8px 20px;background:#43a047;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;margin-left:8px">下載 watermark.png</button>
+<br><br>
+<canvas id="cv" style="border:1px solid #ccc;background:#eee;max-width:100%"></canvas>
+<div id="info" style="margin-top:8px;font-size:13px;color:#666"></div>
+
+<script>
+document.getElementById('opacity').oninput = function(){ document.getElementById('op-val').textContent = this.value; };
+
+function generate() {
+  const text    = document.getElementById('txt').value;
+  const size    = parseInt(document.getElementById('size').value);
+  const opacity = parseInt(document.getElementById('opacity').value) / 100;
+  const color   = document.getElementById('color').value;
+  const angle   = parseInt(document.getElementById('angle').value) * Math.PI / 180;
+  const W = 1200, H = 1200;
+
+  const cv = document.getElementById('cv');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.font = `bold ${size}px "Microsoft JhengHei","微軟正黑體",sans-serif`;
+  ctx.fillStyle = color;
+  ctx.globalAlpha = opacity;
+
+  const tw = ctx.measureText(text).width;
+  const padX = tw + 80;
+  const padY = size + 60;
+
+  for (let y = -padY; y < H + padY; y += padY) {
+    for (let x = -padX; x < W + padX; x += padX) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  const w = ctx.measureText(text).width;
+  document.getElementById('info').textContent =
+    `畫布：${W}×${H}px　字寬：${Math.round(w)}px　大小：${size}px　透明度：${Math.round(opacity*100)}%`;
+}
+
+function download() {
+  generate();
+  const cv = document.getElementById('cv');
+  const a  = document.createElement('a');
+  a.href = cv.toDataURL('image/png');
+  a.download = 'watermark.png';
+  a.click();
+}
+
+generate();
+</script>
+</body>
+</html>

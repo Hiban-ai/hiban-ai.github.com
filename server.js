@@ -103,7 +103,13 @@ app.get('/api/users-list', async (req, res) => {
       return res.json([]);
     }
   }
-  let filtered = users.filter(u => u.status === 'active');
+  let filtered = users.filter(u => u.status === 'active' || u.status === 'suspended').filter(u => {
+    // 停用期已過的自動視為 active（不修 DB，僅過濾用）
+    if (u.status === 'suspended' && u.suspend_until) {
+      return u.suspend_until <= new Date().toISOString().split('T')[0] ? true : false;
+    }
+    return u.status === 'active';
+  });
   if (role) filtered = filtered.filter(u => u.role === role);
   if (req.session.user?.role === 'supervisor' && role === 'partner' && req.query.scope !== 'all') {
     filtered = filtered.filter(u => u.supervisor_id === req.session.user.id);
@@ -118,7 +124,19 @@ app.post('/api/login', async (req, res) => {
     const user = await Users.byName(username);
     if (!user) return res.status(401).json({ error: 'Account not found' });
     if (user.status === 'pending')  return res.status(403).json({ error: 'Account pending approval' });
+    if (user.status === 'archived') return res.status(403).json({ error: 'Account archived' });
     if (user.status === 'inactive') return res.status(403).json({ error: 'Account disabled' });
+    // 承攬停用：檢查是否已到解除日
+    if (user.status === 'suspended') {
+      const today = new Date().toISOString().split('T')[0];
+      if (user.suspend_until && user.suspend_until <= today) {
+        // 自動解除停用
+        await Users.update(user.id, { status: 'active', suspended_at: null, suspend_until: null, suspend_days: null, suspend_reason: null });
+      } else {
+        const until = user.suspend_until ? `（停用至 ${user.suspend_until}）` : '（永久停用）';
+        return res.status(403).json({ error: `帳號已停用 ${until}` });
+      }
+    }
     if (!bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'Wrong password' });
     req.session.user = { id: user.id, username: user.username, real_name: user.real_name, nickname: user.nickname, role: user.role, is_admin: !!(user.is_admin || user.username === 'admin'), supervisor_id: user.supervisor_id || null };
         const todayTW = (() => {
@@ -677,19 +695,64 @@ app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req,
 
 app.put('/api/admin/users/:id/deactivate', requireRole('staff'), async (req, res) => {
   try {
-    const { left_at, left_reason } = req.body || {};
-    const leftDate = left_at || nowTW().split('T')[0];
-    // 保存到期日 = 離職日 + 5 年
+    const { suspend_days, suspend_reason, suspended_at } = req.body || {};
+    const startDate = suspended_at || nowTW().split('T')[0];
+    const days = suspend_days === '永久' || !suspend_days ? null : parseInt(suspend_days);
+    const suspend_until = days ? (() => {
+      const d = new Date(startDate); d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    })() : null;
+    await Users.update(parseInt(req.params.id), {
+      status: 'suspended',
+      suspended_at: startDate,
+      suspend_days: days,
+      suspend_reason: suspend_reason || '',
+      suspend_until,
+    });
+    cacheDel('users-list');
+    res.json({ ok: true, suspend_until });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 解除停用
+app.put('/api/admin/users/:id/unsuspend', requireRole('staff'), async (req, res) => {
+  try {
+    await Users.update(parseInt(req.params.id), {
+      status: 'active',
+      suspended_at: null, suspend_days: null, suspend_reason: null, suspend_until: null,
+    });
+    cacheDel('users-list');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 封存帳號（取代刪除）
+app.put('/api/admin/users/:id/archive-user', requireRole('staff'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (id === req.session.user.id) return res.status(400).json({ error: '無法封存自己的帳號' });
+    const archiveDate = nowTW().split('T')[0];
     const retainUntil = (() => {
-      const d = new Date(leftDate); d.setFullYear(d.getFullYear() + 5);
+      const d = new Date(archiveDate); d.setFullYear(d.getFullYear() + 5);
       return d.toISOString().split('T')[0];
     })();
-    await Users.update(parseInt(req.params.id), {
-      status: 'inactive',
-      left_at: leftDate,
-      left_reason: left_reason || '',
+    await Users.update(id, {
+      status: 'archived',
+      archived_at: archiveDate,
       data_retain_until: retainUntil,
       data_anonymized: false,
+    });
+    cacheDel('users-list');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 解封帳號（恢復為 inactive，再由 staff 手動啟用）
+app.put('/api/admin/users/:id/unarchive-user', requireRole('staff'), async (req, res) => {
+  try {
+    await Users.update(parseInt(req.params.id), {
+      status: 'inactive',
+      archived_at: null, data_retain_until: null,
     });
     cacheDel('users-list');
     res.json({ ok: true });

@@ -739,29 +739,41 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <!-- 離職確認 overlay -->
+    <!-- 停用確認 overlay -->
     <div class="detail-overlay" id="deactivate-overlay">
       <div class="detail-box" style="border-top-color:var(--red);width:460px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
-          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">⏸ 停用帳號／離職登記</div>
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">⏸ 停用帳號</div>
           <button onclick="closeDeactivate()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
         </div>
         <div id="deactivate-name" style="font-size:.9rem;font-weight:700;margin-bottom:.85rem;color:var(--text-m)"></div>
         <div class="form-group">
-          <label class="form-label">離職日期</label>
-          <input id="deactivate-left-at" type="date" class="form-input" onchange="updateRetainUntil()">
+          <label class="form-label">停用日期</label>
+          <input id="deactivate-start" type="date" class="form-input" onchange="updateSuspendUntil()">
         </div>
         <div class="form-group">
-          <label class="form-label">離職原因</label>
+          <label class="form-label">停用天數</label>
+          <select id="deactivate-days" class="form-input" onchange="updateSuspendUntil()">
+            <option value="7">7 天</option>
+            <option value="14">14 天</option>
+            <option value="30" selected>30 天</option>
+            <option value="60">60 天</option>
+            <option value="90">90 天</option>
+            <option value="永久">永久停用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">違規理由</label>
           <select id="deactivate-reason" class="form-input">
-            <option value="自願離職">自願離職</option>
-            <option value="合約到期">合約到期</option>
-            <option value="終止合作">終止合作</option>
+            <option value="違反合作規範">違反合作規範</option>
+            <option value="工作品質不佳">工作品質不佳</option>
+            <option value="多次缺席或失聯">多次缺席或失聯</option>
+            <option value="違反保密協議">違反保密協議</option>
             <option value="其他">其他</option>
           </select>
         </div>
-        <div style="font-size:.8rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#fff8e1;border:1.5px solid #f9a825;border-radius:var(--rs);line-height:1.7">
-          停用後帳號無法登入。依勞基法規定，個人資料將保存至 <strong id="deactivate-retain-until"></strong>（離職日起 5 年）。
+        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#fff3f3;border:1.5px solid var(--red);border-radius:var(--rs);line-height:1.7">
+          停用期間帳號無法登入。解除日期：<strong id="deactivate-until-show">—</strong>
         </div>
         <div style="display:flex;gap:.5rem">
           <button onclick="confirmDeactivate()" style="flex:1;padding:.7rem;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">確認停用</button>
@@ -1356,8 +1368,8 @@ function switchPage(name, el) {
 // ── 帳號管理 ──
 const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' };
 const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
-const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用', rejected:'已退回' };
-const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive', rejected:'sb-rejected' };
+const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用', rejected:'已退回', suspended:'已停用', archived:'已封存' };
+const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive', rejected:'sb-rejected', suspended:'sb-warn', archived:'sb-inactive' };
 
 let usersCache = [];
 let curAccTab  = 'partner';
@@ -1401,7 +1413,14 @@ function renderAccounts() {
         <td style="white-space:nowrap"><span class="role-tag ${roleClass[u.role]||''}">${roleMap[u.role]||u.role}</span></td>
         <td style="white-space:nowrap;font-size:.82rem;font-family:monospace">${u.id_number||'—'}</td>
         <td style="white-space:nowrap;font-size:.82rem;color:var(--text-m)">${u.birthday||'—'}</td>
-        <td style="white-space:nowrap"><span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span></td>
+        <td style="white-space:nowrap">${(() => {
+          if (u.status === 'suspended') {
+            const rem = u.suspend_until ? Math.max(0, Math.ceil((new Date(u.suspend_until)-new Date())/86400000)) : null;
+            const sub = rem != null ? `<br><span style="font-size:.68rem;color:var(--text-s)">剩 ${rem} 天</span>` : '<br><span style="font-size:.68rem;color:var(--text-s)">永久</span>';
+            return `<span class="status-badge sb-warn">${statusLabel.suspended}</span>${sub}`;
+          }
+          return `<span class="status-badge ${statusClass[u.status]||''}">${statusLabel[u.status]||u.status}</span>`;
+        })()}</td>
         <td style="font-size:.78rem;color:var(--text-s);line-height:1.6">${u.created_at ? (s=>s[0]+'<br>'+(s[1]||''))(u.created_at.split(' ')) : '—'}</td>
         ${isPartner ? `
         <td style="white-space:nowrap">
@@ -1594,29 +1613,36 @@ function roleActions(u) {
   const isAdmin   = me.username === 'admin' || me.is_admin === true;
   const isSelf    = u.id === me.id;
   const detail    = `<button class="action-btn" onclick="openDetail(${u.id})">詳細</button>`;
-  const delBtn    = !isSelf ? `<button class="action-btn danger" onclick="deleteUser(${u.id},'${u.real_name}')">刪除</button>` : '';
-  const stopBtn   = `<button class="action-btn warn" onclick="deactivateUser(${u.id},'${u.real_name}')">停用</button>`;
-  const startBtn  = `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">啟用</button>`;
-  const approveBtn= `<button class="action-btn approve" onclick="openDetail(${u.id})">審核</button>`;
-  const resetBtn  = `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">密碼重設</button>`;
+  const archiveBtn  = !isSelf ? `<button class="action-btn danger" onclick="archiveUser(${u.id},'${u.real_name}')">封存</button>` : '';
+  const unarchiveBtn= `<button class="action-btn approve" onclick="unarchiveUser(${u.id},'${u.real_name}')">解封</button>`;
+  const stopBtn     = `<button class="action-btn warn" onclick="deactivateUser(${u.id},'${u.real_name}')">停用</button>`;
+  const unsuspendBtn= `<button class="action-btn approve" onclick="unsuspendUser(${u.id},'${u.real_name}')">解除停用</button>`;
+  const startBtn    = `<button class="action-btn approve" onclick="approveUser(${u.id},'${u.real_name}')">啟用</button>`;
+  const approveBtn  = `<button class="action-btn approve" onclick="openDetail(${u.id})">審核</button>`;
+  const resetBtn    = `<button class="action-btn warn" onclick="resetPassword(${u.id},'${u.real_name}')">密碼重設</button>`;
 
   if (u.role === 'partner') {
-    if (u.status === 'pending')  return approveBtn;
-    if (u.status === 'rejected') return detail + delBtn;
-    if (u.status === 'active')   return detail + stopBtn + resetBtn + delBtn;
-    if (u.status === 'inactive') return detail + startBtn + delBtn;
+    if (u.status === 'pending')    return approveBtn;
+    if (u.status === 'rejected')   return detail + archiveBtn;
+    if (u.status === 'active')     return detail + stopBtn + resetBtn + archiveBtn;
+    if (u.status === 'suspended')  return detail + unsuspendBtn + resetBtn + archiveBtn;
+    if (u.status === 'inactive')   return detail + startBtn + archiveBtn;
+    if (u.status === 'archived')   return detail + unarchiveBtn;
   }
   if (u.role === 'supervisor') {
-    if (u.status === 'active')   return detail + stopBtn + resetBtn + delBtn;
-    if (u.status === 'inactive') return detail + startBtn + delBtn;
+    if (u.status === 'active')     return detail + stopBtn + resetBtn + archiveBtn;
+    if (u.status === 'suspended')  return detail + unsuspendBtn + resetBtn + archiveBtn;
+    if (u.status === 'inactive')   return detail + startBtn + archiveBtn;
+    if (u.status === 'archived')   return detail + unarchiveBtn;
   }
   if (u.role === 'staff') {
     if (isSelf) return detail;
-    // 系統管理員只有 admin 本身能管，其他人只能看詳細
     if (u.username === 'admin' && !isAdmin) return detail;
     const reset = isAdmin ? resetBtn : '';
-    if (u.status === 'active')   return detail + stopBtn + reset + delBtn;
-    if (u.status === 'inactive') return detail + startBtn + reset + delBtn;
+    if (u.status === 'active')     return detail + stopBtn + reset + archiveBtn;
+    if (u.status === 'suspended')  return detail + unsuspendBtn + reset + archiveBtn;
+    if (u.status === 'inactive')   return detail + startBtn + reset + archiveBtn;
+    if (u.status === 'archived')   return detail + unarchiveBtn;
   }
   return detail;
 }
@@ -1702,18 +1728,22 @@ async function submitApprove() {
 let _deactivateId = null;
 function deactivateUser(id, name) {
   _deactivateId = id;
-  document.getElementById('deactivate-name').textContent = `帳號：${name}`;
+  document.getElementById('deactivate-name').textContent = `停用對象：${name}`;
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('deactivate-left-at').value = today;
-  document.getElementById('deactivate-reason').value = '自願離職';
-  updateRetainUntil();
+  document.getElementById('deactivate-start').value = today;
+  document.getElementById('deactivate-days').value = '30';
+  document.getElementById('deactivate-reason').value = '違反合作規範';
+  updateSuspendUntil();
   document.getElementById('deactivate-overlay').classList.add('open');
 }
-function updateRetainUntil() {
-  const d = new Date(document.getElementById('deactivate-left-at').value || new Date());
-  d.setFullYear(d.getFullYear() + 5);
-  document.getElementById('deactivate-retain-until').textContent =
-    d.toISOString().split('T')[0];
+function updateSuspendUntil() {
+  const start = document.getElementById('deactivate-start').value;
+  const days  = document.getElementById('deactivate-days').value;
+  const el    = document.getElementById('deactivate-until-show');
+  if (days === '永久') { el.textContent = '永久停用（不自動解除）'; return; }
+  const d = new Date(start || new Date());
+  d.setDate(d.getDate() + parseInt(days));
+  el.textContent = d.toISOString().split('T')[0];
 }
 function closeDeactivate() {
   document.getElementById('deactivate-overlay').classList.remove('open');
@@ -1721,14 +1751,36 @@ function closeDeactivate() {
 }
 async function confirmDeactivate() {
   if (!_deactivateId) return;
-  const left_at = document.getElementById('deactivate-left-at').value;
-  const left_reason = document.getElementById('deactivate-reason').value;
+  const suspended_at   = document.getElementById('deactivate-start').value;
+  const suspend_days   = document.getElementById('deactivate-days').value;
+  const suspend_reason = document.getElementById('deactivate-reason').value;
   try {
-    await API.put(`/api/admin/users/${_deactivateId}/deactivate`, { left_at, left_reason });
+    await API.put(`/api/admin/users/${_deactivateId}/deactivate`, { suspended_at, suspend_days, suspend_reason });
     showToast('已停用帳號', 'warn');
     closeDeactivate();
     loadAccounts();
   } catch(e) { showToast(e.message, 'error'); }
+}
+async function unsuspendUser(id, name) {
+  openConfirm('✅', '解除停用', `確定解除「${name}」的停用狀態？帳號將恢復為啟用。`, async () => {
+    await API.put(`/api/admin/users/${id}/unsuspend`);
+    showToast(`已解除 ${name} 的停用`, 'success');
+    loadAccounts();
+  });
+}
+async function archiveUser(id, name) {
+  openConfirm('📦', '封存帳號', `確定封存「${name}」的帳號？\n\n封存後帳號無法登入，資料保存至封存日起 5 年後到期。封存可解除（解封後需手動啟用）。`, async () => {
+    await API.put(`/api/admin/users/${id}/archive-user`);
+    showToast(`已封存 ${name}`, 'warn');
+    loadAccounts();
+  });
+}
+async function unarchiveUser(id, name) {
+  openConfirm('📂', '解除封存', `確定解除封存「${name}」？帳號將進入停用狀態，需手動啟用後才能登入。`, async () => {
+    await API.put(`/api/admin/users/${id}/unarchive-user`);
+    showToast(`已解封 ${name}，請手動啟用帳號`, 'success');
+    loadAccounts();
+  });
 }
 async function resetPassword(id, name) {
   openConfirm('🔑', '重設密碼', `確定要將「${name}」的密碼重設為 0000？\n下次登入需要修改密碼。`, async () => {

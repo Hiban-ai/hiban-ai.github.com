@@ -406,7 +406,7 @@ textarea.form-input{resize:none}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem">
           <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務列表 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <select id="assign-stats-month" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+            <select id="assign-stats-month" onchange="renderStaffAssign()" title="依完成日期分組（未完成則依截止日期）" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
               <option value="all">全部月份</option>
             </select>
             <select id="assign-stats-status" onchange="renderStaffAssign()" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
@@ -1266,23 +1266,22 @@ function renderStaffAssign() {
   if (monthF !== 'all') {
     const [y, m] = monthF.split('/');
     const mInt = parseInt(m, 10);
-    list = list.filter(a => {
-      const raw = a.created_at;
-      if (!raw) return false;
-      let d;
-      if (typeof raw === 'string') {
-        d = raw;
-      } else if (raw && typeof raw.toDate === 'function') {
-        // Firestore Timestamp → 台灣時間字串
+    // 任務「代表日期」：已完成→完成日期，未完成→截止日期，皆無則退回建立時間
+    const repDate = a => {
+      const raw = a.completed_at || a.deadline_date || a.deadline || a.created_at;
+      if (!raw) return '';
+      if (typeof raw === 'string') return raw.replace(/-/g, '/');
+      if (raw && typeof raw.toDate === 'function') {
         const dt = raw.toDate();
         const p = n => String(n).padStart(2,'0');
         const tw = new Date(dt.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
-        d = `${tw.getFullYear()}/${p(tw.getMonth()+1)}/${p(tw.getDate())}`;
-      } else {
-        d = String(raw);
+        return `${tw.getFullYear()}/${p(tw.getMonth()+1)}/${p(tw.getDate())}`;
       }
-      // 支援 "YYYY/MM/DD" 及 "YYYY-MM-DD" 格式
-      const ds = d.replace(/-/g, '/');
+      return String(raw).replace(/-/g, '/');
+    };
+    list = list.filter(a => {
+      const ds = repDate(a);
+      if (!ds) return false;
       return ds.startsWith(`${y}/${m}`) || ds.startsWith(`${y}/${mInt}/`);
     });
   }

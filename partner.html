@@ -980,7 +980,7 @@ async function loadTasks() {
 function last3Months() {
   const now = new Date();
   const res = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 24; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     res.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
   }

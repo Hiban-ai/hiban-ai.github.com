@@ -679,9 +679,20 @@ textarea.form-input{resize:none}
           <hr style="margin:1.2rem 0;border:none;border-top:1.5px solid var(--border)">
           <div style="font-size:.9rem;font-weight:700;margin-bottom:.4rem">💾 資料庫備份</div>
           <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.7">
-            每日 <strong>03:00</strong> 自動將<strong>整個資料庫</strong>（所有集合＋圖片）匯出成 JSON 存到 Google Drive 的「資料庫備份」資料夾，保留最近 30 份。也可隨時手動備份（例如執行封存/刪除前）。
+            自動備份：每日 <strong>03:00</strong> 做「資料備份」（保留 30 份）、每週日 <strong>04:00</strong> 做「完整備份」（保留 8 份），存到 Google Drive 的「資料庫備份」資料夾。也可隨時手動備份。
           </div>
-          <button onclick="dmRunBackup(this)" class="btn-primary" style="max-width:160px">立即備份</button>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:var(--rs);padding:.7rem .85rem">
+              <div style="font-weight:700;font-size:.85rem;margin-bottom:.2rem">📄 資料備份</div>
+              <div style="font-size:.78rem;color:var(--text-s);line-height:1.6;margin-bottom:.55rem">只含結構化資料（帳號、任務、設定…），<strong>不含圖片</strong>。檔案小、速度快，適合日常頻繁備份。</div>
+              <button onclick="dmRunBackup('data', this)" class="btn-primary" style="width:100%">資料備份</button>
+            </div>
+            <div style="flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:var(--rs);padding:.7rem .85rem">
+              <div style="font-weight:700;font-size:.85rem;margin-bottom:.2rem">🖼️ 完整備份</div>
+              <div style="font-size:.78rem;color:var(--text-s);line-height:1.6;margin-bottom:.55rem">含<strong>所有圖片</strong>（身分證、存摺、回報照片），可完整還原。檔案較大，建議定期做即可。</div>
+              <button onclick="dmRunBackup('full', this)" class="btn-primary" style="width:100%;background:linear-gradient(135deg,#155E8C,#1A8AC0)">完整備份</button>
+            </div>
+          </div>
           <div id="dm-backup-msg" style="font-size:.82rem;margin-top:.6rem"></div>
           <div id="dm-backup-list" style="font-size:.8rem;color:var(--text-s);margin-top:.6rem"></div>
 
@@ -2398,15 +2409,15 @@ async function dmRestore(btn) {
   } catch(e) { msg.style.color = '#c62828'; msg.textContent = '❌ ' + e.message; }
   finally { btn.disabled = false; btn.textContent = orig; }
 }
-async function dmRunBackup(btn) {
+async function dmRunBackup(type, btn) {
   const msg = document.getElementById('dm-backup-msg');
   btn.disabled = true; const orig = btn.textContent; btn.textContent = '備份中…';
-  msg.style.color = 'var(--text-s)'; msg.textContent = '正在匯出並上傳 Drive…';
+  msg.style.color = 'var(--text-s)'; msg.textContent = type === 'full' ? '正在匯出（含圖片）並上傳 Drive…' : '正在匯出資料並上傳 Drive…';
   try {
-    const r = await API.post('/api/admin/backup/run', {});
+    const r = await API.post('/api/admin/backup/run', { type });
     if (r.ok) {
       msg.style.color = '#2e7d32';
-      msg.textContent = `✅ 備份完成：${r.file}（${r.doc_count} 筆，保留 ${r.kept} 份）`;
+      msg.textContent = `✅ ${r.type === 'full' ? '完整' : '資料'}備份完成：${r.file}（${r.doc_count} 筆${r.size_mb != null ? '，' + r.size_mb + 'MB' : ''}，保留 ${r.kept} 份）`;
       loadDmBackupList();
     } else {
       msg.style.color = '#c62828'; msg.textContent = '❌ ' + (r.error || '備份失敗');

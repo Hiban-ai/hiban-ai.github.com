@@ -2723,40 +2723,47 @@ async function driveEnsureFolder(drive, name, parentId) {
   return f.data.id;
 }
 
-// ── 資料庫備份（每日完整匯出整個 Firestore JSON 到 Google Drive）──────────
-const BACKUP_KEEP = 30; // 保留最近 30 份
+// ── 資料庫備份（兩種類型：data=只結構化／full=含圖片）──────────
+const IMAGE_COLLECTIONS = ['user_images', 'report_images']; // 圖片集合（含 base64）
+const BACKUP_KEEP = { data: 30, full: 8 }; // 各類型保留份數
 
-// 遞迴匯出一個集合：每筆含 id、data，及其底下所有子集合（如 user_images/{id}/blobs 圖片）
-async function dumpCollection(colRef, counter) {
+// 遞迴匯出一個集合；includeImages=false 時不下探子集合（圖片在子集合）
+async function dumpCollection(colRef, counter, includeImages) {
   const snap = await colRef.get();
   const out = [];
   for (const doc of snap.docs) {
     counter.docs++;
     const entry = { id: doc.id, data: doc.data() };
-    const subs = await doc.ref.listCollections();
-    if (subs.length) {
-      entry.sub = {};
-      for (const s of subs) entry.sub[s.id] = await dumpCollection(s, counter);
+    if (includeImages) {
+      const subs = await doc.ref.listCollections();
+      if (subs.length) {
+        entry.sub = {};
+        for (const s of subs) entry.sub[s.id] = await dumpCollection(s, counter, includeImages);
+      }
     }
     out.push(entry);
   }
   return out;
 }
 
-async function backupToDrive() {
+// mode: 'data'（不含圖片，小而快）| 'full'（含圖片，可完整還原）
+async function backupToDrive(mode = 'full') {
+  const full = mode !== 'data';
   const drive  = getDrive();
   const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
   if (!drive || !rootId) { console.log('[backup] Drive 未設定，略過'); return { ok: false, error: 'Drive 未設定' }; }
 
-  // 動態列出所有頂層集合（含 _meta 計數器、custom_field_defs、companies、task_types、
-  // xp_logs、user_images 圖片等），並遞迴含子集合，做到完整備份
   const cols = await db.listCollections();
   const counter = { docs: 0 };
   const data = {};
-  for (const col of cols) data[col.id] = await dumpCollection(col, counter);
+  for (const col of cols) {
+    if (!full && IMAGE_COLLECTIONS.includes(col.id)) continue; // data 模式跳過圖片集合
+    data[col.id] = await dumpCollection(col, counter, full);
+  }
   const docCount = counter.docs;
   const payload = {
-    backup_meta: { backup_at: nowTW(), doc_count: docCount, collections: cols.map(c => c.id), format: 'v2-full' },
+    backup_meta: { backup_at: nowTW(), doc_count: docCount, type: full ? 'full' : 'data',
+      collections: Object.keys(data), format: 'v2-full' },
     data,
   };
   const json = Buffer.from(JSON.stringify(payload), 'utf8');
@@ -2764,7 +2771,8 @@ async function backupToDrive() {
   const dirId = await driveEnsureFolder(drive, '資料庫備份', rootId);
   const n = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
   const p = x => String(x).padStart(2, '0');
-  const fname = `hiban-backup-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}.json`;
+  const prefix = full ? 'hiban-full-' : 'hiban-data-';
+  const fname = `${prefix}${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}.json`;
   const { Readable } = require('stream');
   await drive.files.create({
     requestBody: { name: fname, parents: [dirId] },
@@ -2773,24 +2781,30 @@ async function backupToDrive() {
     supportsAllDrives: true,
   });
 
-  // 保留最近 BACKUP_KEEP 份，清掉更舊的（檔名含日期時間，name desc = 由新到舊）
+  // 依「同類型前綴」保留最近 N 份，清掉更舊的
+  const keep = full ? BACKUP_KEEP.full : BACKUP_KEEP.data;
   const list = await drive.files.list({
-    q: `'${dirId}' in parents and trashed=false and name contains 'hiban-backup-'`,
+    q: `'${dirId}' in parents and trashed=false and name contains '${prefix}'`,
     fields: 'files(id,name)', orderBy: 'name desc', pageSize: 1000,
     supportsAllDrives: true, includeItemsFromAllDrives: true,
   });
   const files = list.data.files || [];
-  for (const f of files.slice(BACKUP_KEEP)) {
+  for (const f of files.slice(keep)) {
     try { await drive.files.delete({ fileId: f.id, supportsAllDrives: true }); } catch(e) { console.error('[backup] 清理舊檔失敗', e.message); }
   }
-  console.log(`[backup] 完成 ${fname}（${docCount} 筆，保留 ${Math.min(files.length, BACKUP_KEEP)} 份）`);
-  return { ok: true, file: fname, doc_count: docCount, kept: Math.min(files.length, BACKUP_KEEP) };
+  const sizeMB = Math.round(json.length / 1048576 * 10) / 10;
+  console.log(`[backup] 完成 ${fname}（${docCount} 筆，${sizeMB}MB，保留 ${Math.min(files.length, keep)} 份）`);
+  return { ok: true, file: fname, type: full ? 'full' : 'data', doc_count: docCount, size_mb: sizeMB, kept: Math.min(files.length, keep) };
 }
 
-// 每日 03:00（台北時間）自動備份
+// 自動排程：每日 03:00 資料備份（不含圖片）；每週日 04:00 完整備份（含圖片）
 cron.schedule('0 3 * * *', () => {
-  console.log('[cron] 開始每日資料庫備份');
-  backupToDrive().catch(console.error);
+  console.log('[cron] 每日資料備份（data）');
+  backupToDrive('data').catch(console.error);
+}, { timezone: 'Asia/Taipei' });
+cron.schedule('0 4 * * 0', () => {
+  console.log('[cron] 每週完整備份（full）');
+  backupToDrive('full').catch(console.error);
 }, { timezone: 'Asia/Taipei' });
 
 // 浮水印：把 assets/watermark.png 疊到圖片上（縮放鋪滿），失敗則回傳原圖
@@ -3299,10 +3313,12 @@ app.post('/api/admin/data-delete', requireRole('staff'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 手動立即備份
+// 手動立即備份（type: 'data' 不含圖片 | 'full' 含圖片）
 app.post('/api/admin/backup/run', requireRole('staff'), async (req, res) => {
-  try { res.json(await backupToDrive()); }
-  catch(e) { res.status(500).json({ error: e.message }); }
+  try {
+    const mode = req.body && req.body.type === 'full' ? 'full' : 'data';
+    res.json(await backupToDrive(mode));
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // 備份清單
@@ -3313,8 +3329,8 @@ app.get('/api/admin/backup/list', requireRole('staff'), async (req, res) => {
     if (!drive || !rootId) return res.json({ configured: false, files: [] });
     const dirId = await driveEnsureFolder(drive, '資料庫備份', rootId);
     const list = await drive.files.list({
-      q: `'${dirId}' in parents and trashed=false and name contains 'hiban-backup-'`,
-      fields: 'files(id,name,size,createdTime)', orderBy: 'name desc', pageSize: 50,
+      q: `'${dirId}' in parents and trashed=false and name contains 'hiban-'`,
+      fields: 'files(id,name,size,createdTime)', orderBy: 'name desc', pageSize: 80,
       supportsAllDrives: true, includeItemsFromAllDrives: true,
     });
     res.json({ configured: true, files: (list.data.files || []).map(f => ({

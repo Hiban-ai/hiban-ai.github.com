@@ -684,6 +684,25 @@ textarea.form-input{resize:none}
           <button onclick="dmRunBackup(this)" class="btn-primary" style="max-width:160px">立即備份</button>
           <div id="dm-backup-msg" style="font-size:.82rem;margin-top:.6rem"></div>
           <div id="dm-backup-list" style="font-size:.8rem;color:var(--text-s);margin-top:.6rem"></div>
+
+          <!-- 還原 -->
+          <hr style="margin:1.2rem 0;border:none;border-top:1.5px solid var(--border)">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.4rem;color:var(--red)">♻️ 從備份還原</div>
+          <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.7;padding:.6rem .9rem;background:#fff3f3;border:1.5px solid var(--red);border-radius:var(--rs)">
+            選一份備份寫回資料庫，會<strong>覆蓋相同 ID 的現有資料</strong>（不會刪除備份之後新增的資料）。僅在資料毀損/誤刪時使用。請先按上方「立即備份」保留現況再還原。
+          </div>
+          <div style="display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:.6rem">
+            <div>
+              <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.3rem">選擇備份檔</div>
+              <select id="dm-restore-file" class="form-input" style="width:280px"><option value="">載入中…</option></select>
+            </div>
+            <div>
+              <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.3rem">輸入 <strong>RESTORE</strong> 確認</div>
+              <input id="dm-restore-confirm" class="form-input" style="width:140px" placeholder="RESTORE">
+            </div>
+            <button onclick="dmRestore(this)" class="action-btn" style="height:38px;background:var(--red);color:#fff;border-color:var(--red)">執行還原</button>
+          </div>
+          <div id="dm-restore-msg" style="font-size:.82rem;margin-top:.4rem"></div>
         </div>
         <!-- 任務封存 -->
         <div id="dm-pane-archive" style="display:none">
@@ -2341,16 +2360,43 @@ async function loadDmStats() {
   } catch(e) { loading.textContent = '載入失敗：' + e.message; }
 }
 async function loadDmBackupList() {
-  const el = document.getElementById('dm-backup-list');
+  const el  = document.getElementById('dm-backup-list');
+  const sel = document.getElementById('dm-restore-file');
   if (!el) return;
   try {
     const r = await API.get('/api/admin/backup/list');
-    if (!r.configured) { el.innerHTML = '⚠️ Drive 未設定，自動備份未啟用'; return; }
-    if (!r.files.length) { el.innerHTML = '尚無備份檔'; return; }
+    if (!r.configured) {
+      el.innerHTML = '⚠️ Drive 未設定，自動備份未啟用';
+      if (sel) sel.innerHTML = '<option value="">Drive 未設定</option>';
+      return;
+    }
     const kb = n => n >= 1048576 ? (n/1048576).toFixed(1)+' MB' : Math.round(n/1024)+' KB';
-    el.innerHTML = '最近備份：<br>' + r.files.slice(0,5).map(f =>
-      `· ${f.name}（${kb(f.size)}）`).join('<br>');
+    el.innerHTML = r.files.length
+      ? '最近備份：<br>' + r.files.slice(0,5).map(f => `· ${f.name}（${kb(f.size)}）`).join('<br>')
+      : '尚無備份檔';
+    if (sel) sel.innerHTML = r.files.length
+      ? r.files.map(f => `<option value="${f.id}">${f.name}（${kb(f.size)}）</option>`).join('')
+      : '<option value="">尚無備份檔</option>';
   } catch(e) { el.textContent = '備份清單載入失敗：' + e.message; }
+}
+async function dmRestore(btn) {
+  const fileId  = document.getElementById('dm-restore-file').value;
+  const confirm = document.getElementById('dm-restore-confirm').value.trim();
+  const msg = document.getElementById('dm-restore-msg');
+  if (!fileId) { msg.style.color = '#c62828'; msg.textContent = '請選擇備份檔'; return; }
+  if (confirm !== 'RESTORE') { msg.style.color = '#c62828'; msg.textContent = '請輸入 RESTORE 確認'; return; }
+  if (!window.confirm('確定要用此備份覆蓋現有資料嗎？建議先按「立即備份」保留現況。')) return;
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = '還原中…';
+  msg.style.color = 'var(--text-s)'; msg.textContent = '正在從備份寫回資料庫…';
+  try {
+    const r = await API.post('/api/admin/backup/restore', { file_id: fileId, confirm_text: confirm });
+    if (r.ok) {
+      msg.style.color = '#2e7d32';
+      msg.textContent = `✅ 還原完成：寫回 ${r.restored_docs} 筆${r.backup_at ? `（備份時間 ${r.backup_at}）` : ''}`;
+      document.getElementById('dm-restore-confirm').value = '';
+    } else { msg.style.color = '#c62828'; msg.textContent = '❌ ' + (r.error || '還原失敗'); }
+  } catch(e) { msg.style.color = '#c62828'; msg.textContent = '❌ ' + e.message; }
+  finally { btn.disabled = false; btn.textContent = orig; }
 }
 async function dmRunBackup(btn) {
   const msg = document.getElementById('dm-backup-msg');

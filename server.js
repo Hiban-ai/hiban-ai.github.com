@@ -3318,8 +3318,48 @@ app.get('/api/admin/backup/list', requireRole('staff'), async (req, res) => {
       supportsAllDrives: true, includeItemsFromAllDrives: true,
     });
     res.json({ configured: true, files: (list.data.files || []).map(f => ({
-      name: f.name, size: Number(f.size || 0), created: f.createdTime,
+      id: f.id, name: f.name, size: Number(f.size || 0), created: f.createdTime,
     })) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 從備份還原（寫回 Firestore，覆蓋同 ID 文件；含子集合/圖片）
+app.post('/api/admin/backup/restore', requireRole('staff'), async (req, res) => {
+  try {
+    const { file_id, confirm_text, collections } = req.body;
+    if (confirm_text !== 'RESTORE') return res.status(400).json({ error: '確認文字錯誤（需輸入 RESTORE）' });
+    if (!file_id) return res.status(400).json({ error: '請選擇要還原的備份' });
+    const drive = getDrive();
+    if (!drive) return res.status(503).json({ error: 'Drive 未設定' });
+
+    // 下載備份 JSON
+    const dl = await drive.files.get(
+      { fileId: file_id, alt: 'media', supportsAllDrives: true },
+      { responseType: 'arraybuffer' }
+    );
+    const payload = JSON.parse(Buffer.from(dl.data).toString('utf8'));
+    if (!payload || !payload.data) return res.status(400).json({ error: '備份格式不正確（需 v2-full）' });
+
+    const only = (Array.isArray(collections) && collections.length) ? new Set(collections) : null;
+    const counter = { docs: 0 };
+    let batch = db.batch(), n = 0;
+    const flush = async (force) => { if (n >= 400 || (force && n > 0)) { await batch.commit(); batch = db.batch(); n = 0; } };
+    const restoreCol = async (colRef, entries) => {
+      for (const e of entries) {
+        if (!e || e.id == null) continue;
+        const ref = colRef.doc(String(e.id));
+        batch.set(ref, e.data || {}); n++; counter.docs++;
+        await flush(false);
+        if (e.sub) for (const subName in e.sub) await restoreCol(ref.collection(subName), e.sub[subName]);
+      }
+    };
+    for (const col in payload.data) {
+      if (only && !only.has(col)) continue;
+      await restoreCol(db.collection(col), payload.data[col]);
+    }
+    await flush(true);
+    cacheClear(''); // 清所有快取
+    res.json({ ok: true, restored_docs: counter.docs, backup_at: payload.backup_meta?.backup_at || null });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

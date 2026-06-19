@@ -679,7 +679,7 @@ textarea.form-input{resize:none}
           <hr style="margin:1.2rem 0;border:none;border-top:1.5px solid var(--border)">
           <div style="font-size:.9rem;font-weight:700;margin-bottom:.4rem">💾 資料庫備份</div>
           <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.7">
-            每日 <strong>03:00</strong> 自動將資料庫匯出成 JSON 存到 Google Drive 的「資料庫備份」資料夾，保留最近 30 份。也可隨時手動備份（例如執行封存/刪除前）。
+            每日 <strong>03:00</strong> 自動將<strong>整個資料庫</strong>（所有集合＋圖片）匯出成 JSON 存到 Google Drive 的「資料庫備份」資料夾，保留最近 30 份。也可隨時手動備份（例如執行封存/刪除前）。
           </div>
           <button onclick="dmRunBackup(this)" class="btn-primary" style="max-width:160px">立即備份</button>
           <div id="dm-backup-msg" style="font-size:.82rem;margin-top:.6rem"></div>

@@ -2723,28 +2723,42 @@ async function driveEnsureFolder(drive, name, parentId) {
   return f.data.id;
 }
 
-// ── 資料庫備份（每日匯出結構化集合 JSON 到 Google Drive）──────────
-const BACKUP_COLLECTIONS = [
-  'users', 'assignments', 'archived_assignments',
-  'worklog_reports', 'archived_worklog_reports',
-  'grab_tasks', 'grab_records', 'reports', 'forgot_requests', 'announcements',
-];
+// ── 資料庫備份（每日完整匯出整個 Firestore JSON 到 Google Drive）──────────
 const BACKUP_KEEP = 30; // 保留最近 30 份
+
+// 遞迴匯出一個集合：每筆含 id、data，及其底下所有子集合（如 user_images/{id}/blobs 圖片）
+async function dumpCollection(colRef, counter) {
+  const snap = await colRef.get();
+  const out = [];
+  for (const doc of snap.docs) {
+    counter.docs++;
+    const entry = { id: doc.id, data: doc.data() };
+    const subs = await doc.ref.listCollections();
+    if (subs.length) {
+      entry.sub = {};
+      for (const s of subs) entry.sub[s.id] = await dumpCollection(s, counter);
+    }
+    out.push(entry);
+  }
+  return out;
+}
 
 async function backupToDrive() {
   const drive  = getDrive();
   const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
   if (!drive || !rootId) { console.log('[backup] Drive 未設定，略過'); return { ok: false, error: 'Drive 未設定' }; }
 
-  // 讀取所有結構化集合（圖片已另存 Drive，不納入 JSON）
+  // 動態列出所有頂層集合（含 _meta 計數器、custom_field_defs、companies、task_types、
+  // xp_logs、user_images 圖片等），並遞迴含子集合，做到完整備份
+  const cols = await db.listCollections();
+  const counter = { docs: 0 };
   const data = {};
-  let docCount = 0;
-  for (const col of BACKUP_COLLECTIONS) {
-    const snap = await db.collection(col).get();
-    data[col] = snap.docs.map(d => d.data());
-    docCount += snap.size;
-  }
-  const payload = { _meta: { backup_at: nowTW(), doc_count: docCount, collections: BACKUP_COLLECTIONS }, ...data };
+  for (const col of cols) data[col.id] = await dumpCollection(col, counter);
+  const docCount = counter.docs;
+  const payload = {
+    backup_meta: { backup_at: nowTW(), doc_count: docCount, collections: cols.map(c => c.id), format: 'v2-full' },
+    data,
+  };
   const json = Buffer.from(JSON.stringify(payload), 'utf8');
 
   const dirId = await driveEnsureFolder(drive, '資料庫備份', rootId);

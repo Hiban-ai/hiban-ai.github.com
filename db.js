@@ -268,6 +268,19 @@ const Assignments = {
     const snap = await db.collection('assignments').get();
     return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
   },
+  // 只讀「指定夥伴清單」接的任務（accepted_by in，分批每組 10 個）
+  // 取代督導端點的 all()：只讀旗下夥伴的任務，不讀全表，大幅降低 Firestore 讀取量
+  async forPartners(partnerIds) {
+    const ids = [...new Set((partnerIds || []).filter(v => v != null))];
+    if (!ids.length) return [];
+    const chunks = [];
+    for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10));
+    const snaps = await Promise.all(chunks.map(c =>
+      db.collection('assignments').where('accepted_by', 'in', c).get()
+    ));
+    const docs = snaps.flatMap(s => s.docs.map(d => d.data()));
+    return docs.sort((a, b) => byDate(b.created_at, a.created_at));
+  },
   async completedCountByUser(userId) {
     const snap = await db.collection('assignments')
       .where('accepted_by','==',userId).where('status','==','completed').get();

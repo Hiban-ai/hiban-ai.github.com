@@ -1075,6 +1075,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
       };
     }
     const item = await Assignments.create(data);
+    cacheClear('sup-'); // 新派任務 → 清督導儀表板快取
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1083,8 +1084,13 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
 app.get('/api/supervisor/partners', requireRole('supervisor'), async (req, res) => {
   try {
     const supId = req.session.user.id;
-    const [users, assignments] = await Promise.all([Users.all(), Assignments.all()]);
+    const cacheKey = `sup-partners-${supId}`;
+    const cached = cacheGet(cacheKey);
+    if (cached) return res.json(cached);
+    const users = await Users.all();
     const partners = users.filter(u => u.role === 'partner' && u.supervisor_id === supId);
+    // 只讀旗下夥伴的任務（不讀全表）
+    const assignments = await Assignments.forPartners(partners.map(p => p.id));
     const curYM = nowTW().slice(0, 7); // YYYY/MM
     const result = partners.map(p => {
       const mine      = assignments.filter(a => a.accepted_by === p.id);
@@ -1102,6 +1108,7 @@ app.get('/api/supervisor/partners', requireRole('supervisor'), async (req, res) 
         total_income, month_income, month_tasks, last_report,
       };
     }).sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
+    cacheSet(cacheKey, result, 45 * 1000); // 45 秒快取，降低重複刷新的讀取
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1110,6 +1117,9 @@ app.get('/api/supervisor/partners', requireRole('supervisor'), async (req, res) 
 app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) => {
   try {
     const supId = req.session.user.id;
+    const alertsCacheKey = `sup-alerts-${supId}`;
+    const cachedAlerts = cacheGet(alertsCacheKey);
+    if (cachedAlerts) return res.json(cachedAlerts);
     const todayStr = nowTW().split(' ')[0]; // YYYY/MM/DD
     const toDate = s => s ? new Date(s.replace(/\//g, '-').slice(0,10)) : null;
     const today = toDate(todayStr);
@@ -1160,7 +1170,8 @@ app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) =>
     // 7. 夥伴當月任務金額接近 19,000 警示
     const INCOME_WARN = 19000;
     const curYM = nowTW().slice(0, 7); // "YYYY/MM"
-    const allAssign = await Assignments.all();
+    // 只讀旗下夥伴的任務（不讀全表）
+    const allAssign = await Assignments.forPartners(myPartners.map(p => p.id));
     const incomeWarning = myPartners.map(p => {
       const monthTasks = allAssign.filter(a =>
         a.accepted_by === p.id &&
@@ -1172,7 +1183,7 @@ app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) =>
       return { id: p.id, real_name: p.real_name, amount: total, task_count: monthTasks.length };
     }).filter(Boolean);
 
-    res.json({
+    const payload = {
       overdue: overdue.map(a => ({ id: a.id, task_name: a.task_name, deadline_date: a.deadline_date, partner_name: userName(a.target_partner_id) })),
       due_soon: dueSoon.map(a => ({ id: a.id, task_name: a.task_name, deadline_date: a.deadline_date, partner_name: userName(a.target_partner_id) })),
       pending_worklogs: pendingWorklogs.map(r => ({ id: r.id, assignment_id: r.assignment_id })),
@@ -1181,7 +1192,9 @@ app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) =>
       inactive_partners: inactivePartners.map(u => ({ id: u.id, real_name: u.real_name, login_dates: u.login_dates||[] })),
       unassigned_partners: unassignedPartners.map(u => ({ id: u.id, real_name: u.real_name })),
       income_warning: incomeWarning,
-    });
+    };
+    cacheSet(alertsCacheKey, payload, 45 * 1000); // 45 秒快取
+    res.json(payload);
   } catch(e) { console.error('[supervisor/alerts]', e); res.status(500).json({ error: e.message }); }
 });
 
@@ -1210,6 +1223,7 @@ app.put('/api/assignments/:id/complete', requireRole('partner'), async (req, res
     if (!a || a.accepted_by !== req.session.user.id || a.status !== 'accepted')
       return res.status(400).json({ error: '無法完成此任務' });
     await Assignments.update(id, { status: 'completed', completed_at: nowTW() });
+    cacheClear('sup-'); // 任務狀態變動 → 清督導儀表板快取
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1220,6 +1234,7 @@ app.put('/api/assignments/:id/accept', requireRole('partner'), async (req, res) 
     const a  = await Assignments.byId(id);
     if (!a || a.status !== 'pending') return res.status(400).json({ error: '任務已不可接受' });
     await Assignments.update(id, { status: 'accepted', accepted_by: req.session.user.id, accepted_at: nowTW() });
+    cacheClear('sup-');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1235,6 +1250,7 @@ app.put('/api/assignments/:id/reject', requireRole('partner'), async (req, res) 
     } else {
       await Assignments.update(id, { rejected_by: [...(a.rejected_by||[]), req.session.user.id] });
     }
+    cacheClear('sup-');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1623,6 +1639,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
     // 更新 grab_record 存 assignment_id
     await firestoreDb.collection('grab_records').doc(String(result.recId)).update({ assignment_id: assignment.id });
     cacheDel('grab-tasks-open');
+    cacheClear('sup-'); // 搶單成案 → 清督導儀表板快取
 
     res.json({ ok: true, grab_no: result.grabNo, assignment_id: assignment.id });
   } catch(e) {
@@ -1677,6 +1694,7 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
     });
     // 標記 assignment 為審核中，避免重複送出；小時任務同步寫入時間與總金額
     await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing', ...assignHourlyPatch });
+    cacheClear('sup-'); // 送出 WorkLog → 清督導儀表板快取
     res.json({ ok: true, id: report.id });
   } catch(e) {
     const msg = e.message || '';
@@ -1805,6 +1823,7 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
         }
       }
     }
+    cacheClear('sup-'); // 核可 WorkLog → 清督導儀表板快取
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1826,6 +1845,7 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
       // 退回後清除 review_status，讓夥伴可重新送出
       await Assignments.update(r.assignment_id, { supervisor_comments: comments, review_status: null });
     }
+    cacheClear('sup-'); // 退回 WorkLog → 清督導儀表板快取
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1861,6 +1881,7 @@ app.put('/api/reports/:id/rollback', requireRole('supervisor'), async (req, res)
         status: 'accepted', review_status: null, completed_at: null, supervisor_comments: comments,
       });
     }
+    cacheClear('sup-'); // 退回（重做/重審）→ 清督導儀表板快取
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -3038,6 +3059,7 @@ app.put('/api/admin/assignments/:id/change-completed-at', requireRole('staff'), 
       completed_at_changed_at: nowTW(),
     };
     await Assignments.update(id, patch);
+    cacheClear('sup-'); // 更改完成日期 → 清督導儀表板快取（影響當月統計）
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

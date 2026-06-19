@@ -192,7 +192,7 @@ function placeCN(n, place, unit, withZheng) {
     const pz = n => String(n).padStart(2, '0');
     const ymd = `${today.getFullYear()}${pz(today.getMonth()+1)}${pz(today.getDate())}`;
     const no  = d.partner_no ? `P${String(d.partner_no).padStart(3,'0')}` : '';
-    document.title = `${ymd}${no}_${d.real_name}_${d.year}年${d.month}月勞報單`;
+    document.title = `希絆${ymd}${no}_${d.real_name}_${d.year}年${d.month}月勞報單`;
   } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
 })();
 </script>

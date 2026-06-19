@@ -9,6 +9,7 @@ firebase-key.json
 *.json.bak
 get_refresh_token.js
 seed_old_data.js
+seed_bulk_tasks.js
 normalize_dates.js
 traffic_stats.json
 cookies.txt

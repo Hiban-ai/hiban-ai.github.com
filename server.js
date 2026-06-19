@@ -2723,6 +2723,62 @@ async function driveEnsureFolder(drive, name, parentId) {
   return f.data.id;
 }
 
+// ── 資料庫備份（每日匯出結構化集合 JSON 到 Google Drive）──────────
+const BACKUP_COLLECTIONS = [
+  'users', 'assignments', 'archived_assignments',
+  'worklog_reports', 'archived_worklog_reports',
+  'grab_tasks', 'grab_records', 'reports', 'forgot_requests', 'announcements',
+];
+const BACKUP_KEEP = 30; // 保留最近 30 份
+
+async function backupToDrive() {
+  const drive  = getDrive();
+  const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  if (!drive || !rootId) { console.log('[backup] Drive 未設定，略過'); return { ok: false, error: 'Drive 未設定' }; }
+
+  // 讀取所有結構化集合（圖片已另存 Drive，不納入 JSON）
+  const data = {};
+  let docCount = 0;
+  for (const col of BACKUP_COLLECTIONS) {
+    const snap = await db.collection(col).get();
+    data[col] = snap.docs.map(d => d.data());
+    docCount += snap.size;
+  }
+  const payload = { _meta: { backup_at: nowTW(), doc_count: docCount, collections: BACKUP_COLLECTIONS }, ...data };
+  const json = Buffer.from(JSON.stringify(payload), 'utf8');
+
+  const dirId = await driveEnsureFolder(drive, '資料庫備份', rootId);
+  const n = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const p = x => String(x).padStart(2, '0');
+  const fname = `hiban-backup-${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}_${p(n.getHours())}${p(n.getMinutes())}.json`;
+  const { Readable } = require('stream');
+  await drive.files.create({
+    requestBody: { name: fname, parents: [dirId] },
+    media: { mimeType: 'application/json', body: Readable.from(json) },
+    fields: 'id',
+    supportsAllDrives: true,
+  });
+
+  // 保留最近 BACKUP_KEEP 份，清掉更舊的（檔名含日期時間，name desc = 由新到舊）
+  const list = await drive.files.list({
+    q: `'${dirId}' in parents and trashed=false and name contains 'hiban-backup-'`,
+    fields: 'files(id,name)', orderBy: 'name desc', pageSize: 1000,
+    supportsAllDrives: true, includeItemsFromAllDrives: true,
+  });
+  const files = list.data.files || [];
+  for (const f of files.slice(BACKUP_KEEP)) {
+    try { await drive.files.delete({ fileId: f.id, supportsAllDrives: true }); } catch(e) { console.error('[backup] 清理舊檔失敗', e.message); }
+  }
+  console.log(`[backup] 完成 ${fname}（${docCount} 筆，保留 ${Math.min(files.length, BACKUP_KEEP)} 份）`);
+  return { ok: true, file: fname, doc_count: docCount, kept: Math.min(files.length, BACKUP_KEEP) };
+}
+
+// 每日 03:00（台北時間）自動備份
+cron.schedule('0 3 * * *', () => {
+  console.log('[cron] 開始每日資料庫備份');
+  backupToDrive().catch(console.error);
+}, { timezone: 'Asia/Taipei' });
+
 // 浮水印：把 assets/watermark.png 疊到圖片上（縮放鋪滿），失敗則回傳原圖
 let _watermarkPromise = null;
 function loadWatermark() {
@@ -3226,6 +3282,30 @@ app.post('/api/admin/data-delete', requireRole('staff'), async (req, res) => {
       }
     }
     res.json({ ok: true, deleted_assignments: aCount, deleted_worklog_reports: wCount });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 手動立即備份
+app.post('/api/admin/backup/run', requireRole('staff'), async (req, res) => {
+  try { res.json(await backupToDrive()); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 備份清單
+app.get('/api/admin/backup/list', requireRole('staff'), async (req, res) => {
+  try {
+    const drive  = getDrive();
+    const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    if (!drive || !rootId) return res.json({ configured: false, files: [] });
+    const dirId = await driveEnsureFolder(drive, '資料庫備份', rootId);
+    const list = await drive.files.list({
+      q: `'${dirId}' in parents and trashed=false and name contains 'hiban-backup-'`,
+      fields: 'files(id,name,size,createdTime)', orderBy: 'name desc', pageSize: 50,
+      supportsAllDrives: true, includeItemsFromAllDrives: true,
+    });
+    res.json({ configured: true, files: (list.data.files || []).map(f => ({
+      name: f.name, size: Number(f.size || 0), created: f.createdTime,
+    })) });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

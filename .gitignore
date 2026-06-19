@@ -8,6 +8,8 @@ firebase-key.json
 營運成本評估.md
 *.json.bak
 get_refresh_token.js
+seed_old_data.js
+normalize_dates.js
 traffic_stats.json
 cookies.txt
 

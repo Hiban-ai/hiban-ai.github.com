@@ -56,6 +56,16 @@ function nowTW() {
   return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
+// 日期正規化為可比較的 "YYYY-MM-DD"（補零＋統一分隔符），支援 "2020/6/5"、"2020/06/05 17:00"、"2020-06-05T..." 等
+function dateKey(s) {
+  if (!s) return '';
+  const datePart = String(s).split('T')[0].split(' ')[0]; // 去掉時間部分
+  const parts = datePart.replace(/-/g, '/').split('/');
+  if (parts.length < 3) return datePart.replace(/\//g, '-');
+  const [y, m, d] = parts;
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 // 報表共用樣式：所有使用到的儲存格加黑色細框線、字體強制黑色（保留粗體/字級）
 function applyReportGrid(ws) {
   const thin = { style: 'thin', color: { argb: 'FF000000' } };
@@ -3139,11 +3149,11 @@ app.get('/api/admin/data-preview', requireRole('staff'), async (req, res) => {
     const aCount = aSnap.docs.filter(d => {
       const data = d.data();
       const dt = (action === 'archive' ? data.completed_at : data.archived_at) || data.created_at || '';
-      return data.status === 'completed' && dt.split('T')[0] < cutoff;
+      return data.status === 'completed' && dateKey(dt) < cutoff;
     }).length;
     const wCount = wSnap.docs.filter(d => {
       const dt = d.data().archived_at || d.data().created_at || '';
-      return dt.split('T')[0] < cutoff;
+      return dateKey(dt) < cutoff;
     }).length;
     res.json({ assignments: aCount, worklog_reports: wCount, cutoff });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -3162,7 +3172,7 @@ app.post('/api/admin/data-archive', requireRole('staff'), async (req, res) => {
     const toArchive = aSnap.docs.filter(d => {
       const data = d.data();
       const dt = data.completed_at || data.created_at || '';
-      return data.status === 'completed' && dt.split('T')[0] < cutoff;
+      return data.status === 'completed' && dateKey(dt) < cutoff;
     });
     let aCount = 0, wCount = 0;
     for (const doc of toArchive) {
@@ -3203,14 +3213,14 @@ app.post('/api/admin/data-delete', requireRole('staff'), async (req, res) => {
     let aCount = 0, wCount = 0;
     for (const doc of aSnap.docs) {
       const dt = doc.data().archived_at || doc.data().completed_at || '';
-      if (dt.split('T')[0] < cutoff) {
+      if (dateKey(dt) < cutoff) {
         await db.collection('archived_assignments').doc(doc.id).delete();
         aCount++;
       }
     }
     for (const doc of wSnap.docs) {
       const dt = doc.data().archived_at || doc.data().created_at || '';
-      if (dt.split('T')[0] < cutoff) {
+      if (dateKey(dt) < cutoff) {
         await db.collection('archived_worklog_reports').doc(doc.id).delete();
         wCount++;
       }

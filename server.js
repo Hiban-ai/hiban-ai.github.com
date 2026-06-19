@@ -56,6 +56,20 @@ function nowTW() {
   return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
+// 報表共用樣式：所有使用到的儲存格加黑色細框線、字體強制黑色（保留粗體/字級）
+function applyReportGrid(ws) {
+  const thin = { style: 'thin', color: { argb: 'FF000000' } };
+  const border = { top: thin, left: thin, bottom: thin, right: thin };
+  const colCount = (ws.columns && ws.columns.length) || ws.columnCount || 0;
+  ws.eachRow({ includeEmpty: false }, row => {
+    for (let c = 1; c <= colCount; c++) {
+      const cell = row.getCell(c);
+      cell.border = border;
+      cell.font = { ...(cell.font || {}), color: { argb: 'FF000000' } };
+    }
+  });
+}
+
 const app = express();
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname), {
@@ -1962,7 +1976,7 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
       { header: '總收入',   key: 'total',    width: 14 },
     ];
     summary.getRow(1).font = { bold: true, size: 14, color:{ argb:'FFFFFFFF' } };
-    summary.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+    summary.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFD9D9D9' } };
     summary.getRow(1).height = 22;
 
     for (const p of partners) {
@@ -1987,7 +2001,7 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
         { header: '督導名稱', key: 'sv',        width: 14 },
       ];
       ws.getRow(1).font = { bold: true, size: 14, color:{ argb:'FFFFFFFF' } };
-      ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+      ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFD9D9D9' } };
       ws.getRow(1).height = 22;
       records.forEach((a, i) => {
         const row = ws.addRow({
@@ -2007,7 +2021,9 @@ app.get('/api/admin/payroll/export', requireRole('staff'), async (req, res) => {
       const totRow = ws.addRow({ no: '', completed: '', company: '', task: '合計', qty: '', unit: '', total, sv: '' });
       totRow.font = { bold: true, size: 14 };
       totRow.getCell('total').fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFFF8E8' } };
+      applyReportGrid(ws);
     }
+    applyReportGrid(summary);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="salary.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
@@ -2069,7 +2085,7 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
       { header: '備註',         key: 'note',  width: 28 },
     ];
     ws.getRow(1).font = { bold: true, size: 16, color:{ argb:'FFFFFFFF' } };
-    ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+    ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFD9D9D9' } };
     ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
     ws.getRow(1).height = 30;
 
@@ -2105,6 +2121,7 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
       r.alignment = { vertical: 'middle' };
       if (i % 2 === 1) r.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
     });
+    applyReportGrid(ws);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="work-records.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
@@ -2151,7 +2168,7 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
       { header: '合計',     key: 'total', width: 14 },
     ];
     ws.getRow(1).font = { bold: true, size: 14, color:{ argb:'FFFFFFFF' } };
-    ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF1A6FA0' } };
+    ws.getRow(1).fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFD9D9D9' } };
     ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
     ws.getRow(1).height = 28;
 
@@ -2183,6 +2200,7 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
       r.height = 22;
       if (idx % 2 === 1) r.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFF5F7FA' } };
     });
+    applyReportGrid(ws);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="tax-report.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
@@ -2255,7 +2273,7 @@ app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, re
       ];
       const hr = ws.getRow(1);
       hr.font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
-      hr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A6FA0' } };
+      hr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
       hr.alignment = { vertical: 'middle', horizontal: 'center' };
       hr.height = 26;
 
@@ -2275,12 +2293,13 @@ app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, re
         // 細項：連結到該夥伴該月勞報單（伺服器運行時可直接開啟；之後可改為 Drive PDF 連結）
         const linkCell = ws.getCell(`I${r.number}`);
         linkCell.value = { text: '開啟勞報單', hyperlink: `${baseUrl}/labor-report.html?partner_id=${p.id}&year_month=${year}-${pz(m)}` };
-        linkCell.font = { color: { argb: 'FF1A6FA0' }, underline: true };
+        linkCell.font = { color: { argb: 'FF000000' }, underline: true };
         r.font = r.font || {};
         r.height = 20;
         if (seq % 2 === 0) r.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F7FA' } };
       });
       if (seq === 0) ws.addRow({ no: '', name: '（本月無匯款資料）' });
+      applyReportGrid(ws);
     };
 
     if (singleMonth) {

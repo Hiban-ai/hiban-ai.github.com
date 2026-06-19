@@ -457,6 +457,18 @@ textarea.form-input{resize:none}
           </div>
         </div>
 
+        <!-- 報表：每月薪資計算總表 -->
+        <div class="card">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">💰 每月薪資計算總表</div>
+          <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">序號、姓名、匯款資料、原始金額（錢包當月）、實際匯款金額（達 2 萬扣所得稅 10%＋二代健保 2.11%）、備註、事由（工作紀錄總額）、勞報單編號、細項（連結勞報單）。「整年」會以每月一張分頁匯出。</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+            <select id="ss-export-year" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)"></select>
+            <select id="ss-export-month" style="padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)"></select>
+            <button onclick="exportSalarySummary(false)" style="padding:.5rem 1.1rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⬇ 匯出單月</button>
+            <button onclick="exportSalarySummary(true)" style="padding:.5rem 1.1rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⬇ 匯出整年（分頁）</button>
+          </div>
+        </div>
+
         <!-- 報表：勞務報酬單 -->
         <div class="card">
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">📄 勞務報酬單</div>
@@ -1196,6 +1208,23 @@ function initReportsPage() {
     ySel.innerHTML = opts;
     ySel.dataset.ready = '1';
   }
+  // 每月薪資計算總表：年份 + 月份下拉
+  const ssY = document.getElementById('ss-export-year');
+  if (ssY && !ssY.dataset.ready) {
+    const y = new Date().getFullYear();
+    let opts = '';
+    for (let i = 0; i < 4; i++) opts += `<option value="${y-i}">${y-i} 年</option>`;
+    ssY.innerHTML = opts;
+    ssY.dataset.ready = '1';
+  }
+  const ssM = document.getElementById('ss-export-month');
+  if (ssM && !ssM.dataset.ready) {
+    const cur = new Date().getMonth() + 1;
+    let opts = '';
+    for (let m = 1; m <= 12; m++) opts += `<option value="${m}"${m===cur?' selected':''}>${m} 月</option>`;
+    ssM.innerHTML = opts;
+    ssM.dataset.ready = '1';
+  }
   // 勞報單：夥伴 + 月份下拉
   const lrP = document.getElementById('lr-partner');
   if (lrP) {
@@ -1225,6 +1254,14 @@ function openLaborReport() {
   const ym  = document.getElementById('lr-month')?.value;
   if (!pid) { showToast('請選擇夥伴', 'error'); return; }
   window.open(`/labor-report.html?partner_id=${pid}&year_month=${ym}`, '_blank');
+}
+
+function exportSalarySummary(fullYear) {
+  const y = document.getElementById('ss-export-year')?.value || '';
+  const m = document.getElementById('ss-export-month')?.value || '';
+  const qs = ['year=' + y];
+  if (!fullYear && m) qs.push('month=' + m);
+  window.open('/api/admin/salary-summary/export?' + qs.join('&'), '_blank');
 }
 
 function exportWorkRecords() {

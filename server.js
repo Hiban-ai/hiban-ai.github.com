@@ -2170,6 +2170,114 @@ app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 每月薪資計算總表：GET /api/admin/salary-summary/export?year=YYYY[&month=MM]
+//  - 帶 month → 單月一張分頁；不帶 → 整年 12 個月各一張分頁
+app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const year = String(req.query.year || new Date().getFullYear());
+    const singleMonth = req.query.month ? parseInt(req.query.month, 10) : null;
+
+    const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
+    const partners = allUsers.filter(u => u.role === 'partner')
+      .sort((a, b) => (a.partner_no || 9999) - (b.partner_no || 9999));
+    const completed = allAssign.filter(a => a.status === 'completed');
+
+    const pz = n => String(n).padStart(2, '0');
+
+    // 匯款資料：(代號)帳號（同報稅總表規則）
+    const bankInfo = u => {
+      if (u.bank_type === 'post') return `(700)${u.bank_account || ''}`;
+      let code = u.bank_code || '';
+      if (!code) { const m = (u.bank_name || '').match(/[（(]\s*(\d{3,4})\s*[）)]/); if (m) code = m[1]; }
+      return code ? `(${code})${u.bank_account || ''}` : `${u.bank_name || ''} ${u.bank_account || ''}`.trim();
+    };
+
+    // 勞報單編號：希絆 + 今日(YYYYMMDD) + Pno（與 labor-report.html 檔名一致）
+    const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    const ymdToday = `${today.getFullYear()}${pz(today.getMonth()+1)}${pz(today.getDate())}`;
+    const reportNo = u => `希絆${ymdToday}${u.partner_no ? 'P'+String(u.partner_no).padStart(3,'0') : ''}`;
+
+    // 個人某月原始金額（與錢包一致：completed_at 落在該年月之已完成任務 total_price 加總；支援有無補零）
+    const monthAmount = (pid, m) => {
+      const mm = pz(m);
+      return completed.filter(a => a.accepted_by === pid && (
+        (a.completed_at || '').startsWith(`${year}/${mm}`) ||
+        (a.completed_at || '').startsWith(`${year}/${m}/`)
+      )).reduce((s, a) => s + (Number(a.total_price) || 0), 0);
+    };
+
+    // 實際匯款金額：原始金額 > 20000 扣所得稅 10%；>= 20000 扣二代健保 2.11%
+    const calcNet = gross => {
+      const tax    = gross > 20000  ? Math.round(gross * 0.10)   : 0;   // 所得稅 10%
+      const health = gross >= 20000 ? Math.round(gross * 0.0211) : 0;   // 二代健保 2.11%
+      return { tax, health, net: gross - tax - health };
+    };
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = '希絆雲作所';
+
+    const buildSheet = (ws, m) => {
+      ws.views = [{ zoomScale: 110 }];
+      ws.columns = [
+        { header: '序號',         key: 'no',     width: 6  },
+        { header: '姓名',         key: 'name',   width: 14 },
+        { header: '匯款資料',     key: 'bank',   width: 30 },
+        { header: '原始金額',     key: 'gross',  width: 12 },
+        { header: '實際匯款金額', key: 'net',    width: 14 },
+        { header: '備註',         key: 'remark', width: 16 },
+        { header: '事由',         key: 'reason', width: 14 },
+        { header: '勞報單編號',   key: 'rno',    width: 22 },
+        { header: '細項',         key: 'link',   width: 14 },
+      ];
+      const hr = ws.getRow(1);
+      hr.font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
+      hr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A6FA0' } };
+      hr.alignment = { vertical: 'middle', horizontal: 'center' };
+      hr.height = 26;
+
+      let seq = 0;
+      partners.forEach(p => {
+        const gross = monthAmount(p.id, m);
+        if (gross <= 0) return; // 當月無金額者不列入匯款清單
+        seq++;
+        const { net } = calcNet(gross);
+        const r = ws.addRow({
+          no: seq, name: p.real_name || '', bank: bankInfo(p),
+          gross, net, remark: '', reason: '工作紀錄總額', rno: reportNo(p), link: '',
+        });
+        // 金額格式
+        ws.getCell(`D${r.number}`).numFmt = '#,##0';
+        ws.getCell(`E${r.number}`).numFmt = '#,##0';
+        // 細項：連結到該夥伴該月勞報單（伺服器運行時可直接開啟；之後可改為 Drive PDF 連結）
+        const linkCell = ws.getCell(`I${r.number}`);
+        linkCell.value = { text: '開啟勞報單', hyperlink: `${baseUrl}/labor-report.html?partner_id=${p.id}&year_month=${year}-${pz(m)}` };
+        linkCell.font = { color: { argb: 'FF1A6FA0' }, underline: true };
+        r.font = r.font || {};
+        r.height = 20;
+        if (seq % 2 === 0) r.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F7FA' } };
+      });
+      if (seq === 0) ws.addRow({ no: '', name: '（本月無匯款資料）' });
+    };
+
+    if (singleMonth) {
+      buildSheet(wb.addWorksheet(`${year}年${singleMonth}月`), singleMonth);
+    } else {
+      for (let m = 1; m <= 12; m++) buildSheet(wb.addWorksheet(`${m}月`), m);
+    }
+
+    const fileLabel = singleMonth
+      ? `每月薪資計算總表_${year}年${singleMonth}月`
+      : `每月薪資計算總表_${year}年`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="salary-summary.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 勞務報酬單資料：GET /api/admin/labor-report?partner_id=X&year_month=YYYY-MM
 app.get('/api/admin/labor-report', requireRole('staff'), async (req, res) => {
   try {

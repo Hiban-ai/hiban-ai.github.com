@@ -562,7 +562,6 @@ textarea.form-input{resize:none}
       <!-- 已完成任務 -->
       <div style="display:flex;align-items:center;gap:.6rem;margin:1.25rem 0 .6rem;flex-wrap:wrap">
         <div style="font-size:.88rem;font-weight:700">✅ 已完成</div>
-        <select id="filter-year"  onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
         <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
       </div>
       <div id="completed-list"></div>
@@ -989,21 +988,16 @@ function last3Months() {
 
 function buildYearFilter() {
   const months = last3Months();
-  const yearSel  = document.getElementById('filter-year');
   const monthSel = document.getElementById('filter-month');
-  if (!yearSel || !monthSel) return;
+  if (!monthSel) return;
 
-  const years = [...new Set(months.map(m => m.year))];
-  yearSel.innerHTML  = years.map(y => `<option value="${y}">${y} 年</option>`).join('');
   monthSel.innerHTML = months.map(m =>
     `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
   ).join('');
 
   // 預設本月
   const now = new Date();
-  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  monthSel.value = defaultVal;
-  yearSel.value  = String(now.getFullYear());
+  monthSel.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 }
 
 function filterCompleted() {

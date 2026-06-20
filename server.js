@@ -1222,6 +1222,34 @@ app.get('/api/supervisor/alerts', requireRole('supervisor'), async (req, res) =>
   } catch(e) { console.error('[supervisor/alerts]', e); res.status(500).json({ error: e.message }); }
 });
 
+// 管理人員預警：全部夥伴當月金額達 19,000（跨所有督導）
+app.get('/api/admin/alerts', requireRole('staff'), async (req, res) => {
+  try {
+    const cacheKey = 'sup-admin-alerts'; // 用 sup- 前綴：任務變動的 cacheClear('sup-') 會一併失效
+    const cached = cacheGet(cacheKey);
+    if (cached) return res.json(cached);
+    const INCOME_WARN = 19000;
+    const curYM = nowTW().slice(0, 7); // "YYYY/MM"
+    const [allUsers, allAssign] = await Promise.all([Users.all(), Assignments.all()]);
+    const supName = id => allUsers.find(u => u.id === id)?.real_name || '—';
+    const partners = allUsers.filter(u => u.role === 'partner' && u.status === 'active');
+    const incomeWarning = partners.map(p => {
+      const monthTasks = allAssign.filter(a =>
+        a.accepted_by === p.id &&
+        a.status !== 'rejected' &&
+        ((a.created_at || '').startsWith(curYM) || (a.created_at || '').startsWith(curYM.replace(/\/0(\d)$/, '/$1')))
+      );
+      const total = monthTasks.reduce((s, a) => s + (Number(a.total_price) || 0), 0);
+      if (total < INCOME_WARN) return null;
+      return { id: p.id, real_name: p.real_name, amount: total, task_count: monthTasks.length,
+        supervisor_name: p.supervisor_id ? supName(p.supervisor_id) : '未指派' };
+    }).filter(Boolean).sort((a, b) => b.amount - a.amount);
+    const payload = { month: curYM, threshold: INCOME_WARN, income_warning: incomeWarning };
+    cacheSet(cacheKey, payload, 45 * 1000);
+    res.json(payload);
+  } catch(e) { console.error('[admin/alerts]', e); res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/assignments/pending', requireRole('partner'), async (req, res) => {
   try {
     res.json(await Assignments.pendingForPartner(req.session.user.id));

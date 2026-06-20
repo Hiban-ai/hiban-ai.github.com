@@ -3229,10 +3229,11 @@ app.put('/api/admin/assignments/:id/change-completed-at', requireRole('staff'), 
 // 資料健檢：重複註冊、孤兒資料、測試資料殘留
 app.get('/api/admin/data-health', requireRole('staff'), async (req, res) => {
   try {
-    const [users, assignments, wSnap] = await Promise.all([
-      Users.all(), Assignments.all(), db.collection('worklog_reports').get(),
+    const [users, assignments, wSnap, xSnap] = await Promise.all([
+      Users.all(), Assignments.all(), db.collection('worklog_reports').get(), db.collection('xp_logs').get(),
     ]);
     const worklogs = wSnap.docs.map(d => d.data());
+    const xpLogs = xSnap.docs.map(d => d.data());
     const userIds = new Set(users.map(u => u.id));
     const assignIds = new Set(assignments.map(a => a.id));
 
@@ -3255,7 +3256,12 @@ app.get('/api/admin/data-health', requireRole('staff'), async (req, res) => {
       .filter(w => w.assignment_id && !assignIds.has(w.assignment_id))
       .map(w => ({ id: w.id, assignment_id: w.assignment_id }));
 
-    // 4. 測試資料殘留（test_seed）
+    // 4. 孤兒成長紀錄（xp_logs 對應的任務已不存在；成長頁有、任務頁無）
+    const orphan_xp_logs = xpLogs.filter(l => !assignments.some(a =>
+      a.accepted_by === l.userId && (a.task_name || '') === (l.taskTitle || '') && (a.company || '') === (l.companyName || '')
+    )).length;
+
+    // 5. 測試資料殘留（test_seed）
     const test_seed_assignments = assignments.filter(a => a.test_seed).length;
 
     // 5. 啟用帳號缺必要欄位（姓名／身分證／銀行帳號）
@@ -3264,12 +3270,12 @@ app.get('/api/admin/data-health', requireRole('staff'), async (req, res) => {
       .map(u => ({ id: u.id, real_name: u.real_name || '（無姓名）', username: u.username,
         missing: [!u.real_name && '姓名', !u.id_number && '身分證', !u.bank_account && '銀行帳號'].filter(Boolean) }));
 
-    const issues = duplicate_users.length + orphan_assignments.length + orphan_worklogs.length + test_seed_assignments + incomplete_users.length;
+    const issues = duplicate_users.length + orphan_assignments.length + orphan_worklogs.length + orphan_xp_logs + test_seed_assignments + incomplete_users.length;
     res.json({
       checked_at: nowTW(),
-      counts: { users: users.length, assignments: assignments.length, worklogs: worklogs.length },
+      counts: { users: users.length, assignments: assignments.length, worklogs: worklogs.length, xp_logs: xpLogs.length },
       issues_total: issues,
-      duplicate_users, orphan_assignments, orphan_worklogs, test_seed_assignments, incomplete_users,
+      duplicate_users, orphan_assignments, orphan_worklogs, orphan_xp_logs, test_seed_assignments, incomplete_users,
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

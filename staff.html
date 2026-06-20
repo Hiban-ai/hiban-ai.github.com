@@ -2464,6 +2464,9 @@ async function dmRunHealth(btn) {
     // 孤兒回報
     rows.push(sect(!r.orphan_worklogs.length, `孤兒回報（任務已不存在）：${r.orphan_worklogs.length} 筆`,
       r.orphan_worklogs.slice(0,10).map(w => `回報#${w.id}（assignment=${w.assignment_id}）`).join('<br>')));
+    // 孤兒成長紀錄
+    rows.push(sect(!r.orphan_xp_logs, `孤兒成長紀錄（成長有、任務無）：${r.orphan_xp_logs} 筆`,
+      r.orphan_xp_logs ? 'xp_logs 對應的任務已被刪除，建議清理' : ''));
     // 測試資料
     rows.push(sect(!r.test_seed_assignments, `測試資料殘留：${r.test_seed_assignments} 筆`,
       r.test_seed_assignments ? '可用 seed 腳本的 clean 指令清除' : ''));

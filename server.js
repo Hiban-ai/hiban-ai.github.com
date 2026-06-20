@@ -2234,11 +2234,17 @@ app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, re
 
     const pz = n => String(n).padStart(2, '0');
 
+    // 取銀行代號（郵局=700；其餘優先用欄位，無則從名稱括號擷取）
+    const bankCode = u => {
+      if (u.bank_type === 'post') return '700';
+      let code = u.bank_code || '';
+      if (!code) { const m = (u.bank_name || '').match(/[（(]\s*(\d{3,4})\s*[）)]/); if (m) code = m[1]; }
+      return code;
+    };
     // 匯款資料：(代號)帳號（同報稅總表規則）
     const bankInfo = u => {
       if (u.bank_type === 'post') return `(700)${u.bank_account || ''}`;
-      let code = u.bank_code || '';
-      if (!code) { const m = (u.bank_name || '').match(/[（(]\s*(\d{3,4})\s*[）)]/); if (m) code = m[1]; }
+      const code = bankCode(u);
       return code ? `(${code})${u.bank_account || ''}` : `${u.bank_name || ''} ${u.bank_account || ''}`.trim();
     };
 
@@ -2256,11 +2262,13 @@ app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, re
       )).reduce((s, a) => s + (Number(a.total_price) || 0), 0);
     };
 
-    // 實際匯款金額：原始金額 > 20000 扣所得稅 10%；>= 20000 扣二代健保 2.11%
-    const calcNet = gross => {
+    // 實際匯款金額：原始金額 > 20000 扣所得稅 10%；>= 20000 扣二代健保 2.11%；
+    //              非第一銀行(007) 另扣轉帳費 15 元
+    const calcNet = (gross, code) => {
       const tax    = gross > 20000  ? Math.round(gross * 0.10)   : 0;   // 所得稅 10%
       const health = gross >= 20000 ? Math.round(gross * 0.0211) : 0;   // 二代健保 2.11%
-      return { tax, health, net: gross - tax - health };
+      const fee    = parseInt(code, 10) === 7 ? 0 : 15;                  // 非第一銀行扣 15 元轉帳費
+      return { tax, health, fee, net: gross - tax - health - fee };
     };
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
@@ -2292,7 +2300,7 @@ app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, re
         const gross = monthAmount(p.id, m);
         if (gross <= 0) return; // 當月無金額者不列入匯款清單
         seq++;
-        const { net } = calcNet(gross);
+        const { net } = calcNet(gross, bankCode(p));
         const r = ws.addRow({
           no: seq, name: p.real_name || '', bank: bankInfo(p),
           gross, net, remark: '', reason: '工作紀錄總額', rno: reportNo(p), link: '',
@@ -2310,6 +2318,17 @@ app.get('/api/admin/salary-summary/export', requireRole('staff'), async (req, re
       });
       if (seq === 0) ws.addRow({ no: '', name: '（本月無匯款資料）' });
       applyReportGrid(ws);
+      // 「實際匯款金額」計算說明（紅字，置於表格下方；在 applyReportGrid 後加入以保留顏色）
+      ws.addRow([]);
+      const noteLines = [
+        { t: '※ 實際匯款金額 計算說明', size: 12, bold: true },
+        { t: '達 2 萬須扣除：1. 所得稅 10%（大於 2 萬）  2. 補充保險費 2.11%（大於等於 2 萬）', size: 11 },
+        { t: '銀行代號非第一銀行（007）者，另扣轉帳費 15 元', size: 11 },
+      ];
+      noteLines.forEach(n => {
+        const row = ws.addRow([n.t]);
+        row.getCell(1).font = { color: { argb: 'FFC00000' }, size: n.size, bold: !!n.bold };
+      });
     };
 
     if (singleMonth) {

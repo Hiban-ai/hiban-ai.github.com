@@ -728,6 +728,15 @@ textarea.form-input{resize:none}
             <button onclick="dmRestore(this)" class="action-btn" style="height:38px;background:var(--red);color:#fff;border-color:var(--red)">執行還原</button>
           </div>
           <div id="dm-restore-msg" style="font-size:.82rem;margin-top:.4rem"></div>
+
+          <!-- 資料健檢 -->
+          <hr style="margin:1.2rem 0;border:none;border-top:1.5px solid var(--border)">
+          <div style="font-size:.9rem;font-weight:700;margin-bottom:.4rem">🩺 資料健檢</div>
+          <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.75rem;line-height:1.7">
+            全面檢查資料是否乾淨：重複註冊（同身分證）、孤兒任務/回報（指向已刪除的帳號或任務）、測試資料殘留、啟用帳號缺漏必要欄位。封存/刪除前建議先檢查。
+          </div>
+          <button onclick="dmRunHealth(this)" class="btn-primary" style="max-width:160px">執行資料健檢</button>
+          <div id="dm-health-result" style="font-size:.85rem;margin-top:.75rem"></div>
         </div>
         <!-- 任務封存 -->
         <div id="dm-pane-archive" style="display:none">
@@ -2435,6 +2444,41 @@ async function loadDmBackupList() {
       : '<option value="">尚無備份檔</option>';
   } catch(e) { el.textContent = '備份清單載入失敗：' + e.message; }
 }
+async function dmRunHealth(btn) {
+  const box = document.getElementById('dm-health-result');
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = '檢查中…';
+  box.innerHTML = '<span style="color:var(--text-s)">掃描中…</span>';
+  try {
+    const r = await API.get('/api/admin/data-health');
+    const rows = [];
+    const sect = (ok, title, detail) =>
+      `<div style="display:flex;gap:.5rem;padding:.45rem .7rem;border:1px solid var(--border);border-radius:var(--rs);background:#fff;margin-bottom:.4rem">
+         <span>${ok ? '✅' : '⚠️'}</span><div><strong>${title}</strong>${detail ? '<div style="font-size:.78rem;color:var(--text-s);margin-top:.2rem">'+detail+'</div>' : ''}</div>
+       </div>`;
+    // 重複註冊
+    rows.push(sect(!r.duplicate_users.length, `重複註冊：${r.duplicate_users.length} 組`,
+      r.duplicate_users.map(g => `身分證 ${g.id_number}：` + g.users.map(u => `${u.real_name}(id${u.id}/${u.status}${u.partner_no?'/P'+u.partner_no:''})`).join('、')).join('<br>')));
+    // 孤兒任務
+    rows.push(sect(!r.orphan_assignments.length, `孤兒任務（帳號已不存在）：${r.orphan_assignments.length} 筆`,
+      r.orphan_assignments.slice(0,10).map(a => `#${a.id} ${a.task_name}（accepted_by=${a.accepted_by}）`).join('<br>')));
+    // 孤兒回報
+    rows.push(sect(!r.orphan_worklogs.length, `孤兒回報（任務已不存在）：${r.orphan_worklogs.length} 筆`,
+      r.orphan_worklogs.slice(0,10).map(w => `回報#${w.id}（assignment=${w.assignment_id}）`).join('<br>')));
+    // 測試資料
+    rows.push(sect(!r.test_seed_assignments, `測試資料殘留：${r.test_seed_assignments} 筆`,
+      r.test_seed_assignments ? '可用 seed 腳本的 clean 指令清除' : ''));
+    // 缺漏欄位
+    rows.push(sect(!r.incomplete_users.length, `啟用帳號缺漏欄位：${r.incomplete_users.length} 人`,
+      r.incomplete_users.map(u => `${u.real_name}：缺 ${u.missing.join('、')}`).join('<br>')));
+    const head = r.issues_total === 0
+      ? '<div style="color:#2e7d32;font-weight:700;margin-bottom:.5rem">✅ 資料健康，未發現問題</div>'
+      : `<div style="color:#c62828;font-weight:700;margin-bottom:.5rem">⚠️ 發現 ${r.issues_total} 項待處理</div>`;
+    box.innerHTML = head + rows.join('') +
+      `<div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">檢查時間 ${r.checked_at}｜帳號 ${r.counts.users}・任務 ${r.counts.assignments}・回報 ${r.counts.worklogs}</div>`;
+  } catch(e) { box.innerHTML = '<span style="color:#c62828">檢查失敗：' + e.message + '</span>'; }
+  finally { btn.disabled = false; btn.textContent = orig; }
+}
+
 async function dmRestore(btn) {
   const fileId  = document.getElementById('dm-restore-file').value;
   const confirm = document.getElementById('dm-restore-confirm').value.trim();

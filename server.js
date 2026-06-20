@@ -3226,6 +3226,54 @@ app.put('/api/admin/assignments/:id/change-completed-at', requireRole('staff'), 
 
 // ── 資料管理 ──────────────────────────────────────────────────
 
+// 資料健檢：重複註冊、孤兒資料、測試資料殘留
+app.get('/api/admin/data-health', requireRole('staff'), async (req, res) => {
+  try {
+    const [users, assignments, wSnap] = await Promise.all([
+      Users.all(), Assignments.all(), db.collection('worklog_reports').get(),
+    ]);
+    const worklogs = wSnap.docs.map(d => d.data());
+    const userIds = new Set(users.map(u => u.id));
+    const assignIds = new Set(assignments.map(a => a.id));
+
+    // 1. 重複註冊（同身分證）
+    const byIdno = {};
+    users.forEach(u => { if (u.id_number) (byIdno[u.id_number] = byIdno[u.id_number] || []).push(u); });
+    const duplicate_users = Object.entries(byIdno).filter(([, arr]) => arr.length > 1)
+      .map(([idn, arr]) => ({
+        id_number: idn.slice(0, 4) + '***',
+        users: arr.map(u => ({ id: u.id, real_name: u.real_name, username: u.username, status: u.status, partner_no: u.partner_no || null })),
+      }));
+
+    // 2. 孤兒任務（accepted_by 指向不存在的帳號）
+    const orphan_assignments = assignments
+      .filter(a => a.accepted_by && !userIds.has(a.accepted_by))
+      .map(a => ({ id: a.id, task_name: a.task_name, accepted_by: a.accepted_by }));
+
+    // 3. 孤兒回報（assignment_id 不存在）
+    const orphan_worklogs = worklogs
+      .filter(w => w.assignment_id && !assignIds.has(w.assignment_id))
+      .map(w => ({ id: w.id, assignment_id: w.assignment_id }));
+
+    // 4. 測試資料殘留（test_seed）
+    const test_seed_assignments = assignments.filter(a => a.test_seed).length;
+
+    // 5. 啟用帳號缺必要欄位（姓名／身分證／銀行帳號）
+    const incomplete_users = users
+      .filter(u => u.role === 'partner' && u.status === 'active' && (!u.real_name || !u.id_number || !u.bank_account))
+      .map(u => ({ id: u.id, real_name: u.real_name || '（無姓名）', username: u.username,
+        missing: [!u.real_name && '姓名', !u.id_number && '身分證', !u.bank_account && '銀行帳號'].filter(Boolean) }));
+
+    const issues = duplicate_users.length + orphan_assignments.length + orphan_worklogs.length + test_seed_assignments + incomplete_users.length;
+    res.json({
+      checked_at: nowTW(),
+      counts: { users: users.length, assignments: assignments.length, worklogs: worklogs.length },
+      issues_total: issues,
+      duplicate_users, orphan_assignments, orphan_worklogs, test_seed_assignments, incomplete_users,
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 概況統計
 app.get('/api/admin/db-stats', requireRole('staff'), async (req, res) => {
   try {

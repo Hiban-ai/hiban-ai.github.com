@@ -66,12 +66,12 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 
 /* Cards */
 .card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);border:1px solid var(--border-l);margin-bottom:1rem}
-.impact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem}
-.impact-card{background:#fff;border-radius:var(--r);padding:1.1rem;text-align:center;
-  box-shadow:0 6px 24px rgba(72,180,232,.1);border:1px solid var(--border-l);border-bottom:4px solid var(--ic,var(--blue));transition:transform .2s}
+.impact-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;margin-bottom:1rem}
+.impact-card{background:#fff;border-radius:var(--r);padding:.65rem .55rem;text-align:center;
+  box-shadow:0 4px 16px rgba(72,180,232,.1);border:1px solid var(--border-l);border-bottom:3px solid var(--ic,var(--blue));transition:transform .2s}
 .impact-card:hover{transform:translateY(-2px)}
-.ic-val{font-family:'Noto Serif TC',serif;font-size:1.75rem;font-weight:700;color:var(--ic,var(--blue));margin-bottom:.15rem}
-.ic-label{font-size:.75rem;color:var(--text-s)}
+.ic-val{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:var(--ic,var(--blue));margin-bottom:.1rem}
+.ic-label{font-size:.68rem;color:var(--text-s)}
 
 /* Tables */
 .table-wrap{overflow-x:auto}
@@ -172,7 +172,7 @@ textarea.form-input{resize:none}
   .st-menu-item .mi-icon{font-size:1.2rem;width:auto}
   .st-badge{margin-left:0;margin-top:.1rem}
   .st-main{padding:.75rem;padding-bottom:5rem}
-  .impact-grid{grid-template-columns:1fr 1fr}
+  .impact-grid{grid-template-columns:repeat(3,1fr)}
   .mobile-topbar{display:flex}
 }
 /* 跑馬燈 */
@@ -314,6 +314,16 @@ textarea.form-input{resize:none}
           <button class="action-btn" onclick="switchPage('traffic',document.querySelector('[onclick*=traffic]'))">📡 流量資訊</button>
         </div>
       </div>
+      <div class="card">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">📁 文件・報表快速連結</div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="action-btn" onclick="gotoReport('reports','rpt-salary-summary')">💰 每月薪資計算總表</button>
+          <button class="action-btn" onclick="gotoReport('reports','rpt-labor')">📄 勞務報酬單</button>
+          <button class="action-btn" onclick="gotoReport('reports','rpt-tax')">🧾 報稅格式_暨名冊總表</button>
+          <button class="action-btn" onclick="gotoReport('reports','rpt-workrecords')">📊 工作紀錄彙整</button>
+          <button class="action-btn" onclick="switchPage('payroll',document.querySelector('[onclick*=payroll]'))">💵 薪資管理</button>
+        </div>
+      </div>
     </div>
 
     <!-- 帳號管理 -->
@@ -433,7 +443,7 @@ textarea.form-input{resize:none}
       <div id="reports-cards" style="display:flex;flex-direction:column;gap:1rem">
 
         <!-- 報表：工作紀錄彙整 -->
-        <div class="card">
+        <div class="card" id="rpt-workrecords">
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">📄 工作紀錄彙整</div>
           <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">每筆任務一列：工作夥伴編號／名稱、月份、日期、星期、時間、單位別、工作內容、時數、時薪、小計（公式）、工作進度、備註。小時任務帶起訖時間與時數；件／搶單帶數量與單價。</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -448,7 +458,7 @@ textarea.form-input{resize:none}
         </div>
 
         <!-- 報表：報稅格式_暨名冊總表 -->
-        <div class="card">
+        <div class="card" id="rpt-tax">
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">📄 報稅格式_暨名冊總表</div>
           <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">每位夥伴一列：編號、分類(身分別)、姓名、匯款資料、身分證、戶籍/通訊地址、電話，以及一～十二月各月所得（取已完成任務的完成月份金額）與全年合計。</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -458,7 +468,7 @@ textarea.form-input{resize:none}
         </div>
 
         <!-- 報表：每月薪資計算總表 -->
-        <div class="card">
+        <div class="card" id="rpt-salary-summary">
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">💰 每月薪資計算總表</div>
           <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">序號、姓名、匯款資料、原始金額（錢包當月）、實際匯款金額（達 2 萬扣所得稅 10%＋二代健保 2.11%）、備註、事由（工作紀錄總額）、勞報單編號、細項（連結勞報單）。「整年」會以每月一張分頁匯出。</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -470,7 +480,7 @@ textarea.form-input{resize:none}
         </div>
 
         <!-- 報表：勞務報酬單 -->
-        <div class="card">
+        <div class="card" id="rpt-labor">
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;margin-bottom:.3rem">📄 勞務報酬單</div>
           <div style="font-size:.82rem;color:var(--text-s);line-height:1.6;margin-bottom:.85rem">單一夥伴單月的勞務報酬單（含金額中文大寫、代扣稅額、轉帳手續費、實領、支領方式）。開啟後可列印或另存 PDF。</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
@@ -1512,6 +1522,19 @@ function switchPage(name, el) {
   if (name === 'traffic') loadTraffic();
   if (name === 'settings') loadSystemSettings();
   if (name === 'issues') loadIssuesStaff();
+}
+
+// 從儀表板快速連結跳到指定報表卡片並捲動定位＋短暫高亮
+function gotoReport(page, anchorId) {
+  switchPage(page, document.querySelector(`[onclick*='${page}']`));
+  setTimeout(() => {
+    const el = document.getElementById(anchorId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const prev = el.style.boxShadow;
+    el.style.boxShadow = '0 0 0 3px var(--blue)';
+    setTimeout(() => { el.style.boxShadow = prev; }, 1600);
+  }, 120);
 }
 
 // ── 帳號管理 ──

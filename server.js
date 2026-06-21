@@ -2844,13 +2844,13 @@ async function backupToDrive(mode = 'full') {
   return { ok: true, file: fname, type: full ? 'full' : 'data', doc_count: docCount, size_mb: sizeMB, kept: Math.min(files.length, keep) };
 }
 
-// 自動排程：每日 03:00 資料備份（不含圖片）；每週日 04:00 完整備份（含圖片）
-cron.schedule('0 3 * * *', () => {
-  console.log('[cron] 每日資料備份（data）');
+// 自動排程：週一～六 03:00 資料備份（不含圖片）；週日 04:00 完整備份（含圖片，已涵蓋 data）
+cron.schedule('0 3 * * 1-6', () => {
+  console.log('[cron] 資料備份（data，週一～六）');
   backupToDrive('data').catch(console.error);
 }, { timezone: 'Asia/Taipei' });
 cron.schedule('0 4 * * 0', () => {
-  console.log('[cron] 每週完整備份（full）');
+  console.log('[cron] 完整備份（full，週日）');
   backupToDrive('full').catch(console.error);
 }, { timezone: 'Asia/Taipei' });
 

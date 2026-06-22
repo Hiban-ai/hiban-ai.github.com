@@ -1686,6 +1686,9 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
     }
 
+    // 回報由「夥伴自己的督導」審核（非搶單發布者）
+    let grabSupName = result.task.supervisor_name;
+    if (req.session.user.supervisor_id) { const sv = await Users.byId(req.session.user.supervisor_id); if (sv) grabSupName = sv.real_name; }
     // Transaction 外建立 assignment（自動接受）
     const assignment = await Assignments.create({
       task_name:       result.task.task_name,
@@ -1701,8 +1704,8 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       target_partner_id: partnerId,
       accepted_by:     partnerId,
       accepted_at:     nowTW(),
-      supervisor_id:   result.task.supervisor_id,
-      supervisor_name: result.task.supervisor_name,
+      supervisor_id:   req.session.user.supervisor_id || result.task.supervisor_id,
+      supervisor_name: grabSupName,
       grab_task_id:    taskId,
       grab_no:         result.grabNo,
       status:          'accepted',
@@ -1832,13 +1835,17 @@ app.post('/api/free-tasks/:id/accept', requireRole('partner'), async (req, res) 
       const p = n => String(n).padStart(2, '0');
       deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
     }
+    // 回報由「夥伴自己的督導」審核（非任務發布者）
+    let supId = req.session.user.supervisor_id || task.supervisor_id;
+    let supName = task.supervisor_name;
+    if (req.session.user.supervisor_id) { const sv = await Users.byId(req.session.user.supervisor_id); if (sv) supName = sv.real_name; }
     const assignment = await Assignments.create({
       task_name: task.task_name, company: task.company || '',
       quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
       notes: task.notes || '', deadline_days: parseInt(task.deadline_days) || null, deadline_date,
       assigned_at: nowTW(), assign_type: 'free',
       target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
-      supervisor_id: task.supervisor_id, supervisor_name: task.supervisor_name,
+      supervisor_id: supId, supervisor_name: supName,
       free_task_id: taskId,
       status: 'accepted', rejected_by: [], reject_reason: null, custom_fields: [],
     });

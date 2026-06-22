@@ -561,7 +561,7 @@ textarea.form-input{resize:none}
           <div style="font-size:.78rem;font-weight:700">⚔️ 進行中任務
             <span id="overview-active-badge" style="background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.3rem">0</span>
           </div>
-          <button onclick="switchPage(&#39;tasks&#39;,document.querySelector(&#39;[onclick*=tasks]&#39;))" style="padding:.28rem .75rem;font-size:.75rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;cursor:pointer;font-family:&#39;Noto Sans TC&#39;,sans-serif">查看全部 →</button>
+          <span style="font-size:.7rem;color:var(--text-s)">點卡片前往 →</span>
         </div>
         <div id="overview-active-list"></div>
       </div>
@@ -1238,6 +1238,9 @@ function buildTaskCards(list) {
 function buildTaskCardsReadonly(list) {
   const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
   if (!list.length) return '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">目前沒有可接任務</div>';
+  const full = list;
+  list = list.slice(0, 3); // 總覽只顯示前 3 張，避免太長
+  const moreNote = full.length > 3 ? `<div onclick="switchPage('tasks',document.querySelector('[onclick*=tasks]'))" style="font-size:.75rem;color:var(--blue-d);text-align:center;padding:.3rem;cursor:pointer;font-weight:700">還有 ${full.length - 3} 個待回覆 →</div>` : '';
   return list.map(a => {
     const color = taskColor[a.task_name] || 'var(--blue)';
     return `
@@ -1258,7 +1261,7 @@ function buildTaskCardsReadonly(list) {
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
       ${customFieldsHtml(a.custom_fields)}
     </div>`
-  }).join('');
+  }).join('') + moreNote;
 }
 
 function renderPending(list) {

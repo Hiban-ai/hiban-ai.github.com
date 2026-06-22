@@ -86,6 +86,9 @@ body{font-family:sans-serif;background:linear-gradient(180deg,#EBF7FD 0%,#F8FCFF
   color:var(--text);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
 .page-section{display:none}
 .page-section.active{display:block}
+.subtab-bar{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap}
+.subtab{padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
+.subtab.active{background:var(--blue-d);color:#fff;border-color:var(--blue-d)}
 
 /* ── Character stats card (in tasks section) ── */
 .char-stats-card{background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(235,247,253,.8));
@@ -457,12 +460,15 @@ textarea.form-input{resize:none}
     <div class="pt-menu" role="navigation" aria-label="主選單">
       <div class="pt-menu-item active" onclick="switchPage('quests',this)"><span class="mi-icon">📊</span>總覽儀表板</div>
       <div class="pt-menu-item" onclick="switchPage('tasks',this)">
-        <span class="mi-icon">⚔️</span>任務
+        <span class="mi-icon">⚔️</span>指派任務
         <span class="pt-badge" id="badge-active-tasks" style="display:none">0</span>
       </div>
       <div class="pt-menu-item" onclick="switchPage('grab',this)">
-        <span class="mi-icon">🎯</span>搶單區
+        <span class="mi-icon">🎯</span>搶單任務
         <span class="pt-badge" id="badge-grab" style="display:none">0</span>
+      </div>
+      <div class="pt-menu-item" onclick="switchPage('free',this)">
+        <span class="mi-icon">🆓</span>自由任務
       </div>
       <div class="pt-menu-item" onclick="switchPage('wallet',this)"><span class="mi-icon">💰</span>錢包</div>
       <div class="pt-menu-item" onclick="switchPage('growth',this)"><span class="mi-icon">🏆</span>成長</div>
@@ -546,26 +552,25 @@ textarea.form-input{resize:none}
       
     <!-- 任務 -->
     <div class="page-section" id="page-tasks">
-      <div class="page-title">⚔️ 任務</div>
-
-      <!-- 待回覆派案 -->
-      <div style="font-size:.88rem;font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
-        🔔 待回覆
-        <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
+      <div class="page-title">⚔️ 指派任務</div>
+      <div class="subtab-bar">
+        <button class="subtab active" onclick="subTab('tasks','pending',this)">🔔 待回覆 <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.05rem .4rem;border-radius:10px">0</span></button>
+        <button class="subtab" onclick="subTab('tasks','active',this)">⚔️ 進行中</button>
+        <button class="subtab" onclick="subTab('tasks','done',this)">✅ 已完成</button>
       </div>
-      <div id="pending-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
-
-      <!-- 進行中任務 -->
-      <div style="font-size:.88rem;font-weight:700;margin:1rem 0 .6rem">⚔️ 進行中</div>
-      <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
-
-      <!-- 已完成任務 -->
-      <div style="display:flex;align-items:center;gap:.6rem;margin:1.25rem 0 .6rem;flex-wrap:wrap">
-        <div style="font-size:.88rem;font-weight:700">✅ 已完成</div>
-        <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
+      <div class="subpane" id="tasks-pending">
+        <div id="pending-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
       </div>
-      <div id="completed-list"></div>
-
+      <div class="subpane" id="tasks-active" style="display:none">
+        <div id="active-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+      </div>
+      <div class="subpane" id="tasks-done" style="display:none">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;flex-wrap:wrap">
+          <span style="font-size:.82rem;color:var(--text-s)">月份</span>
+          <select id="filter-month" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.8rem;background:var(--bg);cursor:pointer"></select>
+        </div>
+        <div id="completed-list"></div>
+      </div>
     </div>
 
     <!-- 錢包 -->
@@ -637,11 +642,41 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <!-- 搶單區 -->
+    <!-- 搶單任務 -->
     <div class="page-section" id="page-grab">
-      <div class="page-title">🎯 搶單區</div>
-      <div id="grab-zone-wrap">
-        <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
+      <div class="page-title">🎯 搶單任務</div>
+      <div class="subtab-bar">
+        <button class="subtab active" onclick="subTab('grab','list',this)">📋 搶單列表</button>
+        <button class="subtab" onclick="subTab('grab','active',this)">⚔️ 進行中</button>
+        <button class="subtab" onclick="subTab('grab','done',this)">✅ 已完成</button>
+      </div>
+      <div class="subpane" id="grab-list">
+        <div id="grab-zone-wrap"><div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div></div>
+      </div>
+      <div class="subpane" id="grab-active" style="display:none">
+        <div id="active-grab"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+      </div>
+      <div class="subpane" id="grab-done" style="display:none">
+        <div id="completed-grab"></div>
+      </div>
+    </div>
+
+    <!-- 自由任務 -->
+    <div class="page-section" id="page-free">
+      <div class="page-title">🆓 自由任務</div>
+      <div class="subtab-bar">
+        <button class="subtab active" onclick="subTab('free','list',this)">📋 任務列表</button>
+        <button class="subtab" onclick="subTab('free','active',this)">⚔️ 進行中</button>
+        <button class="subtab" onclick="subTab('free','done',this)">✅ 已完成</button>
+      </div>
+      <div class="subpane" id="free-list">
+        <div id="free-zone-wrap"><div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div></div>
+      </div>
+      <div class="subpane" id="free-active" style="display:none">
+        <div id="active-free"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+      </div>
+      <div class="subpane" id="free-done" style="display:none">
+        <div id="completed-free"></div>
       </div>
     </div>
 
@@ -916,7 +951,8 @@ function switchPage(name, el) {
   if (el) el.classList.add('active');
   if (name === 'tasks' || name === 'quests') loadTasks();
   if (name === 'tasks') renderQuests();
-  if (name === 'grab') loadGrabZone();
+  if (name === 'grab') { loadGrabZone(); loadTasks(); }
+  if (name === 'free') { loadFreeZone(); loadTasks(); }
   if (name === 'notices') {
     try { renderAnnList(); } catch(e) {}
   }
@@ -1000,19 +1036,7 @@ function buildYearFilter() {
   monthSel.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 }
 
-function filterCompleted() {
-  const ym = document.getElementById('filter-month').value; // "2026-06"
-  let list = completedCache;
-  if (ym) {
-    const [y, m] = ym.split('-');
-    list = list.filter(a => {
-      const d = a.completed_at || '';
-      return d.startsWith(y+'/'+String(parseInt(m)).padStart(2,'0')) ||
-             d.startsWith(y+'/'+parseInt(m)+'/');
-    });
-  }
-  renderCompleted(list);
-}
+function filterCompleted() { renderCompleted(); }
 
 // 同步錢包與總覽統計
 function syncWalletAndOverview(completed) {
@@ -1087,17 +1111,14 @@ function renderWallet() {
     </div>`).join('');
 }
 
-function renderCompleted(list) {
-  const el = document.getElementById('completed-list');
-  if (!el) return;
-  if (!list.length) {
-    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有已完成的任務</div>';
-    return;
-  }
+// 任務分類：grab=搶單、free=自由、其餘=指派
+function taskCat(a) { return a.assign_type === 'grab' ? 'grab' : a.assign_type === 'free' ? 'free' : 'assign'; }
+
+function completedCardHtml(a) {
   const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
-  el.innerHTML = list.map(a => {
-    const color = taskColor[a.task_name] || 'var(--green)';
-    return `
+  const color = taskColor[a.task_name] || 'var(--green)';
+  const extra = (a.extra_reward||0) > 0 ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:#FFF1D6;color:#8A6010">🎁 含額外獎勵 $${a.extra_reward.toLocaleString()}</span>` : '';
+  return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem;opacity:.85">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
         <div>
@@ -1111,11 +1132,30 @@ function renderCompleted(list) {
         ${a.assign_type === 'hourly'
           ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ ${Math.floor((a.work_minutes||0)/60)}時${(a.work_minutes||0)%60}分・$${(a.total_price||0).toLocaleString()}</span>`
           : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件</span>`}
+        ${extra}
       </div>
       ${a.assign_type === 'hourly' && a.work_start ? `<div style="font-size:.78rem;color:var(--text-s);line-height:1.7">🕐 ${a.work_start} ～ ${a.work_end}</div>` : ''}
       <div style="font-size:.78rem;color:var(--text-s)">完成時間：${fmtDate(a.completed_at)}</div>
-    </div>`
-  }).join('');
+    </div>`;
+}
+
+// 已完成：依類別分流到三頁；指派頁套用月份篩選，搶單/自由顯示全部
+function renderCompleted() {
+  const ym = document.getElementById('filter-month') ? document.getElementById('filter-month').value : '';
+  const cats = { assign: [], grab: [], free: [] };
+  (completedCache || []).forEach(a => {
+    const cat = taskCat(a);
+    if (cat === 'assign' && ym) {
+      const [y, m] = ym.split('-'); const d = a.completed_at || '';
+      if (!(d.startsWith(y+'/'+String(parseInt(m)).padStart(2,'0')) || d.startsWith(y+'/'+parseInt(m)+'/'))) return;
+    }
+    cats[cat].push(a);
+  });
+  const empty = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有已完成的任務</div>';
+  [['assign','completed-list'],['grab','completed-grab'],['free','completed-free']].forEach(([cat, id]) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = cats[cat].length ? cats[cat].map(completedCardHtml).join('') : empty;
+  });
 }
 
 async function completeTask(id, btn) {
@@ -1237,14 +1277,18 @@ function renderActive(list) {
   var activeBadge = document.getElementById('active-badge');
   if (activeBadge) { activeBadge.textContent = list.length; activeBadge.style.display = list.length ? '' : 'none'; }
 
-  const el = document.getElementById('active-list');
-  if (!el) return;
-  if (!list.length) {
-    el.innerHTML = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有進行中的任務</div>';
-    return;
-  }
-  const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
-  el.innerHTML = list.map(a => {
+  // 進行中：依類別分流到三頁（指派/搶單/自由）
+  const cats = { assign: [], grab: [], free: [] };
+  list.forEach(a => cats[taskCat(a)].push(a));
+  const empty = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有進行中的任務</div>';
+  [['assign','active-list'],['grab','active-grab'],['free','active-free']].forEach(([cat, id]) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = cats[cat].length ? cats[cat].map(activeCardHtml).join('') : empty;
+  });
+}
+
+function activeCardHtml(a) {
+    const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
     const color     = taskColor[a.task_name] || 'var(--green)';
     const reviewing = a.review_status === 'reviewing';
     const statusTag = reviewing
@@ -1295,8 +1339,7 @@ function renderActive(list) {
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:sans-serif">
         ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
       </button>
-    </div>`
-  }).join('');
+    </div>`;
 }
 
 
@@ -1680,6 +1723,65 @@ function renderAnnList() {
 function openAnnDetail(ann) {
   showAnnDetail(ann, meId || null);
   try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+}
+
+// ── 子分頁切換 ────────────────────────────────────────────────
+function subTab(page, tab, btn) {
+  const sec = document.getElementById('page-' + page);
+  if (!sec) return;
+  sec.querySelectorAll('.subpane').forEach(p => p.style.display = 'none');
+  const pane = document.getElementById(page + '-' + tab);
+  if (pane) pane.style.display = '';
+  sec.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ── 自由任務區 ────────────────────────────────────────────────
+async function loadFreeZone() {
+  const wrap = document.getElementById('free-zone-wrap');
+  if (!wrap) return;
+  try {
+    const list = await API.get('/api/free-tasks');
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放中的自由任務</div>'; return; }
+    const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
+    wrap.innerHTML = list.map(t => {
+      const color = taskColor[t.task_name] || 'var(--blue)';
+      const period = t.publish_end ? `即日起～${fmtDay(t.publish_end)} 止` : '即日起～長期';
+      const qtyLabel = t.qty_unlimited ? '不限名額' : `剩 ${t.remaining} 個名額`;
+      let btn;
+      if (t.in_progress) btn = `<button disabled style="width:100%;padding:.6rem;background:var(--bg);color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:not-allowed">⏳ 進行中（完成後才能再接）</button>`;
+      else if (t.full)   btn = `<button disabled style="width:100%;padding:.6rem;background:var(--bg);color:var(--text-s);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:not-allowed">😶 名額已滿</button>`;
+      else               btn = `<button onclick="acceptFreeTask(${t.id},this)" style="width:100%;padding:.6rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>`;
+      return `
+      <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
+          <div>
+            <div style="font-family:serif;font-weight:700;font-size:1rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+            ${t.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(t)}</div>` : ''}
+          </div>
+          <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(t.unit_price||0).toLocaleString()}</div>
+        </div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
+          <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">🆓 自由任務</span>
+          <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">${qtyLabel}</span>
+          ${t.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 接案後 ${t.deadline_days} 天內</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 無完成期限</span>`}
+          <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📅 ${period}</span>
+        </div>
+        ${t.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${t.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${t.supervisor_name||'—'}</div>`}
+        ${btn}
+      </div>`;
+    }).join('');
+  } catch(e) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入失敗：'+e.message+'</div>'; }
+}
+
+async function acceptFreeTask(id, btn) {
+  btn.disabled = true;
+  try {
+    await API.post('/api/free-tasks/' + id + '/accept', {});
+    showToast('接案成功！可在「進行中」查看', 'success');
+    loadFreeZone();
+    loadTasks();
+  } catch(e) { showToast(e.message, 'error'); btn.disabled = false; }
 }
 
 // ── 搶單區 ────────────────────────────────────────────────────

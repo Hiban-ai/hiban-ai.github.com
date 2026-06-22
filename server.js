@@ -1544,11 +1544,10 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 督導取得自己的搶單任務列表
+// 搶單任務列表（所有督導皆可見全部搶單）
 app.get('/api/grab-tasks/supervisor', requireRole('supervisor'), async (req, res) => {
   try {
-    const list = await GrabTasks.forSupervisor(req.session.user.id);
-    res.json(list);
+    res.json(await GrabTasks.all());
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1605,7 +1604,7 @@ app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res)
   try {
     const task = await GrabTasks.byId(parseInt(req.params.id));
     if (!task) return res.status(404).json({ error: '任務不存在' });
-    if (task.supervisor_id !== req.session.user.id) return res.status(403).json({ error: '無權限' });
+    // 搶單為共用任務池，任一督導皆可關閉
     await GrabTasks.update(parseInt(req.params.id), { status: 'closed' });
     cacheDel('grab-tasks-open');
     res.json({ ok: true });
@@ -1730,9 +1729,9 @@ app.post('/api/free-tasks', requireRole('supervisor'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 督導 / 管理員 列表
+// 自由任務列表（所有督導皆可見全部自由任務）
 app.get('/api/free-tasks/supervisor', requireRole('supervisor'), async (req, res) => {
-  try { res.json(await FreeTasks.forSupervisor(req.session.user.id)); }
+  try { res.json(await FreeTasks.all()); }
   catch(e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/free-tasks/all', requireRole('staff'), async (req, res) => {
@@ -1747,7 +1746,7 @@ app.put('/api/free-tasks/:id/end', requireRole('supervisor'), async (req, res) =
     if (!publish_end) return res.status(400).json({ error: '請選擇結束日期' });
     const t = await FreeTasks.byId(parseInt(req.params.id));
     if (!t) return res.status(404).json({ error: '任務不存在' });
-    if (t.supervisor_id !== req.session.user.id) return res.status(403).json({ error: '無權限' });
+    // 自由任務為共用任務池，任一督導皆可調整
     await FreeTasks.update(t.id, { publish_end });
     cacheDel('free-tasks-open');
     res.json({ ok: true });
@@ -1839,17 +1838,13 @@ app.get('/api/free-tasks/:id/records', requireRole('supervisor','staff'), async 
       Users.all(),
     ]);
     const name = id => allUsers.find(u => u.id === id)?.real_name || ('夥伴#' + id);
-    const recs = snap.docs.map(d => d.data());
-    // 依夥伴彙整：接案數、完成數、進行中數
-    const byP = {};
-    recs.forEach(a => {
-      const pid = a.accepted_by;
-      const g = byP[pid] || (byP[pid] = { partner_id: pid, partner_name: name(pid), total: 0, completed: 0, active: 0 });
-      g.total++;
-      if (a.status === 'completed') g.completed++;
-      else if (a.status === 'accepted') g.active++;
-    });
-    res.json(Object.values(byP).sort((a, b) => b.total - a.total));
+    // 逐筆接案明細（含編號、接案時間、狀態），依接案時間新到舊
+    const recs = snap.docs.map(d => d.data()).map(a => ({
+      partner_id: a.accepted_by, partner_name: name(a.accepted_by),
+      task_no: a.task_no || null, accepted_at: a.accepted_at || null,
+      completed_at: a.completed_at || null, status: a.status,
+    })).sort((a, b) => (b.accepted_at || '').localeCompare(a.accepted_at || ''));
+    res.json(recs);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

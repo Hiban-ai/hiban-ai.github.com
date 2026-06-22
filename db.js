@@ -420,6 +420,37 @@ const GrabTasks = {
   },
 };
 
+// ── FreeTasks（自由任務：開放任務池，夥伴自由接案）─────────────
+const FreeTasks = {
+  async byId(id) {
+    const snap = await db.collection('free_tasks').where('id','==',id).limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+  },
+  async create(data) {
+    const id = await nextId('free_tasks');
+    const no = await nextTaskNo('free', data.task_name);
+    // filled_count=接案數(進行中+已完成)、completed_count=已完成數
+    const item = { id, created_at: now(), filled_count: 0, completed_count: 0, status: 'open', ...data, task_no: no };
+    await db.collection('free_tasks').doc(String(id)).set(item);
+    return item;
+  },
+  async update(id, patch) {
+    await db.collection('free_tasks').doc(String(id)).update(patch);
+  },
+  async openList() {
+    const snap = await db.collection('free_tasks').where('status','==','open').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+  async forSupervisor(supervisorId) {
+    const snap = await db.collection('free_tasks').where('supervisor_id','==',supervisorId).get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+  async all() {
+    const snap = await db.collection('free_tasks').get();
+    return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
+  },
+};
+
 // ── GrabRecords ───────────────────────────────────────────────
 const GrabRecords = {
   async forTask(grabTaskId) {
@@ -660,6 +691,6 @@ async function grantTaskXP(userId, taskName, companyName) {
 }
 
 module.exports = {
-  Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db, getTrafficStats,
+  Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, FreeTasks, Reports, ReportImages, db, getTrafficStats,
   LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, getStreakMultiplier, BADGES, XPConfig, XPLogs, grantTaskXP,
 };

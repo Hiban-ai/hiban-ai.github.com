@@ -4,7 +4,7 @@ const bcrypt     = require('bcryptjs');
 const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
-const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
+const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, FreeTasks, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
 const db = firestoreDb;
 
 // ── 記憶體快取（減少 Firestore 讀取次數）─────────────────────
@@ -1703,6 +1703,133 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
   }
 });
 
+// ══════════════════════════════════════════════════════════════
+// 自由任務系統（開放任務池；同名+同公司進行中不可重複接，完成後可再接）
+// ══════════════════════════════════════════════════════════════
+
+// 督導發布自由任務
+app.post('/api/free-tasks', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { task_name, company, unit_price, total_qty, qty_unlimited, publish_end, notes, deadline_days } = req.body;
+    if (!task_name || !unit_price) return res.status(400).json({ error: '缺少必填欄位（任務名稱、金額）' });
+    const unlimited = !!qty_unlimited;
+    const qty = unlimited ? null : parseInt(total_qty);
+    if (!unlimited && (!qty || qty < 1)) return res.status(400).json({ error: '請填總名額數量或勾選不限' });
+    const item = await FreeTasks.create({
+      task_name, company: company || '',
+      unit_price: parseInt(unit_price),
+      total_qty: qty, qty_unlimited: unlimited,
+      publish_end: publish_end || null, // "YYYY/MM/DD" 或 null=永久
+      deadline_days: parseInt(deadline_days) || null,
+      notes: notes || '',
+      supervisor_id: req.session.user.id,
+      supervisor_name: req.session.user.real_name,
+    });
+    cacheDel('free-tasks-open');
+    res.json({ ok: true, id: item.id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 督導 / 管理員 列表
+app.get('/api/free-tasks/supervisor', requireRole('supervisor'), async (req, res) => {
+  try { res.json(await FreeTasks.forSupervisor(req.session.user.id)); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.get('/api/free-tasks/all', requireRole('staff'), async (req, res) => {
+  try { res.json(await FreeTasks.all()); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 督導設定「結束發布」日期
+app.put('/api/free-tasks/:id/end', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { publish_end } = req.body; // "YYYY/MM/DD"
+    if (!publish_end) return res.status(400).json({ error: '請選擇結束日期' });
+    const t = await FreeTasks.byId(parseInt(req.params.id));
+    if (!t) return res.status(404).json({ error: '任務不存在' });
+    if (t.supervisor_id !== req.session.user.id) return res.status(403).json({ error: '無權限' });
+    await FreeTasks.update(t.id, { publish_end });
+    cacheDel('free-tasks-open');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 夥伴取得開放中的自由任務（附 can_accept 判斷）
+app.get('/api/free-tasks', requireRole('partner'), async (req, res) => {
+  try {
+    const partnerId = req.session.user.id;
+    const today = nowTW().slice(0, 10); // YYYY/MM/DD
+    let list = await FreeTasks.openList();
+    list = list.filter(t => !t.publish_end || t.publish_end >= today); // 過濾已過發布期限
+    // 夥伴目前進行中的自由任務（同名+同公司不可重複接）
+    const mine = await Assignments.forPartners([partnerId]);
+    const activeKeys = new Set(mine
+      .filter(a => a.assign_type === 'free' && a.status === 'accepted')
+      .map(a => `${a.task_name || ''} ${a.company || ''}`));
+    const result = list.map(t => {
+      const full = !t.qty_unlimited && (t.filled_count || 0) >= (t.total_qty || 0);
+      const inProgress = activeKeys.has(`${t.task_name || ''} ${t.company || ''}`);
+      return { ...t, full, in_progress: inProgress, can_accept: !full && !inProgress,
+        remaining: t.qty_unlimited ? null : Math.max(0, (t.total_qty || 0) - (t.filled_count || 0)) };
+    });
+    res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 夥伴接案
+app.post('/api/free-tasks/:id/accept', requireRole('partner'), async (req, res) => {
+  const taskId = parseInt(req.params.id);
+  const partnerId = req.session.user.id;
+  try {
+    const task0 = await FreeTasks.byId(taskId);
+    if (!task0) return res.status(404).json({ error: '自由任務不存在' });
+    // 同名 + 同公司，進行中不可重複接
+    const mine = await Assignments.forPartners([partnerId]);
+    const dup = mine.find(a => a.assign_type === 'free' && a.status === 'accepted'
+      && (a.task_name || '') === (task0.task_name || '') && (a.company || '') === (task0.company || ''));
+    if (dup) return res.status(400).json({ error: '同任務名稱與公司已有進行中的任務，完成後才能再接' });
+    // Transaction：檢查狀態/期限/名額 + filled_count++
+    const taskRef = firestoreDb.collection('free_tasks').doc(String(taskId));
+    const task = await firestoreDb.runTransaction(async t => {
+      const doc = await t.get(taskRef);
+      if (!doc.exists) throw new Error('自由任務不存在');
+      const tk = doc.data();
+      if (tk.status !== 'open') throw new Error('此自由任務已結束發布');
+      const today = nowTW().slice(0, 10);
+      if (tk.publish_end && tk.publish_end < today) throw new Error('此自由任務已過發布期限');
+      if (!tk.qty_unlimited && (tk.filled_count || 0) >= (tk.total_qty || 0)) throw new Error('名額已滿');
+      t.update(taskRef, { filled_count: (tk.filled_count || 0) + 1 });
+      return tk;
+    });
+    // 完成期限
+    let deadline_date = null;
+    if (parseInt(task.deadline_days) >= 1) {
+      const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+      dlBase.setDate(dlBase.getDate() + parseInt(task.deadline_days));
+      const p = n => String(n).padStart(2, '0');
+      deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+    }
+    const assignment = await Assignments.create({
+      task_name: task.task_name, company: task.company || '',
+      quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
+      notes: task.notes || '', deadline_days: parseInt(task.deadline_days) || null, deadline_date,
+      assigned_at: nowTW(), assign_type: 'free',
+      target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
+      supervisor_id: task.supervisor_id, supervisor_name: task.supervisor_name,
+      free_task_id: taskId,
+      status: 'accepted', rejected_by: [], reject_reason: null, custom_fields: [],
+    });
+    cacheDel('free-tasks-open');
+    cacheClear('sup-');
+    res.json({ ok: true, assignment_id: assignment.id });
+  } catch(e) {
+    const userErr = ['自由任務不存在','此自由任務已結束發布','此自由任務已過發布期限','名額已滿'];
+    if (userErr.some(m => e.message.includes(m))) return res.status(400).json({ error: e.message });
+    console.error('[free-accept]', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── 任務回報 ──────────────────────────────────────────────────
 app.post('/api/reports', requireRole('partner'), async (req, res) => {
   try {
@@ -1820,6 +1947,7 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
 app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    const extraReward = Math.max(0, parseInt(req.body && req.body.extra_reward) || 0); // 自由任務額外獎勵
     await WorklogReports.update(id, { status: 'approved' });
     // 取回 report 找到 assignment_id，把 assignment 改成 completed
     const snap = await require('./db').WorklogReports;
@@ -1828,14 +1956,29 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
     if (!rSnap.empty) {
       const r   = rSnap.docs[0].data();
       const aPrev = await Assignments.byId(r.assignment_id);
-      await Assignments.update(r.assignment_id, {
-        status: 'completed', completed_at: nowTW(), review_status: 'approved'
-      });
+      const patch = { status: 'completed', completed_at: nowTW(), review_status: 'approved' };
+      // 自由任務：額外獎勵與任務金額加總 → 進錢包（total_price = 基本金額 + 額外，重算冪等）
+      if (aPrev && aPrev.assign_type === 'free') {
+        patch.extra_reward = extraReward;
+        patch.total_price  = (aPrev.unit_price || 0) + extraReward;
+      }
+      await Assignments.update(r.assignment_id, patch);
       const a = await Assignments.byId(r.assignment_id);
       // XP 只發一次（退回再核可不重複計分）
       if (a && a.accepted_by && !(aPrev && aPrev.xp_granted)) {
         await grantTaskXP(a.accepted_by, a.task_name, a.company).catch(e => console.error('[grantTaskXP]', e.message));
         await Assignments.update(r.assignment_id, { xp_granted: true });
+        // 自由任務：發布端完成數 +1，達名額上限自動結束發布
+        if (a.assign_type === 'free' && a.free_task_id) {
+          const ft = await FreeTasks.byId(a.free_task_id);
+          if (ft) {
+            const completed = (ft.completed_count || 0) + 1;
+            const p2 = { completed_count: completed };
+            if (!ft.qty_unlimited && ft.total_qty && completed >= ft.total_qty) p2.status = 'ended';
+            await FreeTasks.update(ft.id, p2);
+            cacheDel('free-tasks-open');
+          }
+        }
       }
 
       // 督導核可後，背景上傳附件圖片至雲端

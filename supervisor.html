@@ -403,6 +403,9 @@ textarea.form-input{resize:none}
             <div style="flex:1;display:flex;align-items:center;gap:.5rem">
               <input class="form-input" type="number" id="assign-days" min="1" placeholder="天數" style="flex:1">
               <span style="font-size:.9rem;color:var(--text-s);white-space:nowrap">天內完成</span>
+              <label id="days-unlimited-wrap" style="display:none;align-items:center;gap:.3rem;font-size:.82rem;color:var(--text-s);white-space:nowrap;cursor:pointer">
+                <input type="checkbox" id="assign-days-unlimited" onchange="onDaysUnlimited()"> 不限
+              </label>
             </div>
           </div>
           <!-- 搶單模式：截止日期 + 時間 -->
@@ -1108,6 +1111,7 @@ function setAssignMode(mode) {
   document.querySelector('[data-field="hourly"]').style.display       = isHourly ? 'flex' : 'none';
   // 完成期限：件/搶單/自由 用天數；小時不需
   document.getElementById('row-deadline-days').style.display = isHourly ? 'none' : 'flex';
+  document.getElementById('days-unlimited-wrap').style.display = isFree ? 'flex' : 'none'; // 自由任務可不限完成期限
   // 發布期限：只有自由任務
   document.querySelector('[data-field="publish"]').style.display = isFree ? 'flex' : 'none';
   _fieldOrder = _modeOrders[curModeKey()];  // 切換到該模式的欄位順序
@@ -1127,6 +1131,11 @@ function onQtyUnlimited() {
 function onPubPermanent() {
   const on = document.getElementById('pub-permanent').checked;
   ['pub-year','pub-month','pub-day'].forEach(id => { const el = document.getElementById(id); el.disabled = on; if (on) el.value = ''; el.style.opacity = on ? '.5' : '1'; });
+}
+function onDaysUnlimited() {
+  const on = document.getElementById('assign-days-unlimited').checked;
+  const el = document.getElementById('assign-days');
+  el.disabled = on; if (on) el.value = ''; el.style.opacity = on ? '.5' : '1';
 }
 
 // ── 任務派案 ──
@@ -1175,10 +1184,11 @@ async function submitAssign() {
     // 自由任務（所有夥伴可接，同名+同公司進行中不可重複接）
     const unlimited = document.getElementById('assign-qty-unlimited').checked;
     const qtyVal = document.getElementById('assign-qty').value;
+    const daysUnlimited = document.getElementById('assign-days-unlimited').checked;
     const days = document.getElementById('assign-days').value;
     if (!price || parseInt(price) < 0) { err.textContent = '請填寫金額'; err.style.display = 'block'; return; }
     if (!unlimited && (!qtyVal || parseInt(qtyVal) < 1)) { err.textContent = '請填寫總名額或勾選不限'; err.style.display = 'block'; return; }
-    if (!days || parseInt(days) < 1) { err.textContent = '請填寫完成期限（天數）'; err.style.display = 'block'; return; }
+    if (!daysUnlimited && (!days || parseInt(days) < 1)) { err.textContent = '請填寫完成期限（天數）或勾選不限'; err.style.display = 'block'; return; }
     let publish_end = null;
     if (!document.getElementById('pub-permanent').checked) {
       const y = document.getElementById('pub-year').value, m = document.getElementById('pub-month').value, d = document.getElementById('pub-day').value;
@@ -1190,12 +1200,13 @@ async function submitAssign() {
       await API.post('/api/free-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_qty: unlimited ? null : parseInt(qtyVal), qty_unlimited: unlimited,
-        publish_end, deadline_days: parseInt(days),
+        publish_end, deadline_days: daysUnlimited ? null : parseInt(days),
       });
       showToast('自由任務已發布！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','assign-days','pub-year','pub-month','pub-day'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('assign-qty-unlimited').checked = false; onQtyUnlimited();
+      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited();
       document.getElementById('pub-permanent').checked = false; onPubPermanent();
       renderAssignCustomFields();
       loadFreeHistory();
@@ -2064,7 +2075,7 @@ async function loadCustomFieldDefs() {
 // ── 派案表單欄位排序 ──────────────────────────────────────────
 const FIELD_ORDER_LABELS = {
   target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
-  price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明',
+  price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明', publish: '發布期限',
 };
 const EXTRA_FIELD_LABELS = { 'work-content': '工作內容', 'hourly': '時薪' };
 function fieldLabel(tok) { return FIELD_ORDER_LABELS[tok] || EXTRA_FIELD_LABELS[tok] || tok; }
@@ -2700,7 +2711,7 @@ function openCfMgr() {
   const cfSel = document.getElementById('cf-task-selector');
   const curTask = document.getElementById('assign-task')?.value || '';
   if (cfSel) cfSel.value = curTask;
-  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（搶單欄位）' : assignMode === 'hourly' ? '（小時欄位）' : '（指派(件)欄位）';
+  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（搶單欄位）' : assignMode === 'hourly' ? '（小時欄位）' : assignMode === 'free' ? '（自由任務欄位）' : '（指派(件)欄位）';
   loadCustomFieldDefs();
   renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');

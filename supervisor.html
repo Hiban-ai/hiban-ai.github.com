@@ -162,6 +162,7 @@ textarea.form-input{resize:none}
         <div class="sv-menu-item" onclick="switchPage('alerts',this)"><span class="mi-icon">⚠️</span>預警通知<span class="sv-badge">3</span></div>
         <div class="sv-menu-item" onclick="switchPage('partners',this)"><span class="mi-icon">👥</span>夥伴管理</div>
         <div class="sv-menu-item" onclick="switchPage('tasks-sv',this)"><span class="mi-icon">⚔️</span>任務派案</div>
+        <div class="sv-menu-item" onclick="switchPage('assign-records',this)"><span class="mi-icon">📂</span>派案紀錄</div>
         <div class="sv-menu-item" onclick="switchPage('worklog-review',this)">
           <span class="mi-icon">📋</span>任務審核
           <span class="sv-badge" id="badge-task-review" style="display:none">0</span>
@@ -468,17 +469,21 @@ textarea.form-input{resize:none}
         <button id="assign-submit-btn" onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>
 
-      <!-- 派案紀錄 -->
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin-bottom:.75rem">📂 派案紀錄</div>
-      <div id="assign-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+    </div>
 
-      <!-- 搶單紀錄 -->
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin:1.5rem 0 .75rem">🎯 搶單紀錄</div>
-      <div id="grab-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
-
-      <!-- 自由任務紀錄 -->
-      <div style="font-size:.9rem;font-weight:700;color:var(--text-m);margin:1.5rem 0 .75rem">🆓 自由任務紀錄</div>
-      <div id="free-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+    <!-- 派案紀錄（獨立頁簽，依任務型態分類） -->
+    <div class="page-section" id="page-assign-records">
+      <div class="page-title">📂 派案紀錄</div>
+      <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="ar-tab" onclick="arTab('piece',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:var(--blue-d);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📋 指派(件)</button>
+        <button class="ar-tab" onclick="arTab('hourly',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⏱️ 指派(小時)</button>
+        <button class="ar-tab" onclick="arTab('grab',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 搶單</button>
+        <button class="ar-tab" onclick="arTab('free',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🆓 自由</button>
+      </div>
+      <div class="ar-pane" id="ar-piece"><div id="assign-history-piece"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
+      <div class="ar-pane" id="ar-hourly" style="display:none"><div id="assign-history-hourly"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
+      <div class="ar-pane" id="ar-grab" style="display:none"><div id="grab-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
+      <div class="ar-pane" id="ar-free" style="display:none"><div id="free-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
     </div>
 
     <!-- 公告 -->
@@ -822,7 +827,7 @@ function switchPage(name, el) {
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sv-menu-item').forEach(i=>i.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (name === 'tasks-sv')      { loadAssignHistory(); loadGrabHistory(); loadFreeHistory(); }
+  if (name === 'assign-records') { loadAssignHistory(); loadGrabHistory(); loadFreeHistory(); }
   if (name === 'worklog-review') loadTaskReviews();
   if (name === 'task-records')  loadTaskRecords();
   if (name === 'notices') {
@@ -1365,6 +1370,13 @@ async function closeGrabTask(id) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+// 派案紀錄頁籤切換
+function arTab(tab, btn) {
+  ['piece','hourly','grab','free'].forEach(t => { const p = document.getElementById('ar-'+t); if (p) p.style.display = t === tab ? '' : 'none'; });
+  document.querySelectorAll('#page-assign-records .ar-tab').forEach(b => { b.style.background = '#fff'; b.style.color = 'var(--text-s)'; });
+  if (btn) { btn.style.background = 'var(--blue-d)'; btn.style.color = '#fff'; }
+}
+
 // ── 自由任務紀錄 ──
 async function loadFreeHistory() {
   try {
@@ -1423,7 +1435,17 @@ async function confirmEndFree() {
 async function loadAssignHistory() {
   try {
     const list = await API.get('/api/assignments/history');
-    const el = document.getElementById('assign-history');
+    // 排除搶單/自由的個別實例（它們在各自頁籤以任務池呈現）
+    const piece  = list.filter(a => a.assign_type !== 'hourly' && a.assign_type !== 'grab' && a.assign_type !== 'free');
+    const hourly = list.filter(a => a.assign_type === 'hourly');
+    renderAssignCards(piece, 'assign-history-piece');
+    renderAssignCards(hourly, 'assign-history-hourly');
+  } catch(e) { console.error(e); }
+}
+
+function renderAssignCards(list, containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
     if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無派案紀錄</div>'; return; }
     const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已拒絕' };
     const statusColor = { pending:'var(--orange)', accepted:'var(--blue)', completed:'var(--green)', rejected:'var(--red)' };
@@ -1465,7 +1487,6 @@ async function loadAssignHistory() {
         </div>
       </div>`
     }).join('');
-  } catch(e) { console.error(e); }
 }
 
 // 動態自訂欄位顯示

@@ -66,6 +66,19 @@ function dateKey(s) {
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
+// 操作紀錄（稽核日誌）：記錄督導/管理員對任務的任何動作
+async function logTaskAction(req, action, detail, target) {
+  try {
+    const u = (req && req.session && req.session.user) || {};
+    await firestoreDb.collection('task_logs').add({
+      actor_id: u.id || null, actor_name: u.real_name || u.username || '系統',
+      actor_role: u.role || '', action, detail: detail || '',
+      target_type: (target && target.type) || '', target_id: (target && target.id) || null,
+      created_at: nowTW(),
+    });
+  } catch(e) { console.error('[task_log]', e.message); }
+}
+
 // 報表共用樣式：所有使用到的儲存格加黑色細框線、字體強制黑色（保留粗體/字級）
 function applyReportGrid(ws) {
   const thin = { style: 'thin', color: { argb: 'FF000000' } };
@@ -1100,6 +1113,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
     }
     const item = await Assignments.create(data);
     cacheClear('sup-'); // 新派任務 → 清督導儀表板快取
+    await logTaskAction(req, data.assign_type === 'hourly' ? '派案(小時)' : '派案(件)', `${data.company ? data.company+'：' : ''}${data.task_name}${item.task_no ? ' #'+item.task_no : ''}`, { type: 'assignment', id: item.id });
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1540,6 +1554,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       per_person_limit: perLimit,
     });
     cacheDel('grab-tasks-open');
+    await logTaskAction(req, '建立搶單', `${company ? company+'：' : ''}${task_name} 名額${slots}`, { type: 'grab_task', id: item.id });
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1595,7 +1610,13 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
 app.get('/api/grab-tasks/:id/records', requireRole('supervisor','staff'), async (req, res) => {
   try {
     const records = await GrabRecords.forTask(parseInt(req.params.id));
-    res.json(records);
+    // 附上對應任務的編號與狀態（完成/進行中）
+    const enriched = await Promise.all(records.map(async r => {
+      let task_no = null, status = r.status || 'active';
+      if (r.assignment_id) { const a = await Assignments.byId(r.assignment_id); if (a) { task_no = a.task_no || null; status = a.status; } }
+      return { ...r, task_no, status };
+    }));
+    res.json(enriched);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1607,6 +1628,7 @@ app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res)
     // 搶單為共用任務池，任一督導皆可關閉
     await GrabTasks.update(parseInt(req.params.id), { status: 'closed' });
     cacheDel('grab-tasks-open');
+    await logTaskAction(req, '關閉搶單', `${task.company ? task.company+'：' : ''}${task.task_name}`, { type: 'grab_task', id: task.id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1725,6 +1747,7 @@ app.post('/api/free-tasks', requireRole('supervisor'), async (req, res) => {
       supervisor_name: req.session.user.real_name,
     });
     cacheDel('free-tasks-open');
+    await logTaskAction(req, '發布自由任務', `${item.company ? item.company+'：' : ''}${item.task_name} ${unlimited ? '不限名額' : '名額'+qty}`, { type: 'free_task', id: item.id });
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1749,6 +1772,7 @@ app.put('/api/free-tasks/:id/end', requireRole('supervisor'), async (req, res) =
     // 自由任務為共用任務池，任一督導皆可調整
     await FreeTasks.update(t.id, { publish_end });
     cacheDel('free-tasks-open');
+    await logTaskAction(req, '結束自由任務發布', `${t.company ? t.company+'：' : ''}${t.task_name}（至 ${publish_end} 止）`, { type: 'free_task', id: t.id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1864,7 +1888,16 @@ app.put('/api/assignments/:id/cancel', requireRole('partner'), async (req, res) 
     await firestoreDb.collection('assignments').doc(String(id)).delete();
     cacheClear('sup-');
     cacheDel('free-tasks-open');
+    await logTaskAction(req, '取消自由任務', `${a.task_name}${a.task_no ? ' #'+a.task_no : ''}`, { type: 'assignment', id });
     res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 操作紀錄（稽核日誌）：督導/管理員對任務的所有動作
+app.get('/api/task-logs', requireRole('supervisor','staff'), async (req, res) => {
+  try {
+    const snap = await firestoreDb.collection('task_logs').orderBy('created_at', 'desc').limit(300).get();
+    res.json(snap.docs.map(d => d.data()));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -2059,6 +2092,7 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
       }
     }
     cacheClear('sup-'); // 核可 WorkLog → 清督導儀表板快取
+    await logTaskAction(req, '核可回報' + (extraReward ? `（額外獎勵 $${extraReward}）` : ''), `回報 #${id}`, { type: 'report', id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -2081,6 +2115,7 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
       await Assignments.update(r.assignment_id, { supervisor_comments: comments, review_status: null });
     }
     cacheClear('sup-'); // 退回 WorkLog → 清督導儀表板快取
+    await logTaskAction(req, '退回回報', `回報 #${id}：${(reason||'').slice(0,30)}`, { type: 'report', id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -2117,6 +2152,7 @@ app.put('/api/reports/:id/rollback', requireRole('supervisor'), async (req, res)
       });
     }
     cacheClear('sup-'); // 退回（重做/重審）→ 清督導儀表板快取
+    await logTaskAction(req, target === 'review' ? '退回重新審核' : '退回夥伴重做', `回報 #${id}：${(reason||'').trim().slice(0,30)}`, { type: 'report', id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -3403,6 +3439,7 @@ app.put('/api/admin/assignments/:id/change-completed-at', requireRole('staff'), 
     };
     await Assignments.update(id, patch);
     cacheClear('sup-'); // 更改完成日期 → 清督導儀表板快取（影響當月統計）
+    await logTaskAction(req, '更改完成日期', `${a.task_name}${a.task_no ? ' #'+a.task_no : ''}：${oldDate} → ${new_date}`, { type: 'assignment', id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

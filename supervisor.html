@@ -479,11 +479,13 @@ textarea.form-input{resize:none}
         <button class="ar-tab" onclick="arTab('hourly',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⏱️ 指派(小時)</button>
         <button class="ar-tab" onclick="arTab('grab',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 搶單</button>
         <button class="ar-tab" onclick="arTab('free',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🆓 自由</button>
+        <button class="ar-tab" onclick="arTab('logs',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📜 操作紀錄</button>
       </div>
       <div class="ar-pane" id="ar-piece"><div id="assign-history-piece"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
       <div class="ar-pane" id="ar-hourly" style="display:none"><div id="assign-history-hourly"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
       <div class="ar-pane" id="ar-grab" style="display:none"><div id="grab-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
       <div class="ar-pane" id="ar-free" style="display:none"><div id="free-history"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
+      <div class="ar-pane" id="ar-logs" style="display:none"><div id="task-logs-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
     </div>
 
     <!-- 公告 -->
@@ -1349,8 +1351,15 @@ async function toggleGrabRec(taskId) {
   grabRecExpanded[taskId] = true;
   try {
     const recs = await API.get(`/api/grab-tasks/${taskId}/records`);
+    const stLabel = { completed:'✅ 已完成', accepted:'⚔️ 進行中', active:'⚔️ 進行中', rejected:'已退回' };
     const rows = recs.length
-      ? recs.map(r => `<div style="display:flex;align-items:center;gap:.6rem;padding:.3rem 0;border-bottom:1px solid var(--border-l)"><span style="font-size:.78rem;font-weight:700;color:var(--blue-d);width:40px">#${r.grab_no}</span><span style="font-size:.85rem">${r.partner_name}</span><span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${(r.grabbed_at||'').slice(0,16)}</span></div>`).join('')
+      ? recs.map(r => `<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border-l)">
+          <span style="font-size:.74rem;font-weight:700;color:var(--orange);flex-shrink:0">搶 #${r.grab_no}</span>
+          ${r.task_no ? `<span style="font-size:.72rem;font-weight:700;color:var(--blue-d)">任務#${r.task_no}</span>` : ''}
+          <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
+          <span style="font-size:.72rem;color:var(--text-s)">📌 ${(r.grabbed_at||'').slice(0,16)}</span>
+          <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${stLabel[r.status]||r.status}</span>
+        </div>`).join('')
       : '<div style="font-size:.82rem;color:var(--text-s)">尚無人搶單</div>';
     el.innerHTML = `
       <div style="background:var(--bg);border-radius:var(--rs);padding:.6rem .8rem;margin-top:.4rem">
@@ -1402,9 +1411,29 @@ async function toggleFreeRec(taskId) {
 
 // 派案紀錄頁籤切換
 function arTab(tab, btn) {
-  ['piece','hourly','grab','free'].forEach(t => { const p = document.getElementById('ar-'+t); if (p) p.style.display = t === tab ? '' : 'none'; });
+  ['piece','hourly','grab','free','logs'].forEach(t => { const p = document.getElementById('ar-'+t); if (p) p.style.display = t === tab ? '' : 'none'; });
   document.querySelectorAll('#page-assign-records .ar-tab').forEach(b => { b.style.background = '#fff'; b.style.color = 'var(--text-s)'; });
   if (btn) { btn.style.background = 'var(--blue-d)'; btn.style.color = '#fff'; }
+  if (tab === 'logs') loadTaskLogs();
+}
+
+// 操作紀錄（稽核日誌）
+async function loadTaskLogs() {
+  const el = document.getElementById('task-logs-wrap');
+  if (!el) return;
+  try {
+    const logs = await API.get('/api/task-logs');
+    if (!logs.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無操作紀錄</div>'; return; }
+    const roleLabel = { supervisor:'督導', staff:'管理', partner:'夥伴' };
+    const actColor = a => a.includes('退回') || a.includes('關閉') || a.includes('結束') || a.includes('取消') ? 'var(--orange)' : a.includes('核可') ? 'var(--green)' : 'var(--blue-d)';
+    el.innerHTML = logs.map(l => `
+      <div style="display:flex;align-items:flex-start;gap:.6rem;background:#fff;border-radius:var(--rs);padding:.55rem .8rem;box-shadow:0 2px 8px rgba(72,180,232,.06);margin-bottom:.5rem;border-left:4px solid ${actColor(l.action)}">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.85rem"><span style="font-weight:700;color:${actColor(l.action)}">${l.action}</span> <span style="color:var(--text-m)">${l.detail||''}</span></div>
+          <div style="font-size:.72rem;color:var(--text-s);margin-top:.2rem">👤 ${l.actor_name}（${roleLabel[l.actor_role]||l.actor_role}） ・ 🕒 ${(l.created_at||'').slice(0,16)}</div>
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="color:var(--red);font-size:.85rem">載入失敗：'+e.message+'</div>'; }
 }
 
 // ── 自由任務紀錄 ──

@@ -1411,15 +1411,17 @@ function buildRejectedCards(list) {
 function buildActiveCardsOverview(list) {
   if (!list.length) return '';
   var shown = list.slice(0, 3);
+  var META = { assign:{label:'📋 指派',page:'tasks'}, grab:{label:'🎯 搶單',page:'grab'}, free:{label:'🆓 自由',page:'free'} };
   var cards = shown.map(function(a) {
     var reviewing = a.review_status === 'reviewing';
     var taskName = (a.task_name || '').replace(/'/g, '&#39;');
     var deadlineInfo = a.deadline_date ? '期限：' + fmtDay(a.deadline_date) : (a.deadline_days ? a.deadline_days + '天' : '');
+    var m = META[taskCat(a)];
     var reportBtn = reviewing ? '' : '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;,&#39;' + (a.assign_type||'') + '&#39;,' + (a.hourly_wage||0) + ')" style="flex-shrink:0;padding:.35rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">回報</button>';
     return '<div style="background:#fff;border-radius:var(--r);padding:.85rem 1rem;border-left:5px solid var(--green);box-shadow:0 4px 16px rgba(46,170,122,.10);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem">'
-      + '<div style="flex:1;min-width:0">'
+      + '<div onclick="switchPage(&#39;' + m.page + '&#39;,document.querySelector(&#39;[onclick*=' + m.page + ']&#39;))" style="flex:1;min-width:0;cursor:pointer">'
       + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(a) + '</div>'
-      + '<div style="font-size:.75rem;color:var(--text-s);margin-top:.2rem">' + (reviewing ? '🔍 審核中' : '⚔️ 進行中') + (deadlineInfo ? ' &nbsp;·&nbsp; ' + deadlineInfo : '') + '</div>'
+      + '<div style="font-size:.75rem;color:var(--text-s);margin-top:.2rem"><span style="font-weight:700;color:var(--blue-d)">' + m.label + '</span> &nbsp;·&nbsp; ' + (reviewing ? '🔍 審核中' : '⚔️ 進行中') + (deadlineInfo ? ' &nbsp;·&nbsp; ' + deadlineInfo : '') + '</div>'
       + '</div>' + reportBtn + '</div>';
   }).join('');
   var more = list.length > 3 ? '<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ' + (list.length - 3) + ' 個任務 →</div>' : '';

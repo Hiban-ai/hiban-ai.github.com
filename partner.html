@@ -1410,25 +1410,33 @@ function buildRejectedCards(list) {
   }).join('');
 }
 
-// 進行中任務卡（總覽，簡化版）
+// 進行中任務卡（總覽）：每種任務一張，同類多張用堆疊卡（最新在上、顯示件數）
 function buildActiveCardsOverview(list) {
   if (!list.length) return '';
-  var shown = list.slice(0, 3);
-  var META = { assign:{label:'📋 指派',page:'tasks'}, grab:{label:'🎯 搶單',page:'grab'}, free:{label:'🆓 自由',page:'free'} };
-  var cards = shown.map(function(a) {
-    var reviewing = a.review_status === 'reviewing';
-    var taskName = (a.task_name || '').replace(/'/g, '&#39;');
-    var deadlineInfo = a.deadline_date ? '期限：' + fmtDay(a.deadline_date) : (a.deadline_days ? a.deadline_days + '天' : '');
-    var m = META[taskCat(a)];
-    var reportBtn = reviewing ? '' : '<button onclick="openReport(' + a.id + ',&#39;' + taskName + '&#39;,&#39;' + (a.assign_type||'') + '&#39;,' + (a.hourly_wage||0) + ')" style="flex-shrink:0;padding:.35rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">回報</button>';
-    return '<div style="background:#fff;border-radius:var(--r);padding:.85rem 1rem;border-left:5px solid var(--green);box-shadow:0 4px 16px rgba(46,170,122,.10);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem">'
-      + '<div onclick="switchPage(&#39;' + m.page + '&#39;,document.querySelector(&#39;[onclick*=' + m.page + ']&#39;))" style="flex:1;min-width:0;cursor:pointer">'
-      + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(a) + '</div>'
-      + '<div style="font-size:.75rem;color:var(--text-s);margin-top:.2rem"><span style="font-weight:700;color:var(--blue-d)">' + m.label + '</span> &nbsp;·&nbsp; ' + (reviewing ? '🔍 審核中' : '⚔️ 進行中') + (deadlineInfo ? ' &nbsp;·&nbsp; ' + deadlineInfo : '') + '</div>'
-      + '</div>' + reportBtn + '</div>';
+  var META = { assign:{label:'📋 指派任務',page:'tasks',color:'var(--blue)'}, grab:{label:'🎯 搶單任務',page:'grab',color:'var(--orange)'}, free:{label:'🆓 自由任務',page:'free',color:'#2EAA7A'} };
+  var groups = { assign:[], grab:[], free:[] };
+  list.forEach(function(a){ groups[taskCat(a)].push(a); });
+  Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return (b.accepted_at||b.created_at||'').localeCompare(a.accepted_at||a.created_at||''); }); });
+  return ['assign','grab','free'].filter(function(k){ return groups[k].length; }).map(function(k){
+    var arr = groups[k], m = META[k], top = arr[0], n = arr.length;
+    var reviewing = top.review_status === 'reviewing';
+    var taskName = (top.task_name || '').replace(/'/g, '&#39;');
+    var deadlineInfo = top.deadline_date ? '期限：' + fmtDay(top.deadline_date) : (top.deadline_days ? top.deadline_days + '天' : '');
+    var reportBtn = reviewing ? '' : '<button onclick="event.stopPropagation();openReport(' + top.id + ',&#39;' + taskName + '&#39;,&#39;' + (top.assign_type||'') + '&#39;,' + (top.hourly_wage||0) + ')" style="flex-shrink:0;padding:.35rem .75rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">回報</button>';
+    var back = '';
+    if (n >= 3) back += '<div style="position:absolute;top:8px;left:8px;right:-8px;bottom:-8px;background:#fff;border-radius:var(--r);box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid var(--border-l)"></div>';
+    if (n >= 2) back += '<div style="position:absolute;top:4px;left:4px;right:-4px;bottom:-4px;background:#fff;border-radius:var(--r);box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid var(--border-l)"></div>';
+    var countBadge = n > 1 ? '<span style="background:' + m.color + ';color:#fff;font-size:.62rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;margin-left:.35rem">共 ' + n + ' 件</span>' : '';
+    return '<div onclick="switchPage(&#39;' + m.page + '&#39;,document.querySelector(&#39;[onclick*=' + m.page + ']&#39;))" style="position:relative;margin-bottom:' + (n>1?'1.1rem':'.6rem') + ';cursor:pointer">'
+      + back
+      + '<div style="position:relative;background:#fff;border-radius:var(--r);padding:.85rem 1rem;border-left:5px solid ' + m.color + ';box-shadow:0 4px 16px rgba(72,180,232,.12);display:flex;align-items:center;justify-content:space-between;gap:.75rem">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:.72rem;font-weight:700;color:' + m.color + ';margin-bottom:.2rem">' + m.label + countBadge + '</div>'
+      + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(top) + '</div>'
+      + '<div style="font-size:.72rem;color:var(--text-s);margin-top:.15rem">' + (reviewing ? '🔍 審核中' : '⚔️ 進行中') + (deadlineInfo ? ' &nbsp;·&nbsp; ' + deadlineInfo : '') + '</div>'
+      + '</div>' + reportBtn + '</div>'
+      + '</div>';
   }).join('');
-  var more = list.length > 3 ? '<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ' + (list.length - 3) + ' 個任務 →</div>' : '';
-  return cards + more;
 }
 
 async function acceptTask(id, btn) {

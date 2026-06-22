@@ -1905,6 +1905,8 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
         work_content:  a ? a.work_content   : '',
         hourly_wage:   a ? a.hourly_wage    : (r.hourly_wage || null),
         grab_no:       a ? a.grab_no        : (r.grab_no || null),
+        total_price:   a ? a.total_price    : (r.total_price || 0),
+        unit_price:    a ? a.unit_price     : 0,
         custom_fields: a ? (a.custom_fields || []) : [],
       };
     }));

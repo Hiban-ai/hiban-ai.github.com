@@ -865,10 +865,15 @@ function downloadOverlayImg() {
   a.click();
 }
 
-async function approveReport(reportId, assignmentId) {
-  if (!confirm('確定要核可這筆任務回報嗎？\n核可後任務將標記為完成。')) return;
+async function approveReport(reportId, assignmentId, isFree) {
+  let extra = 0;
+  if (isFree) {
+    const inp = document.getElementById('extra-' + reportId);
+    extra = inp ? Math.max(0, parseInt(inp.value) || 0) : 0;
+  }
+  if (!confirm('確定要核可這筆任務回報嗎？\n核可後任務將標記為完成。' + (isFree && extra ? `\n額外獎勵 $${extra.toLocaleString()} 將計入錢包。` : ''))) return;
   try {
-    await API.put(`/api/reports/${reportId}/approve`);
+    await API.put(`/api/reports/${reportId}/approve`, isFree ? { extra_reward: extra } : {});
     showToast('已同意，任務標記為完成 ✓', 'success');
     loadTaskReviews();
     // 若任務紀錄頁已開啟則同步刷新
@@ -939,7 +944,16 @@ async function loadTaskReviews() {
       el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">目前沒有待審核的回報</div>';
       return;
     }
-    el.innerHTML = list.map(r => `
+    const RV_LABEL = { assign:'📋 指派任務(件)', hourly:'⏱️ 指派任務(小時)', grab:'🎯 搶單任務', free:'🆓 自由任務' };
+    const rvCat = x => x.assign_type==='hourly'?'hourly':x.assign_type==='grab'?'grab':x.assign_type==='free'?'free':'assign';
+    const rvOrder = { assign:0, hourly:1, grab:2, free:3 };
+    const rvSorted = [...list].sort((a,b)=>rvOrder[rvCat(a)]-rvOrder[rvCat(b)]);
+    let rvPrev = null;
+    el.innerHTML = rvSorted.map(r => {
+      const _c = rvCat(r);
+      const _hdr = _c !== rvPrev ? `<div style="font-size:.88rem;font-weight:700;color:var(--text-m);margin:.75rem 0 .55rem;padding-top:.5rem;border-top:1.5px dashed var(--border)">${RV_LABEL[_c]}</div>` : '';
+      rvPrev = _c;
+      return _hdr + `
       <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--blue)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
           <div>
@@ -980,12 +994,19 @@ async function loadTaskReviews() {
             </div>
           `).join('')}
         </div>` : ''}
+        ${r.assign_type === 'free' ? `
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;background:#FFF8E8;border:1.5px solid #F0C040;border-radius:var(--rs);padding:.5rem .7rem">
+          <span style="font-size:.82rem;color:#8A6010;font-weight:700;white-space:nowrap">🎁 額外獎勵</span>
+          <div style="position:relative;flex:1"><span style="position:absolute;left:.6rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
+            <input id="extra-${r.id}" type="number" min="0" value="0" style="width:100%;padding:.4rem .4rem .4rem 1.4rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem"></div>
+          <span style="font-size:.72rem;color:var(--text-s);white-space:nowrap">基本 $${(r.total_price||0).toLocaleString()}＋額外＝進錢包</span>
+        </div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
-          <button onclick="approveReport(${r.id},${r.assignment_id})" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✓ 同意</button>
+          <button onclick="approveReport(${r.id},${r.assignment_id},${r.assign_type === 'free'})" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✓ 同意</button>
           <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 退回</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
     el.innerHTML = `<div style="color:var(--red)">${e.message}</div>`;
   }

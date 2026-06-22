@@ -496,12 +496,31 @@ textarea.form-input{resize:none}
     <div class="page-section active" id="page-quests">
       <div class="page-title">📊 總覽儀表板</div>
 
-      <!-- 角色統計 -->
-      <div class="char-stats-card">
-        <div class="char-stats-inner">
-          <div class="stat-box"><div class="stat-val" id="overview-income">$0</div><div class="stat-label">收入</div></div>
-          <div class="stat-box"><div class="stat-val" id="overview-month-done">0件</div><div class="stat-label">本月完成</div></div>
-          <div class="stat-box"><div class="stat-val" id="overview-login-days">—</div><div class="stat-label">本月登入天數</div></div>
+      <!-- 三種任務狀態總覽 -->
+      <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem">
+        <div onclick="switchPage('tasks',document.querySelector('[onclick*=tasks]'))" style="background:#fff;border-radius:var(--r);padding:.75rem .95rem;box-shadow:0 4px 16px rgba(72,180,232,.1);border-left:4px solid var(--blue);cursor:pointer">
+          <div style="font-size:.85rem;font-weight:700;margin-bottom:.5rem">📋 指派任務</div>
+          <div style="display:flex;text-align:center">
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--orange)" id="ov-assign-pending">0</div><div style="font-size:.66rem;color:var(--text-s)">待回覆</div></div>
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--blue-d)" id="ov-assign-active">0</div><div style="font-size:.66rem;color:var(--text-s)">進行中</div></div>
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--green)" id="ov-assign-done">0</div><div style="font-size:.66rem;color:var(--text-s)">已完成</div></div>
+          </div>
+        </div>
+        <div onclick="switchPage('grab',document.querySelector('[onclick*=grab]'))" style="background:#fff;border-radius:var(--r);padding:.75rem .95rem;box-shadow:0 4px 16px rgba(72,180,232,.1);border-left:4px solid var(--orange);cursor:pointer">
+          <div style="font-size:.85rem;font-weight:700;margin-bottom:.5rem">🎯 搶單任務</div>
+          <div style="display:flex;text-align:center">
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--orange)" id="ov-grab-avail">0</div><div style="font-size:.66rem;color:var(--text-s)">可搶</div></div>
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--blue-d)" id="ov-grab-active">0</div><div style="font-size:.66rem;color:var(--text-s)">進行中</div></div>
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--green)" id="ov-grab-done">0</div><div style="font-size:.66rem;color:var(--text-s)">已完成</div></div>
+          </div>
+        </div>
+        <div onclick="switchPage('free',document.querySelector('[onclick*=free]'))" style="background:#fff;border-radius:var(--r);padding:.75rem .95rem;box-shadow:0 4px 16px rgba(72,180,232,.1);border-left:4px solid #2EAA7A;cursor:pointer">
+          <div style="font-size:.85rem;font-weight:700;margin-bottom:.5rem">🆓 自由任務</div>
+          <div style="display:flex;text-align:center">
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--orange)" id="ov-free-avail">0</div><div style="font-size:.66rem;color:var(--text-s)">可接</div></div>
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--blue-d)" id="ov-free-active">0</div><div style="font-size:.66rem;color:var(--text-s)">進行中</div></div>
+            <div style="flex:1"><div style="font-size:1.35rem;font-weight:800;color:var(--green)" id="ov-free-done">0</div><div style="font-size:.66rem;color:var(--text-s)">已完成</div></div>
+          </div>
         </div>
       </div>
 
@@ -950,6 +969,7 @@ function switchPage(name, el) {
   document.querySelectorAll('.pt-menu-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
   if (name === 'tasks' || name === 'quests') loadTasks();
+  if (name === 'quests') { loadGrabZone(); loadFreeZone(); }
   if (name === 'tasks') renderQuests();
   if (name === 'grab') { loadGrabZone(); loadTasks(); }
   if (name === 'free') { loadFreeZone(); loadTasks(); }
@@ -1004,6 +1024,15 @@ async function loadTasks() {
     buildYearFilter();
     filterCompleted();
     syncWalletAndOverview(completed);
+    // 總覽三種任務狀態統計
+    const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+    setN('ov-assign-pending', pending.length);
+    setN('ov-assign-active', active.filter(a => taskCat(a) === 'assign').length);
+    setN('ov-assign-done',   completed.filter(a => taskCat(a) === 'assign').length);
+    setN('ov-grab-active',   active.filter(a => taskCat(a) === 'grab').length);
+    setN('ov-grab-done',     completed.filter(a => taskCat(a) === 'grab').length);
+    setN('ov-free-active',   active.filter(a => taskCat(a) === 'free').length);
+    setN('ov-free-done',     completed.filter(a => taskCat(a) === 'free').length);
     return true;
   } catch(e) {
     console.warn('loadTasks error:', e.message);
@@ -1754,6 +1783,8 @@ async function loadFreeZone() {
   if (!wrap) return;
   try {
     const list = await API.get('/api/free-tasks');
+    const ovFreeAvail = document.getElementById('ov-free-avail');
+    if (ovFreeAvail) ovFreeAvail.textContent = list.filter(t => t.can_accept).length;
     if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放中的自由任務</div>'; return; }
     const taskColor = { '口碑任務':'#9B6FD4', 'SEO文案撰寫':'#3A9CC0', '廣告圖設計':'#E07830' };
     wrap.innerHTML = list.map(t => {
@@ -1806,6 +1837,8 @@ async function loadGrabZone() {
     // 側邊選單 badge
     const badge = document.getElementById('badge-grab');
     if (badge) { badge.textContent = available.length; badge.style.display = available.length ? 'inline-flex' : 'none'; }
+    const ovGrabAvail = document.getElementById('ov-grab-avail');
+    if (ovGrabAvail) ovGrabAvail.textContent = available.length;
 
     // 總覽儀表板搶單區塊
     const ovBlock = document.getElementById('overview-grab-block');
@@ -2551,6 +2584,7 @@ async function init() {
   fillProfile(p);
   loadAnnouncements(); // 背景載入，不阻塞
   loadGrabZone();      // 背景載入搶單
+  loadFreeZone();      // 背景載入自由任務（總覽可接數）
   initGrabAlertSeen(); // 將目前已存在的搶單任務標記為已讀，避免重複跳出動畫
   initAssignAlertSeen(); // 將目前已存在的待回覆派案標記為已讀，避免重複跳出動畫
   // 重試直到成功，確保資料載入

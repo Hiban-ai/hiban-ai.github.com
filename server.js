@@ -1830,6 +1830,49 @@ app.post('/api/free-tasks/:id/accept', requireRole('partner'), async (req, res) 
   }
 });
 
+// 自由任務接案明細：誰接了、各幾筆、狀態
+app.get('/api/free-tasks/:id/records', requireRole('supervisor','staff'), async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.id);
+    const [snap, allUsers] = await Promise.all([
+      firestoreDb.collection('assignments').where('free_task_id', '==', taskId).get(),
+      Users.all(),
+    ]);
+    const name = id => allUsers.find(u => u.id === id)?.real_name || ('夥伴#' + id);
+    const recs = snap.docs.map(d => d.data());
+    // 依夥伴彙整：接案數、完成數、進行中數
+    const byP = {};
+    recs.forEach(a => {
+      const pid = a.accepted_by;
+      const g = byP[pid] || (byP[pid] = { partner_id: pid, partner_name: name(pid), total: 0, completed: 0, active: 0 });
+      g.total++;
+      if (a.status === 'completed') g.completed++;
+      else if (a.status === 'accepted') g.active++;
+    });
+    res.json(Object.values(byP).sort((a, b) => b.total - a.total));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 夥伴取消自由任務（進行中、未送審才可取消）
+app.put('/api/assignments/:id/cancel', requireRole('partner'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const a = await Assignments.byId(id);
+    if (!a || a.accepted_by !== req.session.user.id) return res.status(403).json({ error: '無權限' });
+    if (a.assign_type !== 'free') return res.status(400).json({ error: '只有自由任務可取消' });
+    if (a.status !== 'accepted' || a.review_status === 'reviewing') return res.status(400).json({ error: '此任務目前無法取消' });
+    // 釋放發布端名額
+    if (a.free_task_id) {
+      const ft = await FreeTasks.byId(a.free_task_id);
+      if (ft) await FreeTasks.update(ft.id, { filled_count: Math.max(0, (ft.filled_count || 0) - 1) });
+    }
+    await firestoreDb.collection('assignments').doc(String(id)).delete();
+    cacheClear('sup-');
+    cacheDel('free-tasks-open');
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── 任務回報 ──────────────────────────────────────────────────
 app.post('/api/reports', requireRole('partner'), async (req, res) => {
   try {

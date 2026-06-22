@@ -1370,6 +1370,34 @@ async function closeGrabTask(id) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+let freeRecExpanded = {};
+async function toggleFreeRec(taskId) {
+  const el = document.getElementById('free-rec-' + taskId);
+  if (!el) return;
+  if (freeRecExpanded[taskId]) {
+    freeRecExpanded[taskId] = false;
+    el.innerHTML = `<button onclick="toggleFreeRec(${taskId})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開接案明細</button>`;
+    return;
+  }
+  freeRecExpanded[taskId] = true;
+  try {
+    const recs = await API.get(`/api/free-tasks/${taskId}/records`);
+    const rows = recs.length
+      ? recs.map(r => `<div style="display:flex;align-items:center;gap:.6rem;padding:.3rem 0;border-bottom:1px solid var(--border-l)">
+          <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
+          <span style="font-size:.78rem;color:var(--text-s)">接 ${r.total} 筆</span>
+          <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">✅ ${r.completed} 完成 ・ ⚔️ ${r.active} 進行中</span>
+        </div>`).join('')
+      : '<div style="font-size:.82rem;color:var(--text-s)">尚無人接案</div>';
+    el.innerHTML = `
+      <div style="background:var(--bg);border-radius:var(--rs);padding:.6rem .8rem;margin-top:.4rem">
+        <div style="font-size:.78rem;font-weight:700;color:var(--text-s);margin-bottom:.4rem">接案明細（共 ${recs.length} 人）</div>
+        ${rows}
+      </div>
+      <button onclick="toggleFreeRec(${taskId})" style="font-size:.75rem;color:var(--text-s);background:none;border:none;cursor:pointer;padding:.3rem 0;font-family:'Noto Sans TC',sans-serif">▲ 收起</button>`;
+  } catch(e) { showToast('載入明細失敗', 'error'); }
+}
+
 // 派案紀錄頁籤切換
 function arTab(tab, btn) {
   ['piece','hourly','grab','free'].forEach(t => { const p = document.getElementById('ar-'+t); if (p) p.style.display = t === tab ? '' : 'none'; });
@@ -1405,6 +1433,9 @@ async function loadFreeHistory() {
           <span>${qtyLabel}</span>
           <span>已接 ${t.filled_count||0}・已完成 ${t.completed_count||0}</span>
           <span>📅 ${periodLabel}</span>
+        </div>
+        <div id="free-rec-${t.id}" style="margin-top:.6rem">
+          <button onclick="toggleFreeRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開接案明細（已接 ${t.filled_count||0}）</button>
         </div>
         ${!ended ? `<div style="margin-top:.6rem"><button onclick="openEndFree(${t.id})" style="font-size:.78rem;padding:.3rem .8rem;border:1.5px solid var(--orange);background:#fff;color:var(--orange);border-radius:var(--rs);cursor:pointer;font-family:'Noto Sans TC',sans-serif">⏹ 結束發布</button></div>` : ''}
       </div>`;

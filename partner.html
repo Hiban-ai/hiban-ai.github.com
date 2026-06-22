@@ -1339,7 +1339,19 @@ function activeCardHtml(a) {
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:sans-serif">
         ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
       </button>
+      ${(a.assign_type === 'free' && !reviewing) ? `<button onclick="cancelFreeTask(${a.id},this)" style="width:100%;margin-top:.5rem;padding:.55rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif">✖ 取消任務</button>` : ''}
     </div>`;
+}
+
+async function cancelFreeTask(id, btn) {
+  if (!confirm('確定要取消這個自由任務嗎？\n取消後名額會釋出，需要時可重新接案。')) return;
+  btn.disabled = true;
+  try {
+    await API.put('/api/assignments/' + id + '/cancel');
+    showToast('已取消任務', 'success');
+    loadTasks();
+    if (typeof loadFreeZone === 'function') loadFreeZone();
+  } catch(e) { showToast(e.message, 'error'); btn.disabled = false; }
 }
 
 

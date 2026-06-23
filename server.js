@@ -1061,7 +1061,7 @@ app.put('/api/field-order', requireRole('supervisor'), async (req, res) => {
 
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content } = req.body;
+    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content, work_date } = req.body;
     const isHourly = assign_type === 'hourly';
     if (!task_name) return res.status(400).json({ error: '缺少必填欄位' });
     if (!isHourly && (!quantity || !unit_price)) return res.status(400).json({ error: '缺少必填欄位' });
@@ -1092,6 +1092,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
         work_content: work_content || '',
         quantity: null, unit_price: null, total_price: 0,
         work_start: null, work_end: null, work_minutes: null,
+        work_date: work_date || null,
         target_partner_id: target_partner_id ? parseInt(target_partner_id) : null,
         assigned_at, supervisor_id, supervisor_name,
         status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
@@ -1099,14 +1100,18 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
       };
     } else {
       const qty = parseInt(quantity), price = parseInt(unit_price);
-      const ddays = (parseInt(deadline_days) >= 1) ? parseInt(deadline_days) : 7;
-      const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
-      dlBase.setDate(dlBase.getDate() + ddays);
-      const p = n => String(n).padStart(2,'0');
-      const deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+      // 完成期限改為選填：未填或不限 → 無期限
+      let ddays = null, deadline_date = null;
+      if (parseInt(deadline_days) >= 1) {
+        ddays = parseInt(deadline_days);
+        const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+        dlBase.setDate(dlBase.getDate() + ddays);
+        const p = n => String(n).padStart(2,'0');
+        deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+      }
       data = {
         task_name, company: company || '', quantity: qty, unit_price: price, total_price: qty * price,
-        notes: notes || '', deadline_days: ddays, deadline_date, assigned_at,
+        notes: notes || '', deadline_days: ddays, deadline_date, work_date: work_date || null, assigned_at,
         assign_type: assign_type || 'individual',
         target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
         supervisor_id, supervisor_name,
@@ -1535,7 +1540,7 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, work_date } = req.body;
     if (!task_name || !unit_price || !total_slots || !deadline)
       return res.status(400).json({ error: '缺少必填欄位' });
     const slots = parseInt(total_slots);
@@ -1574,6 +1579,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       total_slots: slots,
       deadline,
       deadline_days: ddays,
+      work_date: work_date || null,
       notes: notes || '',
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
@@ -1738,6 +1744,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       deadline_date,
       assigned_at:     nowTW(),
       assign_type:     'grab',
+      work_date:       result.task.work_date || null,
       target_partner_id: partnerId,
       accepted_by:     partnerId,
       accepted_at:     nowTW(),
@@ -1821,7 +1828,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       task_code: task.task_code || null, full_code: slot.full_code || null, item_no: slot.item_no || null,
       company: task.company || '',
       quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
-      notes: task.notes || '', deadline_days, deadline_date,
+      notes: task.notes || '', deadline_days, deadline_date, work_date: task.work_date || null,
       assigned_at: nowTW(), assign_type: 'grab',
       target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
       supervisor_id: req.session.user.supervisor_id || task.supervisor_id, supervisor_name: supName,

@@ -443,6 +443,15 @@ textarea.form-input{resize:none}
           </div>
           </div>
 
+          <!-- 指派(件)/限量：執行日期（選填） -->
+          <div data-field="work-date" style="display:none;align-items:center;gap:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">執行日期</label>
+            <div style="flex:1;display:flex;align-items:center;gap:.5rem">
+              <input class="form-input" type="date" id="assign-work-date" style="flex:1">
+              <span style="font-size:.78rem;color:var(--text-s);white-space:nowrap">選填</span>
+            </div>
+          </div>
+
           <!-- 自由任務：發布期限（年/月/日 + 永久） -->
           <div data-field="publish" style="display:none;align-items:center;gap:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">發布期限</label>
@@ -1002,7 +1011,8 @@ async function loadTaskReviews() {
           ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
           ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>
-          ${r.assign_type === 'hourly' ? '' : `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>`}
+          ${r.assign_type === 'hourly' ? '' : `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date) || '—'}</div>`}
+          ${r.work_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">執行日期</span>${fmtDay(r.work_date)}</div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">回報日期</span>${fmtDate(r.created_at)}</div>
           ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${f.value}</div>`).join('')}
         </div>
@@ -1155,9 +1165,11 @@ function setAssignMode(mode) {
   // 工作內容/時薪：只有「小時」用
   document.querySelector('[data-field="work-content"]').style.display = isHourly ? 'flex' : 'none';
   document.querySelector('[data-field="hourly"]').style.display       = isHourly ? 'flex' : 'none';
-  // 完成期限：件/認領/自由 用天數；小時不需
+  // 完成期限：件/認領/自由 用天數；小時不需。件/認領/自由 皆可勾「不限」
   document.getElementById('row-deadline-days').style.display = isHourly ? 'none' : 'flex';
-  document.getElementById('days-unlimited-wrap').style.display = isFree ? 'flex' : 'none'; // 自由任務可不限完成期限
+  document.getElementById('days-unlimited-wrap').style.display = isHourly ? 'none' : 'flex';
+  // 執行日期（選填）：件 / 限量
+  document.querySelector('[data-field="work-date"]').style.display = (isNormal || isGrab) ? 'flex' : 'none';
   // 發布期限：只有自由任務
   document.querySelector('[data-field="publish"]').style.display = isFree ? 'flex' : 'none';
   _fieldOrder = _modeOrders[curModeKey()];  // 切換到該模式的欄位順序
@@ -1269,9 +1281,10 @@ async function submitAssign() {
     const dlDate = document.getElementById('grab-deadline').value; // YYYY-MM-DD
     const dlHour = document.getElementById('gdp-hour').value;
     const dlMin  = document.getElementById('gdp-min').value;
+    const daysUnlimited = document.getElementById('assign-days-unlimited').checked;
     const days   = document.getElementById('assign-days').value;
+    const workDate = document.getElementById('assign-work-date').value;
     if (!slots || parseInt(slots) < 1) { err.textContent = '請填寫名額總數'; err.style.display = 'block'; return; }
-    if (!days || parseInt(days) < 1)   { err.textContent = '請填寫完成期限（天數）'; err.style.display = 'block'; return; }
     if (!dlDate) { err.textContent = '請選擇認領截止日期'; err.style.display = 'block'; return; }
     // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
@@ -1281,7 +1294,8 @@ async function submitAssign() {
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: parseInt(slots), deadline: dl,
-        deadline_days: parseInt(days),
+        deadline_days: (!daysUnlimited && parseInt(days) >= 1) ? parseInt(days) : null,
+        work_date: workDate || null,
         custom_fields: collectCustomFields(),
         slot_data: _aiGrabSlotData || [],
         per_person_limit: (perLimit >= 0) ? perLimit : 1,
@@ -1289,10 +1303,11 @@ async function submitAssign() {
       });
       _aiGrabSlotData = null;
       showToast(pickMode ? '限量任務（挑選模式）已建立！' : '限量任務已建立！', 'success');
-      ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
+      ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('grab-per-limit').value = '1';
       document.getElementById('grab-pick-mode').checked = false;
+      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited();
       renderAssignCustomFields();
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
@@ -1301,20 +1316,23 @@ async function submitAssign() {
   } else {
     // 一般派案
     const target  = document.getElementById('assign-target').value;
+    const daysUnlimited = document.getElementById('assign-days-unlimited').checked;
     const days    = document.getElementById('assign-days').value;
+    const workDate = document.getElementById('assign-work-date').value;
     if (!target)  { err.textContent = '請選擇指派對象'; err.style.display = 'block'; return; }
-    if (!days || parseInt(days) < 1)  { err.textContent = '請填寫完成期限'; err.style.display = 'block'; return; }
     try {
       await API.post('/api/assignments', {
         company, task_name: task, quantity: qty, unit_price: price, notes,
-        deadline_days: parseInt(days),
+        deadline_days: (!daysUnlimited && parseInt(days) >= 1) ? parseInt(days) : null,
+        work_date: workDate || null,
         assign_type: target === 'all' ? 'all' : 'individual',
         target_partner_id: target === 'all' ? null : parseInt(target),
         custom_fields: collectCustomFields(),
       });
       showToast('派案成功！', 'success');
-      ['assign-target','assign-company','assign-task','assign-price','assign-notes','assign-days'].forEach(id => document.getElementById(id).value = '');
+      ['assign-target','assign-company','assign-task','assign-price','assign-notes','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
+      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited();
       renderAssignCustomFields();
       document.getElementById('assign-total').textContent = '$0';
       loadAssignHistory();
@@ -1565,6 +1583,7 @@ function renderAssignCards(list, containerId) {
             <div><span style="color:var(--text-s);width:72px;display:inline-block">任務數量</span>${a.quantity} 件</div>
             <div><span style="color:var(--text-s);width:72px;display:inline-block">單價／總價</span>$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--yellow)">$${(a.total_price||0).toLocaleString()}</strong></div>
             <div><span style="color:var(--text-s);width:72px;display:inline-block">完成期限</span>${fmtDay(a.deadline_date) || (a.deadline_days ? a.deadline_days+'天' : '—')}</div>
+            ${a.work_date ? `<div><span style="color:var(--text-s);width:72px;display:inline-block">執行日期</span>${fmtDay(a.work_date)}</div>` : ''}
           `}
           ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">補充說明</span><div style="font-family:'標楷體','DFKai-SB',serif;max-height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
           ${customFieldsHtml(a.custom_fields)}
@@ -2201,15 +2220,15 @@ async function loadCustomFieldDefs() {
 // ── 派案表單欄位排序 ──────────────────────────────────────────
 const FIELD_ORDER_LABELS = {
   target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
-  price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明', publish: '發布期限',
+  price: '單價', total: '總價', deadline: '完成期限', 'work-date': '執行日期', notes: '補充說明', publish: '發布期限',
 };
 const EXTRA_FIELD_LABELS = { 'work-content': '工作內容', 'hourly': '時薪' };
 function fieldLabel(tok) { return FIELD_ORDER_LABELS[tok] || EXTRA_FIELD_LABELS[tok] || tok; }
 // 各模式的固定欄位順序（含該模式專屬欄位）
 const MODE_FIXED_ORDER = {
-  normal: ['target','company','task','qty','price','total','deadline','notes'],
+  normal: ['target','company','task','qty','price','total','deadline','work-date','notes'],
   hourly: ['task','company','target','work-content','hourly','notes'],
-  grab:   ['target','company','task','price','deadline','notes'],
+  grab:   ['target','company','task','price','deadline','work-date','notes'],
   free:   ['company','task','qty','price','publish','deadline','notes'],
 };
 function modeFixedOrder() { return MODE_FIXED_ORDER[curModeKey()]; }
@@ -2935,6 +2954,7 @@ function renderTaskRecordsContent() {
         ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
         ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}
         ${r.assign_type !== 'hourly' && r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
+        ${r.work_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">執行日期</span>${fmtDay(r.work_date)}</div>` : ''}
         ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成日期</span>${fmtDate(r.completed_at)}</div>`  : ''}
         ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${f.value}</div>`).join('')}
       </div>

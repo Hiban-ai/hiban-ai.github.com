@@ -1521,6 +1521,7 @@ function renderStaffAssign() {
                 <div>數量：${a.quantity||'—'}</div>
                 <div>單價／總價：$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--green)">$${(a.total_price||0).toLocaleString()}</strong></div>
                 <div>截止：${a.deadline_date ? a.deadline_date.slice(0,10) : ((a.deadline||'').slice(0,10)||'—')}</div>
+                ${a.work_date ? `<div>執行日期：${a.work_date}</div>` : ''}
               `}
             </div>
             ${a.work_content ? `<div style="margin-top:.3rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">工作內容：</span>${a.work_content}</div>` : ''}
@@ -2861,6 +2862,7 @@ async function showTaskDetail(id) {
     body += row('數量', (a.quantity||'—') + ' 件');
     body += row('單價／總價', '$' + (a.unit_price||0).toLocaleString() + ' ／ <strong style="color:var(--green)">$' + (a.total_price||0).toLocaleString() + '</strong>');
     if (a.deadline_date) body += row('完成期限', a.deadline_date.slice(0,10));
+    if (a.work_date) body += row('執行日期', a.work_date);
   }
   if (a.notes) body += row('補充說明', a.notes);
   (a.custom_fields || []).filter(f => f.value !== '').forEach(f => { body += row(f.label, f.value); });

@@ -1234,6 +1234,7 @@ function buildTaskCards(list) {
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
         ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.work_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">📅 執行：${fmtDay(a.work_date)}</span>` : ''}
         ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
@@ -1268,6 +1269,7 @@ function buildTaskCardsReadonly(list) {
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">${a.task_name}</span>
         ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.work_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">📅 執行：${fmtDay(a.work_date)}</span>` : ''}
         ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
@@ -1354,6 +1356,7 @@ function activeCardHtml(a) {
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         ${statusTag}
         ${a.deadline_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ 完成期限：${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">⏰ ${a.deadline_days} 天</span>` : ''}
+        ${a.work_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">📅 執行：${fmtDay(a.work_date)}</span>` : ''}
         ${a.accepted_at ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">📌 接案：${fmtDate(a.accepted_at)}</span>` : ''}
         ${a.assign_type === 'hourly'
           ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>`

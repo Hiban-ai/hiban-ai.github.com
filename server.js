@@ -2010,6 +2010,9 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
         grab_no:       a ? a.grab_no        : (r.grab_no || null),
         total_price:   a ? a.total_price    : (r.total_price || 0),
         unit_price:    a ? a.unit_price     : 0,
+        task_no:       a ? a.task_no        : (r.task_no || null),
+        full_code:     a ? (a.full_code || null) : null,
+        task_code:     a ? (a.task_code || null) : null,
         custom_fields: a ? (a.custom_fields || []) : [],
       };
     }));

@@ -856,6 +856,11 @@ function taskNoBadge(a) {
   }
   return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
 }
+// 任務池（自由/限量任務本身）只顯示「任務代號」
+function taskCodeBadge(t) {
+  if (t.task_code) return `<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .6rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.5px">🏷️ 任務代號 ${t.task_code}</span>`;
+  return t.task_no ? taskNoBadge(t) : '';
+}
 
 function fmtDay(s) {
   if (!s) return '—';
@@ -1322,7 +1327,7 @@ async function loadGrabHistory() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
-            ${t.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(t)}</div>` : ''}
+            ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
             <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.per_person_limit === 0 ? ' ・ 每人不限數量' : (t.per_person_limit > 1 ? ` ・ 每人上限${t.per_person_limit}張` : '')}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
@@ -1460,7 +1465,7 @@ async function loadFreeHistory() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🆓 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
-            ${t.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(t)}</div>` : ''}
+            ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
           </div>
           <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor}22;color:${statusColor};flex-shrink:0">${statusLabel}</span>
         </div>

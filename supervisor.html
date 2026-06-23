@@ -1847,7 +1847,7 @@ async function loadDashboard() {
     const pendEl = document.getElementById('dashboard-pending-list');
     pendEl.innerHTML = pending.length
       ? pending.slice(0,5).map(r => `
-        <div class="alert-card"><span style="font-size:1.1rem">📝</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${r.partner_name}</div><div style="font-size:.8rem;color:var(--text-m)">${r.task_name||'—'}${r.task_no ? ' #'+r.task_no : ''}</div></div></div>
+        <div class="alert-card"><span style="font-size:1.1rem">📝</span><div style="flex:1"><div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${r.partner_name}</div><div style="font-size:.8rem;color:var(--text-m)">${r.task_name||'—'}${r.full_code ? ' '+r.full_code : (r.task_no ? ' #'+r.task_no : '')}</div></div></div>
       `).join('')
       : '<div style="font-size:.82rem;color:var(--text-s)">目前沒有待審核的 WorkLog</div>';
   } catch(e) { console.warn('loadDashboard', e.message); }

@@ -416,6 +416,14 @@ textarea.form-input{resize:none}
               </label>
             </div>
           </div>
+          <!-- 執行日期（選填）：排在完成期限後、截止日期前 -->
+          <div id="row-work-date" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">執行日期</label>
+            <div style="flex:1;display:flex;align-items:center;gap:.5rem">
+              <input class="form-input" type="date" id="assign-work-date" style="flex:1">
+              <span style="font-size:.78rem;color:var(--text-s);white-space:nowrap">選填</span>
+            </div>
+          </div>
           <!-- 限量任務：截止日期 + 時間 -->
           <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s)">截止日期與時間</label>
@@ -441,15 +449,6 @@ textarea.form-input{resize:none}
             </div>
             <input type="hidden" id="grab-deadline">
           </div>
-          </div>
-
-          <!-- 指派(件)/限量：執行日期（選填） -->
-          <div data-field="work-date" style="display:none;align-items:center;gap:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">執行日期</label>
-            <div style="flex:1;display:flex;align-items:center;gap:.5rem">
-              <input class="form-input" type="date" id="assign-work-date" style="flex:1">
-              <span style="font-size:.78rem;color:var(--text-s);white-space:nowrap">選填</span>
-            </div>
           </div>
 
           <!-- 自由任務：發布期限（年/月/日 + 永久） -->
@@ -1169,7 +1168,7 @@ function setAssignMode(mode) {
   document.getElementById('row-deadline-days').style.display = isHourly ? 'none' : 'flex';
   document.getElementById('days-unlimited-wrap').style.display = isHourly ? 'none' : 'flex';
   // 執行日期（選填）：件 / 限量
-  document.querySelector('[data-field="work-date"]').style.display = (isNormal || isGrab) ? 'flex' : 'none';
+  document.getElementById('row-work-date').style.display = (isNormal || isGrab) ? 'flex' : 'none';
   // 發布期限：只有自由任務
   document.querySelector('[data-field="publish"]').style.display = isFree ? 'flex' : 'none';
   _fieldOrder = _modeOrders[curModeKey()];  // 切換到該模式的欄位順序
@@ -2225,15 +2224,15 @@ async function loadCustomFieldDefs() {
 // ── 派案表單欄位排序 ──────────────────────────────────────────
 const FIELD_ORDER_LABELS = {
   target: '指派給 / 名額總數', company: '公司', task: '選擇任務', qty: '數量',
-  price: '單價', total: '總價', deadline: '完成期限', 'work-date': '執行日期', notes: '補充說明', publish: '發布期限',
+  price: '單價', total: '總價', deadline: '完成期限', notes: '補充說明', publish: '發布期限',
 };
 const EXTRA_FIELD_LABELS = { 'work-content': '工作內容', 'hourly': '時薪' };
 function fieldLabel(tok) { return FIELD_ORDER_LABELS[tok] || EXTRA_FIELD_LABELS[tok] || tok; }
 // 各模式的固定欄位順序（含該模式專屬欄位）
 const MODE_FIXED_ORDER = {
-  normal: ['target','company','task','qty','price','total','deadline','work-date','notes'],
+  normal: ['target','company','task','qty','price','total','deadline','notes'],
   hourly: ['task','company','target','work-content','hourly','notes'],
-  grab:   ['target','company','task','price','deadline','work-date','notes'],
+  grab:   ['target','company','task','price','deadline','notes'],
   free:   ['company','task','qty','price','publish','deadline','notes'],
 };
 function modeFixedOrder() { return MODE_FIXED_ORDER[curModeKey()]; }

@@ -1709,12 +1709,13 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       return { recId: nextRecId, grabNo: grabNoStr, task };
     });
 
-    // 完成期限：若該名額有自己的 deadline_days，依此換算；否則用搶單任務整體的截止日期
+    // 完成期限：卡片自己的 deadline_days 優先，否則用任務整體 deadline_days。
+    // 未設定完成期限時 deadline_date 留 null（不可用「認領截止 deadline」頂替）。
     const slot = result.task.slot_data && result.task.slot_data[parseInt(result.grabNo)-1];
-    let deadline_days = result.task.deadline_days || null;
-    let deadline_date = result.task.deadline.slice(0,10);
-    if (slot && parseInt(slot.deadline_days) >= 1) {
-      deadline_days = parseInt(slot.deadline_days);
+    let deadline_days = (slot && parseInt(slot.deadline_days) >= 1) ? parseInt(slot.deadline_days)
+                      : (parseInt(result.task.deadline_days) >= 1 ? parseInt(result.task.deadline_days) : null);
+    let deadline_date = null;
+    if (deadline_days >= 1) {
       const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
       dlBase.setDate(dlBase.getDate() + deadline_days);
       const p = n => String(n).padStart(2,'0');
@@ -1807,11 +1808,12 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
     });
 
     const { task, slot, recId } = result;
-    // 完成期限：卡片自己的 deadline_days 優先，否則用任務整體截止日
-    let deadline_days = task.deadline_days || null;
-    let deadline_date = (task.deadline || '').slice(0,10);
-    if (slot.deadline_days && parseInt(slot.deadline_days) >= 1) {
-      deadline_days = parseInt(slot.deadline_days);
+    // 完成期限：卡片自己的 deadline_days 優先，否則用任務整體 deadline_days。
+    // 未設定完成期限時 deadline_date 留 null（不可用「認領截止 deadline」頂替）。
+    let deadline_days = (slot.deadline_days && parseInt(slot.deadline_days) >= 1) ? parseInt(slot.deadline_days)
+                      : (parseInt(task.deadline_days) >= 1 ? parseInt(task.deadline_days) : null);
+    let deadline_date = null;
+    if (deadline_days >= 1) {
       const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
       dlBase.setDate(dlBase.getDate() + deadline_days);
       const p = n => String(n).padStart(2,'0');

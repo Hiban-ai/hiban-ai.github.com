@@ -1326,12 +1326,18 @@ function renderActive(list) {
   var activeBadge = document.getElementById('active-badge');
   if (activeBadge) { activeBadge.textContent = list.length; activeBadge.style.display = list.length ? '' : 'none'; }
 
-  // 進行中：依類別分流到三頁（指派/認領/自由）
+  // 依「期限」排序：最快到期在前（完成期限優先，無則執行日期，皆無則排最後）
+  // 日期格式可能為 YYYY/MM/DD 或 YYYY-MM-DD，統一取數字比較
+  const dueKey = a => { const d = a.deadline_date || a.work_date; return d ? d.replace(/\D/g, '') : '99999999'; };
+  const byDue = (x, y) => dueKey(x).localeCompare(dueKey(y));
+
+  // 進行中：依類別分流到三頁（指派/認領/自由），各頁依期限排序
   const cats = { assign: [], grab: [], free: [] };
   list.forEach(a => cats[taskCat(a)].push(a));
   const empty = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有進行中的任務</div>';
   [['assign','active-list'],['grab','active-grab'],['free','active-free']].forEach(([cat, id]) => {
     const el = document.getElementById(id); if (!el) return;
+    cats[cat].sort(byDue);
     el.innerHTML = cats[cat].length ? cats[cat].map(activeCardHtml).join('') : empty;
   });
 }

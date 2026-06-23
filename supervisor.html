@@ -419,9 +419,12 @@ textarea.form-input{resize:none}
           <!-- 執行日期（選填）：排在完成期限後、截止日期前 -->
           <div id="row-work-date" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">執行日期</label>
-            <div style="flex:1;display:flex;align-items:center;gap:.5rem">
-              <input class="form-input" type="date" id="assign-work-date" style="flex:1">
+            <div style="flex:1;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+              <select class="form-input" id="wd-year" onchange="wdUpdateDays();wdSync()" style="flex:1;min-width:78px;font-size:.82rem"><option value="">年</option></select>
+              <select class="form-input" id="wd-month" onchange="wdUpdateDays();wdSync()" style="flex:1;min-width:64px;font-size:.82rem"><option value="">月</option></select>
+              <select class="form-input" id="wd-day" onchange="wdSync()" style="flex:1;min-width:64px;font-size:.82rem"><option value="">日</option></select>
               <span style="font-size:.78rem;color:var(--text-s);white-space:nowrap">選填</span>
+              <input type="hidden" id="assign-work-date">
             </div>
           </div>
           <!-- 限量任務：截止日期 + 時間 -->
@@ -1090,6 +1093,40 @@ function gdpInit() {
   document.getElementById('gdp-time-row').style.display = 'none';
 }
 
+// ── 執行日期：年/月/日 三下拉（日為下拉，不用日曆格，避免原生 type=date 在某些瀏覽器跳不到日）──
+function wdInit() {
+  const yS = document.getElementById('wd-year');
+  const mS = document.getElementById('wd-month');
+  if (!yS || !mS) return;
+  const cy = new Date().getFullYear();
+  yS.innerHTML = '<option value="">年</option>';
+  for (let y = cy; y <= cy + 2; y++) yS.innerHTML += `<option value="${y}">${y} 年</option>`;
+  mS.innerHTML = '<option value="">月</option>';
+  for (let m = 1; m <= 12; m++) mS.innerHTML += `<option value="${m}">${m} 月</option>`;
+  wdUpdateDays();
+}
+function wdUpdateDays() {
+  const dS = document.getElementById('wd-day');
+  if (!dS) return;
+  const y = parseInt(document.getElementById('wd-year').value) || 2000;
+  const m = parseInt(document.getElementById('wd-month').value) || 1;
+  const cur = parseInt(dS.value) || 0;
+  const max = new Date(y, m, 0).getDate();
+  dS.innerHTML = '<option value="">日</option>';
+  for (let d = 1; d <= max; d++) dS.innerHTML += `<option value="${d}"${d === cur ? ' selected' : ''}>${d} 日</option>`;
+}
+function wdSync() {
+  const y = document.getElementById('wd-year').value;
+  const m = document.getElementById('wd-month').value;
+  const d = document.getElementById('wd-day').value;
+  document.getElementById('assign-work-date').value = (y && m && d) ? `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}` : '';
+}
+function wdReset() {
+  ['wd-year','wd-month','wd-day'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  wdUpdateDays();
+  const h = document.getElementById('assign-work-date'); if (h) h.value = '';
+}
+
 function gdpUpdateGrid() {
   const y = parseInt(document.getElementById('gdp-year').value);
   const m = parseInt(document.getElementById('gdp-month').value);
@@ -1169,6 +1206,7 @@ function setAssignMode(mode) {
   document.getElementById('days-unlimited-wrap').style.display = isHourly ? 'none' : 'flex';
   // 執行日期（選填）：件 / 限量
   document.getElementById('row-work-date').style.display = (isNormal || isGrab) ? 'flex' : 'none';
+  if ((isNormal || isGrab) && document.getElementById('wd-year').options.length <= 1) wdInit();
   // 發布期限：只有自由任務
   document.querySelector('[data-field="publish"]').style.display = isFree ? 'flex' : 'none';
   _fieldOrder = _modeOrders[curModeKey()];  // 切換到該模式的欄位順序
@@ -1263,7 +1301,7 @@ async function submitAssign() {
       ['assign-company','assign-task','assign-price','assign-notes','assign-days','pub-year','pub-month','pub-day'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('assign-qty-unlimited').checked = false; onQtyUnlimited();
-      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited();
+      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       document.getElementById('pub-permanent').checked = false; onPubPermanent();
       renderAssignCustomFields();
       loadFreeHistory();
@@ -1306,7 +1344,7 @@ async function submitAssign() {
       document.getElementById('assign-qty').value = '1';
       document.getElementById('grab-per-limit').value = '1';
       document.getElementById('grab-pick-mode').checked = false;
-      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited();
+      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       renderAssignCustomFields();
       gdpInit();
       document.getElementById('assign-total').textContent = '$0';
@@ -1331,7 +1369,7 @@ async function submitAssign() {
       showToast('派案成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-price','assign-notes','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
-      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited();
+      document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       renderAssignCustomFields();
       document.getElementById('assign-total').textContent = '$0';
       loadAssignHistory();

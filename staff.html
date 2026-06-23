@@ -406,13 +406,20 @@ textarea.form-input{resize:none}
       <!-- 分頁切換 -->
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.1rem">
         <button id="ttab-assign" onclick="toggleTaskStats('assign')" style="padding:.7rem 1.3rem;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem;font-weight:700;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">📋 全部任務列表</button>
-        <button id="ttab-grab" onclick="toggleTaskStats('grab')" style="padding:.7rem 1.3rem;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem;font-weight:700;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">🎯 搶單任務資訊</button>
+        <button id="ttab-grab" onclick="toggleTaskStats('grab')" style="padding:.7rem 1.3rem;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem;font-weight:700;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">🎯 限量任務資訊</button>
+        <button id="ttab-free" onclick="toggleTaskStats('free')" style="padding:.7rem 1.3rem;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;font-size:.92rem;font-weight:700;color:var(--text-s);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s">🆓 自由任務資訊</button>
       </div>
 
-      <!-- 搶單任務資訊 -->
+      <!-- 限量任務資訊 -->
       <div id="grab-stats-section" style="display:none">
-        <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.75rem">🎯 搶單任務資訊 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（每個搶單的名額與搶單者）</span></div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.75rem">🎯 限量任務資訊 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（每個代號的名額與認領者）</span></div>
         <div id="staff-grab-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
+      </div>
+
+      <!-- 自由任務資訊 -->
+      <div id="free-stats-section" style="display:none">
+        <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.75rem">🆓 自由任務資訊 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（一個代號多個編號，點卡片展開接案明細）</span></div>
+        <div id="staff-free-wrap"><div style="color:var(--text-s);font-size:.85rem">載入中…</div></div>
       </div>
 
       <!-- 全部任務列表 -->
@@ -1176,16 +1183,17 @@ textarea.form-input{resize:none}
 <script>
 // ── 任務管理：切換顯示區塊 ──────────────────────────────────
 function toggleTaskStats(which) {
-  const isGrab = which === 'grab';
-  document.getElementById('grab-stats-section').style.display   = isGrab ? '' : 'none';
-  document.getElementById('assign-stats-section').style.display = isGrab ? 'none' : '';
   const on = '#155E8C', off = 'var(--text-s)';
-  const ga = document.getElementById('ttab-grab'), aa = document.getElementById('ttab-assign');
-  if (ga && aa) {
-    ga.style.color = isGrab ? on : off; ga.style.borderBottomColor = isGrab ? on : 'transparent';
-    aa.style.color = isGrab ? off : on; aa.style.borderBottomColor = isGrab ? 'transparent' : on;
-  }
-  if (isGrab) loadStaffGrab(); else loadStaffAssign();
+  const tabs = { assign: 'assign-stats-section', grab: 'grab-stats-section', free: 'free-stats-section' };
+  Object.entries(tabs).forEach(([k, secId]) => {
+    const sec = document.getElementById(secId);
+    if (sec) sec.style.display = k === which ? '' : 'none';
+    const btn = document.getElementById('ttab-' + k);
+    if (btn) { btn.style.color = k === which ? on : off; btn.style.borderBottomColor = k === which ? on : 'transparent'; }
+  });
+  if (which === 'grab') loadStaffGrab();
+  else if (which === 'free') loadStaffFree();
+  else loadStaffAssign();
 }
 
 // ── 搶單統計（管理員）──────────────────────────────────────
@@ -1226,6 +1234,71 @@ async function loadStaffGrab() {
       </div>`;
     }).join('');
   } catch(e) { console.error('[staffGrab]', e.message); }
+}
+
+// ── 自由任務資訊（管理員，一個代號多個編號，收合可展開）──────────────
+function toggleFreeCode(id) {
+  const box = document.getElementById('free-rec-' + id);
+  const arr = document.getElementById('free-arr-' + id);
+  if (!box) return;
+  const open = box.style.display === 'none';
+  box.style.display = open ? '' : 'none';
+  if (arr) arr.textContent = open ? '▲' : '▼';
+}
+async function loadStaffFree() {
+  const wrap = document.getElementById('staff-free-wrap');
+  if (!wrap) return;
+  try {
+    const list = await API.get('/api/free-tasks/all');
+    if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無自由任務</div>'; return; }
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,'/');
+    const recordsList = await Promise.all(list.map(t => API.get(`/api/free-tasks/${t.id}/records`).catch(() => [])));
+    const sMap = { accepted: ['進行中','var(--green)'], completed: ['已完成','var(--text-s)'], rejected: ['已退回','var(--red)'], pending: ['待回覆','var(--orange)'] };
+    wrap.innerHTML = list.map((t, i) => {
+      const recs = recordsList[i] || [];
+      const ended = t.status !== 'open';
+      const expired = !ended && t.publish_end && t.publish_end < today;
+      const statusColor = ended ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
+      const statusLabel = ended ? '已結束' : expired ? '已過期限' : '開放中';
+      const quota = t.qty_unlimited ? `${t.filled_count||0} / 不限` : `${t.filled_count||0}/${t.total_qty||0}`;
+      const recRows = recs.length
+        ? recs.map(r => {
+            const [rl, rc] = r.review_status === 'reviewing' ? ['待審核','var(--blue)'] : (sMap[r.status] || [r.status, 'var(--text-s)']);
+            const codeBadge = r.full_code
+              ? `<span style="display:inline-flex;align-items:center;gap:.2rem;padding:.05rem .45rem;background:#fff;border:1px solid var(--blue-pp);border-radius:20px;font-size:.7rem;font-weight:700"><span style="color:var(--blue-d)">🏷️ ${r.full_code.split('-')[0]}</span>-<span style="color:#C8901A">${r.item_no||r.full_code.split('-')[1]||''}</span></span>`
+              : `<span style="font-size:.7rem;color:var(--text-s)">#${r.task_no||'—'}</span>`;
+            return `
+            <div ${r.assignment_id?`onclick="showTaskDetail(${r.assignment_id})" style="cursor:pointer;"`:'style=""'} class="free-rec-row" style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.45rem .2rem;border-top:1px dashed var(--border)">
+              ${codeBadge}
+              <span style="font-size:.8rem;font-weight:600">${r.partner_name||'—'}</span>
+              <span style="font-size:.72rem;font-weight:700;padding:.1rem .5rem;border-radius:10px;background:${rc}22;color:${rc}">${rl}</span>
+              <span style="font-size:.74rem;color:var(--green);font-weight:700">$${(r.total_price||0).toLocaleString()}</span>
+              <span style="margin-left:auto;font-size:.7rem;color:var(--text-s)">${r.completed_at ? '完成 '+(r.completed_at||'').split(' ')[0] : '接案 '+(r.accepted_at||'').split(' ')[0]}${r.assignment_id?' ›':''}</span>
+            </div>`;
+          }).join('')
+        : '<div style="font-size:.74rem;color:var(--text-s);padding:.5rem .2rem">尚無人接案</div>';
+      return `
+      <div style="background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor};overflow:hidden">
+        <div onclick="toggleFreeCode(${t.id})" style="cursor:pointer;padding:1rem 1.2rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem">
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem">${t.company ? t.company+'：'+t.task_name : t.task_name}${t.task_code ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .5rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">🏷️ '+t.task_code+'</span>' : ''}</div>
+            <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor};flex-shrink:0">${statusLabel}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem .75rem;font-size:.8rem;color:var(--text-m)">
+            <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
+            <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
+            <div>名額<br><strong>${quota}</strong></div>
+            <div>已完成<br><strong>${t.completed_count||0}</strong></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem">
+            <span style="font-size:.74rem;color:var(--blue-d);font-weight:700">共 ${recs.length} 筆編號</span>
+            <span id="free-arr-${t.id}" style="font-size:.8rem;color:var(--text-s)">▼</span>
+          </div>
+        </div>
+        <div id="free-rec-${t.id}" style="display:none;padding:0 1.2rem 1rem">${recRows}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('[staffFree]', e.message); wrap.innerHTML = '<div style="color:var(--red);font-size:.85rem">載入失敗</div>'; }
 }
 
 // ── 指派任務統計（管理員，依夥伴分組）──────────────────────────

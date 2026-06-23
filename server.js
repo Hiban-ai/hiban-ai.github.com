@@ -1894,11 +1894,12 @@ app.get('/api/free-tasks/:id/records', requireRole('supervisor','staff'), async 
     ]);
     const name = id => allUsers.find(u => u.id === id)?.real_name || ('夥伴#' + id);
     // 逐筆接案明細（含編號、接案時間、狀態），依接案時間新到舊
-    const recs = snap.docs.map(d => d.data()).map(a => ({
-      partner_id: a.accepted_by, partner_name: name(a.accepted_by),
+    const recs = snap.docs.map(d => ({ id: d.id, ...d.data() })).map(a => ({
+      assignment_id: parseInt(a.id), partner_id: a.accepted_by, partner_name: name(a.accepted_by),
       task_no: a.task_no || null, full_code: a.full_code || null, item_no: a.item_no || null,
+      unit_price: a.unit_price || 0, total_price: a.total_price || 0,
       accepted_at: a.accepted_at || null,
-      completed_at: a.completed_at || null, status: a.status,
+      completed_at: a.completed_at || null, status: a.status, review_status: a.review_status || null,
     })).sort((a, b) => (b.accepted_at || '').localeCompare(a.accepted_at || ''));
     res.json(recs);
   } catch(e) { res.status(500).json({ error: e.message }); }

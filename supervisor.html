@@ -849,8 +849,12 @@ function fmtDate(s) {
 }
 // 只顯示日期：YYYY/MM/DD
 function taskNoBadge(a) {
-  const c = a.full_code || (a.task_no ? '#'+a.task_no : '');
-  return c ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 ${c}</span>` : '';
+  if (a.full_code) {
+    const parts = String(a.full_code).split('-');
+    const code = parts[0], no = parts[1] || '';
+    return `<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .35rem .15rem .6rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🏷️ <span style="letter-spacing:.5px;opacity:.92">${code}</span><span style="background:#FFC845;color:#5A4300;padding:.06rem .42rem;border-radius:10px;font-weight:800">#${no}</span></span>`;
+  }
+  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
 }
 
 function fmtDay(s) {
@@ -1395,7 +1399,7 @@ async function toggleFreeRec(taskId) {
     const stLabel = { completed:'✅ 已完成', accepted:'⚔️ 進行中', rejected:'已退回' };
     const rows = recs.length
       ? recs.map(r => `<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border-l)">
-          <span style="font-size:.74rem;font-weight:700;color:var(--blue-d);flex-shrink:0">#${r.task_no || '—'}</span>
+          <span style="font-size:.72rem;font-weight:700;color:var(--blue-d);flex-shrink:0;background:var(--blue-p);padding:.05rem .4rem;border-radius:8px">${r.full_code || ('#'+(r.task_no||'—'))}</span>
           <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
           <span style="font-size:.72rem;color:var(--text-s)">📌 ${(r.accepted_at||'').slice(0,16) || '—'}</span>
           <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${stLabel[r.status] || r.status}</span>

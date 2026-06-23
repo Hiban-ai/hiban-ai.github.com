@@ -990,8 +990,13 @@ function taskLabelNo(a) {
   return c ? `${taskLabel(a)} #${c}` : taskLabel(a);
 }
 function taskNoBadge(a) {
+  if (a.full_code) {
+    const parts = String(a.full_code).split('-');
+    const code = parts[0], no = parts[1] || '';
+    return `<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .35rem .15rem .6rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🏷️ <span style="letter-spacing:.5px;opacity:.92">${code}</span><span style="background:#FFC845;color:#5A4300;padding:.06rem .42rem;border-radius:10px;font-weight:800">#${no}</span></span>`;
+  }
   const c = taskCodeOf(a);
-  return c ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 ${a.full_code ? a.full_code : '#'+a.task_no}</span>` : '';
+  return c ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
 }
 
 function fmtDate(s) {

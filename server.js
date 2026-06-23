@@ -1896,7 +1896,8 @@ app.get('/api/free-tasks/:id/records', requireRole('supervisor','staff'), async 
     // 逐筆接案明細（含編號、接案時間、狀態），依接案時間新到舊
     const recs = snap.docs.map(d => d.data()).map(a => ({
       partner_id: a.accepted_by, partner_name: name(a.accepted_by),
-      task_no: a.task_no || null, accepted_at: a.accepted_at || null,
+      task_no: a.task_no || null, full_code: a.full_code || null, item_no: a.item_no || null,
+      accepted_at: a.accepted_at || null,
       completed_at: a.completed_at || null, status: a.status,
     })).sort((a, b) => (b.accepted_at || '').localeCompare(a.accepted_at || ''));
     res.json(recs);

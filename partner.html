@@ -1961,8 +1961,7 @@ function pickPanelHtml(t) {
       <div style="min-width:0">
         <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
         ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
-        <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">⏰ ${(t.deadline||'').slice(0,16)} 截止 ・ 剩 ${remaining} 張可選</div>
-        ${t.deadline_days ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
+        <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">⏰ 認領期限：${(t.deadline||'').slice(0,16)} 截止 ・ 剩 ${remaining} 張可選</div>
         ${t.work_date ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
       </div>
@@ -2006,6 +2005,7 @@ function renderPickBody(id) {
             : `<span style="font-size:.66rem;color:var(--text-s)">可選</span>`}
       </div>
       ${claimed ? `<div style="margin-top:.25rem;font-size:.72rem;color:var(--text-s)">👤 ${s.claimed_by_name || '他人'}</div>` : fieldsHtml}
+      ${(s.deadline_days || t.deadline_days) ? `<div style="margin-top:.3rem;font-size:.68rem;color:var(--text-s)">⏳ 完成期限：接案後 ${s.deadline_days || t.deadline_days} 天內</div>` : ''}
     </div>`;
   }).join('');
   const pager = pages > 1
@@ -2483,6 +2483,8 @@ function showNextGrabAlert() {
       document.getElementById('gae-grab-btn').style.display = 'none';
       document.getElementById('gae-remaining').textContent = ((t.slot_data||[]).filter(s => !s.claimed).length) + ' 張可選';
       document.getElementById('gae-slots').textContent = t.total_slots + ' 張';
+      // 挑選模式每張卡片完成期限可能不同，動畫不顯示單一完成期限
+      document.getElementById('gae-deadline-row').style.display = 'none';
     }
   }
 

@@ -2629,7 +2629,8 @@ async function aiImportConfirmAll() {
 function aiImportGrabSlotSummary(slot) {
   const parts = (slot.custom_fields || []).filter(f => f.value !== undefined && f.value !== '')
     .map(f => `<b>${f.label}</b>：${f.value}`);
-  if (slot.deadline_days) parts.unshift(`<b>期限</b>：${slot.deadline_days} 天`);
+  if (slot.work_date) parts.unshift(`<b>執行日期</b>：${slot.work_date}`);
+  if (slot.deadline_days) parts.unshift(`<b>完成期限</b>：${slot.deadline_days} 天`);
   return parts.join('　') || '（無資料）';
 }
 

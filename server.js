@@ -1564,6 +1564,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
         title: s.title || '',
         custom_fields: Array.isArray(s.custom_fields) ? s.custom_fields : [],
         deadline_days: parseInt(s.deadline_days) || null,
+        work_date: s.work_date || null,
         full_code: created[i]?.完整編號 || null,
         item_no: created[i]?.任務編號 || null,
         grab_no: created[i]?.任務編號 || null,
@@ -1744,7 +1745,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       deadline_date,
       assigned_at:     nowTW(),
       assign_type:     'grab',
-      work_date:       result.task.work_date || null,
+      work_date:       (slot && slot.work_date) || result.task.work_date || null,
       target_partner_id: partnerId,
       accepted_by:     partnerId,
       accepted_at:     nowTW(),
@@ -1828,7 +1829,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       task_code: task.task_code || null, full_code: slot.full_code || null, item_no: slot.item_no || null,
       company: task.company || '',
       quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
-      notes: task.notes || '', deadline_days, deadline_date, work_date: task.work_date || null,
+      notes: task.notes || '', deadline_days, deadline_date, work_date: slot.work_date || task.work_date || null,
       assigned_at: nowTW(), assign_type: 'grab',
       target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
       supervisor_id: req.session.user.supervisor_id || task.supervisor_id, supervisor_name: supName,
@@ -3444,7 +3445,8 @@ ${cfDesc}
   "notes": "整體備註文字，找不到則空字串",
   "slots": [
     {
-      "deadline_days": "此名額的完成期限天數，數字字串。若原文是天數直接使用；若是日期，請換算成從今天到該日期的剩餘天數（至少為1）；找不到則空字串",
+      "work_date": "此列的執行日期，格式 YYYY/MM/DD。若原文有「執行日期」欄位請原樣填入該日期（不要換算成天數）；找不到則空字串",
+      "deadline_days": "此列的完成期限天數，數字字串。僅當原文有「完成期限」欄位時：若是天數直接使用，若是日期請換算成從今天到該日期的剩餘天數（至少為1）；找不到則空字串",
       "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}]
     }
   ]
@@ -3453,7 +3455,8 @@ ${cfDesc}
 重要規則：
 - 文字內容通常是表格（含表頭與多列資料），請忽略表頭，為「每一列資料」各產生一個 slots 陣列元素（依原始順序，陣列長度 = 資料列數，也就是搶單總名額數）。
 - task_name / company / unit_price / notes 這些欄位通常每列相同，取共同值或第一筆即可，不放入 slots。
-- deadline_days（完成期限）每一列可能不同，請務必逐列分別解析，放入該列對應的 slots 元素中。
+- ⚠️「執行日期」與「完成期限」是兩個不同欄位：「執行日期」是某一天的日期，請放入 work_date 並保持 YYYY/MM/DD 日期格式，絕對不要換算成天數；「完成期限」才是天數（或換算成天數）。原文若只有「執行日期」就只填 work_date、deadline_days 留空。
+- work_date 與 deadline_days 每一列可能不同，請務必逐列分別解析，放入該列對應的 slots 元素中。
 - custom_fields：若欄位名稱出現在上方「自訂欄位定義」中，label 必須與定義完全一致。若出現定義以外的欄位（例如「評分」、「補充說明」），也請一併放入 custom_fields，label 直接使用該欄位在原文中的名稱即可。
 - ⚠️ 搶單為公開搶單，不指定人。若表格中有「指派給／派給／負責人／夥伴／執行人」之類的人名欄位，請完全忽略，不要放入 custom_fields，也不要回傳。
 - 只回傳 JSON 物件，不要其他文字或說明。

@@ -386,6 +386,8 @@ textarea.form-input{resize:none}
     <div class="gae-card-row" id="gae-slots-row">數量：<b id="gae-slots"></b></div>
     <div class="gae-card-row" id="gae-remaining-row">剩餘：<b id="gae-remaining"></b></div>
     <div class="gae-card-row" id="gae-perlimit-row">每人可認領：<b id="gae-perlimit"></b></div>
+    <div class="gae-card-row" id="gae-deadline-row">完成期限：<b id="gae-deadline"></b></div>
+    <div class="gae-card-row" id="gae-workdate-row">執行日期：<b id="gae-workdate"></b></div>
     <div class="gae-card-row" id="gae-notes-row">補充說明：<b id="gae-notes"></b></div>
     <div class="gae-card-price" id="gae-price"></div>
     <div class="gae-card-btns">
@@ -1960,6 +1962,9 @@ function pickPanelHtml(t) {
         <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
         ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
         <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">⏰ ${(t.deadline||'').slice(0,16)} 截止 ・ 剩 ${remaining} 張可選</div>
+        ${t.deadline_days ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
+        ${t.work_date ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
+        ${t.notes ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
       </div>
       <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow);flex-shrink:0">$${(t.unit_price||0).toLocaleString()}</div>
     </div>
@@ -2424,7 +2429,7 @@ function showNextGrabAlert() {
   _grabAlertSummary = !!t._summary;
   _grabAlertCurrentId = t._summary ? null : t.id;
 
-  const detailRows = ['gae-slots-row','gae-remaining-row','gae-perlimit-row','gae-notes-row'];
+  const detailRows = ['gae-slots-row','gae-remaining-row','gae-perlimit-row','gae-deadline-row','gae-workdate-row','gae-notes-row'];
   if (t._summary) {
     // 多筆彙總：只顯示筆數 + 前往限量任務區
     document.getElementById('gae-task-name').textContent = `有 ${t.count} 筆新限量任務`;
@@ -2448,6 +2453,20 @@ function showNextGrabAlert() {
     } else {
       perlimitRow.style.display = 'none';
     }
+    const deadlineRow = document.getElementById('gae-deadline-row');
+    if (t.deadline_days) {
+      document.getElementById('gae-deadline').textContent = `接案後 ${t.deadline_days} 天內`;
+      deadlineRow.style.display = '';
+    } else {
+      deadlineRow.style.display = 'none';
+    }
+    const workdateRow = document.getElementById('gae-workdate-row');
+    if (t.work_date) {
+      document.getElementById('gae-workdate').textContent = fmtDay(t.work_date);
+      workdateRow.style.display = '';
+    } else {
+      workdateRow.style.display = 'none';
+    }
     const notesRow = document.getElementById('gae-notes-row');
     if (t.notes) {
       document.getElementById('gae-notes').textContent = t.notes;
@@ -2458,6 +2477,13 @@ function showNextGrabAlert() {
     document.getElementById('gae-price').textContent = '💰 $' + (t.unit_price||0).toLocaleString();
     document.getElementById('gae-grab-btn').disabled = false;
     document.getElementById('gae-grab-btn').textContent = '🎯 認領';
+    // 挑選模式：不能直接認領，需到限量任務區挑卡片 → 隱藏認領鈕
+    if (t.pick_mode) {
+      document.getElementById('gae-subtitle').textContent = '你有一筆限量任務（挑選模式）！請到限量任務區挑選';
+      document.getElementById('gae-grab-btn').style.display = 'none';
+      document.getElementById('gae-remaining').textContent = ((t.slot_data||[]).filter(s => !s.claimed).length) + ' 張可選';
+      document.getElementById('gae-slots').textContent = t.total_slots + ' 張';
+    }
   }
 
   const overlay = document.getElementById('grab-alert-overlay');

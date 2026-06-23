@@ -418,8 +418,15 @@ textarea.form-input{resize:none}
       <!-- 全部任務列表 -->
       <div id="assign-stats-section" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem">
-          <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務列表 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（件・小時・搶單，依夥伴分組）</span></div>
+          <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📋 全部任務列表 <span style="font-size:.72rem;color:var(--text-s);font-weight:400">（依夥伴分組，一人一卡）</span></div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <select id="assign-stats-type" onchange="renderStaffAssign()" title="任務分類" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
+              <option value="all">全部分類</option>
+              <option value="piece">📋 指派(件)</option>
+              <option value="hourly">⏱️ 指派(小時)</option>
+              <option value="grab">🎯 限量任務</option>
+              <option value="free">🆓 自由任務</option>
+            </select>
             <select id="assign-stats-month" onchange="renderStaffAssign()" title="依完成日期分組（未完成則依截止日期）" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;font-family:'Noto Sans TC',sans-serif;color:var(--text-m)">
               <option value="all">全部月份</option>
             </select>
@@ -1359,7 +1366,10 @@ function renderStaffAssign() {
   const filter  = document.getElementById('assign-stats-filter').value;
   const statusF = document.getElementById('assign-stats-status')?.value || 'all';
   const monthF  = document.getElementById('assign-stats-month')?.value || 'all';
+  const typeF   = document.getElementById('assign-stats-type')?.value || 'all';
+  const catOf = a => a.assign_type === 'hourly' ? 'hourly' : a.assign_type === 'grab' ? 'grab' : a.assign_type === 'free' ? 'free' : 'piece';
   let list = filter === 'all' ? staffAssignCache : staffAssignCache.filter(a => (a.partner_name || '未指定') === filter);
+  if (typeF !== 'all') list = list.filter(a => catOf(a) === typeF);
   if (statusF !== 'all') {
     list = list.filter(a => statusF === 'reviewing' ? a.review_status === 'reviewing' : (a.status === statusF && a.review_status !== 'reviewing'));
   }
@@ -1402,14 +1412,14 @@ function renderStaffAssign() {
     wrap.innerHTML = Object.keys(groups).sort().map(name => {
       const items = groups[name];
       return `
-      <div style="margin-bottom:1rem">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem;margin-bottom:.5rem;color:var(--blue)">👤 ${name}（${items.length}）</div>
-        ${items.map(a => {
+      <div style="background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:1rem;overflow:hidden">
+        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.92rem;padding:.7rem 1.1rem;color:#fff;background:linear-gradient(135deg,#155E8C,#1A8AC0)">👤 ${name}　<span style="font-size:.78rem;font-weight:400;opacity:.9">共 ${items.length} 筆</span></div>
+        ${items.map((a, idx) => {
           const statusMap = { pending: ['待回覆','var(--orange)'], accepted: ['進行中','var(--green)'], completed: ['已完成','var(--text-s)'], rejected: ['已退回','var(--red)'] };
           const [statusLabel, statusColor] = a.review_status === 'reviewing' ? ['待審核','var(--blue)'] : (statusMap[a.status] || [a.status, 'var(--text-s)']);
           return `
-          <div style="background:#fff;border-radius:var(--r);padding:.85rem 1.1rem;box-shadow:var(--shadow);margin-bottom:.5rem;border-left:5px solid ${statusColor}">
-            ${(() => { const tb = a.assign_type==='hourly' ? ['⏱️ 指派(小時)','#E07830'] : a.assign_type==='grab' ? ['🎯 搶單'+(a.grab_no?' #'+a.grab_no:''),'#1A8AC0'] : ['📋 指派(件)','#6B7DB0']; return `
+          <div style="padding:.85rem 1.1rem;border-left:5px solid ${statusColor}${idx ? ';border-top:1px solid var(--border)' : ''}">
+            ${(() => { const tb = a.assign_type==='hourly' ? ['⏱️ 指派(小時)','#E07830'] : a.assign_type==='grab' ? ['🎯 限量'+(a.item_no?' #'+a.item_no:(a.grab_no?' #'+a.grab_no:'')),'#1A8AC0'] : a.assign_type==='free' ? ['🆓 自由'+(a.item_no?' #'+a.item_no:''),'#2EAA7A'] : ['📋 指派(件)','#6B7DB0']; return `
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
               <div style="flex:1;min-width:0">
                 <div style="font-weight:700;font-size:.88rem">${a.company ? a.company+'：'+a.task_name : a.task_name}${(a.full_code||a.task_no) ? ' <span style="display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .5rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">'+(a.full_code ? '🏷️ '+a.full_code : '📋 #'+a.task_no)+'</span>' : ''}</div>

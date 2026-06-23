@@ -1367,8 +1367,13 @@ async function loadGrabHistory() {
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem .75rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">
           <div>💰 單價 <strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
           <div>👥 名額 <strong>${t.grabbed_count} / ${t.total_slots}</strong></div>
-          <div>⏰ 截止 <strong>${(t.deadline||'').slice(0,16)}</strong></div>
+          <div>⏰ 認領截止 <strong>${(t.deadline||'').slice(0,16)}</strong></div>
         </div>
+        ${(t.deadline_days || t.work_date || t.notes) ? `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.82rem;color:var(--text-m);margin-bottom:.6rem;padding:.4rem .6rem;background:var(--bg);border-radius:var(--rs)">
+          ${t.deadline_days ? `<div><span style="color:var(--text-s)">完成期限：</span>接案後 ${t.deadline_days} 天內${t.pick_mode ? '（各卡片可能不同）' : ''}</div>` : ''}
+          ${t.work_date ? `<div><span style="color:var(--text-s)">執行日期：</span>${t.work_date}</div>` : ''}
+          ${t.notes ? `<div><span style="color:var(--text-s)">備註：</span>${t.notes}</div>` : ''}
+        </div>` : ''}
         ${t.custom_fields && t.custom_fields.length ? `<div style="display:flex;flex-direction:column;gap:.2rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">${customFieldsHtml(t.custom_fields)}</div>` : ''}
         <div id="grab-rec-${t.id}">
           <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開認領明細（${t.grabbed_count} 筆）</button>

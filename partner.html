@@ -213,7 +213,7 @@ textarea.form-input{resize:none}
 #fw-overlay .fw-line1{font-family:'Noto Serif TC',serif;font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);margin-bottom:.3rem}
 #fw-overlay .fw-line2{font-size:1.3rem;font-weight:700;color:#FFE9A8;letter-spacing:1px;text-shadow:0 1px 6px rgba(0,0,0,.35)}
 
-/* 新搶單任務通知動畫 */
+/* 新限量任務通知動畫 */
 #grab-alert-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(20,30,50,.55);backdrop-filter:blur(3px)}
 #grab-alert-overlay.show{display:flex}
 .alert-skip-btn{position:absolute;top:18px;right:18px;z-index:10;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);color:#fff;padding:.4rem .9rem;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;backdrop-filter:blur(2px)}
@@ -362,35 +362,35 @@ textarea.form-input{resize:none}
   <div class="lu-title"></div>
 </div>
 
-<!-- 搶單成功動畫 -->
+<!-- 認領成功動畫 -->
 <div id="grab-success-overlay">
   <div class="gso-text">
-    <div class="gso-title">🎉 恭喜搶單成功！</div>
+    <div class="gso-title">🎉 恭喜認領成功！</div>
     <div class="gso-sub" id="gso-grabno"></div>
   </div>
 </div>
 
-<!-- 新搶單任務通知動畫 -->
+<!-- 新限量任務通知動畫 -->
 <div id="grab-alert-overlay">
   <button class="alert-skip-btn" onclick="_alertSkip()" title="跳過動畫">跳過 ⏭</button>
   <div id="gae-envelope">
     <div class="gae-body">
       <div class="gae-back-icon">📋</div>
-      <div class="gae-back-text">新搶單任務</div>
+      <div class="gae-back-text">新限量任務</div>
     </div>
     <div class="gae-flap"></div>
   </div>
   <div id="gae-card">
     <div class="gae-card-title" id="gae-task-name"></div>
-    <div class="gae-card-row" id="gae-subtitle" style="font-weight:700;color:var(--blue)">你有一筆搶單任務！</div>
+    <div class="gae-card-row" id="gae-subtitle" style="font-weight:700;color:var(--blue)">你有一筆限量任務！</div>
     <div class="gae-card-row" id="gae-slots-row">數量：<b id="gae-slots"></b></div>
     <div class="gae-card-row" id="gae-remaining-row">剩餘：<b id="gae-remaining"></b></div>
-    <div class="gae-card-row" id="gae-perlimit-row">每人可搶：<b id="gae-perlimit"></b></div>
+    <div class="gae-card-row" id="gae-perlimit-row">每人可認領：<b id="gae-perlimit"></b></div>
     <div class="gae-card-row" id="gae-notes-row">補充說明：<b id="gae-notes"></b></div>
     <div class="gae-card-price" id="gae-price"></div>
     <div class="gae-card-btns">
-      <button class="gae-btn-grab" id="gae-grab-btn" onclick="grabAlertGrab()">🎯 搶單</button>
-      <button class="gae-btn-cancel" onclick="grabAlertGoToZone()">前往搶單區</button>
+      <button class="gae-btn-grab" id="gae-grab-btn" onclick="grabAlertGrab()">🎯 認領</button>
+      <button class="gae-btn-cancel" onclick="grabAlertGoToZone()">前往限量任務區</button>
       <button class="gae-btn-cancel" onclick="grabAlertCancel()">取消</button>
     </div>
   </div>
@@ -464,7 +464,7 @@ textarea.form-input{resize:none}
         <span class="pt-badge" id="badge-active-tasks" style="display:none">0</span>
       </div>
       <div class="pt-menu-item" onclick="switchPage('grab',this)">
-        <span class="mi-icon">🎯</span>搶單任務
+        <span class="mi-icon">🎯</span>限量任務
         <span class="pt-badge" id="badge-grab" style="display:none">0</span>
       </div>
       <div class="pt-menu-item" onclick="switchPage('free',this)">
@@ -507,9 +507,9 @@ textarea.form-input{resize:none}
           </div>
         </div>
         <div onclick="switchPage('grab',document.querySelector('[onclick*=grab]'))" style="background:#fff;border-radius:var(--r);padding:.6rem .35rem;box-shadow:0 4px 16px rgba(72,180,232,.1);border-top:3px solid var(--orange);cursor:pointer">
-          <div style="font-size:.74rem;font-weight:700;text-align:center;margin-bottom:.4rem">🎯 搶單</div>
+          <div style="font-size:.74rem;font-weight:700;text-align:center;margin-bottom:.4rem">🎯 限量</div>
           <div style="display:flex;text-align:center">
-            <div style="flex:1"><div style="font-size:1.05rem;font-weight:800;color:var(--orange)" id="ov-grab-avail">0</div><div style="font-size:.58rem;color:var(--text-s)">可搶</div></div>
+            <div style="flex:1"><div style="font-size:1.05rem;font-weight:800;color:var(--orange)" id="ov-grab-avail">0</div><div style="font-size:.58rem;color:var(--text-s)">可認領</div></div>
             <div style="flex:1"><div style="font-size:1.05rem;font-weight:800;color:var(--blue-d)" id="ov-grab-active">0</div><div style="font-size:.58rem;color:var(--text-s)">進行中</div></div>
             <div style="flex:1"><div style="font-size:1.05rem;font-weight:800;color:var(--green)" id="ov-grab-done">0</div><div style="font-size:.58rem;color:var(--text-s)">已完成</div></div>
           </div>
@@ -533,14 +533,14 @@ textarea.form-input{resize:none}
         <div id="overview-rejected-list"></div>
       </div>
 
-      <!-- 搶單區塊 -->
+      <!-- 限量任務塊 -->
       <div id="overview-grab-block" style="display:none;margin-bottom:1.1rem;background:var(--blue-pp);border-radius:var(--r);padding:.75rem .85rem;border:2px solid var(--blue)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
-          <div style="font-size:1rem;font-weight:800;color:var(--blue-d)">🎯 搶單區
+          <div style="font-size:1rem;font-weight:800;color:var(--blue-d)">🎯 限量任務
             <span id="overview-grab-badge" style="background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:10px;margin-left:.35rem">0</span>
           </div>
           <button onclick="switchPage('grab',document.querySelector('[onclick*=grab]'))"
-                  style="padding:.35rem .9rem;font-size:.8rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">前往搶單 →</button>
+                  style="padding:.35rem .9rem;font-size:.8rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">前往限量任務 →</button>
         </div>
         <div id="overview-grab-list"></div>
       </div>
@@ -661,11 +661,11 @@ textarea.form-input{resize:none}
       </div>
     </div>
 
-    <!-- 搶單任務 -->
+    <!-- 限量任務 -->
     <div class="page-section" id="page-grab">
-      <div class="page-title">🎯 搶單任務</div>
+      <div class="page-title">🎯 限量任務</div>
       <div class="subtab-bar">
-        <button class="subtab active" onclick="subTab('grab','list',this)">📋 搶單列表</button>
+        <button class="subtab active" onclick="subTab('grab','list',this)">📋 限量任務列表</button>
         <button class="subtab" onclick="subTab('grab','active',this)">⚔️ 進行中</button>
         <button class="subtab" onclick="subTab('grab','done',this)">✅ 已完成</button>
       </div>
@@ -984,11 +984,14 @@ function switchPage(name, el) {
 function taskLabel(a) {
   return a.company ? `${a.company}：${a.task_name}` : a.task_name;
 }
+function taskCodeOf(a) { return a.full_code || a.task_no || ''; }
 function taskLabelNo(a) {
-  return a.task_no ? `${taskLabel(a)} #${a.task_no}` : taskLabel(a);
+  const c = taskCodeOf(a);
+  return c ? `${taskLabel(a)} #${c}` : taskLabel(a);
 }
 function taskNoBadge(a) {
-  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
+  const c = taskCodeOf(a);
+  return c ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 ${a.full_code ? a.full_code : '#'+a.task_no}</span>` : '';
 }
 
 function fmtDate(s) {
@@ -1140,7 +1143,7 @@ function renderWallet() {
     </div>`).join('');
 }
 
-// 任務分類：grab=搶單、free=自由、其餘=指派
+// 任務分類：grab=認領、free=自由、其餘=指派
 function taskCat(a) { return a.assign_type === 'grab' ? 'grab' : a.assign_type === 'free' ? 'free' : 'assign'; }
 
 function completedCardHtml(a) {
@@ -1168,7 +1171,7 @@ function completedCardHtml(a) {
     </div>`;
 }
 
-// 已完成：依類別分流到三頁；指派頁套用月份篩選，搶單/自由顯示全部
+// 已完成：依類別分流到三頁；指派頁套用月份篩選，認領/自由顯示全部
 function renderCompleted() {
   const ym = document.getElementById('filter-month') ? document.getElementById('filter-month').value : '';
   const cats = { assign: [], grab: [], free: [] };
@@ -1309,7 +1312,7 @@ function renderActive(list) {
   var activeBadge = document.getElementById('active-badge');
   if (activeBadge) { activeBadge.textContent = list.length; activeBadge.style.display = list.length ? '' : 'none'; }
 
-  // 進行中：依類別分流到三頁（指派/搶單/自由）
+  // 進行中：依類別分流到三頁（指派/認領/自由）
   const cats = { assign: [], grab: [], free: [] };
   list.forEach(a => cats[taskCat(a)].push(a));
   const empty = '<div style="background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem">目前沒有進行中的任務</div>';
@@ -1333,7 +1336,7 @@ function activeCardHtml(a) {
           <div style="font-family:serif;font-weight:700;font-size:1rem">${taskLabel(a)}</div>
           <div style="margin-top:.2rem;display:flex;gap:.35rem;flex-wrap:wrap">
             ${a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : ''}
-            ${a.grab_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#E07830,#F0A030);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 搶單編號 #${a.grab_no}</span>` : ''}
+            ${a.grab_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#E07830,#F0A030);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 限量編號 #${a.grab_no}</span>` : ''}
           </div>
         </div>
         <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
@@ -1413,7 +1416,7 @@ function buildRejectedCards(list) {
 // 進行中任務卡（總覽）：每種任務一張，同類多張用堆疊卡（最新在上、顯示件數）
 function buildActiveCardsOverview(list) {
   if (!list.length) return '';
-  var META = { assign:{label:'📋 指派任務',page:'tasks',color:'var(--blue)'}, grab:{label:'🎯 搶單任務',page:'grab',color:'var(--orange)'}, free:{label:'🆓 自由任務',page:'free',color:'#2EAA7A'} };
+  var META = { assign:{label:'📋 指派任務',page:'tasks',color:'var(--blue)'}, grab:{label:'🎯 限量任務',page:'grab',color:'var(--orange)'}, free:{label:'🆓 自由任務',page:'free',color:'#2EAA7A'} };
   var groups = { assign:[], grab:[], free:[] };
   list.forEach(function(a){ groups[taskCat(a)].push(a); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return (b.accepted_at||b.created_at||'').localeCompare(a.accepted_at||a.created_at||''); }); });
@@ -1840,7 +1843,7 @@ async function acceptFreeTask(id, btn) {
   } catch(e) { showToast(e.message, 'error'); btn.disabled = false; }
 }
 
-// ── 搶單區 ────────────────────────────────────────────────────
+// ── 限量任務 ────────────────────────────────────────────────────
 async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
   try {
@@ -1853,7 +1856,7 @@ async function loadGrabZone() {
     const ovGrabAvail = document.getElementById('ov-grab-avail');
     if (ovGrabAvail) ovGrabAvail.textContent = available.length;
 
-    // 總覽儀表板搶單區塊
+    // 總覽儀表板限量任務塊
     const ovBlock = document.getElementById('overview-grab-block');
     const ovBadge = document.getElementById('overview-grab-badge');
     const ovList  = document.getElementById('overview-grab-list');
@@ -1874,7 +1877,7 @@ async function loadGrabZone() {
             <div style="flex-shrink:0">
               ${remaining === 0
                 ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
-                : `<button onclick="doGrab(${t.id},this)" style="padding:.5rem 1.1rem;font-size:.85rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif;box-shadow:0 2px 8px rgba(26,138,192,.3)">搶單</button>`
+                : `<button onclick="doGrab(${t.id},this)" style="padding:.5rem 1.1rem;font-size:.85rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif;box-shadow:0 2px 8px rgba(26,138,192,.3)">認領</button>`
               }
             </div>
           </div>`;
@@ -1885,7 +1888,7 @@ async function loadGrabZone() {
     }
 
     if (!wrap) return;
-    if (!available.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放搶單的任務</div>'; return; }
+    if (!available.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放認領的任務</div>'; return; }
     wrap.innerHTML = available.map(t => {
       const remaining  = t.total_slots - t.grabbed_count;
       const alreadyGrabbed = false;
@@ -1916,7 +1919,7 @@ async function loadGrabZone() {
           ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`
           : remaining === 0
             ? `<div style="padding:.55rem 1rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">名額已滿</div>`
-            : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 搶單</button>`
+            : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 認領</button>`
         }
       </div>`;
     }).join('');
@@ -2126,7 +2129,7 @@ async function playCompletionAnimation(data) {
     document.getElementById('gso-grabno').textContent = '';
     document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 升等！';
     await wait(1800);
-    document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 恭喜搶單成功！';
+    document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 恭喜認領成功！';
   } else {
     await wait(800);
   }
@@ -2229,7 +2232,7 @@ function showGrabSuccessOverlay(grabNo) {
   }, 3200);
 }
 
-// ── 新搶單任務通知動畫 ──────────────────────────────────────
+// ── 新限量任務通知動畫 ──────────────────────────────────────
 let _grabAlertQueue = [];
 let _grabAlertShowing = false;
 let _grabAlertCurrentId = null;
@@ -2289,7 +2292,7 @@ function showNextGrabAlert() {
   const t = _grabAlertQueue.shift();
   if (!t) {
     _grabAlertShowing = false; _grabAlertCurrentId = null;
-    if (!_assignAlertShowing) showNextAssignAlert(); // 搶單佇列清空後才輪到指派任務通知
+    if (!_assignAlertShowing) showNextAssignAlert(); // 認領佇列清空後才輪到指派任務通知
     return;
   }
   _grabAlertShowing = true;
@@ -2298,15 +2301,15 @@ function showNextGrabAlert() {
 
   const detailRows = ['gae-slots-row','gae-remaining-row','gae-perlimit-row','gae-notes-row'];
   if (t._summary) {
-    // 多筆彙總：只顯示筆數 + 前往搶單區
-    document.getElementById('gae-task-name').textContent = `有 ${t.count} 筆新搶單任務`;
-    document.getElementById('gae-subtitle').textContent = '快去搶單區看看吧！';
+    // 多筆彙總：只顯示筆數 + 前往限量任務區
+    document.getElementById('gae-task-name').textContent = `有 ${t.count} 筆新限量任務`;
+    document.getElementById('gae-subtitle').textContent = '快去限量任務看看吧！';
     detailRows.forEach(id => document.getElementById(id).style.display = 'none');
     document.getElementById('gae-price').style.display = 'none';
     document.getElementById('gae-grab-btn').style.display = 'none';
   } else {
     document.getElementById('gae-task-name').textContent = taskLabelNo(t);
-    document.getElementById('gae-subtitle').textContent = '你有一筆搶單任務！';
+    document.getElementById('gae-subtitle').textContent = '你有一筆限量任務！';
     document.getElementById('gae-slots-row').style.display = '';
     document.getElementById('gae-remaining-row').style.display = '';
     document.getElementById('gae-price').style.display = '';
@@ -2329,7 +2332,7 @@ function showNextGrabAlert() {
     }
     document.getElementById('gae-price').textContent = '💰 $' + (t.unit_price||0).toLocaleString();
     document.getElementById('gae-grab-btn').disabled = false;
-    document.getElementById('gae-grab-btn').textContent = '🎯 搶單';
+    document.getElementById('gae-grab-btn').textContent = '🎯 認領';
   }
 
   const overlay = document.getElementById('grab-alert-overlay');
@@ -2362,7 +2365,7 @@ async function grabAlertGrab() {
   const taskId = _grabAlertCurrentId;
   if (taskId == null) return;
   const btn = document.getElementById('gae-grab-btn');
-  btn.disabled = true; btn.textContent = '搶單中…';
+  btn.disabled = true; btn.textContent = '認領中…';
   try {
     const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
     closeGrabAlert();
@@ -2371,7 +2374,7 @@ async function grabAlertGrab() {
     loadTasks();
   } catch(e) {
     showToast(e.message, 'error');
-    btn.disabled = false; btn.textContent = '🎯 搶單';
+    btn.disabled = false; btn.textContent = '🎯 認領';
   }
 }
 
@@ -2431,7 +2434,7 @@ async function checkNewAssignments() {
 }
 
 function showNextAssignAlert() {
-  // 搶單動畫優先：若搶單通知正在顯示或還有排隊，先讓搶單跑完
+  // 認領動畫優先：若認領通知正在顯示或還有排隊，先讓認領跑完
   if (_grabAlertShowing || _grabAlertQueue.length) { _assignAlertShowing = false; return; }
   const a = _assignAlertQueue.shift();
   if (!a) { _assignAlertShowing = false; return; }
@@ -2554,7 +2557,7 @@ document.addEventListener('keydown', () => _alertSkip());
 });
 
 async function doGrab(taskId, btn) {
-  btn.disabled = true; btn.textContent = '搶單中…';
+  btn.disabled = true; btn.textContent = '認領中…';
   try {
     const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
     showGrabSuccessOverlay(r.grab_no);
@@ -2562,7 +2565,7 @@ async function doGrab(taskId, btn) {
     loadTasks(); // 更新進行中任務
   } catch(e) {
     showToast(e.message, 'error');
-    btn.disabled = false; btn.textContent = '🎯 搶單';
+    btn.disabled = false; btn.textContent = '🎯 認領';
   }
 }
 
@@ -2596,9 +2599,9 @@ async function init() {
   const p = await API.get('/api/profile');
   fillProfile(p);
   loadAnnouncements(); // 背景載入，不阻塞
-  loadGrabZone();      // 背景載入搶單
+  loadGrabZone();      // 背景載入認領
   loadFreeZone();      // 背景載入自由任務（總覽可接數）
-  initGrabAlertSeen(); // 將目前已存在的搶單任務標記為已讀，避免重複跳出動畫
+  initGrabAlertSeen(); // 將目前已存在的限量任務標記為已讀，避免重複跳出動畫
   initAssignAlertSeen(); // 將目前已存在的待回覆派案標記為已讀，避免重複跳出動畫
   // 重試直到成功，確保資料載入
   let loaded = await loadTasks();

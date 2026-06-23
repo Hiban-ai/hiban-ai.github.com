@@ -50,7 +50,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,#EB
 .page-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;margin-bottom:1.25rem;color:var(--text)}
 .page-section{display:none}
 .page-section.active{display:block}
-/* 搶單日期選擇器 */
+/* 認領日期選擇器 */
 .gdp-wrap{border:1.5px solid var(--border);border-radius:var(--rs);padding:.65rem;background:var(--blue-p)}
 .gdp-selects{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
 .gdp-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.2rem}
@@ -304,7 +304,7 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-tasks-sv">
       <div class="page-title">⚔️ 任務派案</div>
       <div class="card" style="max-width:720px;margin-bottom:1.5rem">
-        <!-- 搶單模式切換 -->
+        <!-- 限量任務切換 -->
         <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1.5px dashed var(--border)">
           <span style="font-size:.82rem;color:var(--text-s);font-weight:600">派案模式</span>
           <div style="display:flex;border-radius:20px;overflow:hidden;border:1.5px solid var(--border)">
@@ -313,7 +313,7 @@ textarea.form-input{resize:none}
             <button id="mode-btn-hourly" onclick="setAssignMode('hourly')"
                     style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">⏱️ 指派任務(小時)</button>
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
-                    style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🎯 搶單模式</button>
+                    style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🎯 限量任務</button>
             <button id="mode-btn-free" onclick="setAssignMode('free')"
                     style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🆓 自由任務</button>
           </div>
@@ -332,7 +332,7 @@ textarea.form-input{resize:none}
             </select>
           </div>
 
-          <!-- 搶單模式：名額總數 -->
+          <!-- 限量任務：名額總數 -->
           <div id="row-grab-slots" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">名額總數</label>
             <input class="form-input" type="number" id="grab-slots" min="1" placeholder="共幾個名額" style="flex:1">
@@ -409,7 +409,7 @@ textarea.form-input{resize:none}
               </label>
             </div>
           </div>
-          <!-- 搶單模式：截止日期 + 時間 -->
+          <!-- 限量任務：截止日期 + 時間 -->
           <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s)">截止日期與時間</label>
             <div class="gdp-wrap">
@@ -477,7 +477,7 @@ textarea.form-input{resize:none}
       <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
         <button class="ar-tab" onclick="arTab('piece',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:var(--blue-d);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📋 指派(件)</button>
         <button class="ar-tab" onclick="arTab('hourly',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⏱️ 指派(小時)</button>
-        <button class="ar-tab" onclick="arTab('grab',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 搶單</button>
+        <button class="ar-tab" onclick="arTab('grab',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 限量</button>
         <button class="ar-tab" onclick="arTab('free',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🆓 自由</button>
         <button class="ar-tab" onclick="arTab('logs',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📜 操作紀錄</button>
       </div>
@@ -793,7 +793,7 @@ async function loadAlerts() {
       { key: 'due_soon', icon: '🟠', cls: 'ac-orange', title: n => `任務即將到期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
       { key: 'pending_worklogs', icon: '📝', cls: 'ac-orange', title: n => `待審核 WorkLog（${n}）`, item: x => `任務 #${x.assignment_id} 的回報待審核` },
       { key: 'rejected', icon: '↩️', cls: 'ac-red', title: n => `被拒絕需重新指派（${n}）`, item: x => `${x.task_name}${x.reject_reason ? '：'+x.reject_reason : ''}` },
-      { key: 'grab_unfilled', icon: '🎯', cls: 'ac-orange', title: n => `搶單名額未滿且即將截止（${n}）`, item: x => `${x.task_name} — ${x.grabbed_count}/${x.total_slots} 已搶，截止 ${x.deadline}` },
+      { key: 'grab_unfilled', icon: '🎯', cls: 'ac-orange', title: n => `認領名額未滿且即將截止（${n}）`, item: x => `${x.task_name} — ${x.grabbed_count}/${x.total_slots} 已搶，截止 ${x.deadline}` },
       { key: 'inactive_partners', icon: '😴', cls: 'ac-red', title: n => `夥伴久未登入（${n}）`, item: x => `${x.real_name} — ${x.login_dates.length ? '上次登入 '+x.login_dates[x.login_dates.length-1] : '尚未登入過'}` },
       { key: 'unassigned_partners', icon: '❓', cls: 'ac-orange', title: n => `夥伴尚未設定督導（${n}）`, item: x => `${x.real_name}` },
     ];
@@ -849,7 +849,8 @@ function fmtDate(s) {
 }
 // 只顯示日期：YYYY/MM/DD
 function taskNoBadge(a) {
-  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 #${a.task_no}</span>` : '';
+  const c = a.full_code || (a.task_no ? '#'+a.task_no : '');
+  return c ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">📋 任務編號 ${c}</span>` : '';
 }
 
 function fmtDay(s) {
@@ -951,7 +952,7 @@ async function loadTaskReviews() {
       el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;background:#fff;padding:1.5rem;border-radius:var(--r);box-shadow:var(--shadow)">目前沒有待審核的回報</div>';
       return;
     }
-    const RV_LABEL = { assign:'📋 指派任務(件)', hourly:'⏱️ 指派任務(小時)', grab:'🎯 搶單任務', free:'🆓 自由任務' };
+    const RV_LABEL = { assign:'📋 指派任務(件)', hourly:'⏱️ 指派任務(小時)', grab:'🎯 限量任務', free:'🆓 自由任務' };
     const rvCat = x => x.assign_type==='hourly'?'hourly':x.assign_type==='grab'?'grab':x.assign_type==='free'?'free':'assign';
     const rvOrder = { assign:0, hourly:1, grab:2, free:3 };
     const rvSorted = [...list].sort((a,b)=>rvOrder[rvCat(a)]-rvOrder[rvCat(b)]);
@@ -1036,7 +1037,7 @@ function sendRevision(btn) {
   showToast('修改意見已送出', 'warn');
 }
 
-// ── 搶單日期選擇器 ───────────────────────────────────────────
+// ── 認領日期選擇器 ───────────────────────────────────────────
 function gdpInit() {
   const yearSel = document.getElementById('gdp-year');
   const monSel  = document.getElementById('gdp-month');
@@ -1106,7 +1107,7 @@ function gdpUpdateHint() {
 }
 
 // ── 派案模式切換 ──────────────────────────────────────────────
-let assignMode = 'normal'; // 'normal'(件) | 'hourly'(小時) | 'grab'(搶單)
+let assignMode = 'normal'; // 'normal'(件) | 'hourly'(小時) | 'grab'(認領)
 function setAssignMode(mode) {
   assignMode = mode;
   const isGrab   = mode === 'grab';
@@ -1120,9 +1121,9 @@ function setAssignMode(mode) {
     b.style.background = on ? 'var(--blue-d)' : '#fff';
     b.style.color      = on ? '#fff' : 'var(--text-s)';
   });
-  // 指派給：件 / 小時 顯示；搶單、自由 隱藏（自由任務所有夥伴都看得到）
+  // 指派給：件 / 小時 顯示；認領、自由 隱藏（自由任務所有夥伴都看得到）
   document.getElementById('row-assign-target').style.display = (isGrab || isFree) ? 'none' : 'flex';
-  // 搶單專屬
+  // 認領專屬
   document.getElementById('row-grab-slots').style.display    = isGrab ? 'flex' : 'none';
   document.getElementById('row-grab-per-limit').style.display = isGrab ? 'flex' : 'none';
   document.getElementById('row-grab-deadline').style.display = isGrab ? 'flex' : 'none';
@@ -1137,7 +1138,7 @@ function setAssignMode(mode) {
   // 工作內容/時薪：只有「小時」用
   document.querySelector('[data-field="work-content"]').style.display = isHourly ? 'flex' : 'none';
   document.querySelector('[data-field="hourly"]').style.display       = isHourly ? 'flex' : 'none';
-  // 完成期限：件/搶單/自由 用天數；小時不需
+  // 完成期限：件/認領/自由 用天數；小時不需
   document.getElementById('row-deadline-days').style.display = isHourly ? 'none' : 'flex';
   document.getElementById('days-unlimited-wrap').style.display = isFree ? 'flex' : 'none'; // 自由任務可不限完成期限
   // 發布期限：只有自由任務
@@ -1146,7 +1147,7 @@ function setAssignMode(mode) {
   renderAssignCustomFields();
   applyFieldOrder();
   document.getElementById('assign-submit-btn').textContent =
-    isGrab ? '🎯 建立搶單' : isHourly ? '⏱️ 指派(小時)' : isFree ? '🆓 發布自由任務' : '確認派案 ✓';
+    isGrab ? '🎯 建立限量任務' : isHourly ? '⏱️ 指派(小時)' : isFree ? '🆓 發布自由任務' : '確認派案 ✓';
   document.getElementById('assign-err').style.display = 'none';
   if (isGrab) gdpInit();
 }
@@ -1246,7 +1247,7 @@ async function submitAssign() {
   if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
 
   if (assignMode === 'grab') {
-    // 搶單模式
+    // 限量任務
     const slots    = document.getElementById('grab-slots').value;
     const dlDate = document.getElementById('grab-deadline').value; // YYYY-MM-DD
     const dlHour = document.getElementById('gdp-hour').value;
@@ -1254,7 +1255,7 @@ async function submitAssign() {
     const days   = document.getElementById('assign-days').value;
     if (!slots || parseInt(slots) < 1) { err.textContent = '請填寫名額總數'; err.style.display = 'block'; return; }
     if (!days || parseInt(days) < 1)   { err.textContent = '請填寫完成期限（天數）'; err.style.display = 'block'; return; }
-    if (!dlDate) { err.textContent = '請選擇搶單截止日期'; err.style.display = 'block'; return; }
+    if (!dlDate) { err.textContent = '請選擇認領截止日期'; err.style.display = 'block'; return; }
     // 組合成 YYYY/MM/DD HH:MM
     const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
     try {
@@ -1268,7 +1269,7 @@ async function submitAssign() {
         per_person_limit: (perLimit >= 0) ? perLimit : 1,
       });
       _aiGrabSlotData = null;
-      showToast('搶單任務已建立！', 'success');
+      showToast('限量任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('grab-per-limit').value = '1';
@@ -1306,7 +1307,7 @@ async function loadGrabHistory() {
     const list = await API.get('/api/grab-tasks/supervisor');
     const el = document.getElementById('grab-history');
     if (!el) return;
-    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無搶單紀錄</div>'; return; }
+    if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無限量任務紀錄</div>'; return; }
     el.innerHTML = list.map(t => {
       const remaining = t.total_slots - t.grabbed_count;
       const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
@@ -1332,7 +1333,7 @@ async function loadGrabHistory() {
         </div>
         ${t.custom_fields && t.custom_fields.length ? `<div style="display:flex;flex-direction:column;gap:.2rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">${customFieldsHtml(t.custom_fields)}</div>` : ''}
         <div id="grab-rec-${t.id}">
-          <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開搶單明細（${t.grabbed_count} 筆）</button>
+          <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開認領明細（${t.grabbed_count} 筆）</button>
         </div>
       </div>`;
     }).join('');
@@ -1345,7 +1346,7 @@ async function toggleGrabRec(taskId) {
   if (!el) return;
   if (grabRecExpanded[taskId]) {
     grabRecExpanded[taskId] = false;
-    el.innerHTML = `<button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開搶單明細</button>`;
+    el.innerHTML = `<button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開認領明細</button>`;
     return;
   }
   grabRecExpanded[taskId] = true;
@@ -1354,16 +1355,16 @@ async function toggleGrabRec(taskId) {
     const stLabel = { completed:'✅ 已完成', accepted:'⚔️ 進行中', active:'⚔️ 進行中', rejected:'已退回' };
     const rows = recs.length
       ? recs.map(r => `<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border-l)">
-          <span style="font-size:.74rem;font-weight:700;color:var(--orange);flex-shrink:0">搶 #${r.grab_no}</span>
+          <span style="font-size:.74rem;font-weight:700;color:var(--orange);flex-shrink:0">認領 #${r.grab_no}</span>
           ${r.task_no ? `<span style="font-size:.72rem;font-weight:700;color:var(--blue-d)">任務#${r.task_no}</span>` : ''}
           <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
           <span style="font-size:.72rem;color:var(--text-s)">📌 ${(r.grabbed_at||'').slice(0,16)}</span>
           <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${stLabel[r.status]||r.status}</span>
         </div>`).join('')
-      : '<div style="font-size:.82rem;color:var(--text-s)">尚無人搶單</div>';
+      : '<div style="font-size:.82rem;color:var(--text-s)">尚無人認領</div>';
     el.innerHTML = `
       <div style="background:var(--bg);border-radius:var(--rs);padding:.6rem .8rem;margin-top:.4rem">
-        <div style="font-size:.78rem;font-weight:700;color:var(--text-s);margin-bottom:.4rem">搶單明細</div>
+        <div style="font-size:.78rem;font-weight:700;color:var(--text-s);margin-bottom:.4rem">認領明細</div>
         ${rows}
       </div>
       <button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--text-s);background:none;border:none;cursor:pointer;padding:.3rem 0;font-family:'Noto Sans TC',sans-serif">▲ 收起</button>`;
@@ -1371,10 +1372,10 @@ async function toggleGrabRec(taskId) {
 }
 
 async function closeGrabTask(id) {
-  if (!confirm('確定關閉此搶單任務？')) return;
+  if (!confirm('確定關閉此限量任務？')) return;
   try {
     await API.put(`/api/grab-tasks/${id}/close`);
-    showToast('已關閉搶單', 'success');
+    showToast('已關閉限量任務', 'success');
     loadGrabHistory();
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -1498,7 +1499,7 @@ async function confirmEndFree() {
 async function loadAssignHistory() {
   try {
     const list = await API.get('/api/assignments/history');
-    // 排除搶單/自由的個別實例（它們在各自頁籤以任務池呈現）
+    // 排除認領/自由的個別實例（它們在各自頁籤以任務池呈現）
     const piece  = list.filter(a => a.assign_type !== 'hourly' && a.assign_type !== 'grab' && a.assign_type !== 'free');
     const hourly = list.filter(a => a.assign_type === 'hourly');
     renderAssignCards(piece, 'assign-history-piece');
@@ -2213,7 +2214,7 @@ function cfIdFromToken(token) { return token.startsWith('cf:') ? token.slice(3) 
 function cfVisibleInMode(f, mode) {
   return !f.scope || f.scope === mode;
 }
-// 目前模式對應的自訂欄位範圍：件/小時/搶單 各自獨立
+// 目前模式對應的自訂欄位範圍：件/小時/認領 各自獨立
 function cfCurrentMode() {
   return assignMode === 'grab' ? 'grab' : assignMode === 'hourly' ? 'hourly' : assignMode === 'free' ? 'free' : 'assign';
 }
@@ -2557,7 +2558,7 @@ function showAiImportGrabPreview(data) {
   const allBtn = document.getElementById('ai-import-confirm-all-btn');
   title.textContent = `📋 AI 解析結果預覽（共 ${_aiGrabSlotData.length} 個名額）`;
   allBtn.style.display = 'block';
-  allBtn.textContent = `✅ 建立搶單（${_aiGrabSlotData.length} 個名額）`;
+  allBtn.textContent = `✅ 建立限量任務（${_aiGrabSlotData.length} 個名額）`;
   allBtn.onclick = () => aiImportGrabConfirm(data);
 
   const summaryRows = [
@@ -2570,7 +2571,7 @@ function showAiImportGrabPreview(data) {
   const wrap = document.getElementById('ai-import-list');
   wrap.innerHTML = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">${summaryRows || '（AI 未解析出共同欄位）'}</div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">
-      <b>搶單截止</b>：<input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">天後的23:59
+      <b>認領截止</b>：<input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">天後的23:59
     </div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">
       <b>每人上限</b>：<input type="number" id="ai-grab-per-limit" class="form-input" min="0" value="1" placeholder="0=不限" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">
@@ -2585,7 +2586,7 @@ function showAiImportGrabPreview(data) {
 async function aiImportGrabConfirm(data) {
   const btn = document.getElementById('ai-import-confirm-all-btn');
   const dlDays = parseInt(document.getElementById('ai-grab-deadline-days').value);
-  if (!dlDays || dlDays < 1) { showToast('請輸入搶單截止天數', 'error'); return; }
+  if (!dlDays || dlDays < 1) { showToast('請輸入認領截止天數', 'error'); return; }
   btn.disabled = true;
   try {
     if (data.task_name) {
@@ -2609,7 +2610,7 @@ async function aiImportGrabConfirm(data) {
     document.getElementById('grab-per-limit').value = document.getElementById('ai-grab-per-limit').value;
     calcAssignTotal();
 
-    // 套用搶單截止日期（N天後 23:59）到主表單的日期選擇器
+    // 套用認領截止日期（N天後 23:59）到主表單的日期選擇器
     const dl = new Date();
     dl.setDate(dl.getDate() + dlDays);
     const dlDate = `${dl.getFullYear()}-${String(dl.getMonth()+1).padStart(2,'0')}-${String(dl.getDate()).padStart(2,'0')}`;
@@ -2633,7 +2634,7 @@ async function aiImportGrabConfirm(data) {
     if (missing.length) {
       for (const f of missing) {
         try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: curTask, scope: 'grab' }); }
-        catch(e) { console.error('[AI匯入搶單] 建立自訂欄位失敗', f.label, e); }
+        catch(e) { console.error('[AI匯入認領] 建立自訂欄位失敗', f.label, e); }
       }
       await loadCustomFieldDefs();
     }
@@ -2816,7 +2817,7 @@ function openCfMgr() {
   const cfSel = document.getElementById('cf-task-selector');
   const curTask = document.getElementById('assign-task')?.value || '';
   if (cfSel) cfSel.value = curTask;
-  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（搶單欄位）' : assignMode === 'hourly' ? '（小時欄位）' : assignMode === 'free' ? '（自由任務欄位）' : '（指派(件)欄位）';
+  document.getElementById('cf-mgr-mode-label').textContent = assignMode === 'grab' ? '（認領欄位）' : assignMode === 'hourly' ? '（小時欄位）' : assignMode === 'free' ? '（自由任務欄位）' : '（指派(件)欄位）';
   loadCustomFieldDefs();
   renderFieldOrderList();
   document.getElementById('cf-overlay').classList.add('open');

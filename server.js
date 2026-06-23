@@ -5,6 +5,9 @@ const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
 const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, FreeTasks, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
+const { 產生任務代號, 新增任務 } = require('./taskId'); // 任務代號/編號模組
+const FREE_CODE_COL = '自由任務代號', FREE_ITEM_COL = '自由任務項目';
+const LIMIT_CODE_COL = '限量任務代號', LIMIT_ITEM_COL = '限量任務項目';
 const db = firestoreDb;
 
 // ── 記憶體快取（減少 Firestore 讀取次數）─────────────────────
@@ -1540,9 +1543,11 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
     const ddays = parseInt(deadline_days) || null;
     const perLimit = (parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1; // 0 = 不限數量
     if (slots < 1) return res.status(400).json({ error: '總名額至少 1' });
+    const task_code = await 產生任務代號(LIMIT_CODE_COL); // 限量任務代號（6碼）
     const item = await GrabTasks.create({
       task_name, company: company || '',
       unit_price: price, total_price_each: price,
+      task_code,
       total_slots: slots,
       deadline,
       deadline_days: ddays,
@@ -1689,9 +1694,18 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
     // 回報由「夥伴自己的督導」審核（非搶單發布者）
     let grabSupName = result.task.supervisor_name;
     if (req.session.user.supervisor_id) { const sv = await Users.byId(req.session.user.supervisor_id); if (sv) grabSupName = sv.real_name; }
+    // 在限量任務代號下產生任務編號（完整編號 = 代號-編號）
+    let grabFullCode = null, grabItemNo = null;
+    if (result.task.task_code) {
+      try {
+        const ri = await 新增任務(result.task.task_code, { codeCollection: LIMIT_CODE_COL, itemCollection: LIMIT_ITEM_COL, extra: { 夥伴: partnerName, 任務名稱: result.task.task_name, 狀態: '進行中' } });
+        grabFullCode = ri.完整編號; grabItemNo = ri.任務編號;
+      } catch(e) { console.error('[limitTaskId]', e.message); }
+    }
     // Transaction 外建立 assignment（自動接受）
     const assignment = await Assignments.create({
       task_name:       result.task.task_name,
+      task_code:       result.task.task_code || null, full_code: grabFullCode, item_no: grabItemNo,
       company:         result.task.company || '',
       quantity:        1,
       unit_price:      result.task.unit_price,
@@ -1739,9 +1753,11 @@ app.post('/api/free-tasks', requireRole('supervisor'), async (req, res) => {
     const unlimited = !!qty_unlimited;
     const qty = unlimited ? null : parseInt(total_qty);
     if (!unlimited && (!qty || qty < 1)) return res.status(400).json({ error: '請填總名額數量或勾選不限' });
+    const task_code = await 產生任務代號(FREE_CODE_COL); // 自由任務代號（6碼）
     const item = await FreeTasks.create({
       task_name, company: company || '',
       unit_price: parseInt(unit_price),
+      task_code,
       total_qty: qty, qty_unlimited: unlimited,
       publish_end: publish_end || null, // "YYYY/MM/DD" 或 null=永久
       deadline_days: parseInt(deadline_days) || null,
@@ -1839,6 +1855,14 @@ app.post('/api/free-tasks/:id/accept', requireRole('partner'), async (req, res) 
     let supId = req.session.user.supervisor_id || task.supervisor_id;
     let supName = task.supervisor_name;
     if (req.session.user.supervisor_id) { const sv = await Users.byId(req.session.user.supervisor_id); if (sv) supName = sv.real_name; }
+    // 在自由任務代號下產生任務編號（完整編號 = 代號-編號）
+    let full_code = null, item_no = null;
+    if (task.task_code) {
+      try {
+        const r = await 新增任務(task.task_code, { codeCollection: FREE_CODE_COL, itemCollection: FREE_ITEM_COL, extra: { 夥伴: req.session.user.real_name, 任務名稱: task.task_name, 狀態: '進行中' } });
+        full_code = r.完整編號; item_no = r.任務編號;
+      } catch(e) { console.error('[freeTaskId]', e.message); }
+    }
     const assignment = await Assignments.create({
       task_name: task.task_name, company: task.company || '',
       quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
@@ -1846,7 +1870,7 @@ app.post('/api/free-tasks/:id/accept', requireRole('partner'), async (req, res) 
       assigned_at: nowTW(), assign_type: 'free',
       target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
       supervisor_id: supId, supervisor_name: supName,
-      free_task_id: taskId,
+      free_task_id: taskId, task_code: task.task_code || null, full_code, item_no,
       status: 'accepted', rejected_by: [], reject_reason: null, custom_fields: [],
     });
     cacheDel('free-tasks-open');

@@ -82,7 +82,44 @@ async function 新增任務(代號, opts = {}) {
   });
 }
 
-module.exports = { 產生任務代號, 新增任務 };
+/**
+ * 三、批次新增任務（一次產生多筆編號，供限量任務「挑選模式」預先建卡）
+ *  - 單一 Transaction 內把父文件 childCount 一次推進 N，產生 N 筆 代號-編號 項目
+ *  - 避免逐筆呼叫造成 N 次 round-trip，且維持編號連續、無重號
+ * @param {string} 代號 6 碼任務代號
+ * @param {object[]} extras 每筆要附加的欄位（長度 = 要產生的數量）；可給空物件
+ * @param {object} [opts] { codeCollection, itemCollection }
+ * @returns {Promise<Array<{完整編號:string,任務代號:string,任務編號:string,序:number}>>}
+ */
+async function 新增任務批次(代號, extras = [], opts = {}) {
+  const codeCollection = opts.codeCollection || 'taskCodes';
+  const itemCollection = opts.itemCollection || 'taskItems';
+  if (!Array.isArray(extras) || extras.length === 0) return [];
+  const parentRef = db.collection(codeCollection).doc(代號);
+  return db.runTransaction(async t => {
+    const snap = await t.get(parentRef);
+    if (!snap.exists) throw new Error(`任務代號不存在：${代號}`);
+    let 序 = snap.data().childCount || 0;
+    const out = [];
+    for (const extra of extras) {
+      序 += 1;
+      if (序 > 999) throw new Error(`代號 ${代號} 的任務編號已達上限 999，請改用新代號`);
+      const 任務編號 = String(序).padStart(3, '0');
+      const 完整編號 = `${代號}-${任務編號}`;
+      t.set(db.collection(itemCollection).doc(完整編號), {
+        任務代號: 代號, 任務編號, 完整編號, 序,
+        狀態: '未認領',
+        建立時間: admin.firestore.FieldValue.serverTimestamp(),
+        ...(extra || {}),
+      });
+      out.push({ 完整編號, 任務代號: 代號, 任務編號, 序 });
+    }
+    t.update(parentRef, { childCount: 序 });
+    return out;
+  });
+}
+
+module.exports = { 產生任務代號, 新增任務, 新增任務批次 };
 
 /* ── 呼叫範例 ───────────────────────────────────────────────
 const { 產生任務代號, 新增任務 } = require('./taskId');

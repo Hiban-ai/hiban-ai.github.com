@@ -8,7 +8,7 @@ const API = {
     if (body) opt.body = JSON.stringify(body);
     const res = await fetch(url, opt);
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || '操作失敗');
+    if (!res.ok) { const err = new Error(data.error || '操作失敗'); err.status = res.status; err.data = data; throw err; }
     return data;
   },
   get:    (url)       => API.call('GET',    url),

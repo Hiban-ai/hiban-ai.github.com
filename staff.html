@@ -1211,9 +1211,20 @@ async function loadStaffGrab() {
       const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
       const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
       const records = recordsList[i] || [];
-      const grabbersHtml = records.length
+      // 挑選模式：直接列出每張卡片（代號-編號），已選灰掉標被誰選
+      const pickHtml = t.pick_mode
+        ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.4rem;margin-top:.5rem">${(t.slot_data||[]).map((s, idx) => {
+            const codeNo = s.full_code ? s.full_code.split('-') : null;
+            const codeBadge = codeNo ? `<span style="color:var(--blue-d)">${codeNo[0]}</span>-<span style="color:#C8901A">${codeNo[1]}</span>` : ('#'+(idx+1));
+            return `<div style="border:1.5px solid var(--border);border-radius:10px;padding:.4rem .5rem;background:${s.claimed?'#f3f4f6':'#fff'};font-size:.72rem">
+              <div style="font-weight:700">${codeBadge}</div>
+              <div style="margin-top:.15rem;color:${s.claimed?'var(--text-s)':'var(--green)'}">${s.claimed ? '👤 '+(s.claimed_by_name||'—') : '可選'}</div>
+            </div>`;
+          }).join('')}</div>`
+        : '';
+      const grabbersHtml = t.pick_mode ? pickHtml : (records.length
         ? `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem">${records.map(r => `<span ${r.assignment_id?`onclick="showTaskDetail(${r.assignment_id})" style="cursor:pointer;font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:10px;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp)"`:`style="font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:10px;background:var(--bg);color:var(--text-m);border:1px solid var(--border)"`}>#${r.grab_no} ${r.partner_name||'—'}${r.assignment_id?' ›':''}</span>`).join('')}</div>`
-        : `<div style="font-size:.74rem;color:var(--text-s);margin-top:.5rem">尚無人搶單</div>`;
+        : `<div style="font-size:.74rem;color:var(--text-s);margin-top:.5rem">尚無人認領</div>`);
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
@@ -1229,7 +1240,7 @@ async function loadStaffGrab() {
         <div style="height:5px;background:#e5edf3;border-radius:4px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--red)':'var(--blue)'};border-radius:4px"></div>
         </div>
-        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">已搶 ${t.grabbed_count} 人，剩餘 ${remaining} 個名額</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${t.pick_mode ? '🃏 挑選模式 ・ ' : ''}已選 ${t.grabbed_count} 張，剩餘 ${remaining} 張</div>
         ${grabbersHtml}
       </div>`;
     }).join('');

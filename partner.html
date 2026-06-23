@@ -1858,22 +1858,26 @@ async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
   try {
     const list = await API.get('/api/grab-tasks');
-    const available = list.filter(t => (t.my_grab_count||0) < (t.per_person_limit||1) && t.grabbed_count < t.total_slots);
+    const available = list.filter(t => !t.pick_mode && (t.my_grab_count||0) < (t.per_person_limit||1) && t.grabbed_count < t.total_slots);
+    // 挑選模式：開放中且仍有未選卡片
+    const pickTasks = list.filter(t => t.pick_mode && (t.slot_data||[]).some(s => !s.claimed));
+    _pickTasksCache = {}; pickTasks.forEach(t => { _pickTasksCache[t.id] = t; if (!_pickState[t.id]) _pickState[t.id] = { page: 0, sel: -1 }; });
+    const totalAvail = available.length + pickTasks.length;
 
     // 側邊選單 badge
     const badge = document.getElementById('badge-grab');
-    if (badge) { badge.textContent = available.length; badge.style.display = available.length ? 'inline-flex' : 'none'; }
+    if (badge) { badge.textContent = totalAvail; badge.style.display = totalAvail ? 'inline-flex' : 'none'; }
     const ovGrabAvail = document.getElementById('ov-grab-avail');
-    if (ovGrabAvail) ovGrabAvail.textContent = available.length;
+    if (ovGrabAvail) ovGrabAvail.textContent = totalAvail;
 
     // 總覽儀表板限量任務塊
     const ovBlock = document.getElementById('overview-grab-block');
     const ovBadge = document.getElementById('overview-grab-badge');
     const ovList  = document.getElementById('overview-grab-list');
     if (ovBlock) {
-      if (available.length) {
+      if (totalAvail) {
         ovBlock.style.display = '';
-        if (ovBadge) ovBadge.textContent = available.length;
+        if (ovBadge) ovBadge.textContent = totalAvail;
         if (ovList) ovList.innerHTML = available.slice(0, 3).map(t => {
           const remaining = t.total_slots - t.grabbed_count;
           return `
@@ -1891,14 +1895,15 @@ async function loadGrabZone() {
               }
             </div>
           </div>`;
-        }).join('') + (available.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${available.length-3} 個任務 →</div>` : '');
+        }).join('') + (available.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${available.length-3} 個任務 →</div>` : '')
+          + (pickTasks.length ? `<div style="font-size:.75rem;color:var(--blue-d);text-align:center;padding:.3rem;font-weight:700">🃏 ${pickTasks.length} 個挑選任務可選 →</div>` : '');
       } else {
         ovBlock.style.display = 'none';
       }
     }
 
     if (!wrap) return;
-    if (!available.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放認領的任務</div>'; return; }
+    if (!available.length && !pickTasks.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放認領的任務</div>'; return; }
     wrap.innerHTML = available.map(t => {
       const remaining  = t.total_slots - t.grabbed_count;
       const alreadyGrabbed = false;
@@ -1932,8 +1937,115 @@ async function loadGrabZone() {
             : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 認領</button>`
         }
       </div>`;
-    }).join('');
+    }).join('') + pickTasks.map(pickPanelHtml).join('');
+    // 渲染各挑選任務的卡片牆
+    pickTasks.forEach(t => renderPickBody(t.id));
   } catch(e) { wrap.innerHTML = `<div style="color:var(--red);font-size:.85rem">${e.message}</div>`; }
+}
+
+// ── 限量任務：挑選模式（卡片牆＋分頁＋確認時結帳）──────────────────
+let _pickTasksCache = {};
+let _pickState = {};
+const PICK_PAGE_SIZE = 8;
+
+function pickPanelHtml(t) {
+  const remaining = (t.slot_data||[]).filter(s => !s.claimed).length;
+  return `
+  <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid var(--blue)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem">
+      <div style="min-width:0">
+        <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
+        ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
+        <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">⏰ ${(t.deadline||'').slice(0,16)} 截止 ・ 剩 ${remaining} 張可選</div>
+      </div>
+      <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow);flex-shrink:0">$${(t.unit_price||0).toLocaleString()}</div>
+    </div>
+    <div id="pick-body-${t.id}"></div>
+  </div>`;
+}
+
+function renderPickBody(id) {
+  const box = document.getElementById('pick-body-' + id);
+  const t = _pickTasksCache[id];
+  if (!box || !t) return;
+  const slots = t.slot_data || [];
+  const st = _pickState[id] || (_pickState[id] = { page: 0, sel: -1 });
+  const pages = Math.max(1, Math.ceil(slots.length / PICK_PAGE_SIZE));
+  if (st.page >= pages) st.page = pages - 1;
+  const start = st.page * PICK_PAGE_SIZE;
+  const pageSlots = slots.slice(start, start + PICK_PAGE_SIZE);
+  const cards = pageSlots.map((s, j) => {
+    const idx = start + j;
+    const claimed = !!s.claimed;
+    const selected = st.sel === idx;
+    const code = s.full_code || ('#' + (idx + 1));
+    const codeNo = s.full_code ? s.full_code.split('-') : null;
+    const codeBadge = codeNo
+      ? `<span style="font-size:.74rem;font-weight:700"><span style="color:var(--blue-d)">${codeNo[0]}</span>-<span style="color:#C8901A">${codeNo[1]}</span></span>`
+      : `<span style="font-size:.74rem;font-weight:700;color:var(--text-m)">${code}</span>`;
+    const fields = (s.custom_fields||[]).filter(f => f.value !== '' && f.value != null);
+    const fieldsHtml = fields.length
+      ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.72rem;color:var(--text-m)">${fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>`
+      : (s.title ? `<div style="margin-top:.3rem;font-size:.74rem;color:var(--text-m)">${s.title}</div>` : '');
+    return `
+    <div ${claimed ? '' : `onclick="pickSelect(${id},${idx})"`} style="border:2px solid ${selected ? 'var(--blue)' : 'var(--border)'};border-radius:12px;padding:.6rem .7rem;background:${claimed ? '#f3f4f6' : selected ? 'var(--blue-p,#eaf4fb)' : '#fff'};cursor:${claimed ? 'default' : 'pointer'};opacity:${claimed ? '.65' : '1'};transition:all .15s">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.3rem">
+        ${codeBadge}
+        ${claimed
+          ? `<span style="font-size:.66rem;font-weight:700;padding:.08rem .4rem;border-radius:10px;background:#e5e7eb;color:var(--text-s)">已選</span>`
+          : selected
+            ? `<span style="font-size:.66rem;font-weight:700;padding:.08rem .4rem;border-radius:10px;background:var(--blue);color:#fff">已選取 ✓</span>`
+            : `<span style="font-size:.66rem;color:var(--text-s)">可選</span>`}
+      </div>
+      ${claimed ? `<div style="margin-top:.25rem;font-size:.72rem;color:var(--text-s)">👤 ${s.claimed_by_name || '他人'}</div>` : fieldsHtml}
+    </div>`;
+  }).join('');
+  const pager = pages > 1
+    ? `<div style="display:flex;justify-content:center;align-items:center;gap:.75rem;margin-top:.7rem">
+        <button onclick="pickPage(${id},-1)" ${st.page===0?'disabled':''} style="padding:.3rem .8rem;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:.78rem;cursor:pointer;${st.page===0?'opacity:.4;cursor:default':''}">← 上一頁</button>
+        <span style="font-size:.78rem;color:var(--text-s)">第 ${st.page+1} / ${pages} 頁</span>
+        <button onclick="pickPage(${id},1)" ${st.page>=pages-1?'disabled':''} style="padding:.3rem .8rem;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:.78rem;cursor:pointer;${st.page>=pages-1?'opacity:.4;cursor:default':''}">下一頁 →</button>
+      </div>`
+    : '';
+  const selValid = st.sel >= 0 && slots[st.sel] && !slots[st.sel].claimed;
+  const confirmBtn = `
+    <button onclick="confirmPick(${id})" ${selValid?'':'disabled'} style="width:100%;margin-top:.7rem;padding:.65rem;background:${selValid?'linear-gradient(135deg,#155E8C,#1A8AC0)':'#cbd5e1'};color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:${selValid?'pointer':'default'};font-family:sans-serif">${selValid ? `✅ 確認接案（${slots[st.sel].full_code||('#'+(st.sel+1))}）` : '請先選一張卡片'}</button>`;
+  box.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem">${cards}</div>${pager}${confirmBtn}`;
+}
+
+function pickSelect(id, idx) {
+  const st = _pickState[id] || (_pickState[id] = { page: 0, sel: -1 });
+  st.sel = (st.sel === idx) ? -1 : idx;
+  renderPickBody(id);
+}
+function pickPage(id, delta) {
+  const st = _pickState[id] || (_pickState[id] = { page: 0, sel: -1 });
+  st.page = Math.max(0, st.page + delta);
+  renderPickBody(id);
+}
+async function confirmPick(id) {
+  const st = _pickState[id];
+  if (!st || st.sel < 0) return;
+  const t = _pickTasksCache[id];
+  const slot = t && t.slot_data[st.sel];
+  if (!slot || slot.claimed) { showToast('這張卡片已被選走，請改選其他', 'error'); _pickState[id].sel = -1; loadGrabZone(); return; }
+  try {
+    const r = await API.post(`/api/grab-tasks/${id}/pick`, { slot_index: st.sel });
+    showToast(`接案成功！${r.full_code || ''}`, 'success');
+    _pickState[id] = { page: st.page, sel: -1 };
+    loadGrabZone();
+    if (typeof loadTasks === 'function') loadTasks();
+  } catch(e) {
+    if (e.status === 409 || (e.data && e.data.error === 'taken')) {
+      const who = (e.data && e.data.taken_by) || '他人';
+      const code = (e.data && e.data.code) || '';
+      showToast(`手慢了！${code} 已被 ${who} 選走，請改選其他卡片`, 'error');
+    } else {
+      showToast(e.message || '接案失敗', 'error');
+    }
+    _pickState[id].sel = -1;
+    loadGrabZone();
+  }
 }
 
 // ── 任務冒險錄：XP / 等級 / 完成動畫 ──────────────────────────

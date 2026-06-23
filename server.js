@@ -5,7 +5,7 @@ const path       = require('path');
 const cron       = require('node-cron');
 const https = require('https');
 const { Users, ForgotReqs, Assignments, WorklogReports, UserImages, Announcements, GrabTasks, GrabRecords, FreeTasks, Reports, ReportImages, db: firestoreDb, getTrafficStats, LEVELS, LEVEL_THRESHOLDS, calculateLevel, xpToNextLevel, levelInfo, getLevelsWithThresholds, BADGES, XPConfig, XPLogs, grantTaskXP } = require('./db');
-const { 產生任務代號, 新增任務 } = require('./taskId'); // 任務代號/編號模組
+const { 產生任務代號, 新增任務, 新增任務批次 } = require('./taskId'); // 任務代號/編號模組
 const FREE_CODE_COL = '自由任務代號', FREE_ITEM_COL = '自由任務項目';
 const LIMIT_CODE_COL = '限量任務代號', LIMIT_ITEM_COL = '限量任務項目';
 const db = firestoreDb;
@@ -1535,7 +1535,7 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode } = req.body;
     if (!task_name || !unit_price || !total_slots || !deadline)
       return res.status(400).json({ error: '缺少必填欄位' });
     const slots = parseInt(total_slots);
@@ -1543,11 +1543,34 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
     const ddays = parseInt(deadline_days) || null;
     const perLimit = (parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1; // 0 = 不限數量
     if (slots < 1) return res.status(400).json({ error: '總名額至少 1' });
+    const isPick = !!pick_mode;
     const task_code = await 產生任務代號(LIMIT_CODE_COL); // 限量任務代號（6碼）
+
+    // 挑選模式：補滿 slot_data 至 total_slots，並預先產生每張卡片的 代號-編號（未認領）
+    let finalSlotData = Array.isArray(slot_data) ? slot_data.slice(0, slots) : [];
+    if (isPick) {
+      while (finalSlotData.length < slots) finalSlotData.push({ custom_fields: [] });
+      const created = await 新增任務批次(
+        task_code,
+        finalSlotData.map(() => ({ 任務名稱: task_name })),
+        { codeCollection: LIMIT_CODE_COL, itemCollection: LIMIT_ITEM_COL }
+      );
+      finalSlotData = finalSlotData.map((s, i) => ({
+        title: s.title || '',
+        custom_fields: Array.isArray(s.custom_fields) ? s.custom_fields : [],
+        deadline_days: parseInt(s.deadline_days) || null,
+        full_code: created[i]?.完整編號 || null,
+        item_no: created[i]?.任務編號 || null,
+        grab_no: created[i]?.任務編號 || null,
+        claimed: false, claimed_by: null, claimed_by_name: null, claimed_at: null,
+      }));
+    }
+
     const item = await GrabTasks.create({
       task_name, company: company || '',
       unit_price: price, total_price_each: price,
       task_code,
+      pick_mode: isPick,
       total_slots: slots,
       deadline,
       deadline_days: ddays,
@@ -1555,11 +1578,11 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
       custom_fields: Array.isArray(custom_fields) ? custom_fields : [],
-      slot_data: Array.isArray(slot_data) ? slot_data : [],
+      slot_data: finalSlotData,
       per_person_limit: perLimit,
     });
     cacheDel('grab-tasks-open');
-    await logTaskAction(req, '建立搶單', `${company ? company+'：' : ''}${task_name} 名額${slots}`, { type: 'grab_task', id: item.id });
+    await logTaskAction(req, isPick ? '建立限量任務(挑選)' : '建立限量任務', `${company ? company+'：' : ''}${task_name} 名額${slots}`, { type: 'grab_task', id: item.id });
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1737,6 +1760,92 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
     if (userErr.some(m => e.message.includes(m)))
       return res.status(400).json({ error: e.message });
     console.error('[grab]', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 夥伴挑選指定卡片（挑選模式；確認時才結帳，樂觀鎖防衝突）
+app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) => {
+  const taskId    = parseInt(req.params.id);
+  const idx       = parseInt(req.body.slot_index);
+  const partnerId = req.session.user.id;
+  const partnerName = req.session.user.real_name;
+  try {
+    if (!(idx >= 0)) return res.status(400).json({ error: '未選擇卡片' });
+    const taskRef = firestoreDb.collection('grab_tasks').doc(String(taskId));
+    const counterRef = firestoreDb.collection('_meta').doc('counters');
+    const result = await firestoreDb.runTransaction(async t => {
+      const [taskDoc, counterDoc] = await Promise.all([t.get(taskRef), t.get(counterRef)]);
+      if (!taskDoc.exists) throw new Error('限量任務不存在');
+      const task = taskDoc.data();
+      if (!task.pick_mode) throw new Error('此任務非挑選模式');
+      if (task.status !== 'open') throw new Error('限量任務已關閉');
+      if (task.deadline <= nowTW().slice(0,16)) throw new Error('限量任務已截止');
+      const slots = Array.isArray(task.slot_data) ? task.slot_data.map(s => ({ ...s })) : [];
+      if (idx >= slots.length) throw new Error('卡片不存在');
+      const slot = slots[idx];
+      if (slot.claimed) throw new Error(`SLOT_TAKEN::${slot.claimed_by_name || '他人'}::${slot.full_code || ('#'+(idx+1))}`);
+      const perLimit = task.per_person_limit ?? 1;
+      if (perLimit > 0) {
+        const mine = slots.filter(s => s.claimed && s.claimed_by === partnerId).length;
+        if (mine >= perLimit) throw new Error('您已達此任務每人上限');
+      }
+      slot.claimed = true; slot.claimed_by = partnerId; slot.claimed_by_name = partnerName; slot.claimed_at = nowTW();
+      const counters  = counterDoc.exists ? counterDoc.data() : {};
+      const nextRecId = (counters['grab_records'] || 0) + 1;
+      t.update(taskRef, { slot_data: slots, grabbed_count: (task.grabbed_count || 0) + 1 });
+      t.set(counterRef, { ...counters, grab_records: nextRecId }, { merge: true });
+      return { task, slot, recId: nextRecId };
+    });
+
+    const { task, slot, recId } = result;
+    // 完成期限：卡片自己的 deadline_days 優先，否則用任務整體截止日
+    let deadline_days = task.deadline_days || null;
+    let deadline_date = (task.deadline || '').slice(0,10);
+    if (slot.deadline_days && parseInt(slot.deadline_days) >= 1) {
+      deadline_days = parseInt(slot.deadline_days);
+      const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+      dlBase.setDate(dlBase.getDate() + deadline_days);
+      const p = n => String(n).padStart(2,'0');
+      deadline_date = `${dlBase.getFullYear()}/${p(dlBase.getMonth()+1)}/${p(dlBase.getDate())}`;
+    }
+    // 回報由「夥伴自己的督導」審核（非發布者）
+    let supName = task.supervisor_name;
+    if (req.session.user.supervisor_id) { const sv = await Users.byId(req.session.user.supervisor_id); if (sv) supName = sv.real_name; }
+    // 更新限量任務項目狀態（代號-編號）
+    if (slot.full_code) {
+      try { await firestoreDb.collection(LIMIT_ITEM_COL).doc(slot.full_code).update({ 狀態: '進行中', 夥伴: partnerName }); } catch(e) { console.error('[pickItem]', e.message); }
+    }
+    const assignment = await Assignments.create({
+      task_name: task.task_name,
+      task_code: task.task_code || null, full_code: slot.full_code || null, item_no: slot.item_no || null,
+      company: task.company || '',
+      quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
+      notes: task.notes || '', deadline_days, deadline_date,
+      assigned_at: nowTW(), assign_type: 'grab',
+      target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
+      supervisor_id: req.session.user.supervisor_id || task.supervisor_id, supervisor_name: supName,
+      grab_task_id: taskId, grab_no: slot.grab_no || slot.item_no || null,
+      status: 'accepted', rejected_by: [], reject_reason: null,
+      custom_fields: Array.isArray(slot.custom_fields) && slot.custom_fields.length ? slot.custom_fields : (task.custom_fields || []),
+    });
+    await firestoreDb.collection('grab_records').doc(String(recId)).set({
+      id: recId, grab_task_id: taskId,
+      grab_no: slot.grab_no || slot.item_no || null, partner_id: partnerId, partner_name: partnerName,
+      grabbed_at: nowTW(), status: 'active', created_at: nowTW(), assignment_id: assignment.id,
+    });
+    cacheDel('grab-tasks-open');
+    cacheClear('sup-');
+    await logTaskAction(req, '挑選限量任務', `${task.company ? task.company+'：' : ''}${task.task_name} ${slot.full_code || ''}`, { type: 'assignment', id: assignment.id });
+    res.json({ ok: true, full_code: slot.full_code, assignment_id: assignment.id });
+  } catch(e) {
+    if (e.message.startsWith('SLOT_TAKEN::')) {
+      const [, who, code] = e.message.split('::');
+      return res.status(409).json({ error: 'taken', taken_by: who, code });
+    }
+    const userErr = ['限量任務不存在','此任務非挑選模式','限量任務已關閉','限量任務已截止','卡片不存在','您已達此任務每人上限','未選擇卡片'];
+    if (userErr.some(m => e.message.includes(m))) return res.status(400).json({ error: e.message });
+    console.error('[pick]', e.message);
     res.status(500).json({ error: e.message });
   }
 });

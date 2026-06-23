@@ -1235,8 +1235,13 @@ async function loadStaffGrab() {
           <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
           <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
           <div>名額<br><strong>${t.grabbed_count}/${t.total_slots}</strong></div>
-          <div>截止<br><strong>${(t.deadline||'').slice(0,10)}</strong></div>
+          <div>認領截止<br><strong>${(t.deadline||'').slice(0,10)}</strong></div>
         </div>
+        ${(t.deadline_days || t.work_date || t.notes) ? `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.78rem;color:var(--text-m);margin-bottom:.5rem;padding:.4rem .6rem;background:var(--bg);border-radius:var(--rs)">
+          ${t.deadline_days ? `<div><span style="color:var(--text-s)">完成期限：</span>接案後 ${t.deadline_days} 天內${t.pick_mode ? '（各卡片可能不同）' : ''}</div>` : ''}
+          ${t.work_date ? `<div><span style="color:var(--text-s)">執行日期：</span>${t.work_date}</div>` : ''}
+          ${t.notes ? `<div><span style="color:var(--text-s)">備註：</span>${t.notes}</div>` : ''}
+        </div>` : ''}
         <div style="height:5px;background:#e5edf3;border-radius:4px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--red)':'var(--blue)'};border-radius:4px"></div>
         </div>
@@ -1520,7 +1525,7 @@ function renderStaffAssign() {
               ` : `
                 <div>數量：${a.quantity||'—'}</div>
                 <div>單價／總價：$${(a.unit_price||0).toLocaleString()} ／ <strong style="color:var(--green)">$${(a.total_price||0).toLocaleString()}</strong></div>
-                <div>截止：${a.deadline_date ? a.deadline_date.slice(0,10) : ((a.deadline||'').slice(0,10)||'—')}</div>
+                <div>完成期限：${a.deadline_date ? a.deadline_date.slice(0,10) : (a.deadline_days ? '接案後'+a.deadline_days+'天' : '—')}</div>
                 ${a.work_date ? `<div>執行日期：${a.work_date}</div>` : ''}
               `}
             </div>

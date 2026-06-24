@@ -1288,8 +1288,12 @@ async function submitAssign() {
     if (!document.getElementById('pub-permanent').checked) {
       const y = document.getElementById('pub-year').value, m = document.getElementById('pub-month').value, d = document.getElementById('pub-day').value;
       if (!y || !m || !d) { err.textContent = '請填寫發布期限或勾選永久'; err.style.display = 'block'; return; }
+      const yy = parseInt(y), mm = parseInt(m), dd = parseInt(d);
+      if (yy < 2024 || mm < 1 || mm > 12 || dd < 1 || dd > new Date(yy, mm, 0).getDate()) {
+        err.textContent = `發布期限日期不正確（${mm} 月沒有 ${dd} 日）`; err.style.display = 'block'; return;
+      }
       const p2 = n => String(n).padStart(2, '0');
-      publish_end = `${y}/${p2(m)}/${p2(d)}`;
+      publish_end = `${yy}/${p2(mm)}/${p2(dd)}`;
     }
     try {
       await API.post('/api/free-tasks', {
@@ -1567,9 +1571,11 @@ function closeEndFree() { document.getElementById('end-free-overlay').classList.
 async function confirmEndFree() {
   const y = document.getElementById('ef-year').value, m = document.getElementById('ef-month').value, d = document.getElementById('ef-day').value;
   if (!y || !m || !d) { showToast('請填寫結束日期', 'error'); return; }
+  const yy = parseInt(y), mm = parseInt(m), dd = parseInt(d);
+  if (yy < 2024 || mm < 1 || mm > 12 || dd < 1 || dd > new Date(yy, mm, 0).getDate()) { showToast(`日期不正確（${mm} 月沒有 ${dd} 日）`, 'error'); return; }
   const p2 = n => String(n).padStart(2,'0');
   try {
-    await API.put(`/api/free-tasks/${_endFreeId}/end`, { publish_end: `${y}/${p2(m)}/${p2(d)}` });
+    await API.put(`/api/free-tasks/${_endFreeId}/end`, { publish_end: `${yy}/${p2(mm)}/${p2(dd)}` });
     showToast('已設定結束發布日期', 'success');
     closeEndFree();
     loadFreeHistory();

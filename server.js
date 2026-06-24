@@ -3418,6 +3418,43 @@ app.post('/api/sheet-fetch', requireRole('supervisor'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 上傳的 Excel（.xlsx，base64）→ 第一個工作表轉成 TSV 文字（供 AI 匯入解析）
+app.post('/api/excel-to-text', requireRole('supervisor'), async (req, res) => {
+  try {
+    const { base64 } = req.body;
+    if (!base64) return res.status(400).json({ error: '缺少檔案內容' });
+    const ExcelJS = require('exceljs');
+    const buf = Buffer.from(String(base64).replace(/^data:[^;]*;base64,/, ''), 'base64');
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf);
+    const ws = wb.worksheets[0];
+    if (!ws) return res.status(400).json({ error: '檔案中找不到工作表' });
+    const cellText = v => {
+      if (v == null) return '';
+      if (typeof v === 'object') {
+        if (v instanceof Date) { const p = n => String(n).padStart(2,'0'); return `${v.getFullYear()}/${p(v.getMonth()+1)}/${p(v.getDate())}`; }
+        if (v.text != null) return String(v.text);
+        if (v.result != null) return String(v.result);
+        if (Array.isArray(v.richText)) return v.richText.map(t => t.text).join('');
+        if (v.hyperlink) return String(v.hyperlink);
+        return '';
+      }
+      return String(v);
+    };
+    const lines = [];
+    ws.eachRow({ includeEmpty: false }, row => {
+      const arr = Array.isArray(row.values) ? row.values.slice(1) : [];
+      const vals = arr.map(c => cellText(c).trim());
+      if (vals.some(x => x !== '')) lines.push(vals.join('\t'));
+    });
+    if (!lines.length) return res.status(400).json({ error: '工作表沒有資料' });
+    res.json({ ok: true, text: lines.join('\n').slice(0, 20000) });
+  } catch(e) {
+    console.error('[excel-to-text]', e.message);
+    res.status(500).json({ error: '解析失敗（請確認是 .xlsx 檔）：' + e.message });
+  }
+});
+
 app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res) => {
   try {
     const { text, tasks, companies, partners, customFields, mode } = req.body;

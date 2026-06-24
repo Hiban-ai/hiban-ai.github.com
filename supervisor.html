@@ -715,9 +715,15 @@ textarea.form-input{resize:none}
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上客戶訊息、Email、LINE 對話等文字，AI 會自動辨識公司、任務、數量、單價、期限、夥伴與自訂欄位，並填入下方派案表單供你確認。</div>
     <div id="ai-import-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或貼上 Google 試算表連結（需設為「知道連結的人皆可查看」，將讀取第一個工作表）</div>
-    <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+    <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
       <input class="form-input" id="ai-import-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." style="flex:1;font-size:.85rem">
       <button onclick="loadAiImportSheet()" id="ai-import-sheet-btn" style="flex-shrink:0;padding:.65rem 1rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">讀取</button>
+    </div>
+    <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或上傳 Excel／CSV 檔案（讀取第一個工作表，會帶入下方文字框）</div>
+    <div style="margin-bottom:.75rem">
+      <input type="file" id="ai-import-file" accept=".xlsx,.csv" style="display:none" onchange="onAiExcelFile(this)">
+      <button type="button" onclick="document.getElementById('ai-import-file').click()" id="ai-import-file-btn" style="display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1rem;background:#fff;border:1.5px dashed var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">📄 選擇 Excel／CSV 檔</button>
+      <span id="ai-import-file-name" style="font-size:.8rem;color:var(--text-s);margin-left:.5rem"></span>
     </div>
     <textarea class="form-input" id="ai-import-text" rows="8" placeholder="例如：幫我派一個口碑評論的案子給小美，遠東百貨，10則，每則80元，3天內完成，星星要4顆以上..." style="font-size:.88rem;margin-bottom:.75rem"></textarea>
     <button onclick="runAiImport()" id="ai-import-btn" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">🤖 開始解析並帶入表單</button>
@@ -2538,6 +2544,7 @@ let _aiGrabSlotData = null; // [{custom_fields:[{label,value}]}] for grab mode
 function openAiImportMgr() {
   document.getElementById('ai-import-err').style.display = 'none';
   document.getElementById('ai-import-text').value = '';
+  const fnEl = document.getElementById('ai-import-file-name'); if (fnEl) fnEl.textContent = '';
   document.getElementById('ai-import-preview').style.display = 'none';
   _aiImportItems = [];
   _aiImportPartners = null;
@@ -2789,6 +2796,45 @@ async function loadAiImportSheet() {
     btn.disabled = false;
     btn.textContent = '讀取';
   }
+}
+
+// 上傳 Excel／CSV → 轉成表格文字帶入文字框
+async function onAiExcelFile(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  const errEl = document.getElementById('ai-import-err');
+  errEl.style.display = 'none';
+  const nameEl = document.getElementById('ai-import-file-name');
+  const btn = document.getElementById('ai-import-file-btn');
+  const name = f.name.toLowerCase();
+  if (nameEl) nameEl.textContent = f.name;
+  const reader = new FileReader();
+  if (name.endsWith('.csv')) {
+    reader.onload = () => {
+      document.getElementById('ai-import-text').value = reader.result || '';
+      showToast('已讀取 CSV，請按下方按鈕解析', 'success');
+    };
+    reader.onerror = () => { errEl.textContent = 'CSV 讀取失敗'; errEl.style.display = 'block'; };
+    reader.readAsText(f, 'utf-8');
+    return;
+  }
+  // .xlsx → 交給後端用 exceljs 解析
+  btn.disabled = true; const old = btn.textContent; btn.textContent = '讀取中…';
+  reader.onload = async () => {
+    try {
+      const res = await API.post('/api/excel-to-text', { base64: reader.result });
+      if (!res.ok) throw new Error(res.error || '解析失敗');
+      document.getElementById('ai-import-text').value = res.text || '';
+      showToast('已讀取 Excel，請按下方按鈕解析', 'success');
+    } catch(e) {
+      errEl.textContent = 'Excel 讀取失敗：' + e.message; errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = old;
+    }
+  };
+  reader.onerror = () => { btn.disabled = false; btn.textContent = old; errEl.textContent = '檔案讀取失敗'; errEl.style.display = 'block'; };
+  reader.readAsDataURL(f);
 }
 
 async function runAiImport() {

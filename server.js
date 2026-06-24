@@ -2163,8 +2163,12 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
         completed_at:  a ? a.completed_at  : null,
         assign_type:   a ? a.assign_type   : (r.assign_type || 'individual'),
         work_content:  a ? a.work_content  : '',
+        work_date:     a ? (a.work_date || null) : null,
         hourly_wage:   a ? a.hourly_wage   : (r.hourly_wage || null),
         grab_no:       a ? a.grab_no       : (r.grab_no || null),
+        task_no:       a ? (a.task_no || null)   : (r.task_no || null),
+        full_code:     a ? (a.full_code || null) : null,
+        task_code:     a ? (a.task_code || null) : null,
         custom_fields: a ? (a.custom_fields || []) : [],
       };
     }));

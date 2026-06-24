@@ -993,7 +993,7 @@ async function loadTaskReviews() {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
-            ${r.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
+            ${(r.full_code || r.task_no) ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
             <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
           </div>
           <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
@@ -1608,7 +1608,7 @@ function renderAssignCards(list, containerId) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem">
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${a.company ? a.company+"："+a.task_name : a.task_name}</div>
-            ${a.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(a)}</div>` : ''}
+            ${(a.full_code || a.task_no) ? `<div style="margin-top:.2rem">${taskNoBadge(a)}</div>` : ''}
             <div style="font-size:.8rem;color:var(--text-s);margin-top:.15rem">📤 派案：${fmtDate(a.assigned_at)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
@@ -2982,7 +2982,7 @@ function renderTaskRecordsContent() {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
         <div>
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
-          ${r.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
+          ${(r.full_code || r.task_no) ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
           <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📤 派案 ${fmtDate(r.assigned_at)}</div>
         </div>
         <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>

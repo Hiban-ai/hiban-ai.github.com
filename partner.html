@@ -1903,7 +1903,9 @@ async function loadGrabZone() {
               </div>
             </div>
             <div style="flex-shrink:0">
-              ${remaining === 0
+              ${t.my_active_free
+                ? `<span style="font-size:.75rem;color:var(--text-s)">進行中</span>`
+                : remaining === 0
                 ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
                 : `<button onclick="doGrab(${t.id},this)" style="padding:.5rem 1.1rem;font-size:.85rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif;box-shadow:0 2px 8px rgba(26,138,192,.3)">認領</button>`
               }
@@ -1949,8 +1951,8 @@ async function loadGrabZone() {
         ${t.work_date ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
         ${customFieldsHtml(t.custom_fields)}
-        ${alreadyGrabbed
-          ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`
+        ${t.my_active_free
+          ? `<button disabled style="width:100%;padding:.65rem;background:var(--bg);color:var(--text-s);border:1.5px solid var(--border);border-radius:20px;font-size:.88rem;font-weight:700;cursor:not-allowed;font-family:sans-serif">⏳ 進行中（完成後才能再接）</button>`
           : remaining === 0
             ? `<div style="padding:.55rem 1rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">名額已滿</div>`
             : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 認領</button>`

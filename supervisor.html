@@ -2628,6 +2628,9 @@ async function aiImportConfirm(i) {
 }
 
 async function aiImportConfirmAll() {
+  const pending = _aiImportItems.filter(x => x.status !== 'done').length;
+  if (!pending) { showToast('沒有可派案的項目', 'error'); return; }
+  if (!confirm(`確定要一鍵派出這 ${pending} 筆任務嗎？\n送出後會立即建立，無法整批復原，請先確認上方預覽內容無誤。`)) return;
   const btn = document.getElementById('ai-import-confirm-all-btn');
   btn.disabled = true;
   btn.textContent = '派案中...';
@@ -2688,6 +2691,9 @@ async function aiImportGrabConfirm(data) {
   const btn = document.getElementById('ai-import-confirm-all-btn');
   const dlDays = parseInt(document.getElementById('ai-grab-deadline-days').value);
   if (!dlDays || dlDays < 1) { showToast('請輸入認領截止天數', 'error'); return; }
+  const cnt = (_aiGrabSlotData || []).length;
+  const pickOn = document.getElementById('ai-grab-pick-mode') && document.getElementById('ai-grab-pick-mode').checked;
+  if (!confirm(`確定要建立這個限量任務嗎？\n共 ${cnt} ${pickOn ? '張可挑選卡片' : '個名額'}，送出後立即發布，請先確認上方預覽無誤。`)) return;
   btn.disabled = true;
   try {
     if (data.task_name) {

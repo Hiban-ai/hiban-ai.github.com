@@ -314,8 +314,6 @@ textarea.form-input{resize:none}
                     style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">⏱️ 指派任務(小時)</button>
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
                     style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🎯 限量任務</button>
-            <button id="mode-btn-free" onclick="setAssignMode('free')"
-                    style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🆓 自由任務</button>
           </div>
           <button onclick="openAiImportMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🤖 AI 匯入</button>
         </div>
@@ -492,7 +490,6 @@ textarea.form-input{resize:none}
         <button class="ar-tab" onclick="arTab('piece',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:var(--blue-d);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📋 指派(件)</button>
         <button class="ar-tab" onclick="arTab('hourly',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⏱️ 指派(小時)</button>
         <button class="ar-tab" onclick="arTab('grab',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 限量</button>
-        <button class="ar-tab" onclick="arTab('free',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🆓 自由</button>
         <button class="ar-tab" onclick="arTab('logs',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📜 操作紀錄</button>
       </div>
       <div class="ar-pane" id="ar-piece"><div id="assign-history-piece"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div></div>
@@ -849,7 +846,7 @@ function switchPage(name, el) {
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sv-menu-item').forEach(i=>i.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (name === 'assign-records') { loadAssignHistory(); loadGrabHistory(); loadFreeHistory(); }
+  if (name === 'assign-records') { loadAssignHistory(); loadGrabHistory(); }
   if (name === 'worklog-review') loadTaskReviews();
   if (name === 'task-records')  loadTaskRecords();
   if (name === 'notices') {

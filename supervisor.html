@@ -1384,12 +1384,12 @@ async function submitAssign() {
         deadline_days: (!daysUnlimited && parseInt(days) >= 1) ? parseInt(days) : null,
         work_date: workDate || null,
         custom_fields: collectCustomFields(),
-        slot_data: _aiGrabSlotData || [],
+        slot_data: _aiGrabConfirming ? (_aiGrabSlotData || []) : [], // 僅 AI 匯入確認時帶入，手動建立不帶（避免殘留外洩）
         per_person_limit: freeMode ? 0 : ((perLimit >= 0) ? perLimit : 1),
         pick_mode: pickMode,
         free_mode: freeMode,
       });
-      _aiGrabSlotData = null;
+      _aiGrabSlotData = null; _aiGrabConfirming = false;
       showToast(pickMode ? '限量任務（挑選模式）已建立！' : freeMode ? '限量任務（自由模式）已建立！' : '限量任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
@@ -1401,7 +1401,7 @@ async function submitAssign() {
       renderAssignCustomFields();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
-    } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+    } catch(e) { _aiGrabConfirming = false; err.textContent = e.message; err.style.display = 'block'; }
   } else {
     // 一般派案
     const target  = document.getElementById('assign-target').value;
@@ -2583,6 +2583,7 @@ async function deleteCustomFieldDef(id) {
 let _aiImportItems = []; // [{data, status:'pending'|'done'|'error', message}]
 let _aiImportPartners = null;
 let _aiGrabSlotData = null; // [{custom_fields:[{label,value}]}] for grab mode
+let _aiGrabConfirming = false; // 僅 AI 匯入確認時才把 slot_data 帶入；手動建立一律不用，避免殘留外洩
 
 function openAiImportMgr() {
   document.getElementById('ai-import-err').style.display = 'none';
@@ -2911,6 +2912,7 @@ async function aiImportGrabConfirm(data) {
     });
 
     closeAiImportMgr();
+    _aiGrabConfirming = true; // 僅這次 AI 確認帶入 slot_data
     await submitAssign();
     const assignErr = document.getElementById('assign-err');
     if (assignErr.style.display !== 'none' && assignErr.textContent) {

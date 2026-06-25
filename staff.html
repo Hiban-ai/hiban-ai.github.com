@@ -1207,7 +1207,7 @@ async function loadStaffGrab() {
     wrap.innerHTML = list.map((t, i) => {
       const remaining = t.total_slots - t.grabbed_count;
       const pct       = Math.round((t.grabbed_count / t.total_slots) * 100);
-      const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
+      const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
       const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
       const records = recordsList[i] || [];
@@ -1236,7 +1236,7 @@ async function loadStaffGrab() {
           <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
           <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
           <div>名額<br><strong>${t.grabbed_count}/${t.total_slots}</strong></div>
-          <div>認領截止<br><strong>${(t.deadline||'').slice(0,10)}</strong></div>
+          <div>認領截止<br><strong>${t.deadline ? t.deadline.slice(0,10) : '永久'}</strong></div>
         </div>
         ${(t.deadline_days || t.work_date || t.notes) ? `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.78rem;color:var(--text-m);margin-bottom:.5rem;padding:.4rem .6rem;background:var(--bg);border-radius:var(--rs)">
           ${t.deadline_days ? `<div><span style="color:var(--text-s)">完成期限：</span>接案後 ${t.deadline_days} 天內${t.pick_mode ? '（各卡片可能不同）' : ''}</div>` : ''}

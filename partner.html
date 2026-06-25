@@ -1896,7 +1896,7 @@ async function loadGrabZone() {
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${taskLabelNo(t)}</div>
               <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
-                💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${(t.deadline||'').slice(0,10)} 截止
+                💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${t.deadline ? t.deadline.slice(0,10)+' 截止' : '永久開放'}
               </div>
             </div>
             <div style="flex-shrink:0">
@@ -1939,7 +1939,7 @@ async function loadGrabZone() {
             <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
           </div>
         </div>
-        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">⏰ 截止：${(t.deadline||'').slice(0,16)}</div>
+        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">${t.deadline ? '⏰ 截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
         ${customFieldsHtml(t.custom_fields)}
         ${alreadyGrabbed
           ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`
@@ -1967,7 +1967,7 @@ function pickPanelHtml(t) {
       <div style="min-width:0">
         <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
         ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
-        <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">⏰ 認領期限：${(t.deadline||'').slice(0,16)} 截止 ・ 剩 ${remaining} 張可選</div>
+        <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">${t.deadline ? '⏰ 認領期限：'+t.deadline.slice(0,16)+' 截止' : '⏰ 永久開放'} ・ 剩 ${remaining} 張可選</div>
         ${t.work_date ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
       </div>

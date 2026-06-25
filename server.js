@@ -1541,8 +1541,9 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
     const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, work_date } = req.body;
-    if (!task_name || !unit_price || !total_slots || !deadline)
+    if (!task_name || !unit_price || !total_slots)
       return res.status(400).json({ error: '缺少必填欄位' });
+    // deadline（認領截止）可為 null＝永久開放
     const slots = parseInt(total_slots);
     const price = parseInt(unit_price);
     const ddays = parseInt(deadline_days) || null;
@@ -1629,7 +1630,7 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
     let list = cacheGet('grab-tasks-open');
     if (!list) { list = await GrabTasks.openList(); cacheSet('grab-tasks-open', list, 60 * 1000); } // 快取 1 分鐘
     // 過濾截止的
-    list = list.filter(t => t.deadline >= now.slice(0,16));
+    list = list.filter(t => !t.deadline || t.deadline >= now.slice(0,16)); // 無 deadline＝永久開放
     // 附上該夥伴已搶的數量與編號
     const result = await Promise.all(list.map(async t => {
       const recSnap = await firestoreDb.collection('grab_tasks').doc(String(t.id))
@@ -1686,7 +1687,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       const task = taskDoc.data();
       if (task.status !== 'open') throw new Error('搶單已關閉');
       const nowStr = nowTW().slice(0,16); // YYYY/MM/DD HH:MM
-      if (task.deadline <= nowStr) throw new Error('搶單時間已截止');
+      if (task.deadline && task.deadline <= nowStr) throw new Error('搶單時間已截止');
       if (task.grabbed_count >= task.total_slots) throw new Error('名額已滿');
       const perLimit = task.per_person_limit ?? 1;
       if (perLimit > 0 && myGrabsSnap.size >= perLimit) throw new Error('您已達此搶單每人上限');
@@ -1789,7 +1790,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       const task = taskDoc.data();
       if (!task.pick_mode) throw new Error('此任務非挑選模式');
       if (task.status !== 'open') throw new Error('限量任務已關閉');
-      if (task.deadline <= nowTW().slice(0,16)) throw new Error('限量任務已截止');
+      if (task.deadline && task.deadline <= nowTW().slice(0,16)) throw new Error('限量任務已截止');
       const slots = Array.isArray(task.slot_data) ? task.slot_data.map(s => ({ ...s })) : [];
       if (idx >= slots.length) throw new Error('卡片不存在');
       const slot = slots[idx];

@@ -427,30 +427,20 @@ textarea.form-input{resize:none}
               <input type="hidden" id="assign-work-date">
             </div>
           </div>
-          <!-- 限量任務：截止日期 + 時間 -->
-          <div id="row-grab-deadline" style="display:none;flex-direction:column;gap:.35rem;margin-top:.75rem">
-            <label style="font-size:.82rem;color:var(--text-s)">截止日期與時間</label>
-            <div class="gdp-wrap">
-              <div class="gdp-selects">
-                <select class="form-input" id="gdp-year"  onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">選擇年份</option></select>
-                <select class="form-input" id="gdp-month" onchange="gdpUpdateGrid()" style="font-size:.82rem"><option value="">選擇月份</option></select>
-              </div>
-              <div id="gdp-grid" style="display:none">
-                <div class="gdp-grid-header">
-                  <span style="color:var(--red)">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span style="color:#2EAA7A">六</span>
-                </div>
-                <div class="gdp-grid-body" id="gdp-days"></div>
-              </div>
-              <!-- 時間選擇（日期選好後才顯示） -->
-              <div id="gdp-time-row" style="display:none;align-items:center;gap:.5rem;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed var(--border)">
-                <span style="font-size:.78rem;color:var(--text-s);flex-shrink:0">⏰ 時間</span>
-                <select class="form-input" id="gdp-hour" onchange="gdpUpdateHint()" style="flex:1;font-size:.82rem"></select>
-                <span style="color:var(--text-s);font-size:.9rem">：</span>
-                <select class="form-input" id="gdp-min"  onchange="gdpUpdateHint()" style="flex:1;font-size:.82rem"></select>
-              </div>
-              <div class="gdp-hint" id="gdp-hint">尚未選擇截止日期</div>
+          <!-- 限量任務：認領截止（年/月/日 + 永久；可不設＝永久開放） -->
+          <div id="row-grab-deadline" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">認領截止</label>
+            <div style="flex:1;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap">
+              <input class="form-input" type="number" id="gd-year"  min="2024" placeholder="年" style="width:96px;min-width:96px">
+              <span style="color:var(--text-s)">年</span>
+              <input class="form-input" type="number" id="gd-month" min="1" max="12" placeholder="月" style="width:72px;min-width:72px">
+              <span style="color:var(--text-s)">月</span>
+              <input class="form-input" type="number" id="gd-day"   min="1" max="31" placeholder="日" style="width:72px;min-width:72px">
+              <span style="color:var(--text-s)">日止</span>
+              <label style="display:flex;align-items:center;gap:.3rem;font-size:.82rem;color:var(--text-s);white-space:nowrap;cursor:pointer;margin-left:.3rem">
+                <input type="checkbox" id="gd-permanent" onchange="onGdPermanent()"> 永久
+              </label>
             </div>
-            <input type="hidden" id="grab-deadline">
           </div>
           </div>
 
@@ -1221,13 +1211,21 @@ function setAssignMode(mode) {
   document.getElementById('assign-submit-btn').textContent =
     isGrab ? '🎯 建立限量任務' : isHourly ? '⏱️ 指派(小時)' : isFree ? '🆓 發布自由任務' : '確認派案 ✓';
   document.getElementById('assign-err').style.display = 'none';
-  if (isGrab) gdpInit();
+  if (isGrab) gdReset();
 }
 // 自由任務：不限名額 / 永久 勾選切換
 function onQtyUnlimited() {
   const on = document.getElementById('assign-qty-unlimited').checked;
   const q = document.getElementById('assign-qty');
   q.disabled = on; if (on) q.value = ''; q.style.opacity = on ? '.5' : '1';
+}
+function onGdPermanent() {
+  const on = document.getElementById('gd-permanent').checked;
+  ['gd-year','gd-month','gd-day'].forEach(id => { const el = document.getElementById(id); if (!el) return; el.disabled = on; if (on) el.value = ''; el.style.opacity = on ? '.5' : '1'; });
+}
+function gdReset() {
+  const p = document.getElementById('gd-permanent'); if (p) p.checked = false;
+  ['gd-year','gd-month','gd-day'].forEach(id => { const el = document.getElementById(id); if (el) { el.value = ''; el.disabled = false; el.style.opacity = '1'; } });
 }
 function onPubPermanent() {
   const on = document.getElementById('pub-permanent').checked;
@@ -1325,16 +1323,23 @@ async function submitAssign() {
   if (assignMode === 'grab') {
     // 限量任務
     const slots    = document.getElementById('grab-slots').value;
-    const dlDate = document.getElementById('grab-deadline').value; // YYYY-MM-DD
-    const dlHour = document.getElementById('gdp-hour').value;
-    const dlMin  = document.getElementById('gdp-min').value;
+    const gdPermanent = document.getElementById('gd-permanent').checked;
+    const gdY = document.getElementById('gd-year').value, gdM = document.getElementById('gd-month').value, gdD = document.getElementById('gd-day').value;
     const daysUnlimited = document.getElementById('assign-days-unlimited').checked;
     const days   = document.getElementById('assign-days').value;
     const workDate = document.getElementById('assign-work-date').value;
     if (!slots || parseInt(slots) < 1) { err.textContent = '請填寫名額總數'; err.style.display = 'block'; return; }
-    if (!dlDate) { err.textContent = '請選擇認領截止日期'; err.style.display = 'block'; return; }
-    // 組合成 YYYY/MM/DD HH:MM
-    const dl = dlDate.replace(/-/g, '/') + ` ${dlHour}:${dlMin}`;
+    // 認領截止：勾永久或留空＝永久開放（null）；有填則需為有效日期，組成 YYYY/MM/DD 23:59
+    let dl = null;
+    if (!gdPermanent && (gdY || gdM || gdD)) {
+      const yy = parseInt(gdY), mm = parseInt(gdM), dd = parseInt(gdD);
+      if (!gdY || !gdM || !gdD) { err.textContent = '認領截止請填完整年/月/日，或勾選永久'; err.style.display = 'block'; return; }
+      if (yy < 2024 || mm < 1 || mm > 12 || dd < 1 || dd > new Date(yy, mm, 0).getDate()) {
+        err.textContent = `認領截止日期不正確（${mm} 月沒有 ${dd} 日）`; err.style.display = 'block'; return;
+      }
+      const p2 = n => String(n).padStart(2, '0');
+      dl = `${yy}/${p2(mm)}/${p2(dd)} 23:59`;
+    }
     try {
       const perLimit = parseInt(document.getElementById('grab-per-limit').value);
       const pickMode = document.getElementById('grab-pick-mode').checked;
@@ -1355,8 +1360,8 @@ async function submitAssign() {
       document.getElementById('grab-per-limit').value = '1';
       document.getElementById('grab-pick-mode').checked = false;
       document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
+      gdReset();
       renderAssignCustomFields();
-      gdpInit();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
@@ -1395,7 +1400,7 @@ async function loadGrabHistory() {
     if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無限量任務紀錄</div>'; return; }
     el.innerHTML = list.map(t => {
       const remaining = t.total_slots - t.grabbed_count;
-      const expired   = t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
+      const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'open' && !expired ? 'var(--green)' : 'var(--text-s)';
       const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : `開放中 (剩 ${remaining})`;
       return `
@@ -1414,7 +1419,7 @@ async function loadGrabHistory() {
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem .75rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">
           <div>💰 單價 <strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
           <div>👥 名額 <strong>${t.grabbed_count} / ${t.total_slots}</strong></div>
-          <div>⏰ 認領截止 <strong>${(t.deadline||'').slice(0,16)}</strong></div>
+          <div>⏰ 認領截止 <strong>${t.deadline ? t.deadline.slice(0,16) : '永久開放'}</strong></div>
         </div>
         ${(t.deadline_days || t.work_date || t.notes) ? `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.82rem;color:var(--text-m);margin-bottom:.6rem;padding:.4rem .6rem;background:var(--bg);border-radius:var(--rs)">
           ${t.deadline_days ? `<div><span style="color:var(--text-s)">完成期限：</span>接案後 ${t.deadline_days} 天內${t.pick_mode ? '（各卡片可能不同）' : ''}</div>` : ''}
@@ -2718,18 +2723,13 @@ async function aiImportGrabConfirm(data) {
     document.getElementById('grab-pick-mode').checked = !!document.getElementById('ai-grab-pick-mode')?.checked;
     calcAssignTotal();
 
-    // 套用認領截止日期（N天後 23:59）到主表單的日期選擇器
+    // 套用認領截止日期（N天後）到主表單的年/月/日欄位
     const dl = new Date();
     dl.setDate(dl.getDate() + dlDays);
-    const dlDate = `${dl.getFullYear()}-${String(dl.getMonth()+1).padStart(2,'0')}-${String(dl.getDate()).padStart(2,'0')}`;
-    gdpInit();
-    document.getElementById('gdp-year').value = String(dl.getFullYear());
-    document.getElementById('gdp-month').value = String(dl.getMonth()+1);
-    gdpUpdateGrid();
-    gdpSelectDay(dlDate);
-    document.getElementById('gdp-hour').value = '23';
-    document.getElementById('gdp-min').value = '59';
-    gdpUpdateHint();
+    document.getElementById('gd-permanent').checked = false; onGdPermanent();
+    document.getElementById('gd-year').value  = String(dl.getFullYear());
+    document.getElementById('gd-month').value = String(dl.getMonth()+1);
+    document.getElementById('gd-day').value   = String(dl.getDate());
 
     // 確保自訂欄位定義存在（彙整所有名額出現過的 label）
     const curTask = document.getElementById('assign-task').value;

@@ -1540,20 +1540,22 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, work_date } = req.body;
-    if (!task_name || !unit_price || !total_slots)
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, free_mode, qty_unlimited, work_date } = req.body;
+    if (!task_name || !unit_price)
       return res.status(400).json({ error: '缺少必填欄位' });
     // deadline（認領截止）可為 null＝永久開放
-    const slots = parseInt(total_slots);
+    const isPick = !!pick_mode;
+    const isFree = !!free_mode;
+    const qtyUnlimited = !!qty_unlimited && !isPick; // 挑選模式不可無限
+    const slots = qtyUnlimited ? null : parseInt(total_slots);
     const price = parseInt(unit_price);
     const ddays = parseInt(deadline_days) || null;
-    const perLimit = (parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1; // 0 = 不限數量
-    if (slots < 1) return res.status(400).json({ error: '總名額至少 1' });
-    const isPick = !!pick_mode;
+    const perLimit = isFree ? 0 : ((parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1); // 0 = 不限數量
+    if (!qtyUnlimited && (!slots || slots < 1)) return res.status(400).json({ error: '請填總名額或勾選不限' });
     const task_code = await 產生任務代號(LIMIT_CODE_COL); // 限量任務代號（6碼）
 
     // 挑選模式：補滿 slot_data 至 total_slots，並預先產生每張卡片的 代號-編號（未認領）
-    let finalSlotData = Array.isArray(slot_data) ? slot_data.slice(0, slots) : [];
+    let finalSlotData = Array.isArray(slot_data) ? slot_data.slice(0, slots || undefined) : [];
     if (isPick) {
       while (finalSlotData.length < slots) finalSlotData.push({ custom_fields: [] });
       const created = await 新增任務批次(
@@ -1578,6 +1580,8 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       unit_price: price, total_price_each: price,
       task_code,
       pick_mode: isPick,
+      free_mode: isFree,
+      qty_unlimited: qtyUnlimited,
       total_slots: slots,
       deadline,
       deadline_days: ddays,
@@ -1675,6 +1679,14 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
   const partnerId = req.session.user.id;
   const partnerName = req.session.user.real_name;
   try {
+    // 自由模式：同任務名+公司，進行中只能有一個（完成後才能再接）
+    const task0 = await GrabTasks.byId(taskId);
+    if (task0 && task0.free_mode) {
+      const mine = await Assignments.forPartners([partnerId]);
+      const dup = mine.find(a => a.assign_type === 'grab' && a.status === 'accepted'
+        && (a.task_name || '') === (task0.task_name || '') && (a.company || '') === (task0.company || ''));
+      if (dup) return res.status(400).json({ error: '同任務名稱與公司已有進行中的任務，完成後才能再接' });
+    }
     const taskRef    = firestoreDb.collection('grab_tasks').doc(String(taskId));
     const grabbedByCol = taskRef.collection('grabbed_by');
     const counterRef = firestoreDb.collection('_meta').doc('counters');
@@ -1688,7 +1700,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       if (task.status !== 'open') throw new Error('搶單已關閉');
       const nowStr = nowTW().slice(0,16); // YYYY/MM/DD HH:MM
       if (task.deadline && task.deadline <= nowStr) throw new Error('搶單時間已截止');
-      if (task.grabbed_count >= task.total_slots) throw new Error('名額已滿');
+      if (!task.qty_unlimited && task.grabbed_count >= task.total_slots) throw new Error('名額已滿');
       const perLimit = task.per_person_limit ?? 1;
       if (perLimit > 0 && myGrabsSnap.size >= perLimit) throw new Error('您已達此搶單每人上限');
 

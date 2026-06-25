@@ -1869,7 +1869,10 @@ async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
   try {
     const list = await API.get('/api/grab-tasks');
-    const available = list.filter(t => !t.pick_mode && (t.my_grab_count||0) < (t.per_person_limit||1) && t.grabbed_count < t.total_slots);
+    // 數量/自由模式可認領：自由模式不看每人上限（後端擋重複），無限名額不看剩餘
+    const available = list.filter(t => !t.pick_mode
+      && (t.free_mode || (t.my_grab_count||0) < (t.per_person_limit||1))
+      && (t.qty_unlimited || t.grabbed_count < t.total_slots));
     // 挑選模式：開放中且仍有未選卡片
     const pickTasks = list.filter(t => t.pick_mode && (t.slot_data||[]).some(s => !s.claimed));
     _pickTasksCache = {}; pickTasks.forEach(t => { _pickTasksCache[t.id] = t; if (!_pickState[t.id]) _pickState[t.id] = { page: 0, sel: -1 }; });
@@ -1890,13 +1893,13 @@ async function loadGrabZone() {
         ovBlock.style.display = '';
         if (ovBadge) ovBadge.textContent = totalAvail;
         if (ovList) ovList.innerHTML = available.slice(0, 3).map(t => {
-          const remaining = t.total_slots - t.grabbed_count;
+          const remaining = t.qty_unlimited ? null : (t.total_slots - t.grabbed_count);
           return `
           <div style="background:#fff;border-radius:var(--rs);padding:.9rem 1rem;margin-bottom:.55rem;border:1.5px solid var(--blue);box-shadow:0 2px 10px rgba(26,138,192,.12);display:flex;align-items:center;gap:.75rem">
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${taskLabelNo(t)}</div>
               <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
-                💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; 剩 ${remaining} 個名額 &nbsp;·&nbsp; ${t.deadline ? t.deadline.slice(0,10)+' 截止' : '永久開放'}
+                💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; ${t.qty_unlimited ? '名額不限' : '剩 '+remaining+' 個名額'} &nbsp;·&nbsp; ${t.deadline ? t.deadline.slice(0,10)+' 截止' : '永久開放'}
               </div>
             </div>
             <div style="flex-shrink:0">
@@ -1916,10 +1919,11 @@ async function loadGrabZone() {
     if (!wrap) return;
     if (!available.length && !pickTasks.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放認領的任務</div>'; return; }
     wrap.innerHTML = available.map(t => {
-      const remaining  = t.total_slots - t.grabbed_count;
+      const unlim      = !!t.qty_unlimited;
+      const remaining  = unlim ? null : (t.total_slots - t.grabbed_count);
       const alreadyGrabbed = false;
       const myCount    = t.my_grab_count || 0;
-      const pctFill    = Math.round((t.grabbed_count / t.total_slots) * 100);
+      const pctFill    = unlim ? 0 : Math.round((t.grabbed_count / t.total_slots) * 100);
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
@@ -1933,12 +1937,13 @@ async function loadGrabZone() {
         <!-- 名額進度 -->
         <div style="margin-bottom:.6rem">
           <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-s);margin-bottom:.25rem">
-            <span>名額 ${t.grabbed_count} / ${t.total_slots}</span><span>剩餘 ${remaining}</span>
+            <span>${unlim ? '名額 不限 ・ 已認領 '+t.grabbed_count : '名額 '+t.grabbed_count+' / '+t.total_slots}</span>${unlim ? '' : '<span>剩餘 '+remaining+'</span>'}
           </div>
-          <div style="height:6px;background:#e5edf3;border-radius:4px;overflow:hidden">
+          ${unlim ? '' : `<div style="height:6px;background:#e5edf3;border-radius:4px;overflow:hidden">
             <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
-          </div>
+          </div>`}
         </div>
+        ${t.free_mode ? '<div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.5rem">🔓 自由模式：完成後可再接</div>' : ''}
         <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">${t.deadline ? '⏰ 截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
         ${customFieldsHtml(t.custom_fields)}
         ${alreadyGrabbed

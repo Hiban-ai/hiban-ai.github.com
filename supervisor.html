@@ -2655,6 +2655,59 @@ function aiImportGrabSlotSummary(slot) {
   return parts.join('　') || '（無資料）';
 }
 
+// ── AI 匯入：自由任務 ──
+function showAiImportFreePreview(data) {
+  const title = document.getElementById('ai-import-preview-title');
+  const allBtn = document.getElementById('ai-import-confirm-all-btn');
+  title.textContent = '🆓 AI 解析結果預覽（自由任務）';
+  allBtn.style.display = 'block';
+  allBtn.textContent = '🆓 發布自由任務';
+  allBtn.onclick = () => aiImportFreeConfirm(data);
+  const rows = [
+    ['任務', data.task_name], ['公司', data.company],
+    ['單價', data.unit_price ? `$${data.unit_price}` : ''],
+    ['總名額', data.qty_unlimited ? '不限' : (data.total_qty || '')],
+    ['完成期限', data.deadline_days ? `${data.deadline_days} 天內` : ''],
+    ['發布截止', data.publish_end || '永久'],
+    ['備註', data.notes],
+  ].filter(([,v]) => v !== undefined && v !== null && v !== '')
+   .map(([k,v]) => `<b>${k}</b>：${v}`).join('　');
+  document.getElementById('ai-import-list').innerHTML =
+    `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.85rem;line-height:1.7">${rows || '（AI 未解析出資料）'}</div>`;
+  document.getElementById('ai-import-preview').style.display = 'block';
+}
+
+async function aiImportFreeConfirm(data) {
+  if (!confirm('確定要發布這個自由任務嗎？\n送出後會立即發布，請先確認上方預覽無誤。')) return;
+  // 帶入自由任務表單欄位
+  if (data.task_name) {
+    const taskSel = document.getElementById('assign-task');
+    if ([...taskSel.options].some(o => o.value === data.task_name)) { taskSel.value = data.task_name; renderAssignCustomFields(); applyFieldOrder(); applyTaskDefaultPrice(); }
+  }
+  if (data.company) { const coSel = document.getElementById('assign-company'); if ([...coSel.options].some(o => o.value === data.company)) coSel.value = data.company; }
+  if (data.unit_price) document.getElementById('assign-price').value = data.unit_price;
+  // 名額 / 不限
+  const qtyUnlimited = !!data.qty_unlimited;
+  document.getElementById('assign-qty-unlimited').checked = qtyUnlimited; onQtyUnlimited();
+  if (!qtyUnlimited && data.total_qty) document.getElementById('assign-qty').value = data.total_qty;
+  // 完成期限 / 不限
+  if (data.deadline_days) { document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); document.getElementById('assign-days').value = data.deadline_days; }
+  else { document.getElementById('assign-days-unlimited').checked = true; onDaysUnlimited(); }
+  // 發布截止 / 永久
+  if (data.publish_end && /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(data.publish_end)) {
+    const [y,m,d] = data.publish_end.split('/');
+    document.getElementById('pub-permanent').checked = false; onPubPermanent();
+    document.getElementById('pub-year').value = parseInt(y);
+    document.getElementById('pub-month').value = parseInt(m);
+    document.getElementById('pub-day').value = parseInt(d);
+  } else {
+    document.getElementById('pub-permanent').checked = true; onPubPermanent();
+  }
+  if (data.notes) document.getElementById('assign-notes').value = data.notes;
+  closeAiImportMgr();
+  await submitAssign();
+}
+
 function showAiImportGrabPreview(data) {
   _aiGrabSlotData = data.slots || [];
   const title = document.getElementById('ai-import-preview-title');
@@ -2869,6 +2922,17 @@ async function runAiImport() {
       });
       if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
       showAiImportGrabPreview(res.data);
+      return;
+    }
+    if (assignMode === 'free') {
+      const res = await API.post('/api/gemini/extract-task', {
+        text,
+        tasks: _ttList.map(t => t.name),
+        companies: _coList.map(c => c.name),
+        mode: 'free',
+      });
+      if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
+      showAiImportFreePreview(res.data);
       return;
     }
     const res = await API.post('/api/gemini/extract-task', {

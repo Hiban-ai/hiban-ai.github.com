@@ -3469,6 +3469,58 @@ app.post('/api/gemini/extract-task', requireRole('supervisor'), async (req, res)
 
     const todayStr = nowTW().split(' ')[0]; // YYYY/MM/DD
 
+    if (mode === 'free') {
+      const freePrompt = `你是任務派案助手。請從以下文字中解析出「自由任務」資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
+
+今天日期：${todayStr}
+
+可選任務名稱：${(tasks || []).join('、')}
+可選公司名稱：${(companies || []).join('、')}
+
+請回傳一個 JSON 物件（不是陣列），格式如下：
+{
+  "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
+  "company": "從可選公司名稱中選最符合的，找不到則空字串",
+  "unit_price": "單價，數字字串，找不到則空字串",
+  "total_qty": "總名額數量，數字字串。若原文說不限/無限/不限名額，則留空字串",
+  "qty_unlimited": "布林值 true/false。原文若為不限名額則 true，否則 false",
+  "deadline_days": "完成期限天數，數字字串。原文是天數直接用；是日期則換算成從今天起的剩餘天數（至少1）；找不到則空字串",
+  "publish_end": "發布截止日，格式 YYYY/MM/DD。原文若為永久/長期/不限則留空字串；找不到也留空字串",
+  "notes": "補充說明文字，找不到則空字串"
+}
+
+重要規則：
+- 自由任務是「一個開放任務池」，不是多列名額，請只回傳「一個」JSON 物件。
+- 自由任務為公開接案、不指定人，請忽略任何人名/指派對象欄位。
+- publish_end 是「發布截止日」（過了就不能再接），deadline_days 是「接案後幾天內完成」，兩者不同，請勿混淆。
+- 只回傳 JSON 物件，不要其他文字或說明。
+
+文字內容：
+"""
+${text}
+"""`;
+      const body = JSON.stringify({ contents: [{ parts: [{ text: freePrompt }] }], generationConfig: { temperature: 0.1 } });
+      const result = await geminiPost(apiKey, body);
+      if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
+      const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      console.log('[Gemini extract-task free raw]', raw.slice(0, 300));
+      const objIdx = raw.indexOf('{');
+      if (objIdx === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+      let depth = 0, end = -1, inStr = false, esc = false;
+      for (let i = objIdx; i < raw.length; i++) {
+        const ch = raw[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\') { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{') depth++;
+        else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+      }
+      if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
+      const data = JSON.parse(raw.slice(objIdx, end + 1));
+      return res.json({ ok: true, data });
+    }
+
     if (mode === 'grab') {
       const grabPrompt = `你是任務派案助手。請從以下文字中解析出「搶單任務」資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
 

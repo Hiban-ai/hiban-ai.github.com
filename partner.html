@@ -1944,7 +1944,10 @@ async function loadGrabZone() {
           </div>`}
         </div>
         ${t.free_mode ? '<div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.5rem">🔓 自由模式：完成後可再接</div>' : ''}
-        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.7rem">${t.deadline ? '⏰ 截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
+        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">${t.deadline ? '⏰ 認領截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
+        ${t.deadline_days ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
+        ${t.work_date ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
+        ${t.notes ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
         ${customFieldsHtml(t.custom_fields)}
         ${alreadyGrabbed
           ? `<div style="padding:.55rem 1rem;background:var(--blue-p);border-radius:20px;font-size:.82rem;font-weight:700;color:var(--blue-d);text-align:center">已加入進行中任務</div>`

@@ -2240,22 +2240,26 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
           (async () => {
             try {
               const worklogDirId = await driveEnsureFolder(drive, '回報附件', rootId);
-              const taskDirId    = await driveEnsureFolder(drive, r.task_name || `任務${r.assignment_id}`, worklogDirId);
-              const partnerDirId = await driveEnsureFolder(drive, r.partner_name || '未知', taskDirId);
-              const completedAt = nowTW().replace(/[/: ]/g, '-');
-              const timeDirId    = await driveEnsureFolder(drive, completedAt, partnerDirId);
+              // 資料夾分層：回報附件 / {年月 YYYY-MM} / {夥伴} /
+              const _now = nowTW();
+              const ym  = _now.slice(0, 7).replace(/\//g, '-'); // YYYY-MM
+              const ymd = _now.slice(0, 10).replace(/\//g, ''); // YYYYMMDD
+              const ymDirId      = await driveEnsureFolder(drive, ym, worklogDirId);
+              const partnerDirId = await driveEnsureFolder(drive, r.partner_name || '未知', ymDirId);
               const { Readable } = require('stream');
               const driveIds = [];
-              const qtyLabel = (r.completed_qty != null) ? `${r.completed_qty}件` : '';
+              const cleanSeg = s => String(s == null ? '' : s).replace(/[\/\\:*?"<>|]/g, '').trim();
               for (let i = 0; i < r.images.length; i++) {
                 const img  = r.images[i];
                 const b64  = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
                 const mime = img.mime || 'image/jpeg';
                 const ext  = mime.split('/')[1] || 'jpg';
-                const fname = `${qtyLabel}_${i+1}.${ext}`;
+                // 檔名：{公司}_{任務名}_{姓名}_{年月日}_{序}.副檔名（空欄位自動略過）
+                const fname = [cleanSeg(a && a.company), cleanSeg((a && a.task_name) || r.task_name), cleanSeg(r.partner_name), ymd, i + 1]
+                  .filter(x => x !== '' && x != null).join('_') + '.' + ext;
                 const buf   = Buffer.from(b64, 'base64');
                 const created = await drive.files.create({
-                  requestBody: { name: fname, parents: [timeDirId] },
+                  requestBody: { name: fname, parents: [partnerDirId] },
                   media: { mimeType: mime, body: Readable.from(buf) },
                   fields: 'id',
                   supportsAllDrives: true,

@@ -2607,66 +2607,75 @@ app.get('/api/reports/supervisor-summary/export', requireRole('supervisor'), asy
     }
 
     const wb = new ExcelJS.Workbook(); wb.creator = '希絆雲作所';
-    const ws = wb.addWorksheet('督導任務報表');
-    ws.columns = [
-      { key: 'cat', width: 12 }, { key: 'code', width: 16 }, { key: 'task', width: 22 },
-      { key: 'co', width: 16 }, { key: 'who', width: 13 }, { key: 'amt', width: 10 },
-      { key: 'date', width: 13 }, { key: 'img', width: 16 },
-    ];
-    ws.getCell('A1').value = `督導任務報表 — ${supName}${ym ? '（' + ym.replace('/', '年') + '月）' : '（全部）'}`;
-    ws.mergeCells('A1:H1');
-    ws.getCell('A1').font = { bold: true, size: 16 };
-    ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-    ws.getRow(1).height = 28;
-    const sumRow = ws.getRow(2);
-    sumRow.getCell(1).value = `完成 ${completed.length}　未完成 ${inProgress.length}　未接 ${pending.length + grabUnclaimed.length}`;
-    ws.mergeCells('A2:H2'); sumRow.getCell(1).font = { size: 12, color: { argb: 'FF555555' } };
-    const hdr = ws.getRow(3);
-    ['類別', '代號-編號', '任務', '公司', '夥伴', '金額', '日期', '圖片'].forEach((h, i) => hdr.getCell(i + 1).value = h);
-    hdr.font = { bold: true }; hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
-    hdr.alignment = { horizontal: 'center', vertical: 'middle' };
-
+    const ymLabel = ym ? '（' + ym.replace('/', '年') + '月）' : '（全部）';
     const codeOf = a => a.full_code || (a.task_no ? ('#' + a.task_no) : '');
-    const catColor = { '完成': 'FFE3F2E8', '未完成': 'FFFFF4E0', '未接': 'FFFDE7E7', '未接(限量)': 'FFFDE7E7' };
-    const addAsgRow = (a, cat) => {
-      const r = ws.addRow({
-        cat, code: codeOf(a), task: a.task_name || '', co: a.company || '',
-        who: nameOf(a.accepted_by) || nameOf(a.target_partner_id) || '',
-        amt: a.total_price || 0, date: (a.completed_at || a.deadline_date || a.accepted_at || a.assigned_at || '').slice(0, 10), img: '',
-      });
-      r.alignment = { vertical: 'middle' };
-      if (catColor[cat]) r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: catColor[cat] } };
-      return r;
-    };
+    const taskKey = a => (a.task_code || a.task_name || '') + '|' + String(a.item_no || a.task_no || '').padStart(4, '0');
+    const grouped = arr => arr.slice().sort((x, y) => taskKey(x).localeCompare(taskKey(y))); // 同任務排在一起
 
-    completed.forEach(a => {
-      const r = addAsgRow(a, '完成');
+    // 建一個分頁（標題＋表頭），回傳 ws
+    function makeSheet(tabName, headColor, cols) {
+      const ws = wb.addWorksheet(tabName);
+      ws.columns = cols.map(c => ({ key: c.key, width: c.width }));
+      ws.getCell('A1').value = `${tabName} — ${supName}${ymLabel}`;
+      ws.mergeCells(1, 1, 1, cols.length);
+      ws.getCell('A1').font = { bold: true, size: 15 };
+      ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 26;
+      const hdr = ws.getRow(2);
+      cols.forEach((c, i) => hdr.getCell(i + 1).value = c.label);
+      hdr.font = { bold: true }; hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: headColor } };
+      hdr.alignment = { horizontal: 'center', vertical: 'middle' };
+      return ws;
+    }
+
+    // 頁簽1：完成（附回報縮圖）
+    const wsDone = makeSheet('完成', 'FFCBE7D3', [
+      { key: 'tcode', label: '任務代號', width: 11 }, { key: 'code', label: '代號-編號', width: 14 }, { key: 'task', label: '任務', width: 22 },
+      { key: 'co', label: '公司', width: 15 }, { key: 'who', label: '夥伴', width: 12 }, { key: 'amt', label: '金額', width: 10 },
+      { key: 'date', label: '完成日期', width: 13 }, { key: 'img', label: '圖片', width: 16 },
+    ]);
+    grouped(completed).forEach(a => {
+      const r = wsDone.addRow({ tcode: a.task_code || '', code: codeOf(a), task: a.task_name || '', co: a.company || '', who: nameOf(a.accepted_by) || '', amt: a.total_price || 0, date: (a.completed_at || '').slice(0, 10), img: '' });
+      r.alignment = { vertical: 'middle' };
       const imgs = imgByAsg.get(parseInt(a.id));
       if (imgs && imgs.length) {
         const img = imgs[0];
         const b64 = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
-        let ext = ((img.mime || 'image/jpeg').split('/')[1] || 'jpeg').toLowerCase();
-        if (ext === 'jpg') ext = 'jpeg';
+        let ext = ((img.mime || 'image/jpeg').split('/')[1] || 'jpeg').toLowerCase(); if (ext === 'jpg') ext = 'jpeg';
         if (['jpeg', 'png', 'gif'].includes(ext)) {
-          try {
-            const imageId = wb.addImage({ buffer: Buffer.from(b64, 'base64'), extension: ext });
-            r.height = 62;
-            ws.addImage(imageId, { tl: { col: 7.1, row: r.number - 1 + 0.1 }, ext: { width: 78, height: 78 } });
-          } catch(e) { /* 圖片損毀略過 */ }
+          try { const id = wb.addImage({ buffer: Buffer.from(b64, 'base64'), extension: ext }); r.height = 62; wsDone.addImage(id, { tl: { col: 7.1, row: r.number - 1 + 0.1 }, ext: { width: 78, height: 78 } }); } catch(e) {}
         }
       }
     });
-    inProgress.forEach(a => addAsgRow(a, '未完成'));
-    pending.forEach(a => addAsgRow(a, '未接'));
-    grabUnclaimed.forEach(x => {
-      const r = ws.addRow({
-        cat: '未接(限量)', code: x.t.task_code || '', task: x.t.task_name || '', co: x.t.company || '',
-        who: '剩 ' + x.remain, amt: x.t.unit_price || 0, date: (x.t.created_at || '').slice(0, 10), img: '',
-      });
-      r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: catColor['未接(限量)'] } };
-    });
+    if (!completed.length) wsDone.addRow({ tcode: '（本期無完成項目）' });
+    applyReportGrid(wsDone);
 
-    applyReportGrid(ws);
+    // 頁簽2：未完成（進行中）
+    const wsProg = makeSheet('未完成', 'FFFBE7C6', [
+      { key: 'tcode', label: '任務代號', width: 11 }, { key: 'code', label: '代號-編號', width: 14 }, { key: 'task', label: '任務', width: 22 },
+      { key: 'co', label: '公司', width: 15 }, { key: 'who', label: '夥伴', width: 12 }, { key: 'amt', label: '金額', width: 10 },
+      { key: 'date', label: '接案日期', width: 13 },
+    ]);
+    grouped(inProgress).forEach(a => {
+      wsProg.addRow({ tcode: a.task_code || '', code: codeOf(a), task: a.task_name || '', co: a.company || '', who: nameOf(a.accepted_by) || '', amt: a.total_price || 0, date: (a.accepted_at || a.assigned_at || '').slice(0, 10) }).alignment = { vertical: 'middle' };
+    });
+    if (!inProgress.length) wsProg.addRow({ tcode: '（本期無進行中項目）' });
+    applyReportGrid(wsProg);
+
+    // 頁簽3：未接（個人派案未接受 ＋ 限量任務剩餘名額）
+    const wsTodo = makeSheet('未接', 'FFF6CFCF', [
+      { key: 'tcode', label: '任務代號', width: 11 }, { key: 'task', label: '任務', width: 22 }, { key: 'co', label: '公司', width: 15 },
+      { key: 'who', label: '指派對象／剩餘', width: 16 }, { key: 'amt', label: '金額', width: 10 }, { key: 'date', label: '派案／建立日', width: 13 },
+    ]);
+    grouped(pending).forEach(a => {
+      wsTodo.addRow({ tcode: a.task_code || '', task: a.task_name || '', co: a.company || '', who: nameOf(a.target_partner_id) || '未指定', amt: a.total_price || 0, date: (a.assigned_at || '').slice(0, 10) }).alignment = { vertical: 'middle' };
+    });
+    grabUnclaimed.forEach(x => {
+      wsTodo.addRow({ tcode: x.t.task_code || '', task: x.t.task_name || '', co: x.t.company || '', who: '剩 ' + x.remain + ' 名額', amt: x.t.unit_price || 0, date: (x.t.created_at || '').slice(0, 10) }).alignment = { vertical: 'middle' };
+    });
+    if (!pending.length && !grabUnclaimed.length) wsTodo.addRow({ tcode: '（本期無未接項目）' });
+    applyReportGrid(wsTodo);
+
     const fileLabel = `督導任務報表_${supName}${ym ? '_' + ym.replace('/', '') : ''}`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="supervisor-report.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);

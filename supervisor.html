@@ -486,6 +486,18 @@ textarea.form-input{resize:none}
     <!-- 派案紀錄（獨立頁簽，依任務型態分類） -->
     <div class="page-section" id="page-assign-records">
       <div class="page-title">📂 派案紀錄</div>
+      <!-- 督導任務報表匯出 -->
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;background:var(--blue-p,#eaf4fb);border-radius:var(--rs);padding:.6rem .8rem;margin-bottom:1rem">
+        <span style="font-size:.84rem;font-weight:700;color:var(--blue-d)">📊 任務報表</span>
+        <select id="sr-month" class="form-input" style="width:auto;padding:.3rem .6rem;font-size:.82rem"><option value="">全部月份</option></select>
+        <select id="sr-type" class="form-input" style="width:auto;padding:.3rem .6rem;font-size:.82rem">
+          <option value="all">全部型態</option>
+          <option value="individual">指派(件)</option>
+          <option value="hourly">指派(小時)</option>
+          <option value="grab">限量任務</option>
+        </select>
+        <button onclick="exportSupReport()" style="padding:.4rem .9rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📥 匯出 Excel（完成/未完成/未接，含圖片）</button>
+      </div>
       <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
         <button class="ar-tab" onclick="arTab('piece',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:var(--blue-d);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📋 指派(件)</button>
         <button class="ar-tab" onclick="arTab('hourly',this)" style="padding:.4rem .9rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-s);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">⏱️ 指派(小時)</button>
@@ -846,7 +858,7 @@ function switchPage(name, el) {
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sv-menu-item').forEach(i=>i.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (name === 'assign-records') { loadAssignHistory(); loadGrabHistory(); }
+  if (name === 'assign-records') { loadAssignHistory(); loadGrabHistory(); buildSrMonths(); }
   if (name === 'worklog-review') loadTaskReviews();
   if (name === 'task-records')  loadTaskRecords();
   if (name === 'notices') {
@@ -1541,6 +1553,29 @@ async function toggleFreeRec(taskId) {
 }
 
 // 派案紀錄頁籤切換
+// 督導任務報表：月份下拉 + 匯出
+function buildSrMonths() {
+  const sel = document.getElementById('sr-month');
+  if (!sel || sel.dataset.ready) return;
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0');
+    const o = document.createElement('option');
+    o.value = `${y}/${m}`; o.textContent = `${y}年${d.getMonth() + 1}月`;
+    sel.appendChild(o);
+  }
+  sel.dataset.ready = '1';
+}
+function exportSupReport() {
+  const m = document.getElementById('sr-month').value;
+  const t = document.getElementById('sr-type').value;
+  const qs = [];
+  if (m) qs.push('year_month=' + encodeURIComponent(m));
+  if (t && t !== 'all') qs.push('type=' + encodeURIComponent(t));
+  window.open('/api/reports/supervisor-summary/export' + (qs.length ? '?' + qs.join('&') : ''), '_blank');
+}
+
 function arTab(tab, btn) {
   ['piece','hourly','grab','free','logs'].forEach(t => { const p = document.getElementById('ar-'+t); if (p) p.style.display = t === tab ? '' : 'none'; });
   document.querySelectorAll('#page-assign-records .ar-tab').forEach(b => { b.style.background = '#fff'; b.style.color = 'var(--text-s)'; });

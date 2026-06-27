@@ -2569,6 +2569,112 @@ app.get('/api/admin/work-records/export', requireRole('staff'), async (req, res)
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 督導任務報表 Excel：GET /api/reports/supervisor-summary/export?year_month=2026/06&type=all
+// 列出該督導發送/負責的項目，分「完成 / 未完成 / 未接」，完成的附回報縮圖
+app.get('/api/reports/supervisor-summary/export', requireRole('supervisor'), async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const supervisorId = req.session.user.id;
+    const supName = req.session.user.real_name || '';
+    const ym = (req.query.year_month || '').replace(/-/g, '/').slice(0, 7); // YYYY/MM 或 ''
+    const type = req.query.type || 'all'; // all/individual/hourly/grab
+
+    const [allAssign, approvedReports, grabTasks, allUsers] = await Promise.all([
+      Assignments.all(), WorklogReports.approvedForSupervisor(supervisorId),
+      GrabTasks.forSupervisor(supervisorId), Users.all(),
+    ]);
+    const nameOf = id => (allUsers.find(u => u.id === id) || {}).real_name || '';
+    const imgByAsg = new Map();
+    approvedReports.forEach(r => { if (r.images && r.images.length) imgByAsg.set(parseInt(r.assignment_id), r.images); });
+
+    const typeMatch = a => type === 'all' ? true
+      : type === 'individual' ? (a.assign_type === 'individual' || a.assign_type === 'all')
+      : type === 'grab' ? a.assign_type === 'grab'
+      : a.assign_type === type;
+    const repDate = a => ((a.completed_at || a.deadline_date || a.accepted_at || a.assigned_at || '') + '').replace(/-/g, '/');
+    const inMonth = a => !ym || repDate(a).slice(0, 7) === ym;
+
+    const asg = allAssign.filter(a => a.supervisor_id === supervisorId).filter(typeMatch).filter(inMonth);
+    const completed  = asg.filter(a => a.status === 'completed');
+    const inProgress = asg.filter(a => a.status === 'accepted');
+    const pending    = asg.filter(a => a.status === 'pending');
+    let grabUnclaimed = [];
+    if (type === 'all' || type === 'grab') {
+      grabUnclaimed = grabTasks
+        .filter(t => !ym || ((t.created_at || '') + '').replace(/-/g, '/').slice(0, 7) === ym)
+        .map(t => ({ t, remain: t.qty_unlimited ? '不限' : ((t.total_slots || 0) - (t.grabbed_count || 0)) }))
+        .filter(x => x.remain === '不限' || x.remain > 0);
+    }
+
+    const wb = new ExcelJS.Workbook(); wb.creator = '希絆雲作所';
+    const ws = wb.addWorksheet('督導任務報表');
+    ws.columns = [
+      { key: 'cat', width: 12 }, { key: 'code', width: 16 }, { key: 'task', width: 22 },
+      { key: 'co', width: 16 }, { key: 'who', width: 13 }, { key: 'amt', width: 10 },
+      { key: 'date', width: 13 }, { key: 'img', width: 16 },
+    ];
+    ws.getCell('A1').value = `督導任務報表 — ${supName}${ym ? '（' + ym.replace('/', '年') + '月）' : '（全部）'}`;
+    ws.mergeCells('A1:H1');
+    ws.getCell('A1').font = { bold: true, size: 16 };
+    ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getRow(1).height = 28;
+    const sumRow = ws.getRow(2);
+    sumRow.getCell(1).value = `完成 ${completed.length}　未完成 ${inProgress.length}　未接 ${pending.length + grabUnclaimed.length}`;
+    ws.mergeCells('A2:H2'); sumRow.getCell(1).font = { size: 12, color: { argb: 'FF555555' } };
+    const hdr = ws.getRow(3);
+    ['類別', '代號-編號', '任務', '公司', '夥伴', '金額', '日期', '圖片'].forEach((h, i) => hdr.getCell(i + 1).value = h);
+    hdr.font = { bold: true }; hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+    hdr.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const codeOf = a => a.full_code || (a.task_no ? ('#' + a.task_no) : '');
+    const catColor = { '完成': 'FFE3F2E8', '未完成': 'FFFFF4E0', '未接': 'FFFDE7E7', '未接(限量)': 'FFFDE7E7' };
+    const addAsgRow = (a, cat) => {
+      const r = ws.addRow({
+        cat, code: codeOf(a), task: a.task_name || '', co: a.company || '',
+        who: nameOf(a.accepted_by) || nameOf(a.target_partner_id) || '',
+        amt: a.total_price || 0, date: (a.completed_at || a.deadline_date || a.accepted_at || a.assigned_at || '').slice(0, 10), img: '',
+      });
+      r.alignment = { vertical: 'middle' };
+      if (catColor[cat]) r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: catColor[cat] } };
+      return r;
+    };
+
+    completed.forEach(a => {
+      const r = addAsgRow(a, '完成');
+      const imgs = imgByAsg.get(parseInt(a.id));
+      if (imgs && imgs.length) {
+        const img = imgs[0];
+        const b64 = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
+        let ext = ((img.mime || 'image/jpeg').split('/')[1] || 'jpeg').toLowerCase();
+        if (ext === 'jpg') ext = 'jpeg';
+        if (['jpeg', 'png', 'gif'].includes(ext)) {
+          try {
+            const imageId = wb.addImage({ buffer: Buffer.from(b64, 'base64'), extension: ext });
+            r.height = 62;
+            ws.addImage(imageId, { tl: { col: 7.1, row: r.number - 1 + 0.1 }, ext: { width: 78, height: 78 } });
+          } catch(e) { /* 圖片損毀略過 */ }
+        }
+      }
+    });
+    inProgress.forEach(a => addAsgRow(a, '未完成'));
+    pending.forEach(a => addAsgRow(a, '未接'));
+    grabUnclaimed.forEach(x => {
+      const r = ws.addRow({
+        cat: '未接(限量)', code: x.t.task_code || '', task: x.t.task_name || '', co: x.t.company || '',
+        who: '剩 ' + x.remain, amt: x.t.unit_price || 0, date: (x.t.created_at || '').slice(0, 10), img: '',
+      });
+      r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: catColor['未接(限量)'] } };
+    });
+
+    applyReportGrid(ws);
+    const fileLabel = `督導任務報表_${supName}${ym ? '_' + ym.replace('/', '') : ''}`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="supervisor-report.xlsx"; filename*=UTF-8''${encodeURIComponent(fileLabel)}.xlsx`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch(e) { console.error('[sup-report]', e.message); res.status(500).json({ error: e.message }); }
+});
+
 // 報稅格式_暨名冊總表 Excel 匯出：GET /api/admin/tax-report/export?year=2026
 app.get('/api/admin/tax-report/export', requireRole('staff'), async (req, res) => {
   try {

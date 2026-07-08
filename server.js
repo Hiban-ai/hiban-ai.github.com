@@ -619,6 +619,7 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
       role, status: 'active', is_first_login: true,
       password_hash: bcrypt.hashSync('0000', 10),
     });
+    cacheDel('users-list'); // 清登入下拉快取，讓新帳號立即出現
     res.json({ ok: true, username: user.username });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -639,6 +640,7 @@ app.put('/api/admin/users/:id/approve', requireRole('staff'), async (req, res) =
     } else {
       await Users.update(id, { status: 'active' });
     }
+    cacheDel('users-list'); // 清登入下拉快取，讓新核准的帳號立即出現
     res.json({ ok: true });
     // 背景：Drive 上傳 + 寄歡迎信
     (async () => {

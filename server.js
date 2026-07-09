@@ -213,7 +213,7 @@ app.get('/api/announcements', requireAuth, async (req, res) => {
     const role = req.session.user.role;
     const now  = new Date();
     let list = cacheGet('announcements');
-    if (!list) { list = await Announcements.all(); cacheSet('announcements', list, 3 * 60 * 1000); }
+    if (!list) { list = await Announcements.all(); cacheSet('announcements', list, 30 * 60 * 1000); } // 30 分鐘；公告異動時會即時清快取
     list = list.filter(a => {
       if (a.target !== 'all' && a.target !== role) return false;
       if (a.expires_at && new Date(a.expires_at) < now) return false;
@@ -324,6 +324,7 @@ app.post('/api/admin/announcements', requireRole('staff'), async (req, res) => {
       created_by: req.session.user.real_name,
       created_by_id: req.session.user.id,
     });
+    cacheDel('announcements');
     res.json({ ok: true, id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -338,6 +339,7 @@ app.put('/api/admin/announcements/:id', requireRole('staff'), async (req, res) =
       is_pinned: !!is_pinned,
       expires_at: expires_at || null,
     });
+    cacheDel('announcements');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -363,6 +365,7 @@ app.delete('/api/admin/announcements/:id', requireRole('staff'), async (req, res
       }
     }
     await Announcements.delete(req.params.id);
+    cacheDel('announcements');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -401,6 +404,7 @@ app.post('/api/admin/announcements/:id/attachment', requireRole('staff'), async 
       // 清除舊單一附件欄位
       attachment_drive_id: null, attachment_name: null, attachment_mime: null,
     });
+    cacheDel('announcements');
     res.json({ ok: true, drive_id: fileId, name });
   } catch(e) { console.error('[attachment upload]', e.message); res.status(500).json({ error: e.message }); }
 });
@@ -423,6 +427,7 @@ app.delete('/api/admin/announcements/:id/attachment/:driveId', requireRole('staf
       attachments: remaining,
       attachment_drive_id: null, attachment_name: null, attachment_mime: null,
     });
+    cacheDel('announcements');
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -731,6 +736,7 @@ app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req,
     const sv = await Users.byId(parseInt(supervisor_id));
     if (!sv || sv.role !== 'supervisor') return res.status(400).json({ error: '無效的督導人員' });
     await Users.update(id, { supervisor_id: parseInt(supervisor_id) });
+    cacheDel('users-list'); // 改督導會影響督導範圍的下拉，需清快取
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

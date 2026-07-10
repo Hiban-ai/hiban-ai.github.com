@@ -1203,6 +1203,11 @@ function customFieldsHtml(fields) {
   if (!fields || !fields.length) return '';
   return `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">${fields.map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>`;
 }
+// 派案附件下載連結
+function attachmentsHtml(atts) {
+  if (!atts || !atts.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin:.35rem 0 .5rem">${atts.map(a => `<a href="/api/task-attachment/${a.drive_id}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.25rem;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp);border-radius:12px;padding:.2rem .55rem;font-size:.72rem;font-weight:600;text-decoration:none">📎 ${a.name || '附件'}</a>`).join('')}</div>`;
+}
 
 // 完整卡片（含接案/拒絕按鈕）
 function buildTaskCards(list) {
@@ -1227,7 +1232,7 @@ function buildTaskCards(list) {
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
-      ${customFieldsHtml(a.custom_fields)}
+      ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
       <div style="display:flex;gap:.5rem">
         <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
         <button onclick="rejectTask(${a.id},this)" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif">❌ 拒絕</button>
@@ -1262,7 +1267,7 @@ function buildTaskCardsReadonly(list) {
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
-      ${customFieldsHtml(a.custom_fields)}
+      ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
     </div>`
   }).join('') + moreNote;
 }
@@ -1364,7 +1369,7 @@ function activeCardHtml(a) {
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">補充說明</div>
         <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes}</div>
       </div>` : ''}
-      ${customFieldsHtml(a.custom_fields)}
+      ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
       <div style="margin-bottom:.6rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">督導意見</div>
         <div style="max-height:calc(1.6em * 4 + .8rem);overflow-y:auto;background:var(--orange-p);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid rgba(240,120,64,.25);min-height:2rem;line-height:1.6">
@@ -1936,7 +1941,7 @@ async function loadGrabZone() {
         ${t.deadline_days ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
         ${t.work_date ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
-        ${customFieldsHtml(t.custom_fields)}
+        ${attachmentsHtml(t.attachments)}${customFieldsHtml(t.custom_fields)}
         ${t.my_active
           ? `<button disabled style="width:100%;padding:.65rem;background:var(--bg);color:var(--text-s);border:1.5px solid var(--border);border-radius:20px;font-size:.88rem;font-weight:700;cursor:not-allowed;font-family:sans-serif">⏳ 進行中（完成後才能再接）</button>`
           : remaining === 0
@@ -1966,6 +1971,7 @@ function pickPanelHtml(t) {
         <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">${t.deadline ? '⏰ 認領期限：'+t.deadline.slice(0,16)+' 截止' : '⏰ 永久開放'} ・ 剩 ${remaining} 張可選</div>
         ${t.work_date ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
+        ${attachmentsHtml(t.attachments)}
       </div>
       <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow);flex-shrink:0">$${(t.unit_price||0).toLocaleString()}</div>
     </div>

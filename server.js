@@ -460,6 +460,48 @@ app.get('/api/announcements/:id/attachment/:driveId', requireAuth, async (req, r
   } catch(e) { console.error('[attachment download]', e.message); res.status(500).json({ error: e.message }); }
 });
 
+// 派案附件：上傳到雲端硬碟「派案附件/{年月}」，回傳 [{drive_id,name,mime}]
+async function uploadTaskAttachments(files) {
+  if (!Array.isArray(files) || !files.length) return [];
+  const drive = getDrive();
+  const rootId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+  if (!drive || !rootId) return [];
+  const { Readable } = require('stream');
+  const baseId = await driveEnsureFolder(drive, '派案附件', rootId);
+  const ymId   = await driveEnsureFolder(drive, nowTW().slice(0, 7).replace(/\//g, '-'), baseId);
+  const out = [];
+  for (const f of files) {
+    if (!f || !f.data) continue;
+    const b64  = String(f.data).replace(/^data:[^;]+;base64,/, '');
+    const mime = f.mime || 'application/octet-stream';
+    const name = (f.name || 'file').replace(/[\/\\:*?"<>|]/g, '');
+    if (Buffer.byteLength(b64, 'base64') > 15 * 1024 * 1024) { console.warn('[task att] 超過 15MB 略過', name); continue; }
+    try {
+      const created = await drive.files.create({
+        requestBody: { name, parents: [ymId] },
+        media: { mimeType: mime, body: Readable.from(Buffer.from(b64, 'base64')) },
+        fields: 'id', supportsAllDrives: true,
+      });
+      out.push({ drive_id: created.data.id, name, mime });
+    } catch(e) { console.error('[task att upload]', e.message); }
+  }
+  return out;
+}
+
+// 下載派案附件（登入即可）
+app.get('/api/task-attachment/:driveId', requireAuth, async (req, res) => {
+  try {
+    const driveId = req.params.driveId;
+    const drive = getDrive();
+    if (!drive) return res.status(503).json({ error: 'Drive 未設定' });
+    const meta = await drive.files.get({ fileId: driveId, fields: 'name,mimeType', supportsAllDrives: true });
+    res.setHeader('Content-Type', meta.data.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(meta.data.name || 'attachment')}`);
+    const dl = await drive.files.get({ fileId: driveId, alt: 'media', supportsAllDrives: true }, { responseType: 'stream' });
+    dl.data.pipe(res);
+  } catch(e) { console.error('[task-att download]', e.message); res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/profile', requireAuth, async (req, res) => {
   try {
     const u = await Users.byId(req.session.user.id);
@@ -1069,7 +1111,7 @@ app.put('/api/field-order', requireRole('supervisor'), async (req, res) => {
 
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content, work_date } = req.body;
+    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content, work_date, attachments } = req.body;
     const isHourly = assign_type === 'hourly';
     if (!task_name) return res.status(400).json({ error: '缺少必填欄位' });
     if (!isHourly && (!quantity || !unit_price)) return res.status(400).json({ error: '缺少必填欄位' });
@@ -1091,6 +1133,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
       }
     }
 
+    const taskAtts = await uploadTaskAttachments(attachments); // 派案附件上傳雲端
     let data;
     if (isHourly) {
       data = {
@@ -1101,6 +1144,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
         quantity: null, unit_price: null, total_price: 0,
         work_start: null, work_end: null, work_minutes: null,
         work_date: work_date || null,
+        attachments: taskAtts,
         target_partner_id: target_partner_id ? parseInt(target_partner_id) : null,
         assigned_at, supervisor_id, supervisor_name,
         status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
@@ -1121,6 +1165,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
         task_name, company: company || '', quantity: qty, unit_price: price, total_price: qty * price,
         notes: notes || '', deadline_days: ddays, deadline_date, work_date: work_date || null, assigned_at,
         assign_type: assign_type || 'individual',
+        attachments: taskAtts,
         target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
         supervisor_id, supervisor_name,
         status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
@@ -1548,7 +1593,7 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, qty_unlimited, work_date } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, qty_unlimited, work_date, attachments } = req.body;
     if (!task_name || !unit_price)
       return res.status(400).json({ error: '缺少必填欄位' });
     // deadline（認領截止）可為 null＝永久開放
@@ -1593,6 +1638,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       deadline,
       deadline_days: ddays,
       work_date: work_date || null,
+      attachments: await uploadTaskAttachments(attachments),
       notes: notes || '',
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
@@ -1774,6 +1820,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       assigned_at:     nowTW(),
       assign_type:     'grab',
       work_date:       (slot && slot.work_date) || result.task.work_date || null,
+      attachments:     result.task.attachments || [],
       target_partner_id: partnerId,
       accepted_by:     partnerId,
       accepted_at:     nowTW(),
@@ -1859,6 +1906,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       company: task.company || '',
       quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
       notes: task.notes || '', deadline_days, deadline_date, work_date: slot.work_date || task.work_date || null,
+      attachments: task.attachments || [],
       assigned_at: nowTW(), assign_type: 'grab',
       target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
       supervisor_id: req.session.user.supervisor_id || task.supervisor_id, supervisor_name: supName,

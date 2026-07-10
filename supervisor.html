@@ -476,6 +476,17 @@ textarea.form-input{resize:none}
           <div id="assign-custom-fields" style="display:flex;flex-direction:column;gap:.75rem"></div>
           </div>
 
+          <!-- 派案附件（各模式通用，選填、可多檔） -->
+          <div style="display:flex;align-items:flex-start;gap:.75rem;margin-top:.4rem">
+            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.4rem">附件</label>
+            <div style="flex:1">
+              <input type="file" id="assign-att-file" multiple style="display:none" onchange="onAssignFileAdd(this)">
+              <button type="button" onclick="document.getElementById('assign-att-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 加入檔案</button>
+              <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">傳給夥伴的檔案（選填，單檔≤15MB）</span>
+              <div id="assign-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
+            </div>
+          </div>
+
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
           <button onclick="openCfMgr()" type="button" style="display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️ 自訂欄位</button>
@@ -1289,6 +1300,31 @@ function calcAssignTotal() {
   document.getElementById('assign-total').textContent = '$' + (qty * price).toLocaleString();
 }
 
+// ── 派案附件 ──
+let _assignAttFiles = [];
+function onAssignFileAdd(input) {
+  for (const f of input.files) {
+    if (f.size > 15 * 1024 * 1024) { showToast(`「${f.name}」超過 15MB`, 'error'); continue; }
+    _assignAttFiles.push(f);
+  }
+  input.value = '';
+  renderAssignAttList();
+}
+function renderAssignAttList() {
+  const wrap = document.getElementById('assign-att-list'); if (!wrap) return;
+  wrap.innerHTML = _assignAttFiles.map((f, i) => `<span style="display:inline-flex;align-items:center;gap:.35rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.2rem .55rem;font-size:.72rem">📄 ${f.name}<span onclick="removeAssignAtt(${i})" style="cursor:pointer;color:var(--red);font-weight:700">✕</span></span>`).join('');
+}
+function removeAssignAtt(i) { _assignAttFiles.splice(i, 1); renderAssignAttList(); }
+function resetAssignAtt() { _assignAttFiles = []; renderAssignAttList(); }
+function _fileToBase64(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
+async function collectAssignAttachments() {
+  const out = [];
+  for (const f of _assignAttFiles) {
+    try { out.push({ name: f.name, mime: f.type || 'application/octet-stream', data: await _fileToBase64(f) }); } catch(e) {}
+  }
+  return out;
+}
+
 async function submitAssign() {
   const err = document.getElementById('assign-err');
   err.style.display = 'none';
@@ -1315,10 +1351,12 @@ async function submitAssign() {
         work_content: workContent,
         target_partner_id: target === 'all' ? null : parseInt(target),
         custom_fields: collectCustomFields(),
+        attachments: await collectAssignAttachments(),
       });
       showToast('指派(小時)成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-notes','assign-work-content','assign-hourly-wage'].forEach(id => document.getElementById(id).value = '');
       renderAssignCustomFields();
+      resetAssignAtt();
       loadAssignHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
     return;
@@ -1402,6 +1440,7 @@ async function submitAssign() {
         slot_data: _aiGrabConfirming ? (_aiGrabSlotData || []) : [], // 僅 AI 匯入確認時帶入，手動建立不帶（避免殘留外洩）
         per_person_limit: pickMode ? perLimit : perLimit, // 數量：累計上限，0=不限
         pick_mode: pickMode,
+        attachments: await collectAssignAttachments(),
       });
       _aiGrabSlotData = null; _aiGrabConfirming = false;
       showToast(pickMode ? '限量任務（挑選模式）已建立！' : '限量任務已建立！', 'success');
@@ -1414,6 +1453,7 @@ async function submitAssign() {
       document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       gdReset();
       renderAssignCustomFields();
+      resetAssignAtt();
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
     } catch(e) { _aiGrabConfirming = false; err.textContent = e.message; err.style.display = 'block'; }
@@ -1432,12 +1472,14 @@ async function submitAssign() {
         assign_type: target === 'all' ? 'all' : 'individual',
         target_partner_id: target === 'all' ? null : parseInt(target),
         custom_fields: collectCustomFields(),
+        attachments: await collectAssignAttachments(),
       });
       showToast('派案成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-price','assign-notes','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       renderAssignCustomFields();
+      resetAssignAtt();
       document.getElementById('assign-total').textContent = '$0';
       loadAssignHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
@@ -1480,6 +1522,7 @@ async function loadGrabHistory() {
           ${t.notes ? `<div><span style="color:var(--text-s)">備註：</span>${t.notes}</div>` : ''}
         </div>` : ''}
         ${t.custom_fields && t.custom_fields.length ? `<div style="display:flex;flex-direction:column;gap:.2rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">${customFieldsHtml(t.custom_fields)}</div>` : ''}
+        ${attachmentsHtml(t.attachments)}
         <div id="grab-rec-${t.id}">
           <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開認領明細（${t.grabbed_count} 筆）</button>
         </div>
@@ -1721,6 +1764,7 @@ function renderAssignCards(list, containerId) {
             ${a.work_date ? `<div><span style="color:var(--text-s);width:72px;display:inline-block">執行日期</span>${fmtDay(a.work_date)}</div>` : ''}
           `}
           ${a.notes ? `<div style="display:flex;align-items:flex-start;gap:0"><span style="color:var(--text-s);width:72px;flex-shrink:0">補充說明</span><div style="font-family:'標楷體','DFKai-SB',serif;max-height:150px;overflow-y:auto;flex:1;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);line-height:1.6">${a.notes}</div></div>` : ''}
+          ${attachmentsHtml(a.attachments)}
           ${customFieldsHtml(a.custom_fields)}
         </div>
       </div>`
@@ -1731,6 +1775,10 @@ function renderAssignCards(list, containerId) {
 function customFieldsHtml(fields) {
   if (!fields || !fields.length) return '';
   return fields.map(f => `<div><span style="color:var(--text-s);width:72px;display:inline-block">${f.label}</span>${f.value}</div>`).join('');
+}
+function attachmentsHtml(atts) {
+  if (!atts || !atts.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.3rem">${atts.map(a => `<a href="/api/task-attachment/${a.drive_id}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.25rem;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp);border-radius:12px;padding:.18rem .55rem;font-size:.72rem;font-weight:600;text-decoration:none">📎 ${a.name || '附件'}</a>`).join('')}</div>`;
 }
 
 async function loadPartners() {

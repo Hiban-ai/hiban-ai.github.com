@@ -486,7 +486,7 @@ textarea.form-input{resize:none}
           <div style="flex:1">
             <input type="file" id="assign-att-file" multiple style="display:none" onchange="onAssignFileAdd(this)">
             <button type="button" onclick="document.getElementById('assign-att-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 加入檔案</button>
-            <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">傳給夥伴的檔案（選填，單檔≤15MB）</span>
+            <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">傳給夥伴的檔案（選填，可多檔，單檔≤20MB）</span>
             <div id="assign-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
           </div>
         </div>
@@ -1303,7 +1303,7 @@ function calcAssignTotal() {
 let _assignAttFiles = [];
 function onAssignFileAdd(input) {
   for (const f of input.files) {
-    if (f.size > 15 * 1024 * 1024) { showToast(`「${f.name}」超過 15MB`, 'error'); continue; }
+    if (f.size > 20 * 1024 * 1024) { showToast(`「${f.name}」超過 20MB`, 'error'); continue; }
     _assignAttFiles.push(f);
   }
   input.value = '';

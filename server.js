@@ -97,7 +97,7 @@ function applyReportGrid(ws) {
 }
 
 const app = express();
-app.use(express.json({ limit: '20mb' }));
+app.use(express.json({ limit: '100mb' })); // 附件 base64 較大（20MB 檔約 27MB base64，多檔累加）
 app.use(express.static(path.join(__dirname), {
   etag: false,
   setHeaders: (res, filePath) => {
@@ -475,7 +475,7 @@ async function uploadTaskAttachments(files) {
     const b64  = String(f.data).replace(/^data:[^;]+;base64,/, '');
     const mime = f.mime || 'application/octet-stream';
     const name = (f.name || 'file').replace(/[\/\\:*?"<>|]/g, '');
-    if (Buffer.byteLength(b64, 'base64') > 15 * 1024 * 1024) { console.warn('[task att] 超過 15MB 略過', name); continue; }
+    if (Buffer.byteLength(b64, 'base64') > 20 * 1024 * 1024) { console.warn('[task att] 超過 20MB 略過', name); continue; }
     try {
       const created = await drive.files.create({
         requestBody: { name, parents: [ymId] },

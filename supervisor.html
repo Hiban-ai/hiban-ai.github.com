@@ -490,6 +490,14 @@ textarea.form-input{resize:none}
             <div id="assign-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
           </div>
         </div>
+        <!-- 雙重回報 -->
+        <div style="display:flex;align-items:flex-start;gap:.6rem;margin-top:.7rem;padding:.55rem .7rem;background:var(--blue-p,#eaf4fb);border-radius:var(--rs)">
+          <input type="checkbox" id="assign-dual-report" style="margin-top:.2rem;width:17px;height:17px;cursor:pointer">
+          <label for="assign-dual-report" style="font-size:.82rem;color:var(--text-m);cursor:pointer;line-height:1.5">
+            <b>雙重回報</b>　夥伴需分兩次回報：第一次先傳<b>附件</b>（督導審核、可回覆），核可後第二次才交<b>網址／圖片</b>。<br>
+            <span style="font-size:.74rem;color:var(--text-s)">適合需要先確認素材/草稿、再驗收成果的任務。</span>
+          </label>
+        </div>
         <button id="assign-submit-btn" onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>
 
@@ -768,6 +776,26 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 雙重回報第一階段核可（可回覆說明＋附件） overlay -->
+<div class="pw-overlay" id="stage1-approve-overlay">
+  <div class="pw-box" style="width:440px;max-width:96vw">
+    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✓ 核可第一階段</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.8rem">核可後夥伴才能進行第二次回報。可在此回覆給夥伴（皆選填）。</div>
+    <input type="hidden" id="s1-report-id"><input type="hidden" id="s1-assignment-id">
+    <div id="s1-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <label class="form-label" style="font-size:.82rem;color:var(--text-s)">補充說明（給夥伴的指示，選填）</label>
+    <textarea class="form-input" id="s1-reply-note" rows="3" placeholder="例如：素材OK，第二次請附上實際貼文網址..." style="margin-bottom:.7rem"></textarea>
+    <div style="margin-bottom:.9rem">
+      <input type="file" id="s1-reply-file" multiple style="display:none" onchange="onS1FileAdd(this)">
+      <button type="button" onclick="document.getElementById('s1-reply-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 回覆附件（選填）</button>
+      <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">單檔≤20MB</span>
+      <div id="s1-reply-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
+    </div>
+    <button class="btn-primary" onclick="submitStage1Approve()">✓ 核可，進入第二次回報</button>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeStage1Approve()">取消</button>
+  </div>
+</div>
+
 <!-- 自由任務「結束發布」 overlay -->
 <div class="pw-overlay" id="end-free-overlay">
   <div class="pw-box">
@@ -941,6 +969,48 @@ async function approveReport(reportId, assignmentId, isFree) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
+// 雙重回報第一階段核可（可回覆說明＋附件）
+let _s1ReplyFiles = [];
+function openStage1Approve(reportId, assignmentId) {
+  document.getElementById('s1-report-id').value = reportId;
+  document.getElementById('s1-assignment-id').value = assignmentId;
+  document.getElementById('s1-reply-note').value = '';
+  document.getElementById('s1-err').style.display = 'none';
+  _s1ReplyFiles = []; renderS1List();
+  document.getElementById('stage1-approve-overlay').classList.add('open');
+}
+function closeStage1Approve() { document.getElementById('stage1-approve-overlay').classList.remove('open'); }
+function onS1FileAdd(input) {
+  for (const f of input.files) {
+    if (f.size > 20 * 1024 * 1024) { showToast(`「${f.name}」超過 20MB`, 'error'); continue; }
+    _s1ReplyFiles.push(f);
+  }
+  input.value = ''; renderS1List();
+}
+function renderS1List() {
+  const wrap = document.getElementById('s1-reply-list'); if (!wrap) return;
+  wrap.innerHTML = _s1ReplyFiles.map((f, i) => `<span style="display:inline-flex;align-items:center;gap:.35rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.2rem .55rem;font-size:.72rem">📄 ${f.name}<span onclick="_s1ReplyFiles.splice(${i},1);renderS1List()" style="cursor:pointer;color:var(--red);font-weight:700">✕</span></span>`).join('');
+}
+async function submitStage1Approve() {
+  const btn = event && event.target;
+  const reportId = parseInt(document.getElementById('s1-report-id').value);
+  const note = document.getElementById('s1-reply-note').value.trim();
+  const reply_attachments = [];
+  for (const f of _s1ReplyFiles) {
+    try { reply_attachments.push({ name: f.name, mime: f.type || 'application/octet-stream', data: await _fileToBase64(f) }); } catch(e) {}
+  }
+  try {
+    if (btn) btn.disabled = true;
+    await API.put(`/api/reports/${reportId}/approve`, { reply_note: note, reply_attachments });
+    showToast('已核可第一階段，夥伴可進行第二次回報', 'success');
+    closeStage1Approve();
+    loadTaskReviews();
+  } catch(e) {
+    const err = document.getElementById('s1-err'); err.textContent = e.message; err.style.display = 'block';
+    if (btn) btn.disabled = false;
+  }
+}
+
 function openRejectReport(reportId) {
   document.getElementById('reject-report-id').value = reportId;
   document.getElementById('reject-report-reason').value = '';
@@ -1019,7 +1089,10 @@ async function loadTaskReviews() {
             ${(r.full_code || r.task_no) ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
             <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
           </div>
-          <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
+          <div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0">
+            ${r.dual_report ? `<span style="background:#EEE6FA;color:#6B3FA0;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:10px">雙重・第${r.stage === 1 ? '一（附件）' : '二'}次</span>` : ''}
+            <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
+          </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
           ${r.assign_type === 'hourly' ? `
@@ -1053,6 +1126,7 @@ async function loadTaskReviews() {
             </div>
           `).join('')}
         </div>` : ''}
+        ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一次附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
         ${r.assign_type === 'free' ? `
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;background:#FFF8E8;border:1.5px solid #F0C040;border-radius:var(--rs);padding:.5rem .7rem">
           <span style="font-size:.82rem;color:#8A6010;font-weight:700;white-space:nowrap">🎁 額外獎勵</span>
@@ -1061,7 +1135,7 @@ async function loadTaskReviews() {
           <span style="font-size:.72rem;color:var(--text-s);white-space:nowrap">基本 $${(r.total_price||0).toLocaleString()}＋額外＝進錢包</span>
         </div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
-          <button onclick="approveReport(${r.id},${r.assignment_id},${r.assign_type === 'free'})" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✓ 同意</button>
+          <button onclick="${r.dual_report && r.stage === 1 ? `openStage1Approve(${r.id},${r.assignment_id})` : `approveReport(${r.id},${r.assignment_id},${r.assign_type === 'free'})`}" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">${r.dual_report && r.stage === 1 ? '✓ 核可・進第二次' : '✓ 同意'}</button>
           <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 退回</button>
         </div>
       </div>`;
@@ -1351,11 +1425,12 @@ async function submitAssign() {
         target_partner_id: target === 'all' ? null : parseInt(target),
         custom_fields: collectCustomFields(),
         attachments: await collectAssignAttachments(),
+        dual_report: document.getElementById('assign-dual-report').checked,
       });
       showToast('指派(小時)成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-notes','assign-work-content','assign-hourly-wage'].forEach(id => document.getElementById(id).value = '');
       renderAssignCustomFields();
-      resetAssignAtt();
+      resetAssignAtt(); document.getElementById('assign-dual-report').checked = false;
       loadAssignHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
     return;
@@ -1440,6 +1515,7 @@ async function submitAssign() {
         per_person_limit: pickMode ? perLimit : perLimit, // 數量：累計上限，0=不限
         pick_mode: pickMode,
         attachments: await collectAssignAttachments(),
+        dual_report: document.getElementById('assign-dual-report').checked,
       });
       _aiGrabSlotData = null; _aiGrabConfirming = false;
       showToast(pickMode ? '限量任務（挑選模式）已建立！' : '限量任務已建立！', 'success');
@@ -1452,7 +1528,7 @@ async function submitAssign() {
       document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       gdReset();
       renderAssignCustomFields();
-      resetAssignAtt();
+      resetAssignAtt(); document.getElementById('assign-dual-report').checked = false;
       document.getElementById('assign-total').textContent = '$0';
       loadGrabHistory();
     } catch(e) { _aiGrabConfirming = false; err.textContent = e.message; err.style.display = 'block'; }
@@ -1472,13 +1548,14 @@ async function submitAssign() {
         target_partner_id: target === 'all' ? null : parseInt(target),
         custom_fields: collectCustomFields(),
         attachments: await collectAssignAttachments(),
+        dual_report: document.getElementById('assign-dual-report').checked,
       });
       showToast('派案成功！', 'success');
       ['assign-target','assign-company','assign-task','assign-price','assign-notes','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
       renderAssignCustomFields();
-      resetAssignAtt();
+      resetAssignAtt(); document.getElementById('assign-dual-report').checked = false;
       document.getElementById('assign-total').textContent = '$0';
       loadAssignHistory();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }

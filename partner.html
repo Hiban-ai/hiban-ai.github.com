@@ -850,6 +850,20 @@ textarea.form-input{resize:none}
   <div class="overlay-box" style="width:480px;max-height:90vh;overflow-y:auto">
     <div class="overlay-title">📝 任務回報</div>
     <div class="overlay-desc" id="report-task-name" style="font-weight:600;color:var(--text)"></div>
+    <div id="report-dual-banner" style="display:none;margin-top:.6rem"></div>
+
+    <!-- 雙重回報第一階段：上傳附件 -->
+    <div id="report-stage1-group" style="display:none">
+      <div class="form-group" style="margin-top:.75rem">
+        <label class="form-label">第一次回報附件 <span style="font-size:.72rem;color:var(--red)">＊必附</span></label>
+        <div onclick="document.getElementById('report-stage1-input').click()" style="border:2px dashed var(--border);border-radius:var(--rs);padding:1rem;text-align:center;cursor:pointer;background:var(--bg)">
+          <div style="font-size:1.4rem;margin-bottom:.3rem">📎</div>
+          <div style="font-size:.82rem;color:var(--text-s)">點擊選擇檔案（可多檔，單檔≤20MB）</div>
+        </div>
+        <input type="file" id="report-stage1-input" multiple style="display:none" onchange="onReportStageFileAdd(this)">
+        <div id="report-stage1-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem"></div>
+      </div>
+    </div>
 
     <div class="form-group" style="margin-top:.75rem" id="report-qty-group">
       <label class="form-label">完成數量</label>
@@ -1021,6 +1035,7 @@ async function loadTasks() {
       API.get('/api/assignments/active'),
       API.get('/api/assignments/completed'),
     ]);
+    _asgById = {}; [...pending, ...active, ...completed].forEach(a => { _asgById[a.id] = a; });
     renderPending(pending);
     renderActive(active);
     completedCache = completed;
@@ -1384,7 +1399,9 @@ function activeCardHtml(a) {
       <button onclick="${reviewing ? '' : `openReport(${a.id},'${(a.task_name||'').replace(/'/g,'&#39;')}','${a.assign_type||''}',${a.hourly_wage||0})`}"
         ${reviewing ? 'disabled' : ''}
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:sans-serif">
-        ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
+        ${reviewing
+          ? (a.dual_report ? `⏳ 審核中（第${(a.report_stage||0)===0?'一':'二'}次）` : '⏳ 審核中')
+          : (a.dual_report ? ((a.report_stage||0)===0 ? '📝 第一次回報（附件）' : '📝 第二次回報（網址／圖片）') : '📝 回報工作')}
       </button>
       ${(a.assign_type === 'free' && !reviewing) ? `<button onclick="cancelFreeTask(${a.id},this)" style="width:100%;margin-top:.5rem;padding:.55rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif">✖ 取消任務</button>` : ''}
     </div>`;
@@ -1475,11 +1492,15 @@ async function rejectTask(id, btn) {
 // ── 任務回報 ──────────────────────────────────────────────────
 let reportAssignmentId = null;
 let reportImages = [];
+let _asgById = {};
+let _reportStageFiles = []; // 第一階段附件
+let reportStage = 0; // 0=非雙重/第二次；1=雙重第一次(只附件)
 
 let reportHourly = false, reportHourlyWage = 0;
 function openReport(assignmentId, taskName, assignType, hourlyWage) {
   reportAssignmentId = assignmentId;
   reportImages = [];
+  _reportStageFiles = [];
   reportHourly = assignType === 'hourly';
   reportHourlyWage = parseInt(hourlyWage) || 0;
   document.getElementById('report-task-name').textContent = taskName;
@@ -1487,11 +1508,32 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   document.getElementById('report-url').value = '';
   document.getElementById('report-notes').value = '';
   document.getElementById('report-thumbnails').innerHTML = '';
+  document.getElementById('report-stage1-list').innerHTML = '';
   document.getElementById('report-err').style.display = 'none';
   document.getElementById('report-img-input').value = '';
-  // 小時任務：顯示執行時間、隱藏完成數量
-  document.getElementById('report-qty-group').style.display = reportHourly ? 'none' : '';
-  document.getElementById('report-hourly-group').style.display = reportHourly ? '' : 'none';
+  // 雙重回報：判斷目前階段
+  const a = _asgById[assignmentId] || {};
+  const dual = !!a.dual_report;
+  reportStage = dual ? ((a.report_stage || 0) === 0 ? 1 : 2) : 0;
+  const banner = document.getElementById('report-dual-banner');
+  const isStage1 = reportStage === 1;
+  document.getElementById('report-stage1-group').style.display = isStage1 ? '' : 'none';
+  document.getElementById('report-hourly-group').style.display = (reportHourly && !isStage1) ? '' : 'none';
+  document.getElementById('report-qty-group').style.display = (reportHourly || isStage1) ? 'none' : '';
+  document.querySelector('#report-url').closest('.form-group').style.display = isStage1 ? 'none' : '';
+  document.getElementById('report-upload-zone').closest('.form-group').style.display = isStage1 ? 'none' : '';
+  if (dual) {
+    banner.style.display = '';
+    if (reportStage === 1) {
+      banner.innerHTML = `<div style="background:#EEE6FA;color:#6B3FA0;border:1.5px solid #C9B3E6;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>雙重回報・第一次</b>　請先上傳附件（如素材、草稿），督導核可後才能進行第二次（網址／圖片）。</div>`;
+    } else {
+      const note = a.stage1_reply_note ? `<div style="margin-top:.35rem"><b>督導說明：</b>${a.stage1_reply_note}</div>` : '';
+      const atts = (a.stage1_reply_attachments && a.stage1_reply_attachments.length) ? `<div style="margin-top:.35rem"><b>督導附件：</b>${attachmentsHtml(a.stage1_reply_attachments)}</div>` : '';
+      banner.innerHTML = `<div style="background:#E8F4EA;color:#2E7D56;border:1.5px solid #B5DDC0;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>雙重回報・第二次</b>　第一次已通過，請交出成果（網址／圖片）。${note}${atts}</div>`;
+    }
+  } else {
+    banner.style.display = 'none'; banner.innerHTML = '';
+  }
   // 年/月/日預設帶入今天，時/分清空
   const d = new Date();
   ['start','end'].forEach(w => {
@@ -1504,6 +1546,18 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   document.getElementById('report-hourly-calc').style.display = 'none';
   document.getElementById('report-overlay').classList.add('open');
 }
+function onReportStageFileAdd(input) {
+  for (const f of input.files) {
+    if (f.size > 20 * 1024 * 1024) { showToast(`「${f.name}」超過 20MB`, 'error'); continue; }
+    _reportStageFiles.push(f);
+  }
+  input.value = ''; renderReportStageList();
+}
+function renderReportStageList() {
+  const wrap = document.getElementById('report-stage1-list'); if (!wrap) return;
+  wrap.innerHTML = _reportStageFiles.map((f, i) => `<span style="display:inline-flex;align-items:center;gap:.35rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.2rem .55rem;font-size:.72rem">📄 ${f.name}<span onclick="_reportStageFiles.splice(${i},1);renderReportStageList()" style="cursor:pointer;color:var(--red);font-weight:700">✕</span></span>`).join('');
+}
+function _rFileToB64(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
 
 // 由年/月/日 時:分 組成 "YYYY-MM-DDTHH:MM"（24 小時制），缺一或超出範圍則回空字串
 function reportDateTime(which) {
@@ -1582,19 +1636,38 @@ function removeReportImg(idx, el) {
 async function submitReport() {
   const err = document.getElementById('report-err');
   err.style.display = 'none';
+  const notes = document.getElementById('report-notes').value.trim();
+  // 雙重回報第一階段：只送附件
+  if (reportStage === 1) {
+    if (!_reportStageFiles.length) { err.textContent = '第一次回報請至少上傳一個附件'; err.style.display = 'block'; return; }
+    const attachments = [];
+    for (const f of _reportStageFiles) {
+      try { attachments.push({ name: f.name, mime: f.type || 'application/octet-stream', data: await _rFileToB64(f) }); } catch(e) {}
+    }
+    try {
+      await API.post('/api/reports', { assignment_id: reportAssignmentId, notes, attachments });
+      closeReport();
+      showToast('第一次回報已送出，待督導核可', 'success');
+      loadTasks();
+    } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+    return;
+  }
+  // 第二階段 或 非雙重
   let workStart = '', workEnd = '';
   if (reportHourly) {
     workStart = reportDateTime('start');
     workEnd   = reportDateTime('end');
     if (!workStart || !workEnd) { err.textContent='請完整填寫開始與完成的日期與時間'; err.style.display='block'; return; }
     if (new Date(workEnd) <= new Date(workStart)) { err.textContent='完成時間需晚於開始時間'; err.style.display='block'; return; }
+  } else if (reportStage === 2) {
+    const url = document.getElementById('report-url').value.trim();
+    if (!url && !reportImages.length) { err.textContent='第二次回報請提供網址或圖片'; err.style.display='block'; return; }
   } else {
     const qty = document.getElementById('report-qty').value;
     if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
   }
   const qty   = document.getElementById('report-qty').value;
   const url   = document.getElementById('report-url').value.trim();
-  const notes = document.getElementById('report-notes').value.trim();
   const imgData = reportImages.map(img => ({ name: img.name, data: img.data }));
   try {
     await API.post('/api/reports', {

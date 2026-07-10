@@ -1111,7 +1111,7 @@ app.put('/api/field-order', requireRole('supervisor'), async (req, res) => {
 
 app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content, work_date, attachments } = req.body;
+    const { task_name, company, quantity, unit_price, notes, assign_type, target_partner_id, deadline_days, custom_fields, hourly_wage, work_content, work_date, attachments, dual_report } = req.body;
     const isHourly = assign_type === 'hourly';
     if (!task_name) return res.status(400).json({ error: '缺少必填欄位' });
     if (!isHourly && (!quantity || !unit_price)) return res.status(400).json({ error: '缺少必填欄位' });
@@ -1145,6 +1145,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
         work_start: null, work_end: null, work_minutes: null,
         work_date: work_date || null,
         attachments: taskAtts,
+        dual_report: !!dual_report, report_stage: 0,
         target_partner_id: target_partner_id ? parseInt(target_partner_id) : null,
         assigned_at, supervisor_id, supervisor_name,
         status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
@@ -1166,6 +1167,7 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
         notes: notes || '', deadline_days: ddays, deadline_date, work_date: work_date || null, assigned_at,
         assign_type: assign_type || 'individual',
         attachments: taskAtts,
+        dual_report: !!dual_report, report_stage: 0,
         target_partner_id: assign_type === 'individual' ? parseInt(target_partner_id) : null,
         supervisor_id, supervisor_name,
         status: 'pending', rejected_by: [], accepted_by: null, reject_reason: null,
@@ -1593,7 +1595,7 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, qty_unlimited, work_date, attachments } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, qty_unlimited, work_date, attachments, dual_report } = req.body;
     if (!task_name || !unit_price)
       return res.status(400).json({ error: '缺少必填欄位' });
     // deadline（認領截止）可為 null＝永久開放
@@ -1639,6 +1641,7 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       deadline_days: ddays,
       work_date: work_date || null,
       attachments: await uploadTaskAttachments(attachments),
+      dual_report: !!dual_report,
       notes: notes || '',
       supervisor_id: req.session.user.id,
       supervisor_name: req.session.user.real_name,
@@ -1826,6 +1829,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       assign_type:     'grab',
       work_date:       (slot && slot.work_date) || result.task.work_date || null,
       attachments:     result.task.attachments || [],
+      dual_report:     !!result.task.dual_report, report_stage: 0,
       target_partner_id: partnerId,
       accepted_by:     partnerId,
       accepted_at:     nowTW(),
@@ -1912,6 +1916,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       quantity: 1, unit_price: task.unit_price, total_price: task.unit_price,
       notes: task.notes || '', deadline_days, deadline_date, work_date: slot.work_date || task.work_date || null,
       attachments: task.attachments || [],
+      dual_report: !!task.dual_report, report_stage: 0,
       assigned_at: nowTW(), assign_type: 'grab',
       target_partner_id: partnerId, accepted_by: partnerId, accepted_at: nowTW(),
       supervisor_id: req.session.user.supervisor_id || task.supervisor_id, supervisor_name: supName,
@@ -2136,28 +2141,40 @@ app.get('/api/task-logs', requireRole('supervisor','staff'), async (req, res) =>
 // ── 任務回報 ──────────────────────────────────────────────────
 app.post('/api/reports', requireRole('partner'), async (req, res) => {
   try {
-    const { assignment_id, url, notes, images, completed_qty, work_start, work_end } = req.body;
+    const { assignment_id, url, notes, images, completed_qty, work_start, work_end, attachments } = req.body;
     if (!assignment_id) return res.status(400).json({ error: 'Missing assignment_id' });
     const a = await Assignments.byId(parseInt(assignment_id));
     if (!a || a.accepted_by !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
 
+    // 雙重回報：stage 1=第一次(附件) / 2=第二次(網址或圖片)；非雙重 stage=0
+    const dual  = !!a.dual_report;
+    const stage = dual ? ((a.report_stage || 0) === 0 ? 1 : 2) : 0;
     const isHourly = a.assign_type === 'hourly';
     let hourlyFields = {};       // 存到 report 的小時資訊
     let assignHourlyPatch = {};  // 同步回寫 assignment 的小時資訊
-    if (isHourly) {
-      if (!work_start || !work_end) return res.status(400).json({ error: '請填寫開始與完成時間' });
-      const s = new Date(work_start), e = new Date(work_end);
-      if (isNaN(s) || isNaN(e)) return res.status(400).json({ error: '時間格式不正確' });
-      const minutes = Math.round((e - s) / 60000);
-      if (minutes <= 0) return res.status(400).json({ error: '完成時間需晚於開始時間' });
-      const wage = parseInt(a.hourly_wage) || 0;
-      const total = Math.round(minutes / 60 * wage);
-      const fmt = d => { const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
-      hourlyFields = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, hourly_wage: wage, total_price: total };
-      assignHourlyPatch = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, total_price: total };
+
+    if (dual && stage === 1) {
+      // 第一階段：只要附件
+      if (!Array.isArray(attachments) || !attachments.length) return res.status(400).json({ error: '第一次回報請至少上傳一個附件' });
+    } else {
+      // 第二階段 或 非雙重：完整驗證
+      if (isHourly) {
+        if (!work_start || !work_end) return res.status(400).json({ error: '請填寫開始與完成時間' });
+        const s = new Date(work_start), e = new Date(work_end);
+        if (isNaN(s) || isNaN(e)) return res.status(400).json({ error: '時間格式不正確' });
+        const minutes = Math.round((e - s) / 60000);
+        if (minutes <= 0) return res.status(400).json({ error: '完成時間需晚於開始時間' });
+        const wage = parseInt(a.hourly_wage) || 0;
+        const total = Math.round(minutes / 60 * wage);
+        const fmt = d => { const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+        hourlyFields = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, hourly_wage: wage, total_price: total };
+        assignHourlyPatch = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, total_price: total };
+      } else if (dual && stage === 2) {
+        if (!(url && url.trim()) && !(images && images.length)) return res.status(400).json({ error: '第二次回報請提供網址或圖片' });
+      }
     }
 
-    const report = await WorklogReports.create({
+    const common = {
       assignment_id: parseInt(assignment_id),
       supervisor_id: a.supervisor_id || null,
       partner_id: req.session.user.id,
@@ -2167,17 +2184,21 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
       company: a.company || '',
       task_quantity: a.quantity,
       completed_qty: parseInt(completed_qty) || 0,
-      url: url || '',
-      notes: notes || '',
-      images: images || [],
       assign_type: a.assign_type || 'individual',
-      ...hourlyFields,
-      status: 'pending',
-    });
+      dual_report: dual, stage,
+    };
+    let reportData;
+    if (dual && stage === 1) {
+      const stageAtts = await uploadTaskAttachments(attachments); // 第一次附件上傳雲端
+      reportData = { ...common, stage_attachments: stageAtts, url: '', notes: notes || '', images: [], status: 'pending' };
+    } else {
+      reportData = { ...common, url: url || '', notes: notes || '', images: images || [], ...hourlyFields, status: 'pending' };
+    }
+    const report = await WorklogReports.create(reportData);
     // 標記 assignment 為審核中，避免重複送出；小時任務同步寫入時間與總金額
     await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing', ...assignHourlyPatch });
     cacheClear('sup-'); // 送出 WorkLog → 清督導儀表板快取
-    res.json({ ok: true, id: report.id });
+    res.json({ ok: true, id: report.id, stage });
   } catch(e) {
     const msg = e.message || '';
     if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota')) {
@@ -2268,6 +2289,19 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
     if (!rSnap.empty) {
       const r   = rSnap.docs[0].data();
       const aPrev = await Assignments.byId(r.assignment_id);
+      // 雙重回報第一階段核可：不完成，存督導回覆（補充說明＋附件）並解鎖第二階段
+      if (r.dual_report && r.stage === 1) {
+        const replyNote = (req.body && req.body.reply_note) || '';
+        const replyAtts = await uploadTaskAttachments((req.body && req.body.reply_attachments) || []);
+        await Assignments.update(r.assignment_id, {
+          report_stage: 1, review_status: null,
+          stage1_reply_note: replyNote,
+          stage1_reply_attachments: replyAtts,
+        });
+        cacheClear('sup-');
+        await logTaskAction(req, '核可第一階段回報', `回報 #${id}`, { type: 'report', id });
+        return res.json({ ok: true, stage: 1 });
+      }
       const patch = { status: 'completed', completed_at: nowTW(), review_status: 'approved' };
       // 自由任務：額外獎勵與任務金額加總 → 進錢包（total_price = 基本金額 + 額外，重算冪等）
       if (aPrev && aPrev.assign_type === 'free') {

@@ -1693,6 +1693,10 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
     const activeKeys = new Set(mineAll
       .filter(a => a.assign_type === 'grab' && a.status === 'accepted')
       .map(a => `${a.task_name || ''} ${a.company || ''}`));
+    // 各限量任務：該夥伴已完成筆數（依 grab_task_id）
+    const myCompletedByTask = {};
+    mineAll.filter(a => a.assign_type === 'grab' && a.status === 'completed' && a.grab_task_id != null)
+      .forEach(a => { myCompletedByTask[a.grab_task_id] = (myCompletedByTask[a.grab_task_id] || 0) + 1; });
     // 附上該夥伴已搶的數量與編號
     const result = await Promise.all(list.map(async t => {
       const recSnap = await firestoreDb.collection('grab_tasks').doc(String(t.id))
@@ -1700,7 +1704,8 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
       const grabNos = recSnap.docs.map(d => d.data().grab_no).sort();
       // 挑選模式不套用「每次一個」；數量模式套用
       const my_active = !t.pick_mode && activeKeys.has(`${t.task_name || ''} ${t.company || ''}`);
-      return { ...t, my_grab_no: grabNos[0] || null, my_grab_count: grabNos.length, my_grab_nos: grabNos, my_active };
+      const my_completed_count = myCompletedByTask[t.id] || 0;
+      return { ...t, my_grab_no: grabNos[0] || null, my_grab_count: grabNos.length, my_grab_nos: grabNos, my_active, my_completed_count };
     }));
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }

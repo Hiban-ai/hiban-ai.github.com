@@ -1936,7 +1936,18 @@ async function loadGrabZone() {
             <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
           </div>`}
         </div>
-        <div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.5rem">🔓 每次只能接一個${(t.per_person_limit === 1) ? '（每人限一次）' : '，完成後可再接'}</div>
+        <div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.4rem">🔓 每次只能接一個${(t.per_person_limit === 1) ? '（每人限一次）' : '，完成後可再接'}</div>
+        ${(() => {
+          const lim = t.per_person_limit || 0; // 0=不限
+          const got = t.my_grab_count || 0, done = t.my_completed_count || 0;
+          const items = [
+            `可接：<b>${lim === 0 ? '不限' : lim}</b>`,
+            `已接：<b>${got}</b>`,
+            ...(lim === 0 ? [] : [`剩餘可接：<b style="color:var(--blue-d)">${Math.max(0, lim - got)}</b>`]),
+            `已完成：<b style="color:var(--green)">${done}</b>`,
+          ];
+          return `<div style="display:flex;flex-wrap:wrap;gap:.15rem .7rem;font-size:.74rem;color:var(--text-m);margin-bottom:.4rem;padding:.35rem .55rem;background:var(--bg);border-radius:var(--rs)">${items.map(x=>`<span>${x}</span>`).join('')}</div>`;
+        })()}
         <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">${t.deadline ? '⏰ 認領截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
         ${t.deadline_days ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
         ${t.work_date ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}

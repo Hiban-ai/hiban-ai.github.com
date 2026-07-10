@@ -336,7 +336,6 @@ textarea.form-input{resize:none}
               <span style="font-size:.82rem;color:var(--text-m);font-weight:700">模式</span>
               <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;color:var(--text-m);cursor:pointer"><input type="radio" name="grab-mode" value="qty" checked onchange="onGrabModeChange()"> 數量模式</label>
               <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;color:var(--text-m);cursor:pointer"><input type="radio" name="grab-mode" value="pick" onchange="onGrabModeChange()"> 挑選模式</label>
-              <label style="display:flex;align-items:center;gap:.3rem;font-size:.84rem;color:var(--text-m);cursor:pointer"><input type="radio" name="grab-mode" value="free" onchange="onGrabModeChange()"> 自由模式</label>
             </div>
             <div id="grab-mode-desc" style="font-size:.74rem;color:var(--text-s);line-height:1.5"></div>
           </div>
@@ -350,7 +349,10 @@ textarea.form-input{resize:none}
           </div>
           <div id="row-grab-per-limit" style="display:none;align-items:center;gap:.75rem;margin-top:.75rem">
             <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">每人上限</label>
-            <input class="form-input" type="number" id="grab-per-limit" min="0" value="1" placeholder="0=不限數量" style="flex:1">
+            <input class="form-input" type="number" id="grab-per-limit" min="1" value="1" placeholder="每人最多接幾次" style="flex:1">
+            <label id="grab-per-unlimited-wrap" style="display:flex;align-items:center;gap:.3rem;font-size:.82rem;color:var(--text-s);white-space:nowrap;cursor:pointer">
+              <input type="checkbox" id="grab-per-unlimited" onchange="onGrabPerUnlimited()"> 不限
+            </label>
           </div>
           </div>
 
@@ -1238,26 +1240,29 @@ function onQtyUnlimited() {
 // 限量任務子模式（數量/挑選/自由 三選一）
 function grabMode() { const r = document.querySelector('input[name="grab-mode"]:checked'); return r ? r.value : 'qty'; }
 function onGrabModeChange() {
-  const m = grabMode();
-  const desc = m === 'pick' ? '挑選模式：夥伴從卡片牆自行挑選指定卡片（每張一個編號），名額總數＝卡片張數，不可不限。'
-            : m === 'free' ? '自由模式：每人同時只能接 1 個（同任務名＋公司），完成後才能再接；不適用每人上限。'
-            : '數量模式：認領相同名額，系統依序給編號。';
+  const m = grabMode(); // 'qty' | 'pick'
+  const desc = m === 'pick'
+    ? '挑選模式：夥伴從卡片牆自行挑選指定卡片（每張一個編號），名額總數＝卡片張數，不可不限。'
+    : '數量模式：每次只能接一個（完成後才能再接）；每人上限＝每人最多可接幾次，可設不限。名額總數可設不限。';
   const d = document.getElementById('grab-mode-desc'); if (d) d.textContent = desc;
-  // 自由模式：停用每人上限
-  const perInput = document.getElementById('grab-per-limit');
+  // 每人上限（含不限）：只有數量模式用
   const perRow = document.getElementById('row-grab-per-limit');
-  if (perInput) { perInput.disabled = (m === 'free'); perInput.style.opacity = (m === 'free') ? '.5' : '1'; }
-  if (perRow) perRow.style.opacity = (m === 'free') ? '.6' : '1';
-  // 名額「不限」只在自由模式可用（數量/挑選皆需固定名額）
+  if (perRow) perRow.style.display = (m === 'qty') ? 'flex' : 'none';
+  // 名額「不限」：挑選模式不可不限（需固定卡片數）
   const unlimWrap = document.getElementById('grab-slots-unlimited-wrap');
   const unlimChk = document.getElementById('grab-slots-unlimited');
-  if (m !== 'free' && unlimChk && unlimChk.checked) { unlimChk.checked = false; onGrabSlotsUnlimited(); }
-  if (unlimWrap) unlimWrap.style.display = (m === 'free') ? 'flex' : 'none';
+  if (m === 'pick' && unlimChk && unlimChk.checked) { unlimChk.checked = false; onGrabSlotsUnlimited(); }
+  if (unlimWrap) unlimWrap.style.display = (m === 'pick') ? 'none' : 'flex';
 }
 function onGrabSlotsUnlimited() {
   const on = document.getElementById('grab-slots-unlimited').checked;
   const el = document.getElementById('grab-slots');
   el.disabled = on; if (on) el.value = ''; el.style.opacity = on ? '.5' : '1';
+}
+function onGrabPerUnlimited() {
+  const on = document.getElementById('grab-per-unlimited').checked;
+  const el = document.getElementById('grab-per-limit');
+  if (el) { el.disabled = on; if (on) el.value = ''; el.style.opacity = on ? '.5' : '1'; }
 }
 function onGdPermanent() {
   const on = document.getElementById('gd-permanent').checked;
@@ -1361,10 +1366,11 @@ async function submitAssign() {
   if (!price || parseInt(price) < 0){ err.textContent = '請填寫單價'; err.style.display = 'block'; return; }
 
   if (assignMode === 'grab') {
-    // 限量任務（子模式：數量/挑選/自由 三選一）
+    // 限量任務（子模式：數量 / 挑選）
     const mode = grabMode();
-    const pickMode = mode === 'pick', freeMode = mode === 'free';
-    const slotsUnlimited = document.getElementById('grab-slots-unlimited').checked && freeMode;
+    const pickMode = mode === 'pick';
+    const slotsUnlimited = document.getElementById('grab-slots-unlimited').checked && !pickMode;
+    const perUnlimited = document.getElementById('grab-per-unlimited').checked;
     const slots    = document.getElementById('grab-slots').value;
     const gdPermanent = document.getElementById('gd-permanent').checked;
     const gdY = document.getElementById('gd-year').value, gdM = document.getElementById('gd-month').value, gdD = document.getElementById('gd-day').value;
@@ -1384,7 +1390,7 @@ async function submitAssign() {
       dl = `${yy}/${p2(mm)}/${p2(dd)} 23:59`;
     }
     try {
-      const perLimit = parseInt(document.getElementById('grab-per-limit').value);
+      const perLimit = perUnlimited ? 0 : ((parseInt(document.getElementById('grab-per-limit').value) >= 1) ? parseInt(document.getElementById('grab-per-limit').value) : 1);
       await API.post('/api/grab-tasks', {
         task_name: task, company, unit_price: price, notes,
         total_slots: slotsUnlimited ? null : parseInt(slots),
@@ -1394,15 +1400,15 @@ async function submitAssign() {
         work_date: workDate || null,
         custom_fields: collectCustomFields(),
         slot_data: _aiGrabConfirming ? (_aiGrabSlotData || []) : [], // 僅 AI 匯入確認時帶入，手動建立不帶（避免殘留外洩）
-        per_person_limit: freeMode ? 0 : ((perLimit >= 0) ? perLimit : 1),
+        per_person_limit: pickMode ? perLimit : perLimit, // 數量：累計上限，0=不限
         pick_mode: pickMode,
-        free_mode: freeMode,
       });
       _aiGrabSlotData = null; _aiGrabConfirming = false;
-      showToast(pickMode ? '限量任務（挑選模式）已建立！' : freeMode ? '限量任務（自由模式）已建立！' : '限量任務已建立！', 'success');
+      showToast(pickMode ? '限量任務（挑選模式）已建立！' : '限量任務已建立！', 'success');
       ['assign-company','assign-task','assign-price','assign-notes','grab-slots','assign-days','assign-work-date'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('assign-qty').value = '1';
       document.getElementById('grab-per-limit').value = '1';
+      document.getElementById('grab-per-unlimited').checked = false; onGrabPerUnlimited();
       document.getElementById('grab-slots-unlimited').checked = false; onGrabSlotsUnlimited();
       const qtyRadio = document.querySelector('input[name="grab-mode"][value="qty"]'); if (qtyRadio) qtyRadio.checked = true; onGrabModeChange();
       document.getElementById('assign-days-unlimited').checked = false; onDaysUnlimited(); wdReset();
@@ -2729,21 +2735,21 @@ function aiImportGrabSlotSummary(slot) {
 // AI 匯入：限量任務模式選擇（與主表單一致）
 function aiGrabMode() { const r = document.querySelector('input[name="ai-grab-mode"]:checked'); return r ? r.value : 'qty'; }
 function aiGrabModeChange() {
-  const m = aiGrabMode();
-  const desc = m === 'pick' ? '挑選：每列一張可挑卡片（各自編號／欄位）。'
-            : m === 'free' ? '自由：每人同時 1 個（同名＋公司），完成後可再接；不適用每人上限。可自訂名額總數或不限。'
-            : '數量：N 個相同名額，依序給編號。';
+  const m = aiGrabMode(); // 'qty' | 'pick'
+  const desc = m === 'pick'
+    ? '挑選：每列一張可挑卡片（各自編號／欄位）。'
+    : '數量：每次只能接一個、完成後可再接；每人上限＝每人最多接幾次（可不限），名額可不限。';
   const d = document.getElementById('ai-grab-mode-desc'); if (d) d.textContent = desc;
-  const per = document.getElementById('ai-grab-per-limit'); if (per) { per.disabled = (m === 'free'); per.style.opacity = (m === 'free') ? '.5' : '1'; }
-  // 自由模式才顯示「名額總數＋不限」
-  const freeRow = document.getElementById('ai-grab-free-slots-row');
+  // 挑選模式：隱藏每人上限與名額不限（卡片數固定）
+  const perRow = document.getElementById('ai-grab-per-row'); if (perRow) perRow.style.display = (m === 'pick') ? 'none' : '';
+  const unlimWrap = document.getElementById('ai-grab-unlim-wrap');
   const unlimChk = document.getElementById('ai-grab-slots-unlimited');
-  if (m !== 'free' && unlimChk && unlimChk.checked) { unlimChk.checked = false; aiGrabUnlimChange(); }
-  if (freeRow) freeRow.style.display = (m === 'free') ? 'flex' : 'none';
+  if (m === 'pick' && unlimChk && unlimChk.checked) unlimChk.checked = false;
+  if (unlimWrap) unlimWrap.style.display = (m === 'pick') ? 'none' : 'flex';
 }
-function aiGrabUnlimChange() {
-  const on = document.getElementById('ai-grab-slots-unlimited').checked;
-  const el = document.getElementById('ai-grab-free-slots');
+function aiGrabPerUnlimChange() {
+  const on = document.getElementById('ai-grab-per-unlimited').checked;
+  const el = document.getElementById('ai-grab-per-limit');
   if (el) { el.disabled = on; el.style.opacity = on ? '.5' : '1'; }
 }
 function aiGrabDlPermChange() {
@@ -2828,17 +2834,14 @@ function showAiImportGrabPreview(data) {
         <b>模式</b>
         <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-grab-mode" value="qty" checked onchange="aiGrabModeChange()"> 數量</label>
         <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-grab-mode" value="pick" onchange="aiGrabModeChange()"> 挑選</label>
-        <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-grab-mode" value="free" onchange="aiGrabModeChange()"> 自由</label>
-      </div>
-      <div id="ai-grab-free-slots-row" style="display:none;align-items:center;gap:.4rem;margin-top:.45rem">
-        <b>名額總數</b>：<input type="number" id="ai-grab-free-slots" class="form-input" min="1" value="${_aiGrabSlotData.length || 1}" style="width:72px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">
-        <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;margin-left:.2rem"><input type="checkbox" id="ai-grab-slots-unlimited" onchange="aiGrabUnlimChange()"> 名額不限</label>
+        <label id="ai-grab-unlim-wrap" style="display:none;align-items:center;gap:.3rem;cursor:pointer;margin-left:.2rem"><input type="checkbox" id="ai-grab-slots-unlimited"> 名額不限</label>
       </div>
       <div id="ai-grab-mode-desc" style="font-size:.72rem;color:var(--text-s);margin-top:.3rem"></div>
     </div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">${summaryRows || '（AI 未解析出共同欄位）'}</div>` +
-    `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">
-      <b>每人上限</b>：<input type="number" id="ai-grab-per-limit" class="form-input" min="0" value="1" placeholder="0=不限" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">
+    `<div id="ai-grab-per-row" style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">
+      <b>每人上限</b>：<input type="number" id="ai-grab-per-limit" class="form-input" min="1" value="1" placeholder="每人最多接幾次" style="width:56px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">
+      <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;margin-left:.5rem"><input type="checkbox" id="ai-grab-per-unlimited" onchange="aiGrabPerUnlimChange()"> 不限</label>
     </div>` +
     `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.6;margin-bottom:.4rem">
       <b>認領截止</b>：<input type="number" id="ai-grab-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">天後的23:59
@@ -2857,12 +2860,10 @@ async function aiImportGrabConfirm(data) {
   const dlPerm = document.getElementById('ai-grab-deadline-permanent') && document.getElementById('ai-grab-deadline-permanent').checked;
   const dlDays = parseInt(document.getElementById('ai-grab-deadline-days').value);
   if (!dlPerm && (!dlDays || dlDays < 1)) { showToast('請輸入認領截止天數或勾選永久', 'error'); return; }
-  const aiMode = aiGrabMode();
-  const aiUnlim = aiMode === 'free' && document.getElementById('ai-grab-slots-unlimited') && document.getElementById('ai-grab-slots-unlimited').checked;
-  // 自由模式可自訂名額總數；其餘＝解析列數
-  const freeSlots = parseInt(document.getElementById('ai-grab-free-slots') && document.getElementById('ai-grab-free-slots').value);
-  const cnt = (aiMode === 'free' && freeSlots >= 1) ? freeSlots : (_aiGrabSlotData || []).length;
-  const modeWord = aiMode === 'pick' ? '張可挑選卡片' : aiMode === 'free' ? '個名額（自由模式）' : '個名額';
+  const aiMode = aiGrabMode(); // 'qty' | 'pick'
+  const aiUnlim = aiMode !== 'pick' && document.getElementById('ai-grab-slots-unlimited') && document.getElementById('ai-grab-slots-unlimited').checked;
+  const cnt = (_aiGrabSlotData || []).length;
+  const modeWord = aiMode === 'pick' ? '張可挑選卡片' : '個名額';
   if (!confirm(`確定要建立這個限量任務嗎？\n共 ${aiUnlim ? '不限' : cnt} ${modeWord}，${dlPerm ? '永久開放' : dlDays+' 天後截止'}，送出後立即發布，請先確認上方預覽無誤。`)) return;
   btn.disabled = true;
   try {
@@ -2883,11 +2884,15 @@ async function aiImportGrabConfirm(data) {
     const firstDays = _aiGrabSlotData.find(s => s.deadline_days)?.deadline_days;
     if (firstDays) document.getElementById('assign-days').value = firstDays;
     if (data.notes) document.getElementById('assign-notes').value = data.notes;
-    // 帶入主表單的模式（數量/挑選/自由）
+    // 帶入主表單的模式（數量 / 挑選）
     const modeRadio = document.querySelector(`input[name="grab-mode"][value="${aiMode}"]`);
     if (modeRadio) { modeRadio.checked = true; onGrabModeChange(); }
-    document.getElementById('grab-per-limit').value = document.getElementById('ai-grab-per-limit').value;
-    // 名額不限（僅自由模式）
+    // 每人上限（含不限）
+    const aiPerUnlim = document.getElementById('ai-grab-per-unlimited') && document.getElementById('ai-grab-per-unlimited').checked;
+    const mainPerUnlim = document.getElementById('grab-per-unlimited');
+    if (mainPerUnlim) { mainPerUnlim.checked = !!aiPerUnlim; onGrabPerUnlimited(); }
+    if (!aiPerUnlim) document.getElementById('grab-per-limit').value = document.getElementById('ai-grab-per-limit').value || '1';
+    // 名額不限
     const mainUnlim = document.getElementById('grab-slots-unlimited');
     if (mainUnlim) { mainUnlim.checked = !!aiUnlim; onGrabSlotsUnlimited(); }
     if (!aiUnlim) document.getElementById('grab-slots').value = cnt;

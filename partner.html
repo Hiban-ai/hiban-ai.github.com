@@ -1855,10 +1855,10 @@ async function loadGrabZone() {
   const wrap = document.getElementById('grab-zone-wrap');
   try {
     const list = await API.get('/api/grab-tasks');
-    // 數量/自由模式可認領：自由模式不看每人上限（後端擋重複），無限名額不看剩餘
+    // 數量模式：名額還有、且沒達每人上限（0=不限）就顯示；有進行中則按鈕禁用（每次一個）
     const available = list.filter(t => !t.pick_mode
-      && (t.free_mode || (t.my_grab_count||0) < (t.per_person_limit||1))
-      && (t.qty_unlimited || t.grabbed_count < t.total_slots));
+      && (t.qty_unlimited || t.grabbed_count < t.total_slots)
+      && ((t.per_person_limit||0) === 0 || (t.my_grab_count||0) < t.per_person_limit));
     // 挑選模式：開放中且仍有未選卡片
     const pickTasks = list.filter(t => t.pick_mode && (t.slot_data||[]).some(s => !s.claimed));
     _pickTasksCache = {}; pickTasks.forEach(t => { _pickTasksCache[t.id] = t; if (!_pickState[t.id]) _pickState[t.id] = { page: 0, sel: -1 }; });
@@ -1889,7 +1889,7 @@ async function loadGrabZone() {
               </div>
             </div>
             <div style="flex-shrink:0">
-              ${t.my_active_free
+              ${t.my_active
                 ? `<span style="font-size:.75rem;color:var(--text-s)">進行中</span>`
                 : remaining === 0
                 ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
@@ -1931,13 +1931,13 @@ async function loadGrabZone() {
             <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
           </div>`}
         </div>
-        ${t.free_mode ? '<div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.5rem">🔓 自由模式：完成後可再接</div>' : ''}
+        <div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.5rem">🔓 每次只能接一個${(t.per_person_limit === 1) ? '（每人限一次）' : '，完成後可再接'}</div>
         <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">${t.deadline ? '⏰ 認領截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
         ${t.deadline_days ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
         ${t.work_date ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
         ${customFieldsHtml(t.custom_fields)}
-        ${t.my_active_free
+        ${t.my_active
           ? `<button disabled style="width:100%;padding:.65rem;background:var(--bg);color:var(--text-s);border:1.5px solid var(--border);border-radius:20px;font-size:.88rem;font-weight:700;cursor:not-allowed;font-family:sans-serif">⏳ 進行中（完成後才能再接）</button>`
           : remaining === 0
             ? `<div style="padding:.55rem 1rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">名額已滿</div>`

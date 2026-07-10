@@ -1548,17 +1548,17 @@ app.put('/api/issues/:id/read', requireAuth, async (req, res) => {
 // 督導建立搶單任務
 app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
   try {
-    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, free_mode, qty_unlimited, work_date } = req.body;
+    const { task_name, company, unit_price, total_slots, deadline, notes, deadline_days, custom_fields, slot_data, per_person_limit, pick_mode, qty_unlimited, work_date } = req.body;
     if (!task_name || !unit_price)
       return res.status(400).json({ error: '缺少必填欄位' });
     // deadline（認領截止）可為 null＝永久開放
     const isPick = !!pick_mode;
-    const isFree = !!free_mode;
     const qtyUnlimited = !!qty_unlimited && !isPick; // 挑選模式不可無限
     const slots = qtyUnlimited ? null : parseInt(total_slots);
     const price = parseInt(unit_price);
     const ddays = parseInt(deadline_days) || null;
-    const perLimit = isFree ? 0 : ((parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1); // 0 = 不限數量
+    // 數量模式：每人上限＝累計上限，0＝不限；規則統一為「每次一個、完成可再接」
+    const perLimit = (parseInt(per_person_limit) >= 0) ? parseInt(per_person_limit) : 1;
     if (!qtyUnlimited && (!slots || slots < 1)) return res.status(400).json({ error: '請填總名額或勾選不限' });
     const task_code = await 產生任務代號(LIMIT_CODE_COL); // 限量任務代號（6碼）
 
@@ -1588,7 +1588,6 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
       unit_price: price, total_price_each: price,
       task_code,
       pick_mode: isPick,
-      free_mode: isFree,
       qty_unlimited: qtyUnlimited,
       total_slots: slots,
       deadline,
@@ -1643,9 +1642,9 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
     if (!list) { list = await GrabTasks.openList(); cacheSet('grab-tasks-open', list, 60 * 1000); } // 快取 1 分鐘
     // 過濾截止的
     list = list.filter(t => !t.deadline || t.deadline >= now.slice(0,16)); // 無 deadline＝永久開放
-    // 自由模式：判斷該夥伴是否已有「同名+公司」進行中（未完成）的任務 → 不能再接
+    // 數量模式：每次只能接一個 → 判斷是否已有「同名+公司」進行中（未完成）
     const mineAll = await Assignments.forPartners([partnerId]);
-    const activeFreeKeys = new Set(mineAll
+    const activeKeys = new Set(mineAll
       .filter(a => a.assign_type === 'grab' && a.status === 'accepted')
       .map(a => `${a.task_name || ''} ${a.company || ''}`));
     // 附上該夥伴已搶的數量與編號
@@ -1653,8 +1652,9 @@ app.get('/api/grab-tasks', requireRole('partner'), async (req, res) => {
       const recSnap = await firestoreDb.collection('grab_tasks').doc(String(t.id))
         .collection('grabbed_by').where('partner_id','==',partnerId).get();
       const grabNos = recSnap.docs.map(d => d.data().grab_no).sort();
-      const my_active_free = !!t.free_mode && activeFreeKeys.has(`${t.task_name || ''} ${t.company || ''}`);
-      return { ...t, my_grab_no: grabNos[0] || null, my_grab_count: grabNos.length, my_grab_nos: grabNos, my_active_free };
+      // 挑選模式不套用「每次一個」；數量模式套用
+      const my_active = !t.pick_mode && activeKeys.has(`${t.task_name || ''} ${t.company || ''}`);
+      return { ...t, my_grab_no: grabNos[0] || null, my_grab_count: grabNos.length, my_grab_nos: grabNos, my_active };
     }));
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -1693,13 +1693,13 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
   const partnerId = req.session.user.id;
   const partnerName = req.session.user.real_name;
   try {
-    // 自由模式：同任務名+公司，進行中只能有一個（完成後才能再接）
+    // 數量模式：每次只能接一個（同任務名+公司進行中唯一，完成後才能再接）
     const task0 = await GrabTasks.byId(taskId);
-    if (task0 && task0.free_mode) {
+    if (task0) {
       const mine = await Assignments.forPartners([partnerId]);
       const dup = mine.find(a => a.assign_type === 'grab' && a.status === 'accepted'
         && (a.task_name || '') === (task0.task_name || '') && (a.company || '') === (task0.company || ''));
-      if (dup) return res.status(400).json({ error: '同任務名稱與公司已有進行中的任務，完成後才能再接' });
+      if (dup) return res.status(400).json({ error: '此任務已有進行中的一筆，完成後才能再接' });
     }
     const taskRef    = firestoreDb.collection('grab_tasks').doc(String(taskId));
     const grabbedByCol = taskRef.collection('grabbed_by');

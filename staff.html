@@ -1206,7 +1206,7 @@ async function loadStaffGrab() {
     wrap.innerHTML = list.map((t, i) => {
       const remaining = t.qty_unlimited ? null : (t.total_slots - t.grabbed_count);
       const pct       = t.qty_unlimited ? 0 : Math.round((t.grabbed_count / t.total_slots) * 100);
-      const modeLabel = t.pick_mode ? '挑選' : t.free_mode ? '自由' : '數量';
+      const modeLabel = t.pick_mode ? '挑選' : '數量';
       const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
       const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
@@ -1246,7 +1246,7 @@ async function loadStaffGrab() {
         <div style="height:5px;background:#e5edf3;border-radius:4px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--red)':'var(--blue)'};border-radius:4px"></div>
         </div>
-        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${t.pick_mode ? '🃏 挑選模式 ・ ' : t.free_mode ? '🔓 自由模式 ・ ' : ''}已認領 ${t.grabbed_count}${t.qty_unlimited ? ' 件（不限）' : '，剩餘 '+remaining+' 件'}</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${t.pick_mode ? '🃏 挑選模式 ・ ' : '🔢 數量模式 ・ '}已認領 ${t.grabbed_count}${t.qty_unlimited ? ' 件（不限）' : '，剩餘 '+remaining+' 件'}</div>
         ${grabbersHtml}
       </div>`;
     }).join('');

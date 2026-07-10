@@ -476,20 +476,19 @@ textarea.form-input{resize:none}
           <div id="assign-custom-fields" style="display:flex;flex-direction:column;gap:.75rem"></div>
           </div>
 
-          <!-- 派案附件（各模式通用，選填、可多檔） -->
-          <div style="display:flex;align-items:flex-start;gap:.75rem;margin-top:.4rem">
-            <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.4rem">附件</label>
-            <div style="flex:1">
-              <input type="file" id="assign-att-file" multiple style="display:none" onchange="onAssignFileAdd(this)">
-              <button type="button" onclick="document.getElementById('assign-att-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 加入檔案</button>
-              <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">傳給夥伴的檔案（選填，單檔≤15MB）</span>
-              <div id="assign-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
-            </div>
-          </div>
-
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
           <button onclick="openCfMgr()" type="button" style="display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">⚙️ 自訂欄位</button>
+        </div>
+        <!-- 派案附件（各模式通用，選填、可多檔）— 固定在最後 -->
+        <div style="display:flex;align-items:flex-start;gap:.75rem;margin-top:.75rem;padding-top:.75rem;border-top:1.5px dashed var(--border)">
+          <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0;padding-top:.4rem">附件</label>
+          <div style="flex:1">
+            <input type="file" id="assign-att-file" multiple style="display:none" onchange="onAssignFileAdd(this)">
+            <button type="button" onclick="document.getElementById('assign-att-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 加入檔案</button>
+            <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">傳給夥伴的檔案（選填，單檔≤15MB）</span>
+            <div id="assign-att-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
+          </div>
         </div>
         <button id="assign-submit-btn" onclick="submitAssign()" style="margin-top:1.1rem;width:100%;padding:.85rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 6px 20px rgba(26,112,160,.3);transition:all .3s">確認派案 ✓</button>
       </div>

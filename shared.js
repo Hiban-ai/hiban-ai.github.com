@@ -180,11 +180,11 @@ function showToast(msg, type = 'info') {
     }
   });
 
-  // 彈窗：按 ESC 關閉最上層開啟中的視窗（.pw-overlay.open）
+  // 彈窗：按 ESC 關閉最上層開啟中的視窗（涵蓋各頁的 overlay 與 register 的 .modal）
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape' && e.key !== 'Esc') return;
-    const opens = document.querySelectorAll('.pw-overlay.open');
-    if (opens.length) { e.preventDefault(); opens[opens.length - 1].classList.remove('open'); }
+    const opens = document.querySelectorAll('[class*="overlay"].open, .modal.show');
+    if (opens.length) { e.preventDefault(); opens[opens.length - 1].classList.remove('open', 'show'); }
   });
 
   function init() {

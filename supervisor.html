@@ -3345,9 +3345,13 @@ async function runAiBaseImport() {
       mode: 'base-data',
     });
     if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
-    _aiBaseCompanies = (res.companies || []).map(n => String(n).trim()).filter(Boolean)
+    // 保險：濾掉原文中根本沒出現的名稱（NFKC 正規化，容忍全半形/空白差異）
+    const norm = s => String(s).normalize('NFKC').replace(/\s+/g, '').toLowerCase();
+    const nText = norm(text);
+    const inText = name => nText.includes(norm(name));
+    _aiBaseCompanies = (res.companies || []).map(n => String(n).trim()).filter(Boolean).filter(inText)
       .map(name => ({ name, exists: _coList.some(c => c.name === name) }));
-    _aiBaseTasks = (res.tasks || []).filter(t => t && String(t.name || '').trim())
+    _aiBaseTasks = (res.tasks || []).filter(t => t && String(t.name || '').trim() && inText(t.name))
       .map(t => {
         const name = String(t.name).trim();
         const existing = _ttList.find(x => x.name === name) || null;

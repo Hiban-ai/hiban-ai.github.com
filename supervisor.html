@@ -315,7 +315,7 @@ textarea.form-input{resize:none}
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
                     style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🎯 限量任務</button>
           </div>
-          <button onclick="openAiBaseMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🗂️ AI 資料匯入</button>
+          <button onclick="openAiBaseMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🗂️ 資料匯入</button>
           <button onclick="openAiImportMgr()" type="button" style="display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🤖 任務匯入</button>
         </div>
 
@@ -755,7 +755,7 @@ textarea.form-input{resize:none}
 <div class="pw-overlay" id="ai-base-overlay">
   <div class="pw-box" style="width:min(680px,96vw);max-height:92vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🗂️ AI 資料匯入</div>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🗂️ 資料匯入</div>
       <button onclick="closeAiBaseMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上資料，AI 會自動整理出「公司名稱」與「任務名稱＋單價」，確認後一鍵建立基礎資料（任務單價會存為該任務的預設單價）。</div>

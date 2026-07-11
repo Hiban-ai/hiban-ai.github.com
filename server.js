@@ -3820,6 +3820,64 @@ ${text}
       return res.json({ ok: true, data });
     }
 
+    // 多任務模式：每列各自任務／公司，分開建立多個限量（數量）任務
+    if (mode === 'grab-multi') {
+      const multiPrompt = `你是任務派案助手。請從以下文字中解析出「多個限量任務（數量模式）」，每一列資料是一個獨立任務，並以 JSON 物件回傳，只回傳 JSON 不要其他文字。
+
+今天日期：${todayStr}
+
+可選任務名稱：${(tasks || []).join('、')}
+可選公司名稱：${(companies || []).join('、')}
+
+請回傳一個 JSON 物件（不是陣列），格式如下：
+{
+  "groups": [
+    {
+      "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
+      "company": "從可選公司名稱中選最符合的，找不到則空字串",
+      "unit_price": "單價，數字字串，找不到則空字串",
+      "total_slots": "此任務的名額／數量，數字字串（要幾個名額），找不到則空字串",
+      "per_person_limit": "每人上限，數字字串；若原文寫「不限」則回傳 0；找不到則空字串",
+      "deadline_days": "完成期限天數，數字字串。天數直接用；日期換算成從今天到該日的剩餘天數(至少1)；找不到則空字串",
+      "work_date": "執行日期，格式 YYYY/MM/DD，原文有就原樣填入（不要換算成天數），沒有則空字串",
+      "notes": "此任務備註，找不到則空字串"
+    }
+  ]
+}
+
+重要規則：
+- 文字通常是表格（含表頭與多列資料）：忽略表頭，為「每一列資料」各產生一個 groups 元素，依原始順序，不要自行合併不同列。
+- 每一列請各自解析 task_name、company、total_slots、per_person_limit，同一列這些欄位對應該列的值。
+- total_slots 是該任務的名額數（可被接幾次）；per_person_limit 是每人最多可接幾次（不限＝0）。兩者不同，請勿混淆。
+- ⚠️「執行日期」是某一天(放 work_date、保持日期格式)，「完成期限」才是天數(放 deadline_days)，勿混淆。
+- 只回傳 JSON 物件，不要其他文字或說明。
+
+文字內容：
+"""
+${text}
+"""`;
+      const body = JSON.stringify({ contents: [{ parts: [{ text: multiPrompt }] }], generationConfig: { temperature: 0.1 } });
+      const result = await geminiPost(apiKey, body);
+      if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
+      const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      console.log('[Gemini extract-task grab-multi raw]', raw.slice(0, 300));
+      const objIdx = raw.indexOf('{');
+      if (objIdx === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+      let depth = 0, end = -1, inStr = false, esc = false;
+      for (let i = objIdx; i < raw.length; i++) {
+        const ch = raw[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\') { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{') depth++;
+        else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+      }
+      if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
+      const data = JSON.parse(raw.slice(objIdx, end + 1));
+      return res.json({ ok: true, groups: Array.isArray(data.groups) ? data.groups : [] });
+    }
+
     const prompt = `你是任務派案助手。請從以下文字中解析出派案資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。
 
 今天日期：${todayStr}

@@ -738,6 +738,9 @@ textarea.form-input{resize:none}
       <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上客戶訊息、Email、LINE 對話等文字，AI 會自動辨識公司、任務、數量、單價、期限、夥伴與自訂欄位，並填入下方派案表單供你確認。</div>
+    <label id="ai-grab-multi-wrap" style="display:none;align-items:center;gap:.4rem;margin-bottom:.6rem;font-size:.82rem;color:var(--text-m);cursor:pointer;background:var(--blue-p);border:1px solid var(--blue-pp);border-radius:var(--rs);padding:.45rem .7rem">
+      <input type="checkbox" id="ai-grab-multi"> <span><b>多任務模式</b>：每列各自任務／公司，分開建立多個限量（數量）任務</span>
+    </label>
     <div id="ai-import-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或貼上 Google 試算表連結（需設為「知道連結的人皆可查看」，將讀取第一個工作表）</div>
     <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
@@ -2782,6 +2785,11 @@ function openAiImportMgr() {
   _aiGrabSlotData = null;
   document.getElementById('ai-import-confirm-all-btn').onclick = aiImportConfirmAll;
   document.getElementById('ai-import-confirm-all-btn').textContent = '🚀 全部一鍵派案';
+  // 多任務模式切換：只在限量任務(認領)情境顯示
+  const multiWrap = document.getElementById('ai-grab-multi-wrap');
+  const multiChk = document.getElementById('ai-grab-multi');
+  if (multiChk) multiChk.checked = false;
+  if (multiWrap) multiWrap.style.display = (assignMode === 'grab') ? 'flex' : 'none';
   document.getElementById('ai-import-overlay').classList.add('open');
 }
 function closeAiImportMgr() {
@@ -3113,6 +3121,91 @@ async function aiImportGrabConfirm(data) {
   }
 }
 
+// ── AI 匯入：多任務模式（每列各自任務／公司，分開建立多個限量數量任務）──
+let _aiMultiGroups = [];
+function showAiImportGrabMultiPreview(groups) {
+  _aiMultiGroups = (groups || []).filter(g => (g.task_name || g.company)).map(g => ({
+    task_name: g.task_name || '',
+    company: g.company || '',
+    unit_price: parseInt(g.unit_price) || 0,
+    total_slots: parseInt(g.total_slots) || 1,
+    per_person_limit: (g.per_person_limit === 0 || g.per_person_limit === '0') ? 0 : (parseInt(g.per_person_limit) || 1),
+    deadline_days: parseInt(g.deadline_days) || null,
+    work_date: g.work_date || null,
+    notes: g.notes || '',
+    status: 'pending', message: '',
+  }));
+  const title = document.getElementById('ai-import-preview-title');
+  const allBtn = document.getElementById('ai-import-confirm-all-btn');
+  title.textContent = `📋 多任務解析結果（共 ${_aiMultiGroups.length} 個任務）`;
+  allBtn.style.display = 'block';
+  allBtn.textContent = `✅ 建立 ${_aiMultiGroups.length} 個限量任務`;
+  allBtn.onclick = aiImportGrabMultiConfirmAll;
+  renderAiMultiList();
+  document.getElementById('ai-import-preview').style.display = 'block';
+}
+function renderAiMultiList() {
+  const wrap = document.getElementById('ai-import-list');
+  const dlRow = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.5rem;background:var(--blue-p)">
+      <b>認領截止（套用全部）</b>：<input type="number" id="ai-multi-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">天後的23:59
+      <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;margin-left:.5rem"><input type="checkbox" id="ai-multi-deadline-permanent"> 永久</label>
+    </div>`;
+  const stColor = { pending:'var(--text-s)', done:'var(--green)', error:'var(--red)' };
+  const stLabel = { pending:'待建立', done:'✓ 已建立', error:'✗ 失敗' };
+  const rows = _aiMultiGroups.map((g, i) => `
+    <div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.55rem .8rem;font-size:.82rem;line-height:1.7">
+      <div style="display:flex;justify-content:space-between;gap:.5rem">
+        <b style="color:var(--blue-d)">＃${i+1}　${g.company ? g.company+'：' : ''}${g.task_name || '（未辨識任務）'}</b>
+        <span style="font-size:.72rem;font-weight:700;color:${stColor[g.status]}">${stLabel[g.status]}</span>
+      </div>
+      <div style="color:var(--text-m)">名額 <b>${g.total_slots}</b>　每人上限 <b>${g.per_person_limit === 0 ? '不限' : g.per_person_limit}</b>　單價 <b>$${g.unit_price}</b>${g.deadline_days ? `　完成期限 ${g.deadline_days}天` : ''}${g.work_date ? `　執行 ${g.work_date}` : ''}</div>
+      ${g.notes ? `<div style="color:var(--text-s);font-size:.78rem">備註：${g.notes}</div>` : ''}
+      ${g.message ? `<div style="color:var(--red);font-size:.76rem">${g.message}</div>` : ''}
+    </div>`).join('');
+  wrap.innerHTML = dlRow + (rows || '<div style="color:var(--text-s);font-size:.82rem">（AI 未解析出任務）</div>');
+}
+async function aiImportGrabMultiConfirmAll() {
+  if (!_aiMultiGroups.length) { showToast('沒有可建立的任務', 'error'); return; }
+  const dlPerm = document.getElementById('ai-multi-deadline-permanent') && document.getElementById('ai-multi-deadline-permanent').checked;
+  const dlDays = parseInt(document.getElementById('ai-multi-deadline-days').value);
+  if (!dlPerm && (!dlDays || dlDays < 1)) { showToast('請輸入認領截止天數或勾選永久', 'error'); return; }
+  const pending = _aiMultiGroups.filter(g => g.status !== 'done');
+  if (!pending.length) { showToast('沒有可建立的任務', 'error'); return; }
+  if (!confirm(`確定要建立這 ${pending.length} 個限量任務嗎？\n送出後會立即發布，請先確認上方預覽無誤。`)) return;
+  let dl = null;
+  if (!dlPerm) {
+    const d = new Date(); d.setDate(d.getDate() + dlDays);
+    const p = n => String(n).padStart(2, '0');
+    dl = `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} 23:59`;
+  }
+  const btn = document.getElementById('ai-import-confirm-all-btn');
+  btn.disabled = true; btn.textContent = '建立中...';
+  for (const g of _aiMultiGroups) {
+    if (g.status === 'done') continue;
+    if (!g.task_name) { g.status = 'error'; g.message = '未辨識到任務名稱（需為系統已建立的任務）'; renderAiMultiList(); continue; }
+    if (!g.unit_price) { g.status = 'error'; g.message = '缺少單價'; renderAiMultiList(); continue; }
+    try {
+      await API.post('/api/grab-tasks', {
+        task_name: g.task_name, company: g.company, unit_price: g.unit_price, notes: g.notes,
+        total_slots: g.total_slots, qty_unlimited: false,
+        deadline: dl,
+        deadline_days: g.deadline_days || null,
+        work_date: g.work_date || null,
+        custom_fields: [], slot_data: [],
+        per_person_limit: g.per_person_limit,
+        pick_mode: false,
+        attachments: [], dual_report: false,
+      });
+      g.status = 'done';
+    } catch(e) { g.status = 'error'; g.message = e.message; }
+    renderAiMultiList();
+  }
+  btn.disabled = false; btn.textContent = `✅ 建立 ${_aiMultiGroups.length} 個限量任務`;
+  const okCount = _aiMultiGroups.filter(g => g.status === 'done').length;
+  if (okCount) { showToast(`已建立 ${okCount} 個限量任務`, 'success'); if (typeof loadGrabHistory === 'function') loadGrabHistory(); }
+  if (_aiMultiGroups.every(g => g.status === 'done')) closeAiImportMgr();
+}
+
 async function loadAiImportSheet() {
   const url = document.getElementById('ai-import-sheet-url').value.trim();
   const errEl = document.getElementById('ai-import-err');
@@ -3190,6 +3283,18 @@ async function runAiImport() {
     const customFields = _cfList.filter(f => cfVisibleInMode(f, cfMode))
       .map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
     if (assignMode === 'grab') {
+      const multi = document.getElementById('ai-grab-multi') && document.getElementById('ai-grab-multi').checked;
+      if (multi) {
+        const res = await API.post('/api/gemini/extract-task', {
+          text,
+          tasks: _ttList.map(t => t.name),
+          companies: _coList.map(c => c.name),
+          mode: 'grab-multi',
+        });
+        if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
+        showAiImportGrabMultiPreview(res.groups || []);
+        return;
+      }
       const res = await API.post('/api/gemini/extract-task', {
         text,
         tasks: _ttList.map(t => t.name),

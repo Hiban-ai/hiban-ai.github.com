@@ -1426,10 +1426,13 @@ function buildRejectedCards(list) {
     var sc = a.supervisor_comments || [];
     var last = sc.length ? sc[sc.length - 1] : null;
     var taskName = (a.task_name || '').replace(/'/g, '&#39;');
+    var commentAtts = (last && last.attachments && last.attachments.length)
+      ? '<div style="margin-top:.35rem">' + attachmentsHtml(last.attachments) + '</div>' : '';
     var commentBlock = last
       ? '<div style="margin-top:.3rem;background:var(--orange-p);border-radius:var(--rs);padding:.35rem .6rem;border:1px solid rgba(240,120,64,.2)">'
         + '<div style="font-size:.68rem;color:var(--text-s);margin-bottom:.1rem">督導意見 · ' + (last.date||'') + ' ' + (last.time||'') + '</div>'
         + '<div style="font-size:.8rem;color:var(--text-m);line-height:1.45">' + (last.text||'') + '</div>'
+        + commentAtts
         + '</div>'
       : '';
     return '<div style="background:#fff;border-radius:var(--rs);padding:.65rem .85rem;border-left:4px solid var(--orange);box-shadow:0 2px 8px rgba(240,120,64,.10);margin-bottom:.5rem">'
@@ -1525,7 +1528,11 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   if (dual) {
     banner.style.display = '';
     if (reportStage === 1) {
-      banner.innerHTML = `<div style="background:#EEE6FA;color:#6B3FA0;border:1.5px solid #C9B3E6;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>雙重回報・第一次</b>　請先上傳附件（如素材、草稿），督導核可後才能進行第二次（網址／圖片）。</div>`;
+      const sc = a.supervisor_comments || [];
+      const lastC = sc.length ? sc[sc.length - 1] : null;
+      const rejNote = lastC ? `<div style="margin-top:.35rem"><b>督導退回意見：</b>${lastC.text || ''}</div>` : '';
+      const rejAtts = (lastC && lastC.attachments && lastC.attachments.length) ? `<div style="margin-top:.35rem"><b>督導附件：</b>${attachmentsHtml(lastC.attachments)}</div>` : '';
+      banner.innerHTML = `<div style="background:#EEE6FA;color:#6B3FA0;border:1.5px solid #C9B3E6;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>雙重回報・第一次</b>　請先上傳附件（如素材、草稿），督導核可後才能進行第二次（網址／圖片）。${rejNote}${rejAtts}</div>`;
     } else {
       const note = a.stage1_reply_note ? `<div style="margin-top:.35rem"><b>督導說明：</b>${a.stage1_reply_note}</div>` : '';
       const atts = (a.stage1_reply_attachments && a.stage1_reply_attachments.length) ? `<div style="margin-top:.35rem"><b>督導附件：</b>${attachmentsHtml(a.stage1_reply_attachments)}</div>` : '';

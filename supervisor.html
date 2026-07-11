@@ -771,6 +771,12 @@ textarea.form-input{resize:none}
     <div class="form-group">
       <textarea class="form-input" id="reject-report-reason" rows="4" placeholder="請具體說明需要修改的地方..."></textarea>
     </div>
+    <div style="margin-bottom:.9rem">
+      <input type="file" id="reject-reply-file" multiple style="display:none" onchange="onRejectFileAdd(this)">
+      <button type="button" onclick="document.getElementById('reject-reply-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 附件（選填）</button>
+      <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">單檔≤20MB，夥伴修改時會看到</span>
+      <div id="reject-reply-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
+    </div>
     <button class="btn-primary" onclick="submitRejectReport()">送出意見</button>
     <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeRejectReport()">取消</button>
   </div>
@@ -1011,14 +1017,27 @@ async function submitStage1Approve() {
   }
 }
 
+let _rejectReplyFiles = [];
 function openRejectReport(reportId) {
   document.getElementById('reject-report-id').value = reportId;
   document.getElementById('reject-report-reason').value = '';
   document.getElementById('reject-report-err').style.display = 'none';
+  _rejectReplyFiles = []; renderRejectList();
   document.getElementById('reject-report-overlay').classList.add('open');
 }
 function closeRejectReport() {
   document.getElementById('reject-report-overlay').classList.remove('open');
+}
+function onRejectFileAdd(input) {
+  for (const f of input.files) {
+    if (f.size > 20 * 1024 * 1024) { showToast(`「${f.name}」超過 20MB`, 'error'); continue; }
+    _rejectReplyFiles.push(f);
+  }
+  input.value = ''; renderRejectList();
+}
+function renderRejectList() {
+  const wrap = document.getElementById('reject-reply-list'); if (!wrap) return;
+  wrap.innerHTML = _rejectReplyFiles.map((f, i) => `<span style="display:inline-flex;align-items:center;gap:.35rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.2rem .55rem;font-size:.72rem">📄 ${f.name}<span onclick="_rejectReplyFiles.splice(${i},1);renderRejectList()" style="cursor:pointer;color:var(--red);font-weight:700">✕</span></span>`).join('');
 }
 async function submitRejectReport() {
   const err    = document.getElementById('reject-report-err');
@@ -1026,8 +1045,12 @@ async function submitRejectReport() {
   const id     = parseInt(document.getElementById('reject-report-id').value);
   const reason = document.getElementById('reject-report-reason').value.trim();
   if (!reason) { err.textContent = '請填寫退回原因'; err.style.display = 'block'; return; }
+  const reply_attachments = [];
+  for (const f of _rejectReplyFiles) {
+    try { reply_attachments.push({ name: f.name, mime: f.type || 'application/octet-stream', data: await _fileToBase64(f) }); } catch(e) {}
+  }
   try {
-    await API.put(`/api/reports/${id}/reject`, { reason });
+    await API.put(`/api/reports/${id}/reject`, { reason, reply_attachments });
     closeRejectReport();
     showToast('已退回，意見已傳送給夥伴', 'warn');
     loadTaskReviews();

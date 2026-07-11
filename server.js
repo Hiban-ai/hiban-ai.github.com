@@ -2379,6 +2379,7 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
     const id = parseInt(req.params.id);
     const { reason } = req.body;
     if (!reason) return res.status(400).json({ error: '請填寫退回原因' });
+    const replyAtts = await uploadTaskAttachments((req.body && req.body.reply_attachments) || []);
     await WorklogReports.update(id, { status: 'rejected' });
     const rSnap = await require('firebase-admin').firestore()
       .collection('worklog_reports').where('id','==',id).limit(1).get();
@@ -2387,7 +2388,7 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
       const a   = await Assignments.byId(r.assignment_id);
       const ts = nowTW(); // YYYY/MM/DD hh:mm:ss
       const [date, time] = ts.split(' ');
-      const comments = [...(a.supervisor_comments || []), { date, time, text: reason }];
+      const comments = [...(a.supervisor_comments || []), { date, time, text: reason, attachments: replyAtts }];
       // 退回後清除 review_status，讓夥伴可重新送出
       await Assignments.update(r.assignment_id, { supervisor_comments: comments, review_status: null });
     }

@@ -3820,36 +3820,39 @@ ${text}
       return res.json({ ok: true, data });
     }
 
-    // 多任務模式：每列各自任務／公司，分開建立多個限量（數量）任務
-    if (mode === 'grab-multi') {
-      const multiPrompt = `你是任務派案助手。請從以下文字中解析出「多個限量任務（數量模式）」，每一列資料是一個獨立任務，並以 JSON 物件回傳，只回傳 JSON 不要其他文字。
+    // 自動分組：每列各自解析任務／公司，前端依(任務+公司)自動分組建立多個限量任務
+    if (mode === 'grab-auto') {
+      const multiPrompt = `你是任務派案助手。請從以下文字中解析出「限量任務資料列」，每一列資料各自解析，並以 JSON 物件回傳，只回傳 JSON 不要其他文字。
 
 今天日期：${todayStr}
 
 可選任務名稱：${(tasks || []).join('、')}
 可選公司名稱：${(companies || []).join('、')}
 
+自訂欄位定義（label 必須完全照抄）：
+${cfDesc}
+
 請回傳一個 JSON 物件（不是陣列），格式如下：
 {
-  "groups": [
+  "rows": [
     {
-      "task_name": "從可選任務名稱中選最符合的，找不到則空字串",
-      "company": "從可選公司名稱中選最符合的，找不到則空字串",
-      "unit_price": "單價，數字字串，找不到則空字串",
-      "total_slots": "此任務的名額／數量，數字字串（要幾個名額），找不到則空字串",
-      "per_person_limit": "每人上限，數字字串；若原文寫「不限」則回傳 0；找不到則空字串",
-      "deadline_days": "完成期限天數，數字字串。天數直接用；日期換算成從今天到該日的剩餘天數(至少1)；找不到則空字串",
-      "work_date": "執行日期，格式 YYYY/MM/DD，原文有就原樣填入（不要換算成天數），沒有則空字串",
-      "notes": "此任務備註，找不到則空字串"
+      "task_name": "此列的任務名稱，從可選任務名稱中選最符合的，找不到則空字串",
+      "company": "此列的公司名稱，從可選公司名稱中選最符合的，找不到則空字串",
+      "unit_price": "此列單價，數字字串，找不到則空字串",
+      "work_date": "此列的執行日期，格式 YYYY/MM/DD，原文有就原樣填入（不要換算成天數），沒有則空字串",
+      "deadline_days": "此列完成期限天數，數字字串。天數直接用；日期換算成從今天到該日的剩餘天數(至少1)；找不到則空字串",
+      "notes": "此列備註，找不到則空字串",
+      "custom_fields": [{"label":"欄位名稱","value":"解析出的值"}]
     }
   ]
 }
 
 重要規則：
-- 文字通常是表格（含表頭與多列資料）：忽略表頭，為「每一列資料」各產生一個 groups 元素，依原始順序，不要自行合併不同列。
-- 每一列請各自解析 task_name、company、total_slots、per_person_limit，同一列這些欄位對應該列的值。
-- total_slots 是該任務的名額數（可被接幾次）；per_person_limit 是每人最多可接幾次（不限＝0）。兩者不同，請勿混淆。
+- 文字通常是表格（含表頭與多列資料）：忽略表頭，為「每一列資料」各產生一個 rows 元素，依原始順序，不要自行合併或省略任何一列。
+- task_name 與 company 每一列可能不同，請逐列各自解析，同列的值對應該列。
 - ⚠️「執行日期」是某一天(放 work_date、保持日期格式)，「完成期限」才是天數(放 deadline_days)，勿混淆。
+- custom_fields：欄位名稱出現在上方「自訂欄位定義」中則 label 必須完全一致；定義以外的欄位（例如「評分」）也請一併放入 custom_fields，label 直接用原文名稱。
+- ⚠️ 限量任務為公開認領，不指定人。「指派給／派給／負責人／夥伴／執行人」之類的人名欄位請完全忽略。
 - 只回傳 JSON 物件，不要其他文字或說明。
 
 文字內容：
@@ -3860,7 +3863,7 @@ ${text}
       const result = await geminiPost(apiKey, body);
       if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
       const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      console.log('[Gemini extract-task grab-multi raw]', raw.slice(0, 300));
+      console.log('[Gemini extract-task grab-auto raw]', raw.slice(0, 300));
       const objIdx = raw.indexOf('{');
       if (objIdx === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
       let depth = 0, end = -1, inStr = false, esc = false;
@@ -3875,7 +3878,7 @@ ${text}
       }
       if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
       const data = JSON.parse(raw.slice(objIdx, end + 1));
-      return res.json({ ok: true, groups: Array.isArray(data.groups) ? data.groups : [] });
+      return res.json({ ok: true, rows: Array.isArray(data.rows) ? data.rows : [] });
     }
 
     const prompt = `你是任務派案助手。請從以下文字中解析出派案資訊，並以 JSON 格式回傳，只回傳 JSON 不要其他文字。

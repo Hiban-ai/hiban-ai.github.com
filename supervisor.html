@@ -738,9 +738,6 @@ textarea.form-input{resize:none}
       <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上客戶訊息、Email、LINE 對話等文字，AI 會自動辨識公司、任務、數量、單價、期限、夥伴與自訂欄位，並填入下方派案表單供你確認。</div>
-    <label id="ai-grab-multi-wrap" style="display:none;align-items:center;gap:.4rem;margin-bottom:.6rem;font-size:.82rem;color:var(--text-m);cursor:pointer;background:var(--blue-p);border:1px solid var(--blue-pp);border-radius:var(--rs);padding:.45rem .7rem">
-      <input type="checkbox" id="ai-grab-multi"> <span><b>多任務模式</b>：每列各自任務／公司，分開建立多個限量（數量）任務</span>
-    </label>
     <div id="ai-import-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或貼上 Google 試算表連結（需設為「知道連結的人皆可查看」，將讀取第一個工作表）</div>
     <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
@@ -2785,11 +2782,6 @@ function openAiImportMgr() {
   _aiGrabSlotData = null;
   document.getElementById('ai-import-confirm-all-btn').onclick = aiImportConfirmAll;
   document.getElementById('ai-import-confirm-all-btn').textContent = '🚀 全部一鍵派案';
-  // 多任務模式切換：只在限量任務(認領)情境顯示
-  const multiWrap = document.getElementById('ai-grab-multi-wrap');
-  const multiChk = document.getElementById('ai-grab-multi');
-  if (multiChk) multiChk.checked = false;
-  if (multiWrap) multiWrap.style.display = (assignMode === 'grab') ? 'flex' : 'none';
   document.getElementById('ai-import-overlay').classList.add('open');
 }
 function closeAiImportMgr() {
@@ -3121,89 +3113,137 @@ async function aiImportGrabConfirm(data) {
   }
 }
 
-// ── AI 匯入：多任務模式（每列各自任務／公司，分開建立多個限量數量任務）──
-let _aiMultiGroups = [];
-function showAiImportGrabMultiPreview(groups) {
-  _aiMultiGroups = (groups || []).filter(g => (g.task_name || g.company)).map(g => ({
-    task_name: g.task_name || '',
-    company: g.company || '',
-    unit_price: parseInt(g.unit_price) || 0,
-    total_slots: parseInt(g.total_slots) || 1,
-    per_person_limit: (g.per_person_limit === 0 || g.per_person_limit === '0') ? 0 : (parseInt(g.per_person_limit) || 1),
-    deadline_days: parseInt(g.deadline_days) || null,
-    work_date: g.work_date || null,
-    notes: g.notes || '',
-    status: 'pending', message: '',
-  }));
+// ── 任務匯入：限量任務自動分組（每列各自解析，依「任務＋公司」自動分組，各自建立獨立限量任務）──
+let _aiAutoGroups = [];
+let _aiAutoMode = 'qty';      // 'qty' | 'pick'（套用全部）
+let _aiAutoDlDays = 7;        // 認領截止天數（套用全部）
+let _aiAutoDlPerm = false;    // 認領截止：永久
+function showAiImportGrabAutoPreview(rows) {
+  const map = new Map();
+  (rows || []).forEach(r => {
+    const key = (r.task_name || '') + '｜' + (r.company || '');
+    if (!map.has(key)) map.set(key, {
+      task_name: r.task_name || '', company: r.company || '',
+      unit_price: 0, notes: '', slots: [],
+      perLimit: 1, perUnlim: false, status: 'pending', message: '',
+    });
+    const g = map.get(key);
+    if (!g.unit_price && parseInt(r.unit_price)) g.unit_price = parseInt(r.unit_price);
+    if (!g.notes && r.notes) g.notes = r.notes;
+    g.slots.push({
+      work_date: r.work_date || null,
+      deadline_days: parseInt(r.deadline_days) || null,
+      custom_fields: Array.isArray(r.custom_fields) ? r.custom_fields : [],
+    });
+  });
+  _aiAutoGroups = [...map.values()];
+  _aiAutoMode = 'qty'; _aiAutoDlDays = 7; _aiAutoDlPerm = false;
   const title = document.getElementById('ai-import-preview-title');
   const allBtn = document.getElementById('ai-import-confirm-all-btn');
-  title.textContent = `📋 多任務解析結果（共 ${_aiMultiGroups.length} 個任務）`;
+  title.textContent = `📋 解析結果（自動分組，共 ${_aiAutoGroups.length} 個任務）`;
   allBtn.style.display = 'block';
-  allBtn.textContent = `✅ 建立 ${_aiMultiGroups.length} 個限量任務`;
-  allBtn.onclick = aiImportGrabMultiConfirmAll;
-  renderAiMultiList();
+  allBtn.textContent = `✅ 建立 ${_aiAutoGroups.length} 個限量任務`;
+  allBtn.onclick = aiAutoConfirmAll;
+  renderAiAutoList();
   document.getElementById('ai-import-preview').style.display = 'block';
 }
-function renderAiMultiList() {
+function renderAiAutoList() {
   const wrap = document.getElementById('ai-import-list');
-  const dlRow = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.5rem;background:var(--blue-p)">
-      <b>認領截止（套用全部）</b>：<input type="number" id="ai-multi-deadline-days" class="form-input" min="1" value="7" style="width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem">天後的23:59
-      <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;margin-left:.5rem"><input type="checkbox" id="ai-multi-deadline-permanent"> 永久</label>
+  // 1) 模式（數量／挑選，套用全部）
+  const modeDesc = _aiAutoMode === 'pick'
+    ? '挑選：每列一張可挑卡片（各自編號／欄位）；每人上限＝每人最多可挑幾張卡片（可不限）。'
+    : '數量：每次只能接一個、完成後可再接；每人上限＝每人最多接幾次（可不限）。';
+  const modeRow = `<div style="border:1.5px solid var(--blue,#1A8AC0);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.4rem;background:var(--blue-p,#eaf4fb)">
+      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <b>模式（套用全部）</b>
+        <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-auto-mode" value="qty" ${_aiAutoMode==='qty'?'checked':''} onchange="_aiAutoMode='qty';renderAiAutoList()"> 數量</label>
+        <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-auto-mode" value="pick" ${_aiAutoMode==='pick'?'checked':''} onchange="_aiAutoMode='pick';renderAiAutoList()"> 挑選</label>
+      </div>
+      <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${modeDesc}</div>
     </div>`;
+  // 2) 認領截止（套用全部）
+  const dlRow = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.5rem">
+      <b>認領截止（套用全部）</b>：<input type="number" min="1" value="${_aiAutoDlDays}" ${_aiAutoDlPerm?'disabled style="opacity:.5;':'style="'}width:48px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem" class="form-input" oninput="_aiAutoDlDays=parseInt(this.value)||0">天後的23:59
+      <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;margin-left:.5rem"><input type="checkbox" ${_aiAutoDlPerm?'checked':''} onchange="_aiAutoDlPerm=this.checked;renderAiAutoList()"> 永久</label>
+    </div>`;
+  // 3) 各任務區塊：任務／公司 → 每人可接數量（不限＋名額總數）→ 任務資訊
   const stColor = { pending:'var(--text-s)', done:'var(--green)', error:'var(--red)' };
   const stLabel = { pending:'待建立', done:'✓ 已建立', error:'✗ 失敗' };
-  const rows = _aiMultiGroups.map((g, i) => `
-    <div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.55rem .8rem;font-size:.82rem;line-height:1.7">
-      <div style="display:flex;justify-content:space-between;gap:.5rem">
-        <b style="color:var(--blue-d)">＃${i+1}　${g.company ? g.company+'：' : ''}${g.task_name || '（未辨識任務）'}</b>
-        <span style="font-size:.72rem;font-weight:700;color:${stColor[g.status]}">${stLabel[g.status]}</span>
+  const groupsHtml = _aiAutoGroups.map((g, i) => `
+    <div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;line-height:1.7">
+      <div style="display:flex;justify-content:space-between;gap:.5rem;align-items:center">
+        <b style="color:var(--blue-d);font-size:.88rem">＃${i+1}　${g.company ? g.company+'：' : ''}${g.task_name || '（未辨識任務）'}</b>
+        <span style="font-size:.72rem;font-weight:700;color:${stColor[g.status]};white-space:nowrap">${stLabel[g.status]}</span>
       </div>
-      <div style="color:var(--text-m)">名額 <b>${g.total_slots}</b>　每人上限 <b>${g.per_person_limit === 0 ? '不限' : g.per_person_limit}</b>　單價 <b>$${g.unit_price}</b>${g.deadline_days ? `　完成期限 ${g.deadline_days}天` : ''}${g.work_date ? `　執行 ${g.work_date}` : ''}</div>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.2rem 0">
+        <b>每人可接數量</b>：<input type="number" min="1" value="${g.perLimit}" ${g.perUnlim?'disabled style="opacity:.5;':'style="'}width:56px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem" class="form-input" oninput="_aiAutoGroups[${i}].perLimit=parseInt(this.value)||1">
+        <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer"><input type="checkbox" ${g.perUnlim?'checked':''} onchange="_aiAutoGroups[${i}].perUnlim=this.checked;renderAiAutoList()"> 不限</label>
+        <span style="color:var(--text-m)">｜名額總數 <b>${g.slots.length}</b>　單價 <b>$${g.unit_price}</b></span>
+      </div>
       ${g.notes ? `<div style="color:var(--text-s);font-size:.78rem">備註：${g.notes}</div>` : ''}
-      ${g.message ? `<div style="color:var(--red);font-size:.76rem">${g.message}</div>` : ''}
+      <div style="font-size:.74rem;color:var(--text-s);margin-top:.2rem">任務資訊：</div>
+      <div style="display:flex;flex-direction:column;gap:.25rem;max-height:180px;overflow-y:auto">
+        ${g.slots.map((s, j) => `<div style="border:1px dashed var(--border);border-radius:6px;padding:.3rem .55rem;font-size:.78rem;line-height:1.5"><b style="color:var(--blue-d)">＃${j+1}</b>　${aiImportGrabSlotSummary(s)}</div>`).join('')}
+      </div>
+      ${g.message ? `<div style="color:var(--red);font-size:.76rem;margin-top:.2rem">${g.message}</div>` : ''}
     </div>`).join('');
-  wrap.innerHTML = dlRow + (rows || '<div style="color:var(--text-s);font-size:.82rem">（AI 未解析出任務）</div>');
+  wrap.innerHTML = modeRow + dlRow + (groupsHtml || '<div style="color:var(--text-s);font-size:.82rem">（AI 未解析出任務）</div>');
 }
-async function aiImportGrabMultiConfirmAll() {
-  if (!_aiMultiGroups.length) { showToast('沒有可建立的任務', 'error'); return; }
-  const dlPerm = document.getElementById('ai-multi-deadline-permanent') && document.getElementById('ai-multi-deadline-permanent').checked;
-  const dlDays = parseInt(document.getElementById('ai-multi-deadline-days').value);
-  if (!dlPerm && (!dlDays || dlDays < 1)) { showToast('請輸入認領截止天數或勾選永久', 'error'); return; }
-  const pending = _aiMultiGroups.filter(g => g.status !== 'done');
+async function aiAutoConfirmAll() {
+  if (!_aiAutoGroups.length) { showToast('沒有可建立的任務', 'error'); return; }
+  if (!_aiAutoDlPerm && (!_aiAutoDlDays || _aiAutoDlDays < 1)) { showToast('請輸入認領截止天數或勾選永久', 'error'); return; }
+  const pending = _aiAutoGroups.filter(g => g.status !== 'done');
   if (!pending.length) { showToast('沒有可建立的任務', 'error'); return; }
-  if (!confirm(`確定要建立這 ${pending.length} 個限量任務嗎？\n送出後會立即發布，請先確認上方預覽無誤。`)) return;
+  if (!confirm(`確定要建立這 ${pending.length} 個限量任務（${_aiAutoMode === 'pick' ? '挑選' : '數量'}模式）嗎？\n送出後會立即發布，請先確認上方預覽無誤。`)) return;
   let dl = null;
-  if (!dlPerm) {
-    const d = new Date(); d.setDate(d.getDate() + dlDays);
+  if (!_aiAutoDlPerm) {
+    const d = new Date(); d.setDate(d.getDate() + _aiAutoDlDays);
     const p = n => String(n).padStart(2, '0');
     dl = `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} 23:59`;
   }
   const btn = document.getElementById('ai-import-confirm-all-btn');
   btn.disabled = true; btn.textContent = '建立中...';
-  for (const g of _aiMultiGroups) {
+  // 補建缺少的自訂欄位定義（依各任務彙整）
+  try {
+    let created = false;
+    for (const g of _aiAutoGroups) {
+      if (!g.task_name) continue;
+      const labels = new Map();
+      g.slots.forEach(s => (s.custom_fields || []).forEach(f => { if (f.value !== undefined && f.value !== '') labels.set(f.label, f); }));
+      for (const f of labels.values()) {
+        if (!_cfList.some(c => c.label === f.label && (!c.task_name || c.task_name === g.task_name))) {
+          try { await API.post('/api/custom-field-defs', { label: f.label, type: 'text', options: [], task_name: g.task_name, scope: 'grab' }); created = true; }
+          catch(e) { console.error('[任務匯入] 建立自訂欄位失敗', f.label, e); }
+        }
+      }
+    }
+    if (created) await loadCustomFieldDefs();
+  } catch(e) {}
+  for (const g of _aiAutoGroups) {
     if (g.status === 'done') continue;
-    if (!g.task_name) { g.status = 'error'; g.message = '未辨識到任務名稱（需為系統已建立的任務）'; renderAiMultiList(); continue; }
-    if (!g.unit_price) { g.status = 'error'; g.message = '缺少單價'; renderAiMultiList(); continue; }
+    if (!g.task_name) { g.status = 'error'; g.message = '未辨識到任務名稱（需為系統已建立的任務）'; renderAiAutoList(); continue; }
+    if (!g.unit_price) { g.status = 'error'; g.message = '缺少單價'; renderAiAutoList(); continue; }
     try {
       await API.post('/api/grab-tasks', {
         task_name: g.task_name, company: g.company, unit_price: g.unit_price, notes: g.notes,
-        total_slots: g.total_slots, qty_unlimited: false,
+        total_slots: g.slots.length, qty_unlimited: false,
         deadline: dl,
-        deadline_days: g.deadline_days || null,
-        work_date: g.work_date || null,
-        custom_fields: [], slot_data: [],
-        per_person_limit: g.per_person_limit,
-        pick_mode: false,
+        deadline_days: null,
+        work_date: null,
+        custom_fields: [],
+        slot_data: g.slots,
+        per_person_limit: g.perUnlim ? 0 : (g.perLimit >= 1 ? g.perLimit : 1),
+        pick_mode: _aiAutoMode === 'pick',
         attachments: [], dual_report: false,
       });
       g.status = 'done';
     } catch(e) { g.status = 'error'; g.message = e.message; }
-    renderAiMultiList();
+    renderAiAutoList();
   }
-  btn.disabled = false; btn.textContent = `✅ 建立 ${_aiMultiGroups.length} 個限量任務`;
-  const okCount = _aiMultiGroups.filter(g => g.status === 'done').length;
+  btn.disabled = false; btn.textContent = `✅ 建立 ${_aiAutoGroups.length} 個限量任務`;
+  const okCount = _aiAutoGroups.filter(g => g.status === 'done').length;
   if (okCount) { showToast(`已建立 ${okCount} 個限量任務`, 'success'); if (typeof loadGrabHistory === 'function') loadGrabHistory(); }
-  if (_aiMultiGroups.every(g => g.status === 'done')) closeAiImportMgr();
+  if (_aiAutoGroups.every(g => g.status === 'done')) closeAiImportMgr();
 }
 
 async function loadAiImportSheet() {
@@ -3283,28 +3323,15 @@ async function runAiImport() {
     const customFields = _cfList.filter(f => cfVisibleInMode(f, cfMode))
       .map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
     if (assignMode === 'grab') {
-      const multi = document.getElementById('ai-grab-multi') && document.getElementById('ai-grab-multi').checked;
-      if (multi) {
-        const res = await API.post('/api/gemini/extract-task', {
-          text,
-          tasks: _ttList.map(t => t.name),
-          companies: _coList.map(c => c.name),
-          mode: 'grab-multi',
-        });
-        if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
-        showAiImportGrabMultiPreview(res.groups || []);
-        return;
-      }
       const res = await API.post('/api/gemini/extract-task', {
         text,
         tasks: _ttList.map(t => t.name),
         companies: _coList.map(c => c.name),
-        partners: partners.map(p => p.name),
         customFields,
-        mode: 'grab',
+        mode: 'grab-auto',
       });
       if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
-      showAiImportGrabPreview(res.data);
+      showAiImportGrabAutoPreview(res.rows || []);
       return;
     }
     if (assignMode === 'free') {

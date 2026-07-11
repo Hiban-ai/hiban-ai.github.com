@@ -1221,7 +1221,7 @@ function linkify(v) {
 }
 function customFieldsHtml(fields) {
   if (!fields || !fields.length) return '';
-  return `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">${fields.map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.88rem;color:var(--text-m);margin-bottom:.5rem">${fields.map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>`;
 }
 // 派案附件下載連結
 function attachmentsHtml(atts) {
@@ -2007,21 +2007,21 @@ async function loadGrabZone() {
           <div style="background:#fff;border-radius:var(--rs);padding:.9rem 1rem;margin-bottom:.55rem;border:1.5px solid var(--blue);box-shadow:0 2px 10px rgba(26,138,192,.12);display:flex;align-items:center;gap:.75rem">
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${taskLabelNo(t)}</div>
-              <div style="font-size:.75rem;color:var(--text-s);margin-top:.1rem">
+              <div style="font-size:.84rem;color:var(--text-s);margin-top:.1rem">
                 💰 $${(t.unit_price||0).toLocaleString()} &nbsp;·&nbsp; ${t.qty_unlimited ? '名額不限' : '剩 '+remaining+' 個名額'} &nbsp;·&nbsp; ${t.deadline ? t.deadline.slice(0,10)+' 截止' : '永久開放'}
               </div>
             </div>
             <div style="flex-shrink:0">
               ${t.my_active
-                ? `<span style="font-size:.75rem;color:var(--text-s)">進行中</span>`
+                ? `<span style="font-size:.84rem;color:var(--text-s)">進行中</span>`
                 : remaining === 0
-                ? `<span style="font-size:.75rem;color:var(--text-s)">名額已滿</span>`
+                ? `<span style="font-size:.84rem;color:var(--text-s)">名額已滿</span>`
                 : `<button onclick="doGrab(${t.id},this)" style="padding:.5rem 1.1rem;font-size:.85rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif;box-shadow:0 2px 8px rgba(26,138,192,.3)">認領</button>`
               }
             </div>
           </div>`;
-        }).join('') + (available.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${available.length-3} 個任務 →</div>` : '')
-          + (pickTasks.length ? `<div style="font-size:.75rem;color:var(--blue-d);text-align:center;padding:.3rem;font-weight:700">🃏 ${pickTasks.length} 個挑選任務可選 →</div>` : '');
+        }).join('') + (available.length > 3 ? `<div style="font-size:.84rem;color:var(--text-s);text-align:center;padding:.3rem">還有 ${available.length-3} 個任務 →</div>` : '')
+          + (pickTasks.length ? `<div style="font-size:.84rem;color:var(--blue-d);text-align:center;padding:.3rem;font-weight:700">🃏 ${pickTasks.length} 個挑選任務可選 →</div>` : '');
       } else {
         ovBlock.style.display = 'none';
       }
@@ -2042,20 +2042,20 @@ async function loadGrabZone() {
           <div>
             <div style="font-family:serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
             ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
-            ${myCount > 0 ? `<div style="font-size:.78rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶 ${t.my_grab_nos.map(n=>'＃'+n).join('、')}</div>` : ''}
+            ${myCount > 0 ? `<div style="font-size:.86rem;font-weight:700;color:var(--green);margin-top:.2rem">✅ 已搶 ${t.my_grab_nos.map(n=>'＃'+n).join('、')}</div>` : ''}
           </div>
           <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow)">$${(t.unit_price||0).toLocaleString()}</div>
         </div>
         <!-- 名額進度 -->
         <div style="margin-bottom:.6rem">
-          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-s);margin-bottom:.25rem">
+          <div style="display:flex;justify-content:space-between;font-size:.84rem;color:var(--text-s);margin-bottom:.25rem">
             <span>${unlim ? '名額 不限 ・ 已認領 '+t.grabbed_count : '名額 '+t.grabbed_count+' / '+t.total_slots}</span>${unlim ? '' : '<span>剩餘 '+remaining+'</span>'}
           </div>
           ${unlim ? '' : `<div style="height:6px;background:#e5edf3;border-radius:4px;overflow:hidden">
             <div style="height:100%;width:${pctFill}%;background:${remaining === 0 ? 'var(--red)' : 'var(--blue)'};border-radius:4px;transition:width .4s"></div>
           </div>`}
         </div>
-        <div style="font-size:.74rem;color:var(--green);font-weight:700;margin-bottom:.4rem">🔓 每次只能接一個${(t.per_person_limit === 1) ? '（每人限一次）' : '，完成後可再接'}</div>
+        <div style="font-size:.84rem;color:var(--green);font-weight:700;margin-bottom:.4rem">🔓 每次只能接一個${(t.per_person_limit === 1) ? '（每人限一次）' : '，完成後可再接'}</div>
         ${(() => {
           const lim = t.per_person_limit || 0; // 0=不限
           const got = t.my_grab_count || 0, done = t.my_completed_count || 0;
@@ -2065,12 +2065,12 @@ async function loadGrabZone() {
             ...(lim === 0 ? [] : [`剩餘可接：<b style="color:var(--blue-d)">${Math.max(0, lim - got)}</b>`]),
             `已完成：<b style="color:var(--green)">${done}</b>`,
           ];
-          return `<div style="display:flex;flex-wrap:wrap;gap:.15rem .7rem;font-size:.74rem;color:var(--text-m);margin-bottom:.4rem;padding:.35rem .55rem;background:var(--bg);border-radius:var(--rs)">${items.map(x=>`<span>${x}</span>`).join('')}</div>`;
+          return `<div style="display:flex;flex-wrap:wrap;gap:.15rem .7rem;font-size:.84rem;color:var(--text-m);margin-bottom:.4rem;padding:.35rem .55rem;background:var(--bg);border-radius:var(--rs)">${items.map(x=>`<span>${x}</span>`).join('')}</div>`;
         })()}
-        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">${t.deadline ? '⏰ 認領截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
-        ${t.deadline_days ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
-        ${t.work_date ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
-        ${t.notes ? `<div style="font-size:.78rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
+        <div style="font-size:.86rem;color:var(--text-s);margin-bottom:.3rem">${t.deadline ? '⏰ 認領截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
+        ${t.deadline_days ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
+        ${t.work_date ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
+        ${t.notes ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
         ${attachmentsHtml(t.attachments)}${customFieldsHtml(t.custom_fields)}
         ${t.my_active
           ? `<button disabled style="width:100%;padding:.65rem;background:var(--bg);color:var(--text-s);border:1.5px solid var(--border);border-radius:20px;font-size:.88rem;font-weight:700;cursor:not-allowed;font-family:sans-serif">⏳ 進行中（完成後才能再接）</button>`
@@ -2105,9 +2105,9 @@ function pickPanelHtml(t, cardColor) {
       <div style="min-width:0">
         <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
         ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
-        <div style="font-size:.74rem;color:var(--text-s);margin-top:.25rem">${t.deadline ? '⏰ 認領期限：'+t.deadline.slice(0,16)+' 截止' : '⏰ 永久開放'} ・ 剩 ${remaining} 張可選</div>
-        ${t.work_date ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
-        ${t.notes ? `<div style="font-size:.74rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
+        <div style="font-size:.84rem;color:var(--text-s);margin-top:.25rem">${t.deadline ? '⏰ 認領期限：'+t.deadline.slice(0,16)+' 截止' : '⏰ 永久開放'} ・ 剩 ${remaining} 張可選</div>
+        ${t.work_date ? `<div style="font-size:.84rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
+        ${t.notes ? `<div style="font-size:.84rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
         ${attachmentsHtml(t.attachments)}
       </div>
       <div style="font-family:serif;font-weight:700;font-size:1.1rem;color:var(--yellow);flex-shrink:0">$${(t.unit_price||0).toLocaleString()}</div>
@@ -2133,32 +2133,32 @@ function renderPickBody(id) {
     const code = s.full_code || ('#' + (idx + 1));
     const codeNo = s.full_code ? s.full_code.split('-') : null;
     const codeBadge = codeNo
-      ? `<span style="font-size:.74rem;font-weight:700"><span style="color:var(--blue-d)">${codeNo[0]}</span>-<span style="color:#C8901A">${codeNo[1]}</span></span>`
-      : `<span style="font-size:.74rem;font-weight:700;color:var(--text-m)">${code}</span>`;
+      ? `<span style="font-size:.84rem;font-weight:700"><span style="color:var(--blue-d)">${codeNo[0]}</span>-<span style="color:#C8901A">${codeNo[1]}</span></span>`
+      : `<span style="font-size:.84rem;font-weight:700;color:var(--text-m)">${code}</span>`;
     const fields = (s.custom_fields||[]).filter(f => f.value !== '' && f.value != null);
     const fieldsHtml = fields.length
-      ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.72rem;color:var(--text-m)">${fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>`
-      : (s.title ? `<div style="margin-top:.3rem;font-size:.74rem;color:var(--text-m)">${s.title}</div>` : '');
+      ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.82rem;color:var(--text-m)">${fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>`
+      : (s.title ? `<div style="margin-top:.3rem;font-size:.84rem;color:var(--text-m)">${s.title}</div>` : '');
     return `
     <div ${claimed ? '' : `onclick="pickSelect(${id},${idx})"`} style="border:2px solid ${selected ? 'var(--blue)' : 'var(--border)'};border-radius:12px;padding:.6rem .7rem;background:${claimed ? '#f3f4f6' : selected ? 'var(--blue-p,#eaf4fb)' : '#fff'};cursor:${claimed ? 'default' : 'pointer'};opacity:${claimed ? '.65' : '1'};transition:all .15s">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.3rem">
         ${codeBadge}
         ${claimed
-          ? `<span style="font-size:.66rem;font-weight:700;padding:.08rem .4rem;border-radius:10px;background:#e5e7eb;color:var(--text-s)">已選</span>`
+          ? `<span style="font-size:.78rem;font-weight:700;padding:.08rem .4rem;border-radius:10px;background:#e5e7eb;color:var(--text-s)">已選</span>`
           : selected
-            ? `<span style="font-size:.66rem;font-weight:700;padding:.08rem .4rem;border-radius:10px;background:var(--blue);color:#fff">已選取 ✓</span>`
-            : `<span style="font-size:.66rem;color:var(--text-s)">可選</span>`}
+            ? `<span style="font-size:.78rem;font-weight:700;padding:.08rem .4rem;border-radius:10px;background:var(--blue);color:#fff">已選取 ✓</span>`
+            : `<span style="font-size:.78rem;color:var(--text-s)">可選</span>`}
       </div>
-      ${claimed ? `<div style="margin-top:.25rem;font-size:.72rem;color:var(--text-s)">👤 ${s.claimed_by_name || '他人'}</div>` : fieldsHtml}
-      ${(s.deadline_days || t.deadline_days) ? `<div style="margin-top:.3rem;font-size:.68rem;color:var(--text-s)">⏳ 完成期限：接案後 ${s.deadline_days || t.deadline_days} 天內</div>` : ''}
-      ${(s.work_date || t.work_date) ? `<div style="margin-top:.2rem;font-size:.68rem;color:var(--text-s)">📅 執行日期：${s.work_date || t.work_date}</div>` : ''}
+      ${claimed ? `<div style="margin-top:.25rem;font-size:.82rem;color:var(--text-s)">👤 ${s.claimed_by_name || '他人'}</div>` : fieldsHtml}
+      ${(s.deadline_days || t.deadline_days) ? `<div style="margin-top:.3rem;font-size:.8rem;color:var(--text-s)">⏳ 完成期限：接案後 ${s.deadline_days || t.deadline_days} 天內</div>` : ''}
+      ${(s.work_date || t.work_date) ? `<div style="margin-top:.2rem;font-size:.8rem;color:var(--text-s)">📅 執行日期：${s.work_date || t.work_date}</div>` : ''}
     </div>`;
   }).join('');
   const pager = pages > 1
     ? `<div style="display:flex;justify-content:center;align-items:center;gap:.75rem;margin-top:.7rem">
-        <button onclick="pickPage(${id},-1)" ${st.page===0?'disabled':''} style="padding:.3rem .8rem;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:.78rem;cursor:pointer;${st.page===0?'opacity:.4;cursor:default':''}">← 上一頁</button>
-        <span style="font-size:.78rem;color:var(--text-s)">第 ${st.page+1} / ${pages} 頁</span>
-        <button onclick="pickPage(${id},1)" ${st.page>=pages-1?'disabled':''} style="padding:.3rem .8rem;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:.78rem;cursor:pointer;${st.page>=pages-1?'opacity:.4;cursor:default':''}">下一頁 →</button>
+        <button onclick="pickPage(${id},-1)" ${st.page===0?'disabled':''} style="padding:.3rem .8rem;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:.86rem;cursor:pointer;${st.page===0?'opacity:.4;cursor:default':''}">← 上一頁</button>
+        <span style="font-size:.86rem;color:var(--text-s)">第 ${st.page+1} / ${pages} 頁</span>
+        <button onclick="pickPage(${id},1)" ${st.page>=pages-1?'disabled':''} style="padding:.3rem .8rem;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:.86rem;cursor:pointer;${st.page>=pages-1?'opacity:.4;cursor:default':''}">下一頁 →</button>
       </div>`
     : '';
   const selValid = st.sel >= 0 && slots[st.sel] && !slots[st.sel].claimed;

@@ -2146,7 +2146,7 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
     const a = await Assignments.byId(parseInt(assignment_id));
     if (!a || a.accepted_by !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
 
-    // 雙重回報：stage 1=第一次(附件) / 2=第二次(網址或圖片)；非雙重 stage=0
+    // 雙重回報：stage 1=第一階段(附件) / 2=第二階段(網址或圖片)；非雙重 stage=0
     const dual  = !!a.dual_report;
     const stage = dual ? ((a.report_stage || 0) === 0 ? 1 : 2) : 0;
     const isHourly = a.assign_type === 'hourly';
@@ -2155,7 +2155,7 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
 
     if (dual && stage === 1) {
       // 第一階段：只要附件
-      if (!Array.isArray(attachments) || !attachments.length) return res.status(400).json({ error: '第一次回報請至少上傳一個附件' });
+      if (!Array.isArray(attachments) || !attachments.length) return res.status(400).json({ error: '第一階段回報請至少上傳一個附件' });
     } else {
       // 第二階段 或 非雙重：完整驗證
       if (isHourly) {
@@ -2170,7 +2170,7 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
         hourlyFields = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, hourly_wage: wage, total_price: total };
         assignHourlyPatch = { work_start: fmt(s), work_end: fmt(e), work_minutes: minutes, total_price: total };
       } else if (dual && stage === 2) {
-        if (!(url && url.trim()) && !(images && images.length)) return res.status(400).json({ error: '第二次回報請提供網址或圖片' });
+        if (!(url && url.trim()) && !(images && images.length)) return res.status(400).json({ error: '第二階段回報請提供網址或圖片' });
       }
     }
 
@@ -2189,7 +2189,7 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
     };
     let reportData;
     if (dual && stage === 1) {
-      const stageAtts = await uploadTaskAttachments(attachments); // 第一次附件上傳雲端
+      const stageAtts = await uploadTaskAttachments(attachments); // 第一階段附件上傳雲端
       reportData = { ...common, stage_attachments: stageAtts, url: '', notes: notes || '', images: [], status: 'pending' };
     } else {
       reportData = { ...common, url: url || '', notes: notes || '', images: images || [], ...hourlyFields, status: 'pending' };

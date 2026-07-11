@@ -855,7 +855,7 @@ textarea.form-input{resize:none}
     <!-- 雙重回報第一階段：上傳附件 -->
     <div id="report-stage1-group" style="display:none">
       <div class="form-group" style="margin-top:.75rem">
-        <label class="form-label">第一次回報附件 <span style="font-size:.72rem;color:var(--red)">＊必附</span></label>
+        <label class="form-label">第一階段回報附件 <span style="font-size:.72rem;color:var(--red)">＊必附</span></label>
         <div onclick="document.getElementById('report-stage1-input').click()" style="border:2px dashed var(--border);border-radius:var(--rs);padding:1rem;text-align:center;cursor:pointer;background:var(--bg)">
           <div style="font-size:1.4rem;margin-bottom:.3rem">📎</div>
           <div style="font-size:.82rem;color:var(--text-s)">點擊選擇檔案（可多檔，單檔≤20MB）</div>
@@ -1408,8 +1408,8 @@ function activeCardHtml(a) {
         ${reviewing ? 'disabled' : ''}
         style="width:100%;padding:.6rem;background:${reviewing ? 'var(--bg)' : 'linear-gradient(135deg,#1A8AC0,#48B4E8)'};color:${reviewing ? 'var(--text-s)' : '#fff'};border:${reviewing ? '1.5px solid var(--border)' : 'none'};border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:${reviewing ? 'not-allowed' : 'pointer'};font-family:sans-serif">
         ${reviewing
-          ? (a.dual_report ? `⏳ 審核中（第${(a.report_stage||0)===0?'一':'二'}次）` : '⏳ 審核中')
-          : (a.dual_report ? ((a.report_stage||0)===0 ? '📝 第一次回報（附件）' : '📝 第二次回報（網址／圖片）') : '📝 回報工作')}
+          ? (a.dual_report ? `⏳ 審核中（第${(a.report_stage||0)===0?'一':'二'}階段）` : '⏳ 審核中')
+          : (a.dual_report ? ((a.report_stage||0)===0 ? '📝 第一階段回報（附件）' : '📝 第二階段回報（網址／圖片）') : '📝 回報工作')}
       </button>
       ${(a.assign_type === 'free' && !reviewing) ? `<button onclick="cancelFreeTask(${a.id},this)" style="width:100%;margin-top:.5rem;padding:.55rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif">✖ 取消任務</button>` : ''}
     </div>`;
@@ -1505,7 +1505,7 @@ let reportAssignmentId = null;
 let reportImages = [];
 let _asgById = {};
 let _reportStageFiles = []; // 第一階段附件
-let reportStage = 0; // 0=非雙重/第二次；1=雙重第一次(只附件)
+let reportStage = 0; // 0=非雙重/第二階段；1=雙重第一階段(只附件)
 
 let reportHourly = false, reportHourlyWage = 0;
 function openReport(assignmentId, taskName, assignType, hourlyWage) {
@@ -1547,7 +1547,7 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
     const note = a.stage1_reply_note ? `<div style="margin-top:.35rem"><b>說明：</b>${a.stage1_reply_note}</div>` : '';
     const atts = (a.stage1_reply_attachments && a.stage1_reply_attachments.length) ? `<div style="margin-top:.35rem"><b>附件：</b>${attachmentsHtml(a.stage1_reply_attachments)}</div>` : '';
     banner.style.display = '';
-    banner.innerHTML = `<div style="background:#E8F4EA;color:#2E7D56;border:1.5px solid #B5DDC0;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>第二次回報</b>　請交出成果（網址／圖片）。${note}${atts}</div>`;
+    banner.innerHTML = `<div style="background:#E8F4EA;color:#2E7D56;border:1.5px solid #B5DDC0;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>第二階段回報</b>　請交出成果（網址／圖片）。${note}${atts}</div>`;
   } else {
     banner.style.display = 'none'; banner.innerHTML = '';
   }
@@ -1656,7 +1656,7 @@ async function submitReport() {
   const notes = document.getElementById('report-notes').value.trim();
   // 雙重回報第一階段：只送附件
   if (reportStage === 1) {
-    if (!_reportStageFiles.length) { err.textContent = '第一次回報請至少上傳一個附件'; err.style.display = 'block'; return; }
+    if (!_reportStageFiles.length) { err.textContent = '第一階段回報請至少上傳一個附件'; err.style.display = 'block'; return; }
     const attachments = [];
     for (const f of _reportStageFiles) {
       try { attachments.push({ name: f.name, mime: f.type || 'application/octet-stream', data: await _rFileToB64(f) }); } catch(e) {}
@@ -1664,7 +1664,7 @@ async function submitReport() {
     try {
       await API.post('/api/reports', { assignment_id: reportAssignmentId, notes, attachments });
       closeReport();
-      showToast('第一次回報已送出，待督導核可', 'success');
+      showToast('第一階段回報已送出，待督導核可', 'success');
       loadTasks();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
     return;
@@ -1678,7 +1678,7 @@ async function submitReport() {
     if (new Date(workEnd) <= new Date(workStart)) { err.textContent='完成時間需晚於開始時間'; err.style.display='block'; return; }
   } else if (reportStage === 2) {
     const url = document.getElementById('report-url').value.trim();
-    if (!url && !reportImages.length) { err.textContent='第二次回報請提供網址或圖片'; err.style.display='block'; return; }
+    if (!url && !reportImages.length) { err.textContent='第二階段回報請提供網址或圖片'; err.style.display='block'; return; }
   } else {
     const qty = document.getElementById('report-qty').value;
     if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }

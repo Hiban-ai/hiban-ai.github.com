@@ -494,7 +494,7 @@ textarea.form-input{resize:none}
         <div style="display:flex;align-items:flex-start;gap:.6rem;margin-top:.7rem;padding:.55rem .7rem;background:var(--blue-p,#eaf4fb);border-radius:var(--rs)">
           <input type="checkbox" id="assign-dual-report" style="margin-top:.2rem;width:17px;height:17px;cursor:pointer">
           <label for="assign-dual-report" style="font-size:.82rem;color:var(--text-m);cursor:pointer;line-height:1.5">
-            <b>雙重回報</b>　夥伴需分兩次回報：第一次先傳<b>附件</b>（督導審核、可回覆），核可後第二次才交<b>網址／圖片</b>。<br>
+            <b>雙重回報</b>　夥伴需分兩階段回報：第一階段先傳<b>附件</b>（督導審核、可回覆），核可後第二階段才交<b>網址／圖片</b>。<br>
             <span style="font-size:.74rem;color:var(--text-s)">適合需要先確認素材/草稿、再驗收成果的任務。</span>
           </label>
         </div>
@@ -786,18 +786,18 @@ textarea.form-input{resize:none}
 <div class="pw-overlay" id="stage1-approve-overlay">
   <div class="pw-box" style="width:440px;max-width:96vw">
     <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✓ 核可第一階段</div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.8rem">核可後夥伴才能進行第二次回報。可在此回覆給夥伴（皆選填）。</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.8rem">核可後夥伴才能進行第二階段回報。可在此回覆給夥伴（皆選填）。</div>
     <input type="hidden" id="s1-report-id"><input type="hidden" id="s1-assignment-id">
     <div id="s1-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <label class="form-label" style="font-size:.82rem;color:var(--text-s)">補充說明（給夥伴的指示，選填）</label>
-    <textarea class="form-input" id="s1-reply-note" rows="3" placeholder="例如：素材OK，第二次請附上實際貼文網址..." style="margin-bottom:.7rem"></textarea>
+    <textarea class="form-input" id="s1-reply-note" rows="3" placeholder="例如：素材OK，第二階段請附上實際貼文網址..." style="margin-bottom:.7rem"></textarea>
     <div style="margin-bottom:.9rem">
       <input type="file" id="s1-reply-file" multiple style="display:none" onchange="onS1FileAdd(this)">
       <button type="button" onclick="document.getElementById('s1-reply-file').click()" style="display:inline-flex;align-items:center;gap:.35rem;padding:.32rem .8rem;background:var(--blue-p);color:var(--blue-d);border:1.5px dashed var(--blue);border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📎 回覆附件（選填）</button>
       <span style="font-size:.72rem;color:var(--text-s);margin-left:.4rem">單檔≤20MB</span>
       <div id="s1-reply-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem"></div>
     </div>
-    <button class="btn-primary" onclick="submitStage1Approve()">✓ 核可，進入第二次回報</button>
+    <button class="btn-primary" onclick="submitStage1Approve()">✓ 核可，進入第二階段回報</button>
     <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeStage1Approve()">取消</button>
   </div>
 </div>
@@ -1008,7 +1008,7 @@ async function submitStage1Approve() {
   try {
     if (btn) btn.disabled = true;
     await API.put(`/api/reports/${reportId}/approve`, { reply_note: note, reply_attachments });
-    showToast('已核可第一階段，夥伴可進行第二次回報', 'success');
+    showToast('已核可第一階段，夥伴可進行第二階段回報', 'success');
     closeStage1Approve();
     loadTaskReviews();
   } catch(e) {
@@ -1113,7 +1113,7 @@ async function loadTaskReviews() {
             <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0">
-            ${r.dual_report ? `<span style="background:#EEE6FA;color:#6B3FA0;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:10px">雙重・第${r.stage === 1 ? '一（附件）' : '二'}次</span>` : ''}
+            ${r.dual_report ? `<span style="background:#EEE6FA;color:#6B3FA0;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:10px">雙重・第${r.stage === 1 ? '一（附件）' : '二'}階段</span>` : ''}
             <span style="background:var(--blue-p);color:var(--blue-d);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:10px">待審核</span>
           </div>
         </div>
@@ -1149,7 +1149,7 @@ async function loadTaskReviews() {
             </div>
           `).join('')}
         </div>` : ''}
-        ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一次附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
+        ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一階段附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
         ${r.assign_type === 'free' ? `
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;background:#FFF8E8;border:1.5px solid #F0C040;border-radius:var(--rs);padding:.5rem .7rem">
           <span style="font-size:.82rem;color:#8A6010;font-weight:700;white-space:nowrap">🎁 額外獎勵</span>
@@ -1158,7 +1158,7 @@ async function loadTaskReviews() {
           <span style="font-size:.72rem;color:var(--text-s);white-space:nowrap">基本 $${(r.total_price||0).toLocaleString()}＋額外＝進錢包</span>
         </div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
-          <button onclick="${r.dual_report && r.stage === 1 ? `openStage1Approve(${r.id},${r.assignment_id})` : `approveReport(${r.id},${r.assignment_id},${r.assign_type === 'free'})`}" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">${r.dual_report && r.stage === 1 ? '✓ 核可・進第二次' : '✓ 同意'}</button>
+          <button onclick="${r.dual_report && r.stage === 1 ? `openStage1Approve(${r.id},${r.assignment_id})` : `approveReport(${r.id},${r.assignment_id},${r.assign_type === 'free'})`}" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">${r.dual_report && r.stage === 1 ? '✓ 核可・進第二階段' : '✓ 同意'}</button>
           <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 退回</button>
         </div>
       </div>`;

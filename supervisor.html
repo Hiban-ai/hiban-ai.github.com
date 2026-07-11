@@ -3118,6 +3118,7 @@ let _aiAutoGroups = [];
 let _aiAutoMode = 'qty';      // 'qty' | 'pick'（套用全部）
 let _aiAutoDlDays = 7;        // 認領截止天數（套用全部）
 let _aiAutoDlPerm = false;    // 認領截止：永久
+let _aiAutoDual = false;      // 雙重回報（套用全部）
 function showAiImportGrabAutoPreview(rows) {
   const map = new Map();
   (rows || []).forEach(r => {
@@ -3146,7 +3147,7 @@ function showAiImportGrabAutoPreview(rows) {
     }
     if (!g.unit_price) g.unit_price = formPrice;
   });
-  _aiAutoMode = 'qty'; _aiAutoDlDays = 7; _aiAutoDlPerm = false;
+  _aiAutoMode = 'qty'; _aiAutoDlDays = 7; _aiAutoDlPerm = false; _aiAutoDual = false;
   const title = document.getElementById('ai-import-preview-title');
   const allBtn = document.getElementById('ai-import-confirm-all-btn');
   title.textContent = `📋 解析結果（自動分組，共 ${_aiAutoGroups.length} 個任務）`;
@@ -3167,8 +3168,9 @@ function renderAiAutoList() {
         <b>模式（套用全部）</b>
         <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-auto-mode" value="qty" ${_aiAutoMode==='qty'?'checked':''} onchange="_aiAutoMode='qty';renderAiAutoList()"> 數量</label>
         <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer"><input type="radio" name="ai-auto-mode" value="pick" ${_aiAutoMode==='pick'?'checked':''} onchange="_aiAutoMode='pick';renderAiAutoList()"> 挑選</label>
+        <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;margin-left:.4rem"><input type="checkbox" ${_aiAutoDual?'checked':''} onchange="_aiAutoDual=this.checked;renderAiAutoList()"> 🔖 雙重回報</label>
       </div>
-      <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${modeDesc}</div>
+      <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${modeDesc}${_aiAutoDual ? '　✅ 雙重回報：夥伴分兩階段回報（第一階段附件、核可後第二階段網址／圖片）。' : ''}</div>
     </div>`;
   // 2) 認領截止（套用全部）
   const dlRow = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem;margin-bottom:.5rem">
@@ -3243,7 +3245,7 @@ async function aiAutoConfirmAll() {
         slot_data: g.slots,
         per_person_limit: g.perUnlim ? 0 : (g.perLimit >= 1 ? g.perLimit : 1),
         pick_mode: _aiAutoMode === 'pick',
-        attachments: [], dual_report: false,
+        attachments: [], dual_report: _aiAutoDual,
       });
       g.status = 'done';
     } catch(e) { g.status = 'error'; g.message = e.message; }

@@ -641,13 +641,13 @@ textarea.form-input{resize:none}
     <div class="page-section" id="page-worklog">
       <div class="page-title">📝 回報進度</div>
       <div style="background:var(--orange-p);border:1.5px solid var(--orange);border-radius:var(--r);padding:.9rem;margin-bottom:1rem">
-        <div style="font-family:serif;font-weight:700;font-size:.95rem;margin-bottom:.35rem">⚠️ 督導退回修改意見</div>
+        <div style="font-family:serif;font-weight:700;font-size:.95rem;margin-bottom:.35rem">⚠️ 派案人員退回修改意見</div>
         <div style="font-size:.82rem;color:var(--text-m)">留言的語氣太正式了，試試看更口語的方式，像是朋友在推薦一樣。</div>
       </div>
       <div class="card">
         <div style="font-family:serif;font-size:1rem;font-weight:700;margin-bottom:.75rem">📝 回報進度</div>
         <div class="form-group"><label class="form-label">今天完成了幾則？</label><input class="form-input" type="number" placeholder="請輸入數量" min="0"></div>
-        <div class="form-group"><label class="form-label">遇到什麼困難？（選填）</label><textarea class="form-input" rows="3" placeholder="有任何問題，告訴督導，我們一起想辦法"></textarea></div>
+        <div class="form-group"><label class="form-label">遇到什麼困難？（選填）</label><textarea class="form-input" rows="3" placeholder="有任何問題，告訴派案人員，我們一起想辦法"></textarea></div>
         <button class="btn-primary" onclick="showToast('回報已送出！','success')">送出回報 ✓</button>
       </div>
     </div>
@@ -756,18 +756,18 @@ textarea.form-input{resize:none}
       <div class="page-title">🚩 問題回報</div>
       <!-- 分頁切換 -->
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
-        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">回報督導</button>
+        <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">回報派案人員</button>
         <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.55rem 1.1rem;background:transparent;border:none;color:var(--text-s);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
       </div>
 
-      <!-- Tab：回報督導 -->
+      <!-- Tab：回報派案人員 -->
       <div id="pt-issue-tab-sv">
       <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(72,180,232,.10);border-top:3px solid var(--blue)">
         <div style="font-size:.88rem;font-weight:700;margin-bottom:.7rem;color:var(--text-m)">📝 新增回報</div>
         <div id="issue-sv-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.55rem"></div>
         <div style="display:flex;flex-direction:column;gap:.55rem">
           <input type="hidden" id="issue-sv-target" value="">
-          <div id="issue-sv-target-display" class="form-input" style="width:100%;background:var(--bg);color:var(--text-s);cursor:default">督導人員載入中…</div>
+          <div id="issue-sv-target-display" class="form-input" style="width:100%;background:var(--bg);color:var(--text-s);cursor:default">派案人員載入中…</div>
           <input id="issue-sv-title" class="form-input" placeholder="問題標題＊" style="width:100%">
           <textarea id="issue-sv-content" class="form-input" placeholder="詳細說明＊" rows="4" style="width:100%;resize:vertical;line-height:1.6"></textarea>
           <select id="issue-sv-task" class="form-input" style="width:100%">
@@ -1246,7 +1246,7 @@ function buildTaskCards(list) {
         ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${a.supervisor_name||'—'}</div>`}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">派案人員：${a.supervisor_name||'—'}</div>`}
       ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
       <div style="display:flex;gap:.5rem">
         <button onclick="acceptTask(${a.id},this)" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">✅ 接案</button>
@@ -1281,7 +1281,7 @@ function buildTaskCardsReadonly(list) {
         ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
       </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">督導：${a.supervisor_name||'—'}</div>`}
+      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">派案人員：${a.supervisor_name||'—'}</div>`}
       ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
     </div>`
   }).join('') + moreNote;
@@ -1683,7 +1683,7 @@ async function submitReport() {
     try {
       await API.post('/api/reports', { assignment_id: reportAssignmentId, notes, attachments });
       closeReport();
-      showToast('第一階段回報已送出，待督導核可', 'success');
+      showToast('第一階段回報已送出，待派案人員核可', 'success');
       loadTasks();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
     return;
@@ -1947,7 +1947,7 @@ async function loadFreeZone() {
           ${t.deadline_days ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 接案後 ${t.deadline_days} 天內</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--green-p);color:var(--green)">⏰ 無完成期限</span>`}
           <span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📅 ${period}</span>
         </div>
-        ${t.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${t.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">督導：${t.supervisor_name||'—'}</div>`}
+        ${t.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${t.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">派案人員：${t.supervisor_name||'—'}</div>`}
         ${btn}
       </div>`;
     }).join('');
@@ -2925,10 +2925,10 @@ async function populateIssueSvDropdowns() {
       try {
         const svs = await API.get('/api/users-list?role=supervisor');
         const sv = svs.find(u => String(u.id) === String(me.supervisor_id));
-        if (dispSv) dispSv.textContent = sv ? '督導：' + sv.real_name : '已指派督導';
-      } catch(e2) { if (dispSv) dispSv.textContent = '已指派督導'; }
+        if (dispSv) dispSv.textContent = sv ? '派案人員：' + sv.real_name : '已指派派案人員';
+      } catch(e2) { if (dispSv) dispSv.textContent = '已指派派案人員'; }
     } else {
-      if (dispSv) dispSv.textContent = '（尚未指派督導）';
+      if (dispSv) dispSv.textContent = '（尚未指派派案人員）';
     }
   } catch(e){}
   try {
@@ -2974,7 +2974,7 @@ function ptIssueCard(r, tab) {
       <span style="font-weight:700;font-size:.9rem;flex:1;color:var(--text)">${r.title}</span>
       <span style="font-size:.72rem;padding:.18rem .55rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
     </div>
-    <div style="font-size:.75rem;color:var(--text-s)">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div style="font-size:.75rem;color:var(--text-s)">${r.supervisor_name ? '派案人員：'+r.supervisor_name+' · ' : ''}${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
     <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">
       <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
       ${r.image_count > 0 ? '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" alt="問題回報附圖 ${i+1}，點擊以新視窗開啟" style="height:72px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
@@ -2991,7 +2991,7 @@ function ptIssueCard(r, tab) {
 
 function ptIssueRepliesHtml(replies) {
   if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
-  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  const rMap = { partner:'夥伴', supervisor:'派案人員', staff:'管理' };
   return replies.map(rp => `<div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem"><div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div><div style="font-size:.85rem;color:var(--text);line-height:1.55">${rp.text}</div></div>`).join('');
 }
 
@@ -3096,10 +3096,10 @@ async function submitIssueSv() {
   const content = contEl && contEl.value.trim();
   const svId    = sel && sel.value;
   const dispDiv = document.getElementById('issue-sv-target-display');
-  const svName  = dispDiv ? dispDiv.textContent.replace(/^督導：/, '') : '';
+  const svName  = dispDiv ? dispDiv.textContent.replace(/^派案人員：/, '') : '';
   const taskId  = taskSel && taskSel.value;
   const taskName = taskSel && taskSel.selectedIndex > 0 ? taskSel.options[taskSel.selectedIndex].textContent : null;
-  if (!svId) { errEl.textContent='尚未指派督導人員，無法送出'; errEl.style.display='block'; return; }
+  if (!svId) { errEl.textContent='尚未指派派案人員，無法送出'; errEl.style.display='block'; return; }
   if (!title || !content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
   try {
     const r = await API.post('/api/issues', {

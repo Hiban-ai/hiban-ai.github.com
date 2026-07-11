@@ -56,7 +56,7 @@ function showAnnDetail(ann, userId) {
   // 標記已讀
   if (userId) markRead(userId, ann.id);
 
-  const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[ann.target||'all'] || '全部角色';
+  const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'派案人員', staff:'管理人員' }[ann.target||'all'] || '全部角色';
   const expiryHtml  = ann.expires_at
     ? `<span style="background:#F0F8FE;color:#7A9AAF;padding:.18rem .55rem;border-radius:8px">到期：${ann.expires_at}</span>`
     : `<span style="background:#F0EBF8;color:#9B6FD4;padding:.18rem .55rem;border-radius:8px">🔒 永久公告</span>`;

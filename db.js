@@ -259,7 +259,7 @@ const Assignments = {
       .where('accepted_by','==',partnerId).where('status','==','completed').get();
     return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.completed_at, a.completed_at));
   },
-  // 督導派案紀錄
+  // 派案人員派案紀錄
   async forSupervisor(supervisorId) {
     const snap = await db.collection('assignments').where('supervisor_id','==',supervisorId).get();
     return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
@@ -269,7 +269,7 @@ const Assignments = {
     return snap.docs.map(d => d.data()).sort((a,b) => byDate(b.created_at, a.created_at));
   },
   // 只讀「指定夥伴清單」接的任務（accepted_by in，分批每組 10 個）
-  // 取代督導端點的 all()：只讀旗下夥伴的任務，不讀全表，大幅降低 Firestore 讀取量
+  // 取代派案人員端點的 all()：只讀旗下夥伴的任務，不讀全表，大幅降低 Firestore 讀取量
   async forPartners(partnerIds) {
     const ids = [...new Set((partnerIds || []).filter(v => v != null))];
     if (!ids.length) return [];
@@ -302,7 +302,7 @@ const WorklogReports = {
     return snap.docs.map(d => d.data()).sort((a,b) => (a.created_at||'').localeCompare(b.created_at||''));
   },
   async pendingForSupervisor(supervisorId) {
-    // 取得所有此督導的夥伴 assignment 的回報
+    // 取得所有此派案人員的夥伴 assignment 的回報
     const assignSnap = await db.collection('assignments')
       .where('supervisor_id','==',supervisorId).get();
     const assignIds = assignSnap.docs.map(d => d.data().id);

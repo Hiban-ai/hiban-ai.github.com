@@ -281,7 +281,7 @@ textarea.form-input{resize:none}
             <div style="width:1px;background:rgba(0,0,0,.07)"></div>
             <div style="flex:1;text-align:center">
               <div style="font-size:.78rem;font-weight:700;color:#7B5EA7" id="dash-cnt-supervisor">—</div>
-              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">督導</div>
+              <div style="font-size:.62rem;color:var(--text-s);margin-top:.1rem">派案人員</div>
             </div>
             <div style="width:1px;background:rgba(0,0,0,.07)"></div>
             <div style="flex:1;text-align:center">
@@ -337,7 +337,7 @@ textarea.form-input{resize:none}
       <!-- 三個角色分頁 -->
       <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem;overflow-x:auto">
         <button class="acc-tab active" id="atab-partner"    onclick="switchAccTab('partner')"   >⚔️ 工作夥伴</button>
-        <div class="acc-tab" id="atab-supervisor" onclick="switchAccTab('supervisor')" style="display:flex;align-items:center;gap:.4rem;cursor:pointer">📖 督導人員 <span onclick="event.stopPropagation();openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</span></div>
+        <div class="acc-tab" id="atab-supervisor" onclick="switchAccTab('supervisor')" style="display:flex;align-items:center;gap:.4rem;cursor:pointer">📖 派案人員 <span onclick="event.stopPropagation();openCreateUser('supervisor')" class="add-inline-btn">＋ 新增</span></div>
         <div class="acc-tab" id="atab-staff"      onclick="switchAccTab('staff')"      style="display:flex;align-items:center;gap:.4rem;cursor:pointer">🧹 管理人員 <span onclick="event.stopPropagation();openCreateUser('staff')"      class="add-inline-btn">＋ 新增</span></div>
       </div>
 
@@ -346,14 +346,14 @@ textarea.form-input{resize:none}
         <div class="card" style="padding:0">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>編號</th><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>督導人員</th><th>操作</th></tr></thead>
+              <thead><tr><th>編號</th><th>姓名</th><th>角色</th><th>身分證</th><th>生日</th><th>狀態</th><th>申請時間</th><th>派案人員</th><th>操作</th></tr></thead>
               <tbody id="tbody-partner"><tr><td colspan="9" style="text-align:center;color:var(--text-s);padding:1.5rem">載入中...</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- 督導人員 -->
+      <!-- 派案人員 -->
       <div id="acc-panel-supervisor" style="display:none">
         <div class="card" style="padding:0">
           <div class="table-wrap">
@@ -913,7 +913,7 @@ textarea.form-input{resize:none}
         <select id="issues-filter-role" class="form-input" style="max-width:160px;padding:.4rem .7rem;font-size:.82rem" onchange="renderIssueList()">
           <option value="">全部來源</option>
           <option value="partner">工作夥伴</option>
-          <option value="supervisor">督導人員</option>
+          <option value="supervisor">派案人員</option>
         </select>
       </div>
       <div id="issues-staff-list" style="display:flex;flex-direction:column;gap:.75rem">
@@ -932,7 +932,7 @@ textarea.form-input{resize:none}
 <div class="detail-overlay" id="create-user-overlay">
   <div class="detail-box" style="border-top-color:var(--green)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
-      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700" id="create-user-title">新增督導人員</div>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700" id="create-user-title">新增派案人員</div>
       <button onclick="closeCreateUser()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">建立後帳號立即啟用，預設密碼 <strong>0000</strong>，首次登入需修改。</div>
@@ -972,17 +972,17 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
-<!-- 更換督導 overlay -->
+<!-- 更換派案人員 overlay -->
 <div class="confirm-overlay" id="chgsv-overlay">
   <div class="confirm-box" style="width:360px;text-align:left;border-top-color:var(--blue)">
-    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">🔄 更換督導人員</div>
+    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">🔄 更換派案人員</div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem" id="chgsv-name-label">—</div>
     <input type="hidden" id="chgsv-user-id">
     <div id="chgsv-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
     <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
-      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">督導人員</label>
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">派案人員</label>
       <select class="form-input" id="chgsv-sel" style="flex:1">
-        <option value="">請選擇督導人員</option>
+        <option value="">請選擇派案人員</option>
       </select>
     </div>
     <div style="display:flex;gap:.5rem">
@@ -1026,10 +1026,10 @@ textarea.form-input{resize:none}
         </div>
       </div>
     </div>
-    <!-- 督導選擇 -->
+    <!-- 派案人員選擇 -->
     <div id="detail-sv-row" style="display:none;margin-bottom:.75rem">
-      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">指定督導人員</label>
-      <select class="form-input" id="detail-sv-sel"><option value="">請選擇督導人員</option></select>
+      <label style="font-size:.82rem;color:var(--text-s);display:block;margin-bottom:.3rem">指定派案人員</label>
+      <select class="form-input" id="detail-sv-sel"><option value="">請選擇派案人員</option></select>
     </div>
     <div id="detail-approve-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
     <!-- 退回原因 -->
@@ -1091,7 +1091,7 @@ textarea.form-input{resize:none}
           <select class="form-input" id="ann-target">
             <option value="all">全部角色</option>
             <option value="partner">工作夥伴</option>
-            <option value="supervisor">督導人員</option>
+            <option value="supervisor">派案人員</option>
             <option value="staff">管理人員</option>
           </select>
         </div>
@@ -1143,18 +1143,18 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
-<!-- 核准夥伴 - 指定督導 overlay -->
+<!-- 核准夥伴 - 指定派案人員 overlay -->
 <div class="confirm-overlay" id="approve-overlay">
   <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
     <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">✓ 核准工作夥伴</div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">請選擇負責此夥伴的督導人員</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">請選擇負責此夥伴的派案人員</div>
     <input type="hidden" id="approve-user-id">
     <input type="hidden" id="approve-user-name">
     <div id="approve-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
     <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
-      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">督導人員</label>
+      <label style="font-size:.82rem;color:var(--text-s);width:72px;flex-shrink:0">派案人員</label>
       <select class="form-input" id="approve-supervisor-sel" style="flex:1">
-        <option value="">請選擇督導人員</option>
+        <option value="">請選擇派案人員</option>
       </select>
     </div>
     <div style="display:flex;gap:.5rem">
@@ -1233,7 +1233,7 @@ async function loadStaffGrab() {
           <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem .75rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">
-          <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
+          <div>派案人員<br><strong>${t.supervisor_name||'—'}</strong></div>
           <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
           <div>名額（${modeLabel}）<br><strong>${t.qty_unlimited ? t.grabbed_count+' / 不限' : t.grabbed_count+'/'+t.total_slots}</strong></div>
           <div>認領截止<br><strong>${t.deadline ? t.deadline.slice(0,10) : '永久'}</strong></div>
@@ -1302,7 +1302,7 @@ async function loadStaffFree() {
             <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor};flex-shrink:0">${statusLabel}</span>
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem .75rem;font-size:.8rem;color:var(--text-m)">
-            <div>督導<br><strong>${t.supervisor_name||'—'}</strong></div>
+            <div>派案人員<br><strong>${t.supervisor_name||'—'}</strong></div>
             <div>單價<br><strong>$${(t.unit_price||0).toLocaleString()}</strong></div>
             <div>名額<br><strong>${quota}</strong></div>
             <div>已完成<br><strong>${t.completed_count||0}</strong></div>
@@ -1518,7 +1518,7 @@ function renderStaffAssign() {
               <span style="font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor};flex-shrink:0">${statusLabel}</span>
             </div>`; })()}
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .75rem;font-size:.78rem;color:var(--text-m)">
-              <div>督導：${a.supervisor_name||'—'}</div>
+              <div>派案人員：${a.supervisor_name||'—'}</div>
               ${a.assign_type==='hourly' ? `
                 <div>時薪：$${(a.hourly_wage||0).toLocaleString()}</div>
                 <div>總金額：<strong style="color:var(--green)">$${(a.total_price||0).toLocaleString()}</strong></div>
@@ -1652,7 +1652,7 @@ function gotoReport(page, anchorId) {
 }
 
 // ── 帳號管理 ──
-const roleMap   = { partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' };
+const roleMap   = { partner:'工作夥伴', supervisor:'派案人員', staff:'管理人員' };
 const roleClass = { partner:'rt-partner', supervisor:'rt-supervisor', staff:'rt-staff' };
 const statusLabel = { active:'啟用', pending:'待審核', inactive:'停用', rejected:'已退回', suspended:'已停用', archived:'已封存' };
 const statusClass = { active:'sb-active', pending:'sb-pending', inactive:'sb-inactive', rejected:'sb-rejected', suspended:'sb-warn', archived:'sb-inactive' };
@@ -1763,7 +1763,7 @@ async function openDetail(id) {
     ${row('戶籍地址', u.address)}
     ${row('通訊地址', u.mailing_address || u.address)}
     ${row('身份別', u.identity||'—')}
-    ${isPartner ? row('負責督導', svName) : ''}
+    ${isPartner ? row('負責派案人員', svName) : ''}
     ${row('狀態', statusLabel[u.status]||u.status)}
     ${row('申請時間', u.created_at)}
     ${bankBlock}
@@ -1804,13 +1804,13 @@ async function openDetail(id) {
     imgCol.style.display = 'none';
   }
 
-  // 督導選擇（pending partner 才顯示）
+  // 派案人員選擇（pending partner 才顯示）
   const svRow = document.getElementById('detail-sv-row');
   if (isPending && isPartner) {
     svRow.style.display = 'block';
     const svs = usersCache.filter(u => u.role==='supervisor' && u.status==='active');
     document.getElementById('detail-sv-sel').innerHTML =
-      '<option value="">請選擇督導人員</option>' +
+      '<option value="">請選擇派案人員</option>' +
       svs.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
   } else { svRow.style.display = 'none'; }
 
@@ -1870,10 +1870,10 @@ async function approveFromDetail() {
   err.style.display = 'none';
   if (role === 'partner') {
     const svId = document.getElementById('detail-sv-sel').value;
-    if (!svId) { err.textContent = '請先選擇督導人員'; err.style.display = 'block'; return; }
+    if (!svId) { err.textContent = '請先選擇派案人員'; err.style.display = 'block'; return; }
     try {
       await API.put(`/api/admin/users/${id}/approve`, { supervisor_id: parseInt(svId) });
-      showToast(`已核可 ${name}，已指派督導`, 'success');
+      showToast(`已核可 ${name}，已指派派案人員`, 'success');
       closeDetail(); await loadUsers();
     } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
   } else {
@@ -1943,7 +1943,7 @@ async function loadSvList() {
   return svListCache;
 }
 
-// ── 更換督導 ──
+// ── 更換派案人員 ──
 async function openChgSv(id, name) {
   document.getElementById('chgsv-user-id').value = id;
   document.getElementById('chgsv-name-label').textContent = `夥伴：${name}`;
@@ -1951,7 +1951,7 @@ async function openChgSv(id, name) {
   const svs = await loadSvList();
   const cur  = usersCache.find(u => u.id === id)?.supervisor_id;
   document.getElementById('chgsv-sel').innerHTML =
-    '<option value="">請選擇督導人員</option>' +
+    '<option value="">請選擇派案人員</option>' +
     svs.map(sv => `<option value="${sv.id}"${sv.id===cur?' selected':''}>${sv.real_name}</option>`).join('');
   document.getElementById('chgsv-overlay').classList.add('open');
 }
@@ -1963,28 +1963,28 @@ async function submitChgSv() {
   err.style.display = 'none';
   const id   = parseInt(document.getElementById('chgsv-user-id').value);
   const svId = document.getElementById('chgsv-sel').value;
-  if (!svId) { err.textContent = '請選擇督導人員'; err.style.display = 'block'; return; }
+  if (!svId) { err.textContent = '請選擇派案人員'; err.style.display = 'block'; return; }
   try {
     await API.put(`/api/admin/users/${id}/set-supervisor`, { supervisor_id: parseInt(svId) });
     closeChgSv();
-    showToast('督導人員已更換', 'success');
+    showToast('派案人員已更換', 'success');
     svListCache = []; // 清快取
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 async function approveUser(id, name) {
   const user = usersCache.find(u => u.id === id);
-  // 工作夥伴需選督導
+  // 工作夥伴需選派案人員
   if (user && user.role === 'partner') {
     document.getElementById('approve-user-id').value   = id;
     document.getElementById('approve-user-name').value = name;
     document.getElementById('approve-err').style.display = 'none';
-    // 載入督導清單
+    // 載入派案人員清單
     if (!svListCache.length) {
       svListCache = (await API.get('/api/admin/users')).filter(u => u.role === 'supervisor' && u.status === 'active');
     }
     const sel = document.getElementById('approve-supervisor-sel');
-    sel.innerHTML = '<option value="">請選擇督導人員</option>' +
+    sel.innerHTML = '<option value="">請選擇派案人員</option>' +
       svListCache.map(sv => `<option value="${sv.id}">${sv.real_name}</option>`).join('');
     document.getElementById('approve-overlay').classList.add('open');
   } else {
@@ -2003,11 +2003,11 @@ async function submitApprove() {
   const id   = parseInt(document.getElementById('approve-user-id').value);
   const name = document.getElementById('approve-user-name').value;
   const svId = document.getElementById('approve-supervisor-sel').value;
-  if (!svId) { err.textContent = '請選擇督導人員'; err.style.display = 'block'; return; }
+  if (!svId) { err.textContent = '請選擇派案人員'; err.style.display = 'block'; return; }
   try {
     await API.put(`/api/admin/users/${id}/approve`, { supervisor_id: parseInt(svId) });
     closeApprove();
-    showToast(`已核准 ${name}，已指派督導`, 'success');
+    showToast(`已核准 ${name}，已指派派案人員`, 'success');
     loadAccounts();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
@@ -2143,7 +2143,7 @@ async function loadStaffAlerts() {
     if (!w.length) { card.style.display = 'none'; return; }
     list.innerHTML = w.map(x =>
       `<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:.45rem .7rem">
-         <span><strong>${x.real_name}</strong> <span style="font-size:.75rem;color:var(--text-s)">（督導：${x.supervisor_name}）</span></span>
+         <span><strong>${x.real_name}</strong> <span style="font-size:.75rem;color:var(--text-s)">（派案人員：${x.supervisor_name}）</span></span>
          <span style="font-weight:700;color:var(--red)">$${x.amount.toLocaleString()} <span style="font-size:.72rem;color:var(--text-s);font-weight:400">${x.task_count} 筆</span></span>
        </div>`).join('');
     card.style.display = '';
@@ -2198,7 +2198,7 @@ function initCuBday() {
 }
 
 function openCreateUser(role) {
-  const titles = { supervisor:'新增督導人員', staff:'新增管理人員' };
+  const titles = { supervisor:'新增派案人員', staff:'新增管理人員' };
   document.getElementById('create-user-title').textContent = titles[role];
   document.getElementById('create-user-role').value = role;
   ['cu-name','cu-id','cu-phone','cu-email','cu-address','cu-mailing-address'].forEach(id => document.getElementById(id).value = '');
@@ -2886,7 +2886,7 @@ async function showTaskDetail(id) {
   body += row('夥伴', found.partner);
   body += row('公司', a.company || '—');
   body += row('任務', a.task_name + (a.full_code ? '　' + a.full_code : (a.task_no ? ' #'+a.task_no : '')));
-  body += row('督導', a.supervisor_name || '—');
+  body += row('派案人員', a.supervisor_name || '—');
   if (a.assign_type === 'hourly') {
     if (a.work_content) body += row('工作內容', a.work_content);
     body += row('時薪', '$' + (a.hourly_wage||0).toLocaleString() + ' / 小時');
@@ -3087,7 +3087,7 @@ function renderAnnList() {
     const expired   = a.expires_at && a.expires_at < now;
     const permanent = !a.expires_at;
     const unread    = !readIds.includes(String(a.id));
-    const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'督導人員', staff:'管理人員' }[a.target||'all'] || '全部角色';
+    const targetLabel = { all:'全部角色', partner:'工作夥伴', supervisor:'派案人員', staff:'管理人員' }[a.target||'all'] || '全部角色';
     const annJson = JSON.stringify(a).replace(/'/g, '&#39;');
     return `
     <div class="ann-card${a.is_pinned ? ' pinned' : ''}" style="${expired ? 'opacity:.55' : ''}">
@@ -3346,7 +3346,7 @@ function renderIssueList() {
 function issueCard(r, viewer) {
   const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
   const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
-  const roleMap2 = { partner:'工作夥伴', supervisor:'督導人員' };
+  const roleMap2 = { partner:'工作夥伴', supervisor:'派案人員' };
   const unread = viewer === 'staff' ? r.unread_handler : r.unread_reporter;
   return `<div class="card" style="padding:1rem 1.1rem;cursor:pointer;border-left:4px solid ${statusColor[r.status]}" onclick="toggleIssue(${r.id},'${viewer}')">
     <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem">
@@ -3379,7 +3379,7 @@ function issueCard(r, viewer) {
 
 function issueRepliesHtml(replies) {
   if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
-  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  const rMap = { partner:'夥伴', supervisor:'派案人員', staff:'管理' };
   return replies.map(rp => `
     <div style="background:var(--bg);border-radius:var(--rs);padding:.45rem .75rem">
       <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div>

@@ -2029,14 +2029,15 @@ async function loadGrabZone() {
 
     if (!wrap) return;
     if (!available.length && !pickTasks.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有開放認領的任務</div>'; return; }
-    wrap.innerHTML = available.map(t => {
+    const cardPalette = ['#1A8AC0', '#9B6FD4', '#2EAA7A', '#E07830', '#E05555', '#C8901A'];
+    const qtyCardHtml = (t, cardColor) => {
       const unlim      = !!t.qty_unlimited;
       const remaining  = unlim ? null : (t.total_slots - t.grabbed_count);
       const alreadyGrabbed = false;
       const myCount    = t.my_grab_count || 0;
       const pctFill    = unlim ? 0 : Math.round((t.grabbed_count / t.total_slots) * 100);
       return `
-      <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${alreadyGrabbed ? 'var(--green)' : 'var(--blue)'}">
+      <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${cardColor || 'var(--blue)'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem">
           <div>
             <div style="font-family:serif;font-weight:700;font-size:.98rem">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
@@ -2078,7 +2079,14 @@ async function loadGrabZone() {
             : `<button onclick="doGrab(${t.id},this)" style="width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:sans-serif;box-shadow:0 4px 12px rgba(26,112,160,.3)">🎯 認領</button>`
         }
       </div>`;
-    }).join('') + pickTasks.map(pickPanelHtml).join('');
+    };
+    // 模式混合：數量＋挑選一起依認領截止排序，卡片輪流配色避免同色眼花
+    const combined = [...available.map(t => ({ t, pick: false })), ...pickTasks.map(t => ({ t, pick: true }))]
+      .sort((a, b) => byDeadline(a.t, b.t));
+    wrap.innerHTML = combined.map((x, i) => {
+      const color = cardPalette[i % cardPalette.length];
+      return x.pick ? pickPanelHtml(x.t, color) : qtyCardHtml(x.t, color);
+    }).join('');
     // 渲染各挑選任務的卡片牆
     pickTasks.forEach(t => renderPickBody(t.id));
   } catch(e) { wrap.innerHTML = `<div style="color:var(--red);font-size:.85rem">${e.message}</div>`; }
@@ -2089,10 +2097,10 @@ let _pickTasksCache = {};
 let _pickState = {};
 const PICK_PAGE_SIZE = 8;
 
-function pickPanelHtml(t) {
+function pickPanelHtml(t, cardColor) {
   const remaining = (t.slot_data||[]).filter(s => !s.claimed).length;
   return `
-  <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid var(--blue)">
+  <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${cardColor || 'var(--blue)'}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem">
       <div style="min-width:0">
         <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>

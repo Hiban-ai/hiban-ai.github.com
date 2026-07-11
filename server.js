@@ -2196,7 +2196,8 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
     }
     const report = await WorklogReports.create(reportData);
     // 標記 assignment 為審核中，避免重複送出；小時任務同步寫入時間與總金額
-    await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing', ...assignHourlyPatch });
+    // comments_resolved_at：回報即視為已處理先前的修改意見（「需要修改」卡片據此消除）
+    await Assignments.update(parseInt(assignment_id), { review_status: 'reviewing', comments_resolved_at: nowTW(), ...assignHourlyPatch });
     cacheClear('sup-'); // 送出 WorkLog → 清派案人員儀表板快取
     res.json({ ok: true, id: report.id, stage });
   } catch(e) {

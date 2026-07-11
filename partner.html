@@ -1316,10 +1316,20 @@ function renderPending(list) {
 }
 
 
+// 是否處於「需要修改」狀態：最新修改意見比上次回報(comments_resolved_at)還新，且目前沒在審核
+function isRejectedState(a) {
+  if (a.review_status) return false;
+  var sc = a.supervisor_comments || [];
+  if (!sc.length) return false;
+  var last = sc[sc.length - 1];
+  var lastT = (last.date || '') + ' ' + (last.time || '');
+  return !a.comments_resolved_at || lastT > a.comments_resolved_at;
+}
+
 function renderActive(list) {
-  // 退回任務 = accepted + supervisor_comments > 0 + no review_status
-  var rejected = list.filter(function(a){ return !a.review_status && a.supervisor_comments && a.supervisor_comments.length > 0; });
-  var realActive = list.filter(function(a){ return !(a.supervisor_comments && a.supervisor_comments.length > 0 && !a.review_status); });
+  // 退回任務 = 有尚未處理的修改意見（回報過即視為已處理，除非之後又被退回）
+  var rejected = list.filter(isRejectedState);
+  var realActive = list.filter(function(a){ return !isRejectedState(a); });
   var ovRejSection = document.getElementById('overview-rejected-section');
   var ovRejBadge   = document.getElementById('overview-rejected-badge');
   var ovRejList    = document.getElementById('overview-rejected-list');

@@ -1365,6 +1365,21 @@ function activeCardHtml(a) {
            </div>`
         ).join('')
       : '<span style="font-size:.8rem;color:var(--text-s)">—</span>';
+    // 雙重回報：階段徽章（右上金額旁）
+    const stageBadge = a.dual_report
+      ? `<span style="display:inline-block;padding:.15rem .5rem;border-radius:10px;font-size:.68rem;font-weight:700;background:#EEE6FA;color:#6B3FA0;white-space:nowrap">🔖 ${(a.report_stage||0)===0 ? '第一階段' : '第二階段'}</span>`
+      : '';
+    // 雙重回報：第一階段核可後，顯示派案人員的回覆（說明＋附件）
+    const hasS1Reply = a.dual_report && (a.report_stage||0) === 1 && (a.stage1_reply_note || (a.stage1_reply_attachments && a.stage1_reply_attachments.length));
+    const s1ReplyHtml = hasS1Reply
+      ? `<div style="margin-bottom:.6rem">
+           <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem">第一階段核可回覆</div>
+           <div style="background:var(--green-p);border:1px solid #B5DDC0;border-radius:var(--rs);padding:.45rem .6rem;line-height:1.6">
+             ${a.stage1_reply_note ? `<div style="font-size:.82rem;color:#2E7D56;white-space:pre-wrap">${a.stage1_reply_note}</div>` : ''}
+             ${(a.stage1_reply_attachments && a.stage1_reply_attachments.length) ? attachmentsHtml(a.stage1_reply_attachments) : ''}
+           </div>
+         </div>`
+      : '';
     return `
     <div style="background:#fff;border-radius:var(--r);padding:1rem 1.1rem;border-left:5px solid ${color};box-shadow:0 4px 16px rgba(72,180,232,.08);margin-bottom:.75rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
@@ -1375,7 +1390,10 @@ function activeCardHtml(a) {
             ${(!a.full_code && a.grab_no) ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#E07830,#F0A030);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🎯 限量編號 #${a.grab_no}</span>` : ''}
           </div>
         </div>
-        <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+          <div style="font-family:serif;font-weight:700;color:var(--yellow);font-size:1.05rem;white-space:nowrap">$${(a.total_price||0).toLocaleString()}</div>
+          ${stageBadge}
+        </div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">
         ${statusTag}
@@ -1395,6 +1413,7 @@ function activeCardHtml(a) {
         <div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;max-height:calc(1.6em * 6 + .8rem);overflow-y:auto;background:var(--bg);border-radius:var(--rs);padding:.4rem .6rem;border:1px solid var(--border-l);min-height:2rem;line-height:1.6;white-space:pre-wrap">${a.notes}</div>
       </div>` : ''}
       ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
+      ${s1ReplyHtml}
       <div style="margin-bottom:.6rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem;display:flex;justify-content:space-between;align-items:center">
           <span>修改意見${scArr.length > 1 ? `（共 ${scArr.length} 次退回，最新在上）` : ''}</span>

@@ -2109,6 +2109,15 @@ const PICK_PAGE_SIZE = 8;
 
 function pickPanelHtml(t, cardColor) {
   const remaining = (t.slot_data||[]).filter(s => !s.claimed).length;
+  const pkLim = t.per_person_limit || 0; // 0=不限
+  const pkGot = t.my_grab_count || 0, pkDone = t.my_completed_count || 0;
+  const quotaItems = [
+    `可接：<b>${pkLim === 0 ? '不限' : pkLim}</b>`,
+    `已接：<b>${pkGot}</b>`,
+    ...(pkLim === 0 ? [] : [`剩餘可接：<b style="color:var(--blue-d)">${Math.max(0, pkLim - pkGot)}</b>`]),
+    `已完成：<b style="color:var(--green)">${pkDone}</b>`,
+  ];
+  const quotaHtml = `<div style="display:flex;flex-wrap:wrap;gap:.15rem .7rem;font-size:.84rem;color:var(--text-m);margin-top:.3rem;padding:.35rem .55rem;background:var(--bg);border-radius:var(--rs)">${quotaItems.map(x=>`<span>${x}</span>`).join('')}</div>`;
   return `
   <div style="background:#fff;border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.85rem;border-left:5px solid ${cardColor || 'var(--blue)'}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem">
@@ -2116,6 +2125,7 @@ function pickPanelHtml(t, cardColor) {
         <div style="font-family:serif;font-weight:700;font-size:.98rem">🃏 ${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
         ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
         <div style="font-size:.84rem;color:var(--text-s);margin-top:.25rem">${t.deadline ? '⏰ 認領期限：'+t.deadline.slice(0,16)+' 截止' : '⏰ 永久開放'} ・ 剩 ${remaining} 張可選</div>
+        ${quotaHtml}
         ${t.work_date ? `<div style="font-size:.84rem;color:var(--text-m);margin-top:.2rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.84rem;color:var(--text-m);margin-top:.2rem">📝 備註：${t.notes}</div>` : ''}
         ${attachmentsHtml(t.attachments)}

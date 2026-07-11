@@ -1214,9 +1214,14 @@ async function completeTask(id, btn) {
 }
 
 // 動態自訂欄位顯示
+// 文字中的網址轉成可點超連結（新分頁開啟；不觸發卡片點選）
+function linkify(v) {
+  return String(v).replace(/(https?:\/\/[^\s<>"']+)/g,
+    '<a href="$1" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--blue-d);word-break:break-all;text-decoration:underline">$1</a>');
+}
 function customFieldsHtml(fields) {
   if (!fields || !fields.length) return '';
-  return `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">${fields.map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:.15rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem">${fields.map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>`;
 }
 // 派案附件下載連結
 function attachmentsHtml(atts) {
@@ -1975,6 +1980,10 @@ async function loadGrabZone() {
       && ((t.per_person_limit||0) === 0 || (t.my_grab_count||0) < t.per_person_limit));
     // 挑選模式：開放中且仍有未選卡片
     const pickTasks = list.filter(t => t.pick_mode && (t.slot_data||[]).some(s => !s.claimed));
+    // 排序：認領截止越近越上面，永久開放排最後
+    const byDeadline = (a, b) => (a.deadline || '9999/99/99').localeCompare(b.deadline || '9999/99/99');
+    available.sort(byDeadline);
+    pickTasks.sort(byDeadline);
     _pickTasksCache = {}; pickTasks.forEach(t => { _pickTasksCache[t.id] = t; if (!_pickState[t.id]) _pickState[t.id] = { page: 0, sel: -1 }; });
     const totalAvail = available.length + pickTasks.length;
 
@@ -2120,7 +2129,7 @@ function renderPickBody(id) {
       : `<span style="font-size:.74rem;font-weight:700;color:var(--text-m)">${code}</span>`;
     const fields = (s.custom_fields||[]).filter(f => f.value !== '' && f.value != null);
     const fieldsHtml = fields.length
-      ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.72rem;color:var(--text-m)">${fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>`
+      ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.72rem;color:var(--text-m)">${fields.map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>`
       : (s.title ? `<div style="margin-top:.3rem;font-size:.74rem;color:var(--text-m)">${s.title}</div>` : '');
     return `
     <div ${claimed ? '' : `onclick="pickSelect(${id},${idx})"`} style="border:2px solid ${selected ? 'var(--blue)' : 'var(--border)'};border-radius:12px;padding:.6rem .7rem;background:${claimed ? '#f3f4f6' : selected ? 'var(--blue-p,#eaf4fb)' : '#fff'};cursor:${claimed ? 'default' : 'pointer'};opacity:${claimed ? '.65' : '1'};transition:all .15s">

@@ -3820,14 +3820,65 @@ ${text}
       return res.json({ ok: true, data });
     }
 
+    // 基礎資料匯入：從文字中整理 公司清單、任務名稱＋單價（任務與單價連結）
+    if (mode === 'base-data') {
+      const basePrompt = `你是資料整理助手。請從以下文字中整理出「公司名稱清單」與「任務名稱＋單價清單」，以 JSON 物件回傳，只回傳 JSON 不要其他文字。
+
+現有公司：${(companies || []).join('、') || '（無）'}
+現有任務：${(tasks || []).join('、') || '（無）'}
+
+請回傳格式：
+{
+  "companies": ["公司名稱1", "公司名稱2"],
+  "tasks": [{ "name": "任務名稱", "unit_price": "單價，數字字串，找不到則空字串" }]
+}
+
+重要規則：
+- 逐列掃描文字，收集出現過的所有「公司名稱」與「任務名稱」，各自去除重複。
+- 名稱若與「現有公司／現有任務」相同或只是寫法差異（全半形、多餘空白），請使用現有清單中的寫法。
+- 任務與單價要配對：同一列中任務名稱對應的單價就是該任務的單價；同一任務出現多個不同單價時，取出現次數最多者。
+- 單價只填數字；找不到單價的任務 unit_price 填空字串。
+- 「留言內容」「網址」「執行日期」「備註」等資料欄位內容不是任務或公司名稱，請忽略。
+- 只回傳 JSON 物件，不要其他文字或說明。
+
+文字內容：
+"""
+${text}
+"""`;
+      const body = JSON.stringify({ contents: [{ parts: [{ text: basePrompt }] }], generationConfig: { temperature: 0.1 } });
+      const result = await geminiPost(apiKey, body);
+      if (result.error) return res.json({ ok: false, error: result.error.message || JSON.stringify(result.error) });
+      const raw = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      console.log('[Gemini extract-task base-data raw]', raw.slice(0, 300));
+      const objIdx = raw.indexOf('{');
+      if (objIdx === -1) return res.json({ ok: false, error: 'AI 未回傳 JSON：' + raw.slice(0,150) });
+      let depth = 0, end = -1, inStr = false, esc = false;
+      for (let i = objIdx; i < raw.length; i++) {
+        const ch = raw[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\') { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{') depth++;
+        else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+      }
+      if (end === -1) return res.json({ ok: false, error: 'AI 回傳的 JSON 不完整：' + raw.slice(0,150) });
+      const data = JSON.parse(raw.slice(objIdx, end + 1));
+      return res.json({
+        ok: true,
+        companies: Array.isArray(data.companies) ? data.companies : [],
+        tasks: Array.isArray(data.tasks) ? data.tasks : [],
+      });
+    }
+
     // 自動分組：每列各自解析任務／公司，前端依(任務+公司)自動分組建立多個限量任務
     if (mode === 'grab-auto') {
       const multiPrompt = `你是任務派案助手。請從以下文字中解析出「限量任務資料列」，每一列資料各自解析，並以 JSON 物件回傳，只回傳 JSON 不要其他文字。
 
 今天日期：${todayStr}
 
-可選任務名稱：${(tasks || []).join('、')}
-可選公司名稱：${(companies || []).join('、')}
+現有任務名稱（僅供正名參考）：${(tasks || []).join('、') || '（無）'}
+現有公司名稱（僅供正名參考）：${(companies || []).join('、') || '（無）'}
 
 自訂欄位定義（label 必須完全照抄）：
 ${cfDesc}
@@ -3836,8 +3887,8 @@ ${cfDesc}
 {
   "rows": [
     {
-      "task_name": "此列的任務名稱，從可選任務名稱中選最符合的，找不到則空字串",
-      "company": "此列的公司名稱，從可選公司名稱中選最符合的，找不到則空字串",
+      "task_name": "此列的任務名稱，照原文填入；若與現有任務名稱相同或僅寫法差異，請用現有清單的寫法",
+      "company": "此列的公司名稱，照原文填入；若與現有公司名稱相同或僅寫法差異，請用現有清單的寫法",
       "unit_price": "此列單價，數字字串，找不到則空字串",
       "work_date": "此列的執行日期，格式 YYYY/MM/DD，原文有就原樣填入（不要換算成天數），沒有則空字串",
       "deadline_days": "此列完成期限天數，數字字串。天數直接用；日期換算成從今天到該日的剩餘天數(至少1)；找不到則空字串",
@@ -3849,7 +3900,7 @@ ${cfDesc}
 
 重要規則：
 - 文字通常是表格（含表頭與多列資料）：忽略表頭，為「每一列資料」各產生一個 rows 元素，依原始順序，不要自行合併或省略任何一列。
-- task_name 與 company 每一列可能不同，請逐列各自解析，同列的值對應該列。
+- task_name 與 company 每一列可能不同，請逐列各自解析，同列的值對應該列；名稱不在現有清單中也照原文填入，不要留空。
 - ⚠️「執行日期」是某一天(放 work_date、保持日期格式)，「完成期限」才是天數(放 deadline_days)，勿混淆。
 - custom_fields：欄位名稱出現在上方「自訂欄位定義」中則 label 必須完全一致；定義以外的欄位（例如「評分」、「網址」、「留言內容」）也請一併放入 custom_fields，label 直接用原文名稱。
 - ⚠️ notes 只收欄位名稱為「備註」的內容；「留言內容」「內容」「說明」等其他文字欄位屬於該列資料，必須放在該列的 custom_fields，絕對不要抬升為 notes。

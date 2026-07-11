@@ -315,7 +315,8 @@ textarea.form-input{resize:none}
             <button id="mode-btn-grab" onclick="setAssignMode('grab')"
                     style="padding:.3rem .7rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--text-s);transition:all .2s;border-left:1.5px solid var(--border)">🎯 限量任務</button>
           </div>
-          <button onclick="openAiImportMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🤖 任務匯入</button>
+          <button onclick="openAiBaseMgr()" type="button" style="margin-left:auto;display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🗂️ AI 資料匯入</button>
+          <button onclick="openAiImportMgr()" type="button" style="display:flex;align-items:center;gap:.3rem;padding:.3rem .7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:#fff;color:var(--text-s);font-size:.8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-s)'">🤖 任務匯入</button>
         </div>
 
         <div id="assign-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
@@ -758,6 +759,37 @@ textarea.form-input{resize:none}
         <button onclick="aiImportConfirmAll()" id="ai-import-confirm-all-btn" style="padding:.35rem .8rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer">🚀 全部一鍵派案</button>
       </div>
       <div id="ai-import-list" style="display:flex;flex-direction:column;gap:.6rem;max-height:52vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI 資料匯入（公司／任務＋單價 基礎資料） overlay -->
+<div class="pw-overlay" id="ai-base-overlay">
+  <div class="pw-box" style="width:min(680px,96vw);max-height:92vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🗂️ AI 資料匯入</div>
+      <button onclick="closeAiBaseMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上資料，AI 會自動整理出「公司名稱」與「任務名稱＋單價」，確認後一鍵建立基礎資料（任務單價會存為該任務的預設單價）。</div>
+    <div id="ai-base-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或貼上 Google 試算表連結（需設為「知道連結的人皆可查看」）</div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+      <input class="form-input" id="ai-base-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." style="flex:1;font-size:.85rem">
+      <button onclick="loadAiBaseSheet()" id="ai-base-sheet-btn" style="flex-shrink:0;padding:.65rem 1rem;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">讀取</button>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <input type="file" id="ai-base-file" accept=".xlsx,.csv" style="display:none" onchange="onAiBaseExcelFile(this)">
+      <button type="button" onclick="document.getElementById('ai-base-file').click()" id="ai-base-file-btn" style="display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1rem;background:#fff;border:1.5px dashed var(--border);border-radius:var(--rs);color:var(--text-s);font-size:.85rem;font-weight:700;cursor:pointer">📄 選擇 Excel／CSV 檔</button>
+      <span id="ai-base-file-name" style="font-size:.8rem;color:var(--text-s);margin-left:.5rem"></span>
+    </div>
+    <textarea class="form-input" id="ai-base-text" rows="7" placeholder="例如貼上含 公司、任務、單價 欄位的表格資料..." style="font-size:.88rem;margin-bottom:.75rem"></textarea>
+    <button onclick="runAiBaseImport()" id="ai-base-btn" style="width:100%;padding:.7rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer">🤖 解析公司／任務／單價</button>
+    <div id="ai-base-preview" style="display:none;margin-top:.9rem;border-top:1.5px dashed var(--border);padding-top:.9rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div style="font-size:.85rem;font-weight:700" id="ai-base-preview-title">📋 解析結果</div>
+        <button onclick="submitAiBaseImport()" id="ai-base-confirm-btn" style="padding:.35rem .8rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer">✅ 建立資料</button>
+      </div>
+      <div id="ai-base-list" style="display:flex;flex-direction:column;gap:.6rem;max-height:48vh;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -3232,7 +3264,7 @@ async function aiAutoConfirmAll() {
   } catch(e) {}
   for (const g of _aiAutoGroups) {
     if (g.status === 'done') continue;
-    if (!g.task_name) { g.status = 'error'; g.message = '未辨識到任務名稱（需為系統已建立的任務）'; renderAiAutoList(); continue; }
+    if (!g.task_name) { g.status = 'error'; g.message = '未辨識到任務名稱'; renderAiAutoList(); continue; }
     if (!g.unit_price) { g.status = 'error'; g.message = '缺少單價'; renderAiAutoList(); continue; }
     try {
       await API.post('/api/grab-tasks', {
@@ -3277,6 +3309,159 @@ async function loadAiImportSheet() {
     btn.disabled = false;
     btn.textContent = '讀取';
   }
+}
+
+// ── AI 資料匯入：公司／任務＋單價 基礎資料 ──────────────────────
+let _aiBaseCompanies = []; // [{name, exists}]
+let _aiBaseTasks = [];     // [{name, price, existing(tt|null), status, message}]
+function openAiBaseMgr() {
+  document.getElementById('ai-base-err').style.display = 'none';
+  document.getElementById('ai-base-text').value = '';
+  document.getElementById('ai-base-sheet-url').value = '';
+  const fn = document.getElementById('ai-base-file-name'); if (fn) fn.textContent = '';
+  document.getElementById('ai-base-preview').style.display = 'none';
+  _aiBaseCompanies = []; _aiBaseTasks = [];
+  document.getElementById('ai-base-overlay').classList.add('open');
+}
+function closeAiBaseMgr() { document.getElementById('ai-base-overlay').classList.remove('open'); }
+async function loadAiBaseSheet() {
+  const url = document.getElementById('ai-base-sheet-url').value.trim();
+  const errEl = document.getElementById('ai-base-err');
+  errEl.style.display = 'none';
+  if (!url) { errEl.textContent = '請輸入 Google 試算表連結'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('ai-base-sheet-btn');
+  btn.disabled = true; btn.textContent = '讀取中...';
+  try {
+    const res = await API.post('/api/sheet-fetch', { url });
+    if (!res.ok) throw new Error(res.error || '讀取失敗');
+    document.getElementById('ai-base-text').value = res.text;
+    showToast('已讀取試算表內容，請按下方按鈕解析', 'success');
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = '讀取'; }
+}
+async function onAiBaseExcelFile(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  const errEl = document.getElementById('ai-base-err');
+  errEl.style.display = 'none';
+  const nameEl = document.getElementById('ai-base-file-name');
+  const btn = document.getElementById('ai-base-file-btn');
+  if (nameEl) nameEl.textContent = f.name;
+  const reader = new FileReader();
+  if (f.name.toLowerCase().endsWith('.csv')) {
+    reader.onload = () => { document.getElementById('ai-base-text').value = reader.result || ''; showToast('已讀取 CSV，請按下方按鈕解析', 'success'); };
+    reader.onerror = () => { errEl.textContent = 'CSV 讀取失敗'; errEl.style.display = 'block'; };
+    reader.readAsText(f, 'utf-8');
+    return;
+  }
+  btn.disabled = true; const old = btn.textContent; btn.textContent = '讀取中…';
+  reader.onload = async () => {
+    try {
+      const res = await API.post('/api/excel-to-text', { base64: reader.result });
+      if (!res.ok) throw new Error(res.error || '解析失敗');
+      document.getElementById('ai-base-text').value = res.text || '';
+      showToast('已讀取 Excel，請按下方按鈕解析', 'success');
+    } catch(e) { errEl.textContent = 'Excel 讀取失敗：' + e.message; errEl.style.display = 'block'; }
+    finally { btn.disabled = false; btn.textContent = old; }
+  };
+  reader.onerror = () => { btn.disabled = false; btn.textContent = old; errEl.textContent = '檔案讀取失敗'; errEl.style.display = 'block'; };
+  reader.readAsDataURL(f);
+}
+async function runAiBaseImport() {
+  const text = document.getElementById('ai-base-text').value.trim();
+  const errEl = document.getElementById('ai-base-err');
+  errEl.style.display = 'none';
+  if (!text) { errEl.textContent = '請輸入要解析的文字'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('ai-base-btn');
+  btn.disabled = true; btn.textContent = '🤖 解析中...';
+  try {
+    const res = await API.post('/api/gemini/extract-task', {
+      text,
+      tasks: _ttList.map(t => t.name),
+      companies: _coList.map(c => c.name),
+      mode: 'base-data',
+    });
+    if (!res.ok) throw new Error(res.error || 'AI 解析失敗');
+    _aiBaseCompanies = (res.companies || []).map(n => String(n).trim()).filter(Boolean)
+      .map(name => ({ name, exists: _coList.some(c => c.name === name) }));
+    _aiBaseTasks = (res.tasks || []).filter(t => t && String(t.name || '').trim())
+      .map(t => {
+        const name = String(t.name).trim();
+        const existing = _ttList.find(x => x.name === name) || null;
+        const price = parseInt(t.unit_price) || (existing && existing.default_price != null && existing.default_price !== '' ? parseInt(existing.default_price) || 0 : 0);
+        return { name, price, existing, status: 'pending', message: '' };
+      });
+    renderAiBasePreview();
+    document.getElementById('ai-base-preview').style.display = 'block';
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = '🤖 解析公司／任務／單價'; }
+}
+function renderAiBasePreview() {
+  const wrap = document.getElementById('ai-base-list');
+  document.getElementById('ai-base-preview-title').textContent = `📋 解析結果（公司 ${_aiBaseCompanies.length}・任務 ${_aiBaseTasks.length}）`;
+  const coHtml = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem">
+      <b>公司</b>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem">
+        ${_aiBaseCompanies.length ? _aiBaseCompanies.map(c =>
+          `<span style="display:inline-flex;align-items:center;gap:.3rem;border:1px solid ${c.exists ? 'var(--border)' : 'var(--green)'};background:${c.exists ? 'var(--bg)' : 'var(--green-p)'};border-radius:14px;padding:.2rem .6rem">${c.name}<span style="font-size:.68rem;font-weight:700;color:${c.exists ? 'var(--text-s)' : 'var(--green)'}">${c.exists ? '已存在' : '新增'}</span></span>`
+        ).join('') : '<span style="color:var(--text-s)">（未解析出公司）</span>'}
+      </div>
+    </div>`;
+  const stC = { pending:'', done:'<span style="font-size:.7rem;font-weight:700;color:var(--green)">✓</span>', error:'<span style="font-size:.7rem;font-weight:700;color:var(--red)">✗</span>' };
+  const ttHtml = `<div style="border:1.5px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;font-size:.82rem">
+      <b>任務＋單價</b>（單價會存為該任務的預設單價）
+      <div style="display:flex;flex-direction:column;gap:.35rem;margin-top:.35rem">
+        ${_aiBaseTasks.length ? _aiBaseTasks.map((t, i) => {
+          const oldP = t.existing && t.existing.default_price != null && t.existing.default_price !== '' ? parseInt(t.existing.default_price) : null;
+          const tag = !t.existing ? '<span style="font-size:.68rem;font-weight:700;color:var(--green)">新增</span>'
+            : (t.price && oldP !== t.price ? `<span style="font-size:.68rem;font-weight:700;color:var(--orange)">更新單價${oldP != null ? ' $'+oldP+'→' : ''}$${t.price}</span>`
+            : '<span style="font-size:.68rem;font-weight:700;color:var(--text-s)">已存在</span>');
+          return `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <span style="font-weight:700">${t.name}</span>
+            單價 $<input type="number" min="0" value="${t.price}" class="form-input" style="width:70px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem" oninput="_aiBaseTasks[${i}].price=parseInt(this.value)||0">
+            ${tag} ${stC[t.status] || ''}
+            ${t.message ? `<span style="font-size:.72rem;color:var(--red)">${t.message}</span>` : ''}
+          </div>`;
+        }).join('') : '<span style="color:var(--text-s)">（未解析出任務）</span>'}
+      </div>
+    </div>`;
+  wrap.innerHTML = coHtml + ttHtml;
+}
+async function submitAiBaseImport() {
+  const newCo = _aiBaseCompanies.filter(c => !c.exists);
+  const jobs = _aiBaseTasks.filter(t => {
+    const oldP = t.existing && t.existing.default_price != null && t.existing.default_price !== '' ? parseInt(t.existing.default_price) : null;
+    return !t.existing || (t.price && oldP !== t.price);
+  });
+  if (!newCo.length && !jobs.length) { showToast('沒有需要建立或更新的資料', 'error'); return; }
+  if (!confirm(`確定要建立／更新嗎？\n新增公司 ${newCo.length} 筆、任務建立/更新單價 ${jobs.length} 筆。`)) return;
+  const btn = document.getElementById('ai-base-confirm-btn');
+  btn.disabled = true; btn.textContent = '建立中...';
+  let ok = 0, fail = 0;
+  for (const c of newCo) {
+    try { await API.post('/api/companies', { name: c.name }); c.exists = true; ok++; }
+    catch(e) { fail++; }
+  }
+  for (const t of _aiBaseTasks) {
+    const oldP = t.existing && t.existing.default_price != null && t.existing.default_price !== '' ? parseInt(t.existing.default_price) : null;
+    try {
+      if (!t.existing) {
+        const r = await API.post('/api/task-types', { name: t.name });
+        if (t.price) await API.put(`/api/task-types/${r.id}`, { default_price: t.price });
+        t.status = 'done'; ok++;
+      } else if (t.price && oldP !== t.price) {
+        await API.put(`/api/task-types/${t.existing.id}`, { default_price: t.price });
+        t.status = 'done'; ok++;
+      }
+    } catch(e) { t.status = 'error'; t.message = e.message; fail++; }
+  }
+  try { await loadCompanies(); await loadTaskTypes(); } catch(e) {}
+  _aiBaseCompanies.forEach(c => { c.exists = _coList.some(x => x.name === c.name); });
+  _aiBaseTasks.forEach(t => { t.existing = _ttList.find(x => x.name === t.name) || t.existing; });
+  renderAiBasePreview();
+  btn.disabled = false; btn.textContent = '✅ 建立資料';
+  showToast(fail ? `完成 ${ok} 筆，失敗 ${fail} 筆` : `已建立／更新 ${ok} 筆資料`, fail ? 'warn' : 'success');
 }
 
 // 上傳 Excel／CSV → 轉成表格文字帶入文字框

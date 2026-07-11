@@ -1625,7 +1625,7 @@ async function loadGrabHistory() {
           <div>
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name} <span style="font-size:.68rem;font-weight:700;padding:.08rem .45rem;border-radius:10px;background:var(--blue-p);color:var(--blue-d)">${modeLabel}</span></div>
             ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
-            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.free_mode ? ' ・ 每人同時1個' : (t.per_person_limit === 0 ? ' ・ 每人不限數量' : (t.per_person_limit > 1 ? ` ・ 每人上限${t.per_person_limit}張` : ''))}</div>
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.free_mode ? ' ・ 每人同時1個' : ` ・ 每人上限${t.per_person_limit === 0 ? '不限' : (t.per_person_limit ?? 1) + '張'}`}${(!t.free_mode && t.status === 'open' && !expired) ? ` <button onclick="editPerLimit(${t.id},${t.per_person_limit ?? 1})" style="padding:.1rem .5rem;font-size:.72rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp);border-radius:10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 調整</button>` : ''}</div>
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
@@ -1681,6 +1681,18 @@ async function toggleGrabRec(taskId) {
       </div>
       <button onclick="toggleGrabRec(${taskId})" style="font-size:.75rem;color:var(--text-s);background:none;border:none;cursor:pointer;padding:.3rem 0;font-family:'Noto Sans TC',sans-serif">▲ 收起</button>`;
   } catch(e) { showToast('載入明細失敗', 'error'); }
+}
+
+async function editPerLimit(id, cur) {
+  const v = prompt('每人可接上限（輸入數字，0 = 不限）', cur);
+  if (v === null) return;
+  const n = parseInt(v);
+  if (isNaN(n) || n < 0) { showToast('請輸入 0（不限）或正整數', 'error'); return; }
+  try {
+    await API.put(`/api/grab-tasks/${id}/per-limit`, { per_person_limit: n });
+    showToast(n === 0 ? '已改為每人不限' : `已更新每人上限為 ${n}`, 'success');
+    loadGrabHistory();
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 async function closeGrabTask(id) {

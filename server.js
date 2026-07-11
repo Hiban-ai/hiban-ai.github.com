@@ -1748,6 +1748,21 @@ app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res)
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 調整限量任務每人上限（0=不限；發布後仍可調高/調低，立即生效）
+app.put('/api/grab-tasks/:id/per-limit', requireRole('supervisor'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const n = parseInt(req.body.per_person_limit);
+    if (!(n >= 0)) return res.status(400).json({ error: '請輸入 0（不限）或正整數' });
+    const task = await GrabTasks.byId(id);
+    if (!task) return res.status(404).json({ error: '任務不存在' });
+    await GrabTasks.update(id, { per_person_limit: n });
+    cacheDel('grab-tasks-open');
+    await logTaskAction(req, '調整每人上限', `${task.company ? task.company+'：' : ''}${task.task_name} → ${n === 0 ? '不限' : n}`, { type: 'grab_task', id });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // 夥伴搶單（Firestore Transaction 防超搶）
 app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) => {
   const taskId    = parseInt(req.params.id);

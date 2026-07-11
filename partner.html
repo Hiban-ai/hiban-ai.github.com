@@ -1397,7 +1397,7 @@ function activeCardHtml(a) {
       ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
       <div style="margin-bottom:.6rem">
         <div style="font-size:.72rem;color:var(--text-s);margin-bottom:.2rem;display:flex;justify-content:space-between;align-items:center">
-          <span>督導意見${scArr.length > 1 ? `（共 ${scArr.length} 次退回，最新在上）` : ''}</span>
+          <span>修改意見${scArr.length > 1 ? `（共 ${scArr.length} 次退回，最新在上）` : ''}</span>
         </div>
         <div style="max-height:260px;overflow-y:auto;background:var(--orange-p);border-radius:var(--rs);padding:.2rem .6rem;border:1px solid rgba(240,120,64,.25);min-height:2rem">
           ${commentsHtml}
@@ -1438,7 +1438,7 @@ function buildRejectedCards(list) {
       ? '<div style="margin-top:.35rem">' + attachmentsHtml(last.attachments) + '</div>' : '';
     var commentBlock = last
       ? '<div style="margin-top:.3rem;background:var(--orange-p);border-radius:var(--rs);padding:.35rem .6rem;border:1px solid rgba(240,120,64,.2)">'
-        + '<div style="font-size:.68rem;color:var(--text-s);margin-bottom:.1rem">督導意見 · ' + (last.date||'') + ' ' + (last.time||'') + '</div>'
+        + '<div style="font-size:.68rem;color:var(--text-s);margin-bottom:.1rem">修改意見 · ' + (last.date||'') + ' ' + (last.time||'') + '</div>'
         + '<div style="font-size:.8rem;color:var(--text-m);line-height:1.45">' + (last.text||'') + '</div>'
         + commentAtts
         + '</div>'
@@ -1533,19 +1533,21 @@ function openReport(assignmentId, taskName, assignType, hourlyWage) {
   document.getElementById('report-qty-group').style.display = (reportHourly || isStage1) ? 'none' : '';
   document.querySelector('#report-url').closest('.form-group').style.display = isStage1 ? 'none' : '';
   document.getElementById('report-upload-zone').closest('.form-group').style.display = isStage1 ? 'none' : '';
-  if (dual) {
-    banner.style.display = '';
-    if (reportStage === 1) {
-      const sc = a.supervisor_comments || [];
-      const lastC = sc.length ? sc[sc.length - 1] : null;
-      const rejNote = lastC ? `<div style="margin-top:.35rem"><b>督導退回意見：</b>${lastC.text || ''}</div>` : '';
-      const rejAtts = (lastC && lastC.attachments && lastC.attachments.length) ? `<div style="margin-top:.35rem"><b>督導附件：</b>${attachmentsHtml(lastC.attachments)}</div>` : '';
-      banner.innerHTML = `<div style="background:#EEE6FA;color:#6B3FA0;border:1.5px solid #C9B3E6;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>雙重回報・第一次</b>　請先上傳附件（如素材、草稿），督導核可後才能進行第二次（網址／圖片）。${rejNote}${rejAtts}</div>`;
+  if (dual && reportStage === 1) {
+    const sc = a.supervisor_comments || [];
+    const lastC = sc.length ? sc[sc.length - 1] : null;
+    if (lastC) {
+      const rejAtts = (lastC.attachments && lastC.attachments.length) ? `<div style="margin-top:.35rem"><b>附件：</b>${attachmentsHtml(lastC.attachments)}</div>` : '';
+      banner.style.display = '';
+      banner.innerHTML = `<div style="background:#EEE6FA;color:#6B3FA0;border:1.5px solid #C9B3E6;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>修改意見：</b>${lastC.text || ''}${rejAtts}</div>`;
     } else {
-      const note = a.stage1_reply_note ? `<div style="margin-top:.35rem"><b>督導說明：</b>${a.stage1_reply_note}</div>` : '';
-      const atts = (a.stage1_reply_attachments && a.stage1_reply_attachments.length) ? `<div style="margin-top:.35rem"><b>督導附件：</b>${attachmentsHtml(a.stage1_reply_attachments)}</div>` : '';
-      banner.innerHTML = `<div style="background:#E8F4EA;color:#2E7D56;border:1.5px solid #B5DDC0;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>雙重回報・第二次</b>　第一次已通過，請交出成果（網址／圖片）。${note}${atts}</div>`;
+      banner.style.display = 'none'; banner.innerHTML = '';
     }
+  } else if (dual && reportStage === 2) {
+    const note = a.stage1_reply_note ? `<div style="margin-top:.35rem"><b>說明：</b>${a.stage1_reply_note}</div>` : '';
+    const atts = (a.stage1_reply_attachments && a.stage1_reply_attachments.length) ? `<div style="margin-top:.35rem"><b>附件：</b>${attachmentsHtml(a.stage1_reply_attachments)}</div>` : '';
+    banner.style.display = '';
+    banner.innerHTML = `<div style="background:#E8F4EA;color:#2E7D56;border:1.5px solid #B5DDC0;border-radius:var(--rs);padding:.55rem .7rem;font-size:.8rem;line-height:1.5"><b>第二次回報</b>　請交出成果（網址／圖片）。${note}${atts}</div>`;
   } else {
     banner.style.display = 'none'; banner.innerHTML = '';
   }

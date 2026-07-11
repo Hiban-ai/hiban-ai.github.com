@@ -525,6 +525,15 @@ textarea.form-input{resize:none}
       </div>
 
       <!-- 限量任務塊 -->
+      <!-- 任務通知（系統任務公告） -->
+      <div id="overview-taskann-section" style="display:none;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem">
+          <span style="font-size:.88rem;font-weight:700;color:var(--blue-d)">🔔 任務通知</span>
+          <span id="overview-taskann-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.1rem .45rem;border-radius:10px">0</span>
+        </div>
+        <div id="overview-taskann-list"></div>
+      </div>
+
       <div id="overview-grab-block" style="display:none;margin-bottom:1.1rem;background:var(--blue-pp);border-radius:var(--r);padding:.75rem .85rem;border:2px solid var(--blue)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem">
           <div style="font-size:1rem;font-weight:800;color:var(--blue-d)">🎯 限量任務
@@ -693,6 +702,10 @@ textarea.form-input{resize:none}
     <!-- 公告 -->
     <div class="page-section" id="page-notices">
       <div class="page-title">📢 公告</div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.85rem">
+        <button id="ann-tab-general" onclick="setAnnTab('general')" style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--blue-d);background:var(--blue-d);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📢 公告<span id="ann-tab-general-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.08rem .42rem;border-radius:10px">0</span></button>
+        <button id="ann-tab-task" onclick="setAnnTab('task')" style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-m);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 任務<span id="ann-tab-task-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.08rem .42rem;border-radius:10px">0</span></button>
+      </div>
       <div id="ann-list-wrap">
         <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
@@ -1887,14 +1900,66 @@ function syncNotifyBar() {
   }
 }
 
+// 公告頁籤：general=一般公告 / task=任務通知（系統自動發布 category:'task'）
+let annTab = 'general';
+function setAnnTab(tab) {
+  annTab = tab;
+  ['general', 'task'].forEach(t => {
+    const b = document.getElementById('ann-tab-' + t);
+    if (b) {
+      const on = t === tab;
+      b.style.background = on ? 'var(--blue-d)' : '#fff';
+      b.style.color = on ? '#fff' : 'var(--text-m)';
+      b.style.borderColor = on ? 'var(--blue-d)' : 'var(--border)';
+    }
+  });
+  renderAnnList();
+}
 function renderAnnList() {
   const wrap = document.getElementById('ann-list-wrap');
   if (!wrap) return;
   const now = new Date().toISOString().slice(0,10);
   const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  if (!visible.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
   const readIds = meId ? getReadIds(meId) : [];
-  const sorted = [...visible].sort((a,b) => {
+  const groups = {
+    general: visible.filter(a => a.category !== 'task'),
+    task:    visible.filter(a => a.category === 'task'),
+  };
+  // 頁籤未讀數
+  ['general', 'task'].forEach(t => {
+    const el = document.getElementById('ann-tab-' + t + '-badge');
+    if (el) {
+      const n = groups[t].filter(a => !readIds.includes(String(a.id))).length;
+      el.textContent = n; el.style.display = n ? '' : 'none';
+    }
+  });
+  // 總覽「任務通知」區塊（最新 3 則）
+  const ovSec = document.getElementById('overview-taskann-section');
+  if (ovSec) {
+    const tAnns = [...groups.task].sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    const unreadN = tAnns.filter(a => !readIds.includes(String(a.id))).length;
+    const ovBadge = document.getElementById('overview-taskann-badge');
+    const ovList  = document.getElementById('overview-taskann-list');
+    ovSec.style.display = tAnns.length ? '' : 'none';
+    if (ovBadge) { ovBadge.textContent = unreadN; ovBadge.style.display = unreadN ? '' : 'none'; }
+    if (ovList) ovList.innerHTML = tAnns.slice(0, 3).map(a => {
+      const unread = !readIds.includes(String(a.id));
+      const annJson = JSON.stringify(a).replace(/'/g, '&#39;');
+      return `
+      <div onclick='openAnnDetail(${annJson})' style="background:#fff;border-radius:var(--rs);padding:.6rem .8rem;margin-bottom:.45rem;border-left:4px solid var(--blue);box-shadow:0 2px 8px rgba(26,138,192,.1);cursor:pointer">
+        <div style="display:flex;align-items:center;gap:.45rem">
+          ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
+          <span style="font-weight:700;font-size:.88rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.title}</span>
+          <span style="font-size:.76rem;color:var(--text-s);flex-shrink:0">${(a.created_at||'').slice(5,16)}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--text-m);margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(a.content||'').split('\n')[0]}</div>
+      </div>`;
+    }).join('') + (tAnns.length > 3 ? `<div onclick="switchPage('notices',document.querySelector('[onclick*=notices]'));setAnnTab('task')" style="font-size:.8rem;color:var(--blue-d);text-align:center;padding:.3rem;cursor:pointer;font-weight:700">查看全部 ${tAnns.length} 則 →</div>` : '');
+  }
+  // 依目前頁籤顯示清單
+  const shown = groups[annTab];
+  if (!shown.length) { wrap.innerHTML = `<div style="color:var(--text-s);font-size:.85rem;padding:1rem">${annTab === 'task' ? '目前沒有任務通知' : '目前沒有公告'}</div>`; return; }
+  const sorted = [...shown].sort((a,b) => {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
     return (b.created_at||'').localeCompare(a.created_at||'');
   });

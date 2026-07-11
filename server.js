@@ -208,6 +208,23 @@ app.get('/api/me', requireAuth, async (req, res) => {
 
 // ── 公告 API ─────────────────────────────────────────────────
 // 取得公告（依角色過濾、過期自動排除）
+// 系統自動發布「任務」類公告給工作夥伴（category:'task'，7 天後自動過期）
+async function postTaskAnnouncement(title, content) {
+  try {
+    const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    d.setDate(d.getDate() + 7);
+    const p = n => String(n).padStart(2, '0');
+    await Announcements.create({
+      title, content,
+      target: 'partner', category: 'task',
+      is_pinned: false,
+      expires_at: `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,
+      created_by: '系統（任務通知）', created_by_id: null,
+    });
+    cacheDel('announcements');
+  } catch(e) { console.error('[taskAnnouncement]', e.message); }
+}
+
 app.get('/api/announcements', requireAuth, async (req, res) => {
   try {
     const role = req.session.user.role;
@@ -1651,6 +1668,8 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
     });
     cacheDel('grab-tasks-open');
     await logTaskAction(req, isPick ? '建立限量任務(挑選)' : '建立限量任務', `${company ? company+'：' : ''}${task_name} 名額${slots}`, { type: 'grab_task', id: item.id });
+    await postTaskAnnouncement('🎯 新限量任務上架',
+      `${company ? company+'：' : ''}${task_name}｜單價 $${price}｜名額 ${qtyUnlimited ? '不限' : slots}${deadline ? `｜認領截止 ${deadline}` : ''}\n歡迎前往「限量任務」查看認領！`);
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1759,6 +1778,8 @@ app.put('/api/grab-tasks/:id/per-limit', requireRole('supervisor'), async (req, 
     await GrabTasks.update(id, { per_person_limit: n });
     cacheDel('grab-tasks-open');
     await logTaskAction(req, '調整每人上限', `${task.company ? task.company+'：' : ''}${task.task_name} → ${n === 0 ? '不限' : n}`, { type: 'grab_task', id });
+    await postTaskAnnouncement('🎯 限量任務名額調整',
+      `${task.company ? task.company+'：' : ''}${task.task_name}｜每人可接上限調整為 ${n === 0 ? '不限' : n}\n還可以再接，歡迎前往「限量任務」查看！`);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

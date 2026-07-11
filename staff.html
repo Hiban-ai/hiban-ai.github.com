@@ -1059,8 +1059,8 @@ textarea.form-input{resize:none}
 
 <!-- 任務單詳情 -->
 <div id="task-detail-overlay" onclick="if(event.target===this)closeTaskDetail()" style="display:none;position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:99998;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:#fff;border-radius:var(--r);max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.3)">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;border-bottom:1px solid var(--border)">
+  <div style="background:#fff;border-radius:var(--r);max-width:560px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:1">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📄 任務單詳情</div>
       <button onclick="closeTaskDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -1508,7 +1508,7 @@ function renderStaffAssign() {
           const statusMap = { pending: ['待回覆','var(--orange)'], accepted: ['進行中','var(--green)'], completed: ['已完成','var(--text-s)'], rejected: ['已退回','var(--red)'] };
           const [statusLabel, statusColor] = a.review_status === 'reviewing' ? ['待審核','var(--blue)'] : (statusMap[a.status] || [a.status, 'var(--text-s)']);
           return `
-          <div style="padding:.85rem 1.1rem;border-left:5px solid ${statusColor}${idx ? ';border-top:1px solid var(--border)' : ''}">
+          <div onclick="showTaskDetail(${a.id})" title="點擊查看完整歷程" style="padding:.85rem 1.1rem;border-left:5px solid ${statusColor}${idx ? ';border-top:1px solid var(--border)' : ''};cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
             ${(() => { const tb = a.assign_type==='hourly' ? ['⏱️ 指派(小時)','#E07830'] : a.assign_type==='grab' ? ['🎯 限量'+(a.item_no?' #'+a.item_no:(a.grab_no?' #'+a.grab_no:'')),'#1A8AC0'] : a.assign_type==='free' ? ['🆓 自由'+(a.item_no?' #'+a.item_no:''),'#2EAA7A'] : ['📋 指派(件)','#6B7DB0']; return `
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
               <div style="flex:1;min-width:0">
@@ -1536,7 +1536,7 @@ function renderStaffAssign() {
             ${a.status === 'completed' ? `
             <div style="margin-top:.5rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
               <span style="font-size:.78rem;color:var(--text-s)">完成日期：${(a.completed_at||'').split(' ')[0]||'—'}</span>
-              <button onclick="openChangeDate(${a.id},'${(a.task_name||'').replace(/'/g,"\\'")}','${(a.completed_at||'').split(' ')[0]}')" style="padding:.18rem .6rem;font-size:.72rem;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:var(--rs);cursor:pointer">更改日期</button>
+              <button onclick="event.stopPropagation();openChangeDate(${a.id},'${(a.task_name||'').replace(/'/g,"\\'")}','${(a.completed_at||'').split(' ')[0]}')" style="padding:.18rem .6rem;font-size:.72rem;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:var(--rs);cursor:pointer">更改日期</button>
               ${a.completed_at_changed_by ? `<span style="font-size:.7rem;color:var(--text-s)">由 ${a.completed_at_changed_by} 更改（原：${(a.completed_at_original||'').split(' ')[0]}）</span>` : ''}
             </div>` : ''}
           </div>`;
@@ -2841,6 +2841,36 @@ function findAssignment(id) {
   }
   return null;
 }
+// 附件下載連結列（雲端硬碟）
+function tdAtts(atts) {
+  if (!atts || !atts.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin:.3rem 0">${atts.map(x =>
+    `<a href="/api/task-attachment/${x.drive_id}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.25rem;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp);border-radius:12px;padding:.2rem .55rem;font-size:.72rem;font-weight:600;text-decoration:none">📎 ${x.name || '附件'}</a>`
+  ).join('')}</div>`;
+}
+// 回報圖片縮圖（點擊開新分頁）
+function tdImgs(imgs) {
+  if (!imgs || !imgs.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0">${imgs.map(im =>
+    `<a href="${im.data}" target="_blank" rel="noopener" title="${im.name || ''}"><img src="${im.data}" style="width:74px;height:74px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"></a>`
+  ).join('')}</div>`;
+}
+// 歷程里程碑（派案／接案／完成）
+function tdMilestone(icon, label, time) {
+  return `<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem .1rem"><span>${icon}</span><span style="font-size:.83rem;font-weight:700">${label}</span><span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${time || ''}</span></div>`;
+}
+// 歷程事件卡（回報／退回）
+function tdEvent(icon, label, time, statusLabel, statusColor, inner) {
+  return `<div style="border:1px solid var(--border);border-radius:8px;padding:.5rem .65rem;margin-bottom:.5rem;background:#fff">
+    <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+      <span>${icon}</span><span style="font-size:.82rem;font-weight:700">${label}</span>
+      ${statusLabel ? `<span style="font-size:.68rem;font-weight:700;padding:.1rem .45rem;border-radius:8px;background:${statusColor}22;color:${statusColor}">${statusLabel}</span>` : ''}
+      <span style="font-size:.7rem;color:var(--text-s);margin-left:auto">${time || ''}</span>
+    </div>
+    <div style="font-size:.8rem;color:var(--text-m);line-height:1.6;display:flex;flex-direction:column;gap:.15rem">${inner || '<span style="color:var(--text-s)">—</span>'}</div>
+  </div>`;
+}
+
 async function showTaskDetail(id) {
   let found = findAssignment(id);
   if (!found) {
@@ -2849,10 +2879,10 @@ async function showTaskDetail(id) {
   }
   if (!found) { showToast('找不到任務資料', 'error'); return; }
   const a = found.a;
-  const typeLabel = a.assign_type === 'hourly' ? '⏱️ 指派任務(小時)' : a.assign_type === 'grab' ? '🎯 搶單' : '📋 指派任務(件)';
+  const typeLabel = a.assign_type === 'hourly' ? '⏱️ 指派任務(小時)' : a.assign_type === 'grab' ? '🎯 限量任務' : '📋 指派任務(件)';
   const row = (l, v) => `<div style="display:flex;gap:.5rem;padding:.32rem 0;border-bottom:1px solid var(--border-l)"><span style="color:var(--text-s);width:80px;flex-shrink:0;font-size:.82rem">${l}</span><span style="flex:1;font-size:.85rem">${v}</span></div>`;
   let body = '';
-  body += row('類型', typeLabel);
+  body += row('類型', typeLabel + (a.dual_report ? ' <span style="font-size:.68rem;font-weight:700;padding:.1rem .45rem;border-radius:8px;background:#EEE6FA;color:#6B3FA0">雙重回報</span>' : ''));
   body += row('夥伴', found.partner);
   body += row('公司', a.company || '—');
   body += row('任務', a.task_name + (a.full_code ? '　' + a.full_code : (a.task_no ? ' #'+a.task_no : '')));
@@ -2872,10 +2902,44 @@ async function showTaskDetail(id) {
   }
   if (a.notes) body += row('補充說明', a.notes);
   (a.custom_fields || []).filter(f => f.value !== '').forEach(f => { body += row(f.label, f.value); });
-  body += row('接案時間', a.accepted_at || '—');
-  body += row('完成時間', a.completed_at || '—');
-  document.getElementById('task-detail-body').innerHTML = body;
+  if (a.attachments && a.attachments.length) body += `<div style="padding:.4rem 0;border-bottom:1px solid var(--border-l)"><span style="color:var(--text-s);font-size:.82rem">派案附件</span>${tdAtts(a.attachments)}</div>`;
+
+  // 完整歷程：合併里程碑、回報、退回意見，依時間排序
+  document.getElementById('task-detail-body').innerHTML = body + '<div style="color:var(--text-s);font-size:.82rem;margin-top:.8rem">載入歷程中…</div>';
   document.getElementById('task-detail-overlay').style.display = 'flex';
+  let reports = [];
+  try { reports = await API.get('/api/reports/' + id); } catch(e) {}
+  const stLabel = r => r.dual_report ? (r.stage === 1 ? '第一階段回報（附件）' : '第二階段回報') : '回報';
+  const rStatus = { pending: ['審核中','var(--blue)'], approved: ['已核可','var(--green)'], rejected: ['已退回','var(--red)'] };
+  const evs = [];
+  if (a.created_at)  evs.push({ t: a.created_at,  h: tdMilestone('📮', '派案', a.created_at) });
+  if (a.accepted_at) evs.push({ t: a.accepted_at, h: tdMilestone('🤝', '接案', a.accepted_at) });
+  reports.forEach(r => {
+    const [sl, sc] = rStatus[r.status] || [r.status || '—', 'var(--text-s)'];
+    let inner = '';
+    if (r.url) inner += `<div><span style="color:var(--text-s)">網址：</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>`;
+    if (r.notes) inner += `<div><span style="color:var(--text-s)">說明：</span>${r.notes}</div>`;
+    if (r.assign_type !== 'hourly' && r.completed_qty) inner += `<div><span style="color:var(--text-s)">完成數量：</span>${r.completed_qty} 件</div>`;
+    if (r.stage_attachments && r.stage_attachments.length) inner += tdAtts(r.stage_attachments);
+    if (r.images && r.images.length) inner += tdImgs(r.images);
+    // 第一階段核可回覆（附在已核可的第一階段回報下）
+    if (r.dual_report && r.stage === 1 && r.status === 'approved' && (a.stage1_reply_note || (a.stage1_reply_attachments && a.stage1_reply_attachments.length))) {
+      inner += `<div style="margin-top:.35rem;background:var(--green-p);border:1px solid #B5DDC0;border-radius:6px;padding:.35rem .5rem">
+        <div style="font-size:.72rem;color:#2E7D56;font-weight:700">第一階段核可回覆</div>
+        ${a.stage1_reply_note ? `<div style="font-size:.8rem;color:#2E7D56;white-space:pre-wrap">${a.stage1_reply_note}</div>` : ''}
+        ${tdAtts(a.stage1_reply_attachments)}</div>`;
+    }
+    evs.push({ t: r.created_at, h: tdEvent('📝', stLabel(r), r.created_at, sl, sc, inner) });
+  });
+  (a.supervisor_comments || []).forEach(c => {
+    const t = (c.date || '') + ' ' + (c.time || '');
+    evs.push({ t, h: tdEvent('↩️', '退回意見', t, '退回', 'var(--red)', `<div style="white-space:pre-wrap">${c.text || ''}</div>${tdAtts(c.attachments)}`) });
+  });
+  if (a.completed_at) evs.push({ t: a.completed_at, h: tdMilestone('✅', '完成', a.completed_at) });
+  evs.sort((x, y) => (x.t || '').localeCompare(y.t || ''));
+  const timeline = `<div style="margin-top:.9rem;font-weight:700;font-size:.85rem;color:var(--text-m);border-top:1px solid var(--border);padding-top:.7rem;margin-bottom:.5rem">🕒 完整歷程</div>`
+    + (evs.length ? evs.map(e => e.h).join('') : '<div style="color:var(--text-s);font-size:.82rem">尚無歷程</div>');
+  document.getElementById('task-detail-body').innerHTML = body + timeline;
 }
 function closeTaskDetail() {
   document.getElementById('task-detail-overlay').style.display = 'none';

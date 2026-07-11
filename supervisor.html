@@ -3137,6 +3137,15 @@ function showAiImportGrabAutoPreview(rows) {
     });
   });
   _aiAutoGroups = [...map.values()];
+  // 單價遞補：AI 解析 → 任務單價設定(default_price) → 表單目前單價
+  const formPrice = parseInt(document.getElementById('assign-price').value) || 0;
+  _aiAutoGroups.forEach(g => {
+    if (!g.unit_price) {
+      const tt = _ttList.find(x => x.name === g.task_name);
+      g.unit_price = (tt && tt.default_price != null && tt.default_price !== '') ? parseInt(tt.default_price) || 0 : 0;
+    }
+    if (!g.unit_price) g.unit_price = formPrice;
+  });
   _aiAutoMode = 'qty'; _aiAutoDlDays = 7; _aiAutoDlPerm = false;
   const title = document.getElementById('ai-import-preview-title');
   const allBtn = document.getElementById('ai-import-confirm-all-btn');
@@ -3178,7 +3187,7 @@ function renderAiAutoList() {
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.2rem 0">
         <b>每人可接數量</b>：<input type="number" min="1" value="${g.perLimit}" ${g.perUnlim?'disabled style="opacity:.5;':'style="'}width:56px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem" class="form-input" oninput="_aiAutoGroups[${i}].perLimit=parseInt(this.value)||1">
         <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer"><input type="checkbox" ${g.perUnlim?'checked':''} onchange="_aiAutoGroups[${i}].perUnlim=this.checked;renderAiAutoList()"> 不限</label>
-        <span style="color:var(--text-m)">｜名額總數 <b>${g.slots.length}</b>　單價 <b>$${g.unit_price}</b></span>
+        <span style="color:var(--text-m)">｜名額總數 <b>${g.slots.length}</b>　單價 $<input type="number" min="0" value="${g.unit_price}" class="form-input" style="width:70px;flex:none;display:inline-block;padding:.2rem .4rem;font-size:.82rem" oninput="_aiAutoGroups[${i}].unit_price=parseInt(this.value)||0"></span>
       </div>
       ${g.notes ? `<div style="color:var(--text-s);font-size:.78rem">備註：${g.notes}</div>` : ''}
       <div style="font-size:.74rem;color:var(--text-s);margin-top:.2rem">任務資訊：</div>

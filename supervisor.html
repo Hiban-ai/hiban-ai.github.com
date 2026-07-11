@@ -732,7 +732,7 @@ textarea.form-input{resize:none}
 </div>
 
 <div class="pw-overlay" id="ai-import-overlay">
-  <div class="pw-box" style="width:480px;max-height:88vh;overflow-y:auto">
+  <div class="pw-box" style="width:min(880px,96vw);max-height:92vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🤖 AI 匯入派案資料</div>
       <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
@@ -757,7 +757,7 @@ textarea.form-input{resize:none}
         <div style="font-size:.85rem;font-weight:700" id="ai-import-preview-title">📋 AI 解析結果預覽</div>
         <button onclick="aiImportConfirmAll()" id="ai-import-confirm-all-btn" style="padding:.35rem .8rem;background:linear-gradient(135deg,#1A8AC0,#22b86b);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer">🚀 全部一鍵派案</button>
       </div>
-      <div id="ai-import-list" style="display:flex;flex-direction:column;gap:.6rem;max-height:320px;overflow-y:auto"></div>
+      <div id="ai-import-list" style="display:flex;flex-direction:column;gap:.6rem;max-height:52vh;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -1349,12 +1349,14 @@ function grabMode() { const r = document.querySelector('input[name="grab-mode"]:
 function onGrabModeChange() {
   const m = grabMode(); // 'qty' | 'pick'
   const desc = m === 'pick'
-    ? '挑選模式：夥伴從卡片牆自行挑選指定卡片（每張一個編號），名額總數＝卡片張數，不可不限。'
+    ? '挑選模式：夥伴從卡片牆自行挑選指定卡片（每張一個編號），名額總數＝卡片張數，不可不限。每人上限＝每人最多可挑幾張卡片，可設不限。'
     : '數量模式：每次只能接一個（完成後才能再接）；每人上限＝每人最多可接幾次，可設不限。名額總數可設不限。';
   const d = document.getElementById('grab-mode-desc'); if (d) d.textContent = desc;
-  // 每人上限（含不限）：只有數量模式用
+  // 每人上限（含不限）：數量／挑選皆可設定（挑選＝每人最多挑幾張）
   const perRow = document.getElementById('row-grab-per-limit');
-  if (perRow) perRow.style.display = (m === 'qty') ? 'flex' : 'none';
+  if (perRow) perRow.style.display = 'flex';
+  const perInput = document.getElementById('grab-per-limit');
+  if (perInput) perInput.placeholder = (m === 'pick') ? '每人最多挑幾張' : '每人最多接幾次';
   // 名額「不限」：挑選模式不可不限（需固定卡片數）
   const unlimWrap = document.getElementById('grab-slots-unlimited-wrap');
   const unlimChk = document.getElementById('grab-slots-unlimited');
@@ -2884,11 +2886,13 @@ function aiGrabMode() { const r = document.querySelector('input[name="ai-grab-mo
 function aiGrabModeChange() {
   const m = aiGrabMode(); // 'qty' | 'pick'
   const desc = m === 'pick'
-    ? '挑選：每列一張可挑卡片（各自編號／欄位）。'
+    ? '挑選：每列一張可挑卡片（各自編號／欄位）。每人上限＝每人最多可挑幾張卡片（可不限）。'
     : '數量：每次只能接一個、完成後可再接；每人上限＝每人最多接幾次（可不限），名額可不限。';
   const d = document.getElementById('ai-grab-mode-desc'); if (d) d.textContent = desc;
-  // 挑選模式：隱藏每人上限與名額不限（卡片數固定）
-  const perRow = document.getElementById('ai-grab-per-row'); if (perRow) perRow.style.display = (m === 'pick') ? 'none' : '';
+  // 每人上限：數量／挑選皆可設定
+  const perRow = document.getElementById('ai-grab-per-row'); if (perRow) perRow.style.display = '';
+  const perInput = document.getElementById('ai-grab-per-limit');
+  if (perInput) perInput.placeholder = (m === 'pick') ? '每人最多挑幾張' : '每人最多接幾次';
   const unlimWrap = document.getElementById('ai-grab-unlim-wrap');
   const unlimChk = document.getElementById('ai-grab-slots-unlimited');
   if (m === 'pick' && unlimChk && unlimChk.checked) unlimChk.checked = false;

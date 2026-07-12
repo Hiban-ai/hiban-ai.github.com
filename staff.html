@@ -518,6 +518,10 @@ textarea.form-input{resize:none}
         <button onclick="markAllAnnsRead()" style="margin-left:auto;padding:.42rem 1rem;background:#fff;color:var(--green);border:1.5px solid var(--green);border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✓ 全部已讀</button>
         <button onclick="openAnnForm()" style="margin-left:.5rem;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增公告</button>
       </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.85rem">
+        <button id="ann-tab-general" onclick="setAnnTab('general')" style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--blue-d);background:var(--blue-d);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📢 公告<span id="ann-tab-general-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.08rem .42rem;border-radius:10px">0</span></button>
+        <button id="ann-tab-task" onclick="setAnnTab('task')" style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-m);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 任務<span id="ann-tab-task-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.08rem .42rem;border-radius:10px">0</span></button>
+      </div>
       <div id="ann-list-wrap">
         <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
@@ -3084,13 +3088,39 @@ function markAllAnnsRead() {
   showToast('公告已全部標為已讀', 'success');
 }
 
-// ── 公告欄列表 ─────────────────────────────
+// ── 公告欄列表（頁籤：general=一般公告 / task=系統任務通知）─────
+let annTab = 'general';
+function setAnnTab(tab) {
+  annTab = tab;
+  ['general', 'task'].forEach(t => {
+    const b = document.getElementById('ann-tab-' + t);
+    if (b) {
+      const on = t === tab;
+      b.style.background = on ? 'var(--blue-d)' : '#fff';
+      b.style.color = on ? '#fff' : 'var(--text-m)';
+      b.style.borderColor = on ? 'var(--blue-d)' : 'var(--border)';
+    }
+  });
+  renderAnnList();
+}
 function renderAnnList() {
   const wrap = document.getElementById('ann-list-wrap');
-  if (!annList.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">目前沒有公告</div>'; return; }
   const now = new Date().toISOString().slice(0,10);
   const readIds = me ? getReadIds(me.id) : [];
-  const sorted = [...annList].sort((a,b) => {
+  const groups = {
+    general: annList.filter(a => a.category !== 'task'),
+    task:    annList.filter(a => a.category === 'task'),
+  };
+  ['general', 'task'].forEach(t => {
+    const el = document.getElementById('ann-tab-' + t + '-badge');
+    if (el) {
+      const n = groups[t].filter(a => !readIds.includes(String(a.id)) && !(a.expires_at && a.expires_at < now)).length;
+      el.textContent = n; el.style.display = n ? '' : 'none';
+    }
+  });
+  const shown = groups[annTab];
+  if (!shown.length) { wrap.innerHTML = `<div style="color:var(--text-s);font-size:.85rem;padding:1rem">${annTab === 'task' ? '目前沒有任務通知' : '目前沒有公告'}</div>`; return; }
+  const sorted = [...shown].sort((a,b) => {
     if (a.is_pinned !== b.is_pinned) return (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0);
     return (b.created_at||'').localeCompare(a.created_at||'');
   });

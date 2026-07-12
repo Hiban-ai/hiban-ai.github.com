@@ -727,6 +727,7 @@ textarea.form-input{resize:none}
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" type="email" id="prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="example@mail.com"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
         </div>
         <div id="prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
@@ -1781,6 +1782,7 @@ function fillProfile(p) {
   document.getElementById('prof-id-number').value    = p.id_number    || '';
   document.getElementById('prof-birthday').value     = p.birthday     || '';
   document.getElementById('prof-phone').value        = p.phone        || '';
+  document.getElementById('prof-email').value        = p.email        || '';
   document.getElementById('prof-address').value      = p.address      || '';
   document.getElementById('prof-bank-code').value    = p.bank_code    || '';
   document.getElementById('prof-bank-name').value    = p.bank_name    || '';
@@ -1797,13 +1799,13 @@ function setFieldEditable(ids, editable) {
 }
 
 function toggleProfEdit() {
-  setFieldEditable(['prof-phone','prof-address'], true);
+  setFieldEditable(['prof-phone','prof-email','prof-address'], true);
   document.getElementById('prof-edit-btn').style.display = 'none';
   document.getElementById('prof-save-row').style.display = 'flex';
 }
 function cancelProfEdit() {
   fillProfile(profData);
-  setFieldEditable(['prof-phone','prof-address'], false);
+  setFieldEditable(['prof-phone','prof-email','prof-address'], false);
   document.getElementById('prof-edit-btn').style.display = '';
   document.getElementById('prof-save-row').style.display = 'none';
 }
@@ -1811,9 +1813,11 @@ async function saveProfile() {
   try {
     await API.put('/api/profile', {
       phone:   document.getElementById('prof-phone').value,
+      email:   document.getElementById('prof-email').value.trim(),
       address: document.getElementById('prof-address').value,
     });
     profData.phone   = document.getElementById('prof-phone').value;
+    profData.email   = document.getElementById('prof-email').value.trim();
     profData.address = document.getElementById('prof-address').value;
     cancelProfEdit();
     showToast('個人資料已儲存', 'success');

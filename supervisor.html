@@ -730,6 +730,7 @@ textarea.form-input{resize:none}
     <div style="display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin-bottom:.7rem;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.55rem .85rem">
       <b style="font-size:.88rem">匯入類型</b>
       <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.88rem"><input type="radio" name="ai-import-mode" value="normal"> 📋 指派任務(件)</label>
+      <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.88rem"><input type="radio" name="ai-import-mode" value="hourly"> ⏱️ 指派任務(小時)</label>
       <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.88rem"><input type="radio" name="ai-import-mode" value="grab"> 🎯 限量任務</label>
       <span style="font-size:.76rem;color:var(--text-s)">已依外層帶入，可在此更改（以此處為準）</span>
     </div>
@@ -2844,7 +2845,7 @@ function openAiImportMgr() {
   document.getElementById('ai-import-confirm-all-btn').onclick = aiImportConfirmAll;
   document.getElementById('ai-import-confirm-all-btn').textContent = '🚀 全部一鍵派案';
   // 匯入類型：依外層目前模式帶入（雙重機制；最終以視窗內選擇為準）
-  const preMode = assignMode === 'grab' ? 'grab' : 'normal';
+  const preMode = ['grab', 'hourly'].includes(assignMode) ? assignMode : 'normal';
   const modeRadio = document.querySelector(`input[name="ai-import-mode"][value="${preMode}"]`);
   if (modeRadio) modeRadio.checked = true;
   document.getElementById('ai-import-overlay').classList.add('open');
@@ -2906,7 +2907,9 @@ async function aiImportConfirm(i, skipConfirm) {
   const item = _aiImportItems[i];
   if (!skipConfirm) {
     const d = item.data;
-    if (!confirm(`確認派案資訊：\n模式：📋 指派任務(件)\n任務：${d.task_name || '—'}\n公司：${d.company || '—'}\n對象：${d.target_name || '—'}\n數量：${d.qty || '—'}　單價：$${d.price || '—'}\n完成期限：${d.deadline_days ? d.deadline_days + ' 天' : '—'}\n\n確定要派出此任務嗎？`)) return;
+    const isHr = assignMode === 'hourly';
+    const priceLine = isHr ? `時薪：$${d.price || '—'}` : `數量：${d.qty || '—'}　單價：$${d.price || '—'}`;
+    if (!confirm(`確認派案資訊：\n模式：${isHr ? '⏱️ 指派任務(小時)' : '📋 指派任務(件)'}\n任務：${d.task_name || '—'}\n公司：${d.company || '—'}\n對象：${d.target_name || '—'}\n${priceLine}\n完成期限：${d.deadline_days ? d.deadline_days + ' 天' : '—'}\n\n確定要派出此任務嗎？`)) return;
   }
   try {
     await applyAiImportData(item.data, _aiImportPartners);
@@ -2930,7 +2933,7 @@ async function aiImportConfirm(i, skipConfirm) {
 async function aiImportConfirmAll() {
   const pending = _aiImportItems.filter(x => x.status !== 'done').length;
   if (!pending) { showToast('沒有可派案的項目', 'error'); return; }
-  if (!confirm(`確認派案資訊：\n模式：📋 指派任務(件)\n筆數：${pending} 筆\n\n確定要一鍵派出嗎？送出後會立即建立，無法整批復原，請先確認上方預覽內容無誤。`)) return;
+  if (!confirm(`確認派案資訊：\n模式：${assignMode === 'hourly' ? '⏱️ 指派任務(小時)' : '📋 指派任務(件)'}\n筆數：${pending} 筆\n\n確定要一鍵派出嗎？送出後會立即建立，無法整批復原，請先確認上方預覽內容無誤。`)) return;
   const btn = document.getElementById('ai-import-confirm-all-btn');
   btn.disabled = true;
   btn.textContent = '派案中...';
@@ -3555,8 +3558,8 @@ async function runAiImport() {
   btn.textContent = '🤖 解析中...';
   try {
     // 匯入類型以視窗內選擇為準；若與外層不同，先同步外層表單（指派流程送出走外層表單）
-    const importMode = document.querySelector('input[name="ai-import-mode"]:checked')?.value || (assignMode === 'grab' ? 'grab' : 'normal');
-    if ((importMode === 'grab') !== (assignMode === 'grab')) setAssignMode(importMode === 'grab' ? 'grab' : 'normal');
+    const importMode = document.querySelector('input[name="ai-import-mode"]:checked')?.value || (['grab','hourly'].includes(assignMode) ? assignMode : 'normal');
+    if (importMode !== assignMode) setAssignMode(importMode);
     const allPartners = await API.get('/api/users-list?role=partner&scope=all');
     const partners = (allPartners || []).map(p => ({ id: String(p.id), name: p.real_name }));
     const cfMode = cfCurrentMode();

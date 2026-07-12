@@ -1754,15 +1754,24 @@ app.get('/api/grab-tasks/:id/records', requireRole('supervisor','staff'), async 
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 派案人員關閉搶單
+// 派案人員關閉搶單（需附原因；記錄關閉人並自動發任務公告）
 app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res) => {
   try {
+    const reason = ((req.body && req.body.reason) || '').trim();
+    if (!reason) return res.status(400).json({ error: '請選擇或填寫關閉原因' });
     const task = await GrabTasks.byId(parseInt(req.params.id));
     if (!task) return res.status(404).json({ error: '任務不存在' });
     // 搶單為共用任務池，任一派案人員皆可關閉
-    await GrabTasks.update(parseInt(req.params.id), { status: 'closed' });
+    await GrabTasks.update(parseInt(req.params.id), {
+      status: 'closed',
+      closed_by: req.session.user.real_name,
+      closed_reason: reason,
+      closed_at: nowTW(),
+    });
     cacheDel('grab-tasks-open');
-    await logTaskAction(req, '關閉搶單', `${task.company ? task.company+'：' : ''}${task.task_name}`, { type: 'grab_task', id: task.id });
+    await logTaskAction(req, '關閉搶單', `${task.company ? task.company+'：' : ''}${task.task_name}：${reason.slice(0,30)}`, { type: 'grab_task', id: task.id });
+    await postTaskAnnouncement('🎯 限量任務已關閉',
+      `${task.company ? task.company+'：' : ''}${task.task_name}｜由 ${req.session.user.real_name} 關閉\n原因：${reason}`);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

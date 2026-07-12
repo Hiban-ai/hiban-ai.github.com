@@ -3906,7 +3906,10 @@ function taskRecordCardHtml(r) {
           ${(r.full_code || r.task_no) ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
           <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📤 派案 ${fmtDate(r.assigned_at)}</div>
         </div>
-        <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>
+        <div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0">
+          ${r.dual_report && r.stage ? `<span style="background:#EEE6FA;color:#6B3FA0;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:10px;white-space:nowrap">雙重・第${r.stage === 1 ? '一階段（附件）' : '二階段（成果）'}</span>` : ''}
+          <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>
+        </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;color:var(--text-m);margin-bottom:.75rem">
         ${r.assign_type === 'hourly' ? `
@@ -3917,8 +3920,8 @@ function taskRecordCardHtml(r) {
           <div><span style="color:var(--text-s);width:80px;display:inline-block">總時數</span>${Math.floor((r.work_minutes||0)/60)} 小時 ${(r.work_minutes||0)%60} 分</div>
           <div><span style="color:var(--text-s);width:80px;display:inline-block">總金額</span><strong style="color:var(--green)">$${(r.total_price||0).toLocaleString()}</strong></div>
         ` : `
-          ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
-          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          ${(r.dual_report && r.stage === 1) ? '' : `${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
+          <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>`}
         `}
         ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">回報網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
         ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
@@ -3928,6 +3931,7 @@ function taskRecordCardHtml(r) {
         ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成日期</span>${fmtDate(r.completed_at)}</div>`  : ''}
         ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${linkify(f.value)}</div>`).join('')}
       </div>
+      ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一階段附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
       ${r.images && r.images.length ? `
       <div style="display:flex;flex-wrap:wrap;gap:.5rem">
         ${r.images.map(img => `

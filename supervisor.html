@@ -1648,8 +1648,9 @@ async function loadGrabHistory() {
       const remaining = t.qty_unlimited ? null : (t.total_slots - t.grabbed_count);
       const modeLabel = t.pick_mode ? '挑選' : t.free_mode ? '自由' : '數量';
       const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
-      const statusColor = t.status === 'open' && !expired ? 'var(--green)' : 'var(--text-s)';
-      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : (t.qty_unlimited ? '開放中' : `開放中 (剩 ${remaining})`);
+      const isFull    = !t.qty_unlimited && remaining <= 0;
+      const statusColor = t.status !== 'open' || expired ? 'var(--text-s)' : isFull ? 'var(--orange)' : 'var(--green)';
+      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : isFull ? '已額滿' : (t.qty_unlimited ? '開放中' : `開放中 (剩 ${remaining})`);
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
@@ -1681,13 +1682,15 @@ async function loadGrabHistory() {
         </div>
       </div>`;
     };
-    // 依狀態分區：開放中（預設展開）／已截止／已關閉（預設收合）
+    // 依狀態分區：開放中（預設展開）／已額滿／已截止／已關閉（預設收合）
     const nowStr = new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
     const isExpired = t => t.deadline && t.deadline <= nowStr;
+    const isFullT   = t => !t.qty_unlimited && ((t.total_slots || 0) - (t.grabbed_count || 0)) <= 0;
     const sections = [
-      { key: 'open',    label: '🟢 開放中', color: 'var(--green)',  items: list.filter(t => t.status !== 'closed' && !isExpired(t)), defOpen: true },
-      { key: 'expired', label: '⏰ 已截止', color: 'var(--orange)', items: list.filter(t => t.status !== 'closed' && isExpired(t)),  defOpen: false },
-      { key: 'closed',  label: '✖ 已關閉', color: 'var(--red)',    items: list.filter(t => t.status === 'closed'),                  defOpen: false },
+      { key: 'open',    label: '🟢 開放中', color: 'var(--green)',  items: list.filter(t => t.status !== 'closed' && !isExpired(t) && !isFullT(t)), defOpen: true },
+      { key: 'full',    label: '🈵 已額滿', color: 'var(--orange)', items: list.filter(t => t.status !== 'closed' && !isExpired(t) && isFullT(t)),  defOpen: false },
+      { key: 'expired', label: '⏰ 已截止', color: 'var(--orange)', items: list.filter(t => t.status !== 'closed' && isExpired(t)),                 defOpen: false },
+      { key: 'closed',  label: '✖ 已關閉', color: 'var(--red)',    items: list.filter(t => t.status === 'closed'),                                 defOpen: false },
     ];
     el.innerHTML = sections.filter(s => s.items.length).map(s => {
       const gid = 'grab-sec-' + s.key;

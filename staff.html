@@ -1537,7 +1537,7 @@ function renderStaffAssign() {
             </div>
             ${a.work_content ? `<div style="margin-top:.3rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">工作內容：</span>${a.work_content}</div>` : ''}
             ${a.notes ? `<div style="margin-top:.2rem;font-size:.78rem;color:var(--text-m)"><span style="color:var(--text-s)">補充說明：</span>${a.notes}</div>` : ''}
-            ${a.custom_fields && a.custom_fields.length ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.78rem;color:var(--text-m)">${a.custom_fields.filter(f=>f.value!=='').map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}</div>` : ''}
+            ${a.custom_fields && a.custom_fields.length ? `<div style="margin-top:.3rem;display:flex;flex-direction:column;gap:.1rem;font-size:.78rem;color:var(--text-m)">${a.custom_fields.filter(f=>f.value!=='').map(f=>`<div><span style="color:var(--text-s)">${f.label}：</span>${linkify(f.value)}</div>`).join('')}</div>` : ''}
             ${a.status === 'completed' ? `
             <div style="margin-top:.5rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
               <span style="font-size:.78rem;color:var(--text-s)">完成日期：${(a.completed_at||'').split(' ')[0]||'—'}</span>
@@ -2846,6 +2846,11 @@ function findAssignment(id) {
   }
   return null;
 }
+// 文字中的網址轉成可點超連結（新分頁開啟）
+function linkify(v) {
+  return String(v).replace(/(https?:\/\/[^\s<>"']+)/g,
+    '<a href="$1" target="_blank" rel="noopener" style="color:var(--blue-d);word-break:break-all;text-decoration:underline">$1</a>');
+}
 // 附件下載連結列（雲端硬碟）
 function tdAtts(atts) {
   if (!atts || !atts.length) return '';
@@ -2906,7 +2911,7 @@ async function showTaskDetail(id) {
     if (a.work_date) body += row('執行日期', a.work_date);
   }
   if (a.notes) body += row('補充說明', a.notes);
-  (a.custom_fields || []).filter(f => f.value !== '').forEach(f => { body += row(f.label, f.value); });
+  (a.custom_fields || []).filter(f => f.value !== '').forEach(f => { body += row(f.label, linkify(f.value)); });
   if (a.attachments && a.attachments.length) body += `<div style="padding:.4rem 0;border-bottom:1px solid var(--border-l)"><span style="color:var(--text-s);font-size:.82rem">派案附件</span>${tdAtts(a.attachments)}</div>`;
 
   // 完整歷程：合併里程碑、回報、退回意見，依時間排序

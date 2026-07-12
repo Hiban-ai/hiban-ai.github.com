@@ -1200,7 +1200,7 @@ async function loadTaskReviews() {
           ${r.assign_type === 'hourly' ? '' : `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date) || '—'}</div>`}
           ${r.work_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">執行日期</span>${fmtDay(r.work_date)}</div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">回報日期</span>${fmtDate(r.created_at)}</div>
-          ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${f.value}</div>`).join('')}
+          ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${linkify(f.value)}</div>`).join('')}
         </div>
         ${r.images && r.images.length ? `
         <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
@@ -2083,9 +2083,14 @@ function arToggleGroup(gid) {
 }
 
 // 動態自訂欄位顯示
+// 文字中的網址轉成可點超連結（新分頁開啟）
+function linkify(v) {
+  return String(v).replace(/(https?:\/\/[^\s<>"']+)/g,
+    '<a href="$1" target="_blank" rel="noopener" style="color:var(--blue-d);word-break:break-all;text-decoration:underline">$1</a>');
+}
 function customFieldsHtml(fields) {
   if (!fields || !fields.length) return '';
-  return fields.map(f => `<div><span style="color:var(--text-s);width:72px;display:inline-block">${f.label}</span>${f.value}</div>`).join('');
+  return fields.map(f => `<div><span style="color:var(--text-s);width:72px;display:inline-block">${f.label}</span>${linkify(f.value)}</div>`).join('');
 }
 function attachmentsHtml(atts) {
   if (!atts || !atts.length) return '';
@@ -3082,7 +3087,7 @@ async function aiImportConfirmAll() {
 
 function aiImportGrabSlotSummary(slot) {
   const parts = (slot.custom_fields || []).filter(f => f.value !== undefined && f.value !== '')
-    .map(f => `<b>${f.label}</b>：${f.value}`);
+    .map(f => `<b>${f.label}</b>：${linkify(f.value)}`);
   if (slot.work_date) parts.unshift(`<b>執行日期</b>：${slot.work_date}`);
   if (slot.deadline_days) parts.unshift(`<b>完成期限</b>：${slot.deadline_days} 天`);
   return parts.join('　') || '（無資料）';
@@ -3921,7 +3926,7 @@ function taskRecordCardHtml(r) {
         ${r.assign_type !== 'hourly' && r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
         ${r.work_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">執行日期</span>${fmtDay(r.work_date)}</div>` : ''}
         ${r.completed_at  ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成日期</span>${fmtDate(r.completed_at)}</div>`  : ''}
-        ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${f.value}</div>`).join('')}
+        ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${linkify(f.value)}</div>`).join('')}
       </div>
       ${r.images && r.images.length ? `
       <div style="display:flex;flex-wrap:wrap;gap:.5rem">

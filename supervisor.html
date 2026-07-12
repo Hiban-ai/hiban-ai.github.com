@@ -727,6 +727,12 @@ textarea.form-input{resize:none}
       <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.6rem">貼上客戶訊息、Email、LINE 對話等文字，AI 會自動辨識公司、任務、數量、單價、期限、夥伴與自訂欄位，並填入下方派案表單供你確認。</div>
+    <div style="display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin-bottom:.7rem;background:var(--blue-p);border:1.5px solid var(--blue-pp);border-radius:var(--rs);padding:.55rem .85rem">
+      <b style="font-size:.88rem">匯入類型</b>
+      <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.88rem"><input type="radio" name="ai-import-mode" value="normal"> 📋 指派任務(件)</label>
+      <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.88rem"><input type="radio" name="ai-import-mode" value="grab"> 🎯 限量任務</label>
+      <span style="font-size:.76rem;color:var(--text-s)">已依外層帶入，可在此更改（以此處為準）</span>
+    </div>
     <div id="ai-import-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.3rem">或貼上 Google 試算表連結（需設為「知道連結的人皆可查看」，將讀取第一個工作表）</div>
     <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
@@ -2837,6 +2843,10 @@ function openAiImportMgr() {
   _aiGrabSlotData = null;
   document.getElementById('ai-import-confirm-all-btn').onclick = aiImportConfirmAll;
   document.getElementById('ai-import-confirm-all-btn').textContent = '🚀 全部一鍵派案';
+  // 匯入類型：依外層目前模式帶入（雙重機制；最終以視窗內選擇為準）
+  const preMode = assignMode === 'grab' ? 'grab' : 'normal';
+  const modeRadio = document.querySelector(`input[name="ai-import-mode"][value="${preMode}"]`);
+  if (modeRadio) modeRadio.checked = true;
   document.getElementById('ai-import-overlay').classList.add('open');
 }
 function closeAiImportMgr() {
@@ -2892,8 +2902,12 @@ async function aiImportEdit(i) {
   showToast('已帶入 AI 解析結果，請確認後送出', 'success');
 }
 
-async function aiImportConfirm(i) {
+async function aiImportConfirm(i, skipConfirm) {
   const item = _aiImportItems[i];
+  if (!skipConfirm) {
+    const d = item.data;
+    if (!confirm(`確認派案資訊：\n模式：📋 指派任務(件)\n任務：${d.task_name || '—'}\n公司：${d.company || '—'}\n對象：${d.target_name || '—'}\n數量：${d.qty || '—'}　單價：$${d.price || '—'}\n完成期限：${d.deadline_days ? d.deadline_days + ' 天' : '—'}\n\n確定要派出此任務嗎？`)) return;
+  }
   try {
     await applyAiImportData(item.data, _aiImportPartners);
     await submitAssign();
@@ -2916,13 +2930,13 @@ async function aiImportConfirm(i) {
 async function aiImportConfirmAll() {
   const pending = _aiImportItems.filter(x => x.status !== 'done').length;
   if (!pending) { showToast('沒有可派案的項目', 'error'); return; }
-  if (!confirm(`確定要一鍵派出這 ${pending} 筆任務嗎？\n送出後會立即建立，無法整批復原，請先確認上方預覽內容無誤。`)) return;
+  if (!confirm(`確認派案資訊：\n模式：📋 指派任務(件)\n筆數：${pending} 筆\n\n確定要一鍵派出嗎？送出後會立即建立，無法整批復原，請先確認上方預覽內容無誤。`)) return;
   const btn = document.getElementById('ai-import-confirm-all-btn');
   btn.disabled = true;
   btn.textContent = '派案中...';
   for (let i = 0; i < _aiImportItems.length; i++) {
     if (_aiImportItems[i].status === 'done') continue;
-    await aiImportConfirm(i);
+    await aiImportConfirm(i, true);
   }
   btn.disabled = false;
   btn.textContent = '🚀 全部一鍵派案';
@@ -3260,7 +3274,7 @@ async function aiAutoConfirmAll() {
   if (!_aiAutoDlPerm && (!_aiAutoDlDays || _aiAutoDlDays < 1)) { showToast('請輸入認領截止天數或勾選永久', 'error'); return; }
   const pending = _aiAutoGroups.filter(g => g.status !== 'done');
   if (!pending.length) { showToast('沒有可建立的任務', 'error'); return; }
-  if (!confirm(`確定要建立這 ${pending.length} 個限量任務（${_aiAutoMode === 'pick' ? '挑選' : '數量'}模式）嗎？\n送出後會立即發布，請先確認上方預覽無誤。`)) return;
+  if (!confirm(`確認建立資訊：\n模式：🎯 限量任務（${_aiAutoMode === 'pick' ? '挑選' : '數量'}）\n認領截止：${_aiAutoDlPerm ? '永久開放' : _aiAutoDlDays + ' 天後 23:59'}\n雙重回報：${_aiAutoDual ? '是' : '否'}\n任務數：${pending.length} 個\n\n確定要建立並發布嗎？送出後立即生效並公告通知夥伴，請先確認上方預覽無誤。`)) return;
   let dl = null;
   if (!_aiAutoDlPerm) {
     const d = new Date(); d.setDate(d.getDate() + _aiAutoDlDays);
@@ -3540,12 +3554,15 @@ async function runAiImport() {
   btn.disabled = true;
   btn.textContent = '🤖 解析中...';
   try {
+    // 匯入類型以視窗內選擇為準；若與外層不同，先同步外層表單（指派流程送出走外層表單）
+    const importMode = document.querySelector('input[name="ai-import-mode"]:checked')?.value || (assignMode === 'grab' ? 'grab' : 'normal');
+    if ((importMode === 'grab') !== (assignMode === 'grab')) setAssignMode(importMode === 'grab' ? 'grab' : 'normal');
     const allPartners = await API.get('/api/users-list?role=partner&scope=all');
     const partners = (allPartners || []).map(p => ({ id: String(p.id), name: p.real_name }));
     const cfMode = cfCurrentMode();
     const customFields = _cfList.filter(f => cfVisibleInMode(f, cfMode))
       .map(f => ({ label: f.label, type: f.type, options: f.options, task_name: f.task_name }));
-    if (assignMode === 'grab') {
+    if (importMode === 'grab') {
       const res = await API.post('/api/gemini/extract-task', {
         text,
         tasks: _ttList.map(t => t.name),

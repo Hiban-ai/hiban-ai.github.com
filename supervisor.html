@@ -1961,6 +1961,7 @@ function renderAssignCards(list, containerId) {
           <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor[s]+'22'||'#eee'};color:${statusColor[s]||'var(--text-s)'}">${statusLabel[s]||s}</span>
             ${reviewTag}
+            ${s === 'completed' ? `<button onclick="jumpToTaskRecord(${a.accepted_by || a.target_partner_id || 0},${a.id})" style="padding:.2rem .6rem;font-size:.75rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報 →</button>` : ''}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m)">
@@ -2019,6 +2020,26 @@ function renderAssignCards(list, containerId) {
       </div>`;
     }).join('');
 }
+// 派案紀錄已完成項目 → 跳到任務紀錄並定位該筆（切夥伴頁籤、捲動、高亮）
+function jumpToTaskRecord(partnerId, assignmentId) {
+  _taskRecordsCurrentTab = String(partnerId || 'all');
+  switchPage('task-records', document.querySelector('[onclick*="task-records"]'));
+  let tries = 0;
+  const timer = setInterval(() => {
+    const card = document.getElementById('tr-card-' + assignmentId);
+    if (card) {
+      clearInterval(timer);
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      card.style.outline = '3px solid var(--orange)';
+      card.style.outlineOffset = '2px';
+      setTimeout(() => { card.style.outline = 'none'; }, 2600);
+    } else if (++tries > 25) {
+      clearInterval(timer);
+      showToast('找不到對應的任務紀錄', 'error');
+    }
+  }, 150);
+}
+
 let _arExpanded = {};
 function arToggleGroup(gid) {
   _arExpanded[gid] = !_arExpanded[gid];
@@ -3835,7 +3856,7 @@ function renderTaskRecordsContent() {
   }
 
   contentEl.innerHTML = filtered.map(r => `
-    <div style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--green)">
+    <div id="tr-card-${r.assignment_id}" style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--green);transition:outline .3s">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
         <div>
           <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>

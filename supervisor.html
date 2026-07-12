@@ -832,6 +832,20 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 查看回報（重用任務紀錄卡片渲染） overlay -->
+<div class="pw-overlay" id="report-view-overlay">
+  <div class="pw-box" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📁 回報內容</div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <button id="report-view-goto" style="padding:.3rem .8rem;font-size:.78rem;font-weight:700;background:#fff;color:var(--blue-d);border:1.5px solid var(--blue);border-radius:14px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📂 前往任務紀錄頁</button>
+        <button onclick="document.getElementById('report-view-overlay').classList.remove('open')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
+      </div>
+    </div>
+    <div id="report-view-body"></div>
+  </div>
+</div>
+
 <!-- 取消限量任務（原因快選＋雙重確認） overlay -->
 <div class="pw-overlay" id="close-grab-overlay">
   <div class="pw-box" style="width:400px;max-width:96vw">
@@ -1729,7 +1743,7 @@ async function toggleGrabRec(taskId) {
           <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
           <span style="font-size:.72rem;color:var(--text-s)">📌 ${(r.grabbed_at||'').slice(0,16)}</span>
           <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${stLabel[r.status]||r.status}</span>
-          ${(r.status === 'completed' && r.assignment_id) ? `<button onclick="jumpToTaskRecord(${r.partner_id || 0},${r.assignment_id})" style="flex-shrink:0;padding:.15rem .55rem;font-size:.72rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報 →</button>` : ''}
+          ${(r.status === 'completed' && r.assignment_id) ? `<button onclick="openReportView(${r.partner_id || 0},${r.assignment_id})" style="flex-shrink:0;padding:.15rem .55rem;font-size:.72rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報</button>` : ''}
         </div>`).join('')
       : '<div style="font-size:.82rem;color:var(--text-s)">尚無人認領</div>';
     el.innerHTML = `
@@ -1962,7 +1976,7 @@ function renderAssignCards(list, containerId) {
           <div style="display:flex;align-items:center;gap:.3rem;flex-shrink:0">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor[s]+'22'||'#eee'};color:${statusColor[s]||'var(--text-s)'}">${statusLabel[s]||s}</span>
             ${reviewTag}
-            ${s === 'completed' ? `<button onclick="jumpToTaskRecord(${a.accepted_by || a.target_partner_id || 0},${a.id})" style="padding:.2rem .6rem;font-size:.75rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報 →</button>` : ''}
+            ${s === 'completed' ? `<button onclick="openReportView(${a.accepted_by || a.target_partner_id || 0},${a.id})" style="padding:.2rem .6rem;font-size:.75rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報</button>` : ''}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m)">
@@ -2021,6 +2035,24 @@ function renderAssignCards(list, containerId) {
       </div>`;
     }).join('');
 }
+// 查看回報彈窗：不換頁，重用任務紀錄卡片渲染；「前往任務紀錄頁」可再跳全頁
+async function openReportView(partnerId, assignmentId) {
+  const body = document.getElementById('report-view-body');
+  body.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>';
+  const goto = document.getElementById('report-view-goto');
+  if (goto) goto.onclick = () => {
+    document.getElementById('report-view-overlay').classList.remove('open');
+    jumpToTaskRecord(partnerId, assignmentId);
+  };
+  document.getElementById('report-view-overlay').classList.add('open');
+  try {
+    const approved = await API.get('/api/reports/approved');
+    _taskRecordsCache.approved = approved;
+    const cards = approved.filter(r => r.assignment_id === assignmentId);
+    body.innerHTML = cards.length ? cards.map(taskRecordCardHtml).join('') : '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">找不到回報紀錄</div>';
+  } catch(e) { body.innerHTML = `<div style="color:var(--red);font-size:.85rem;padding:1rem">${e.message}</div>`; }
+}
+
 // 派案紀錄已完成項目 → 跳到任務紀錄並定位該筆（切夥伴頁籤、捲動、高亮）
 function jumpToTaskRecord(partnerId, assignmentId) {
   _taskRecordsCurrentTab = String(partnerId || 'all');
@@ -3856,7 +3888,12 @@ function renderTaskRecordsContent() {
     return;
   }
 
-  contentEl.innerHTML = filtered.map(r => `
+  contentEl.innerHTML = filtered.map(taskRecordCardHtml).join('');
+}
+
+// 任務紀錄卡片（任務紀錄頁與「查看回報」彈窗共用同一份渲染）
+function taskRecordCardHtml(r) {
+  return `
     <div id="tr-card-${r.assignment_id}" style="background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow-lg);margin-bottom:.85rem;border-left:5px solid var(--green);transition:outline .3s">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
         <div>
@@ -3901,7 +3938,7 @@ function renderTaskRecordsContent() {
       <div style="display:flex;justify-content:flex-end;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--border)">
         <button onclick="openRollback(${r.id})" style="padding:.45rem 1rem;background:#fff;color:var(--orange);border:1.5px solid var(--orange);border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">↩ 重新退回</button>
       </div>
-    </div>`).join('');
+    </div>`;
 }
 
 // ── 問題管理（supervisor）─────────────────────────────────────

@@ -1761,14 +1761,14 @@ app.get('/api/grab-tasks/:id/records', requireRole('supervisor','staff'), async 
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 派案人員關閉搶單（需附原因；記錄關閉人並自動發任務公告）
+// 派案人員取消限量任務（需附原因；記錄取消人並自動發任務公告；資料欄位沿用 closed_*）
 app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res) => {
   try {
     const reason = ((req.body && req.body.reason) || '').trim();
-    if (!reason) return res.status(400).json({ error: '請選擇或填寫關閉原因' });
+    if (!reason) return res.status(400).json({ error: '請選擇或填寫取消原因' });
     const task = await GrabTasks.byId(parseInt(req.params.id));
     if (!task) return res.status(404).json({ error: '任務不存在' });
-    // 搶單為共用任務池，任一派案人員皆可關閉
+    // 搶單為共用任務池，任一派案人員皆可取消
     await GrabTasks.update(parseInt(req.params.id), {
       status: 'closed',
       closed_by: req.session.user.real_name,
@@ -1776,9 +1776,9 @@ app.put('/api/grab-tasks/:id/close', requireRole('supervisor'), async (req, res)
       closed_at: nowTW(),
     });
     cacheDel('grab-tasks-open');
-    await logTaskAction(req, '關閉搶單', `${task.company ? task.company+'：' : ''}${task.task_name}：${reason.slice(0,30)}`, { type: 'grab_task', id: task.id });
-    await postTaskAnnouncement('🎯 限量任務已關閉',
-      `${task.company ? task.company+'：' : ''}${task.task_name}｜由 ${req.session.user.real_name} 關閉\n原因：${reason}`);
+    await logTaskAction(req, '取消限量任務', `${task.company ? task.company+'：' : ''}${task.task_name}：${reason.slice(0,30)}`, { type: 'grab_task', id: task.id });
+    await postTaskAnnouncement('🎯 限量任務已取消',
+      `${task.company ? task.company+'：' : ''}${task.task_name}｜由 ${req.session.user.real_name} 取消\n原因：${reason}`);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -1824,7 +1824,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       ]);
       if (!taskDoc.exists) throw new Error('搶單任務不存在');
       const task = taskDoc.data();
-      if (task.status !== 'open') throw new Error('搶單已關閉');
+      if (task.status !== 'open') throw new Error('搶單已取消');
       const nowStr = nowTW().slice(0,16); // YYYY/MM/DD HH:MM
       if (task.deadline && task.deadline <= nowStr) throw new Error('搶單時間已截止');
       if (!task.qty_unlimited && task.grabbed_count >= task.total_slots) throw new Error('名額已滿');
@@ -1908,7 +1908,7 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
 
     res.json({ ok: true, grab_no: result.grabNo, assignment_id: assignment.id });
   } catch(e) {
-    const userErr = ['搶單任務不存在','搶單已關閉','搶單時間已截止','名額已滿','您已達此搶單每人上限'];
+    const userErr = ['搶單任務不存在','搶單已取消','搶單時間已截止','名額已滿','您已達此搶單每人上限'];
     if (userErr.some(m => e.message.includes(m)))
       return res.status(400).json({ error: e.message });
     console.error('[grab]', e.message);
@@ -1931,7 +1931,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       if (!taskDoc.exists) throw new Error('限量任務不存在');
       const task = taskDoc.data();
       if (!task.pick_mode) throw new Error('此任務非挑選模式');
-      if (task.status !== 'open') throw new Error('限量任務已關閉');
+      if (task.status !== 'open') throw new Error('限量任務已取消');
       if (task.deadline && task.deadline <= nowTW().slice(0,16)) throw new Error('限量任務已截止');
       const slots = Array.isArray(task.slot_data) ? task.slot_data.map(s => ({ ...s })) : [];
       if (idx >= slots.length) throw new Error('卡片不存在');
@@ -1999,7 +1999,7 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
       const [, who, code] = e.message.split('::');
       return res.status(409).json({ error: 'taken', taken_by: who, code });
     }
-    const userErr = ['限量任務不存在','此任務非挑選模式','限量任務已關閉','限量任務已截止','卡片不存在','您已達此任務每人上限','未選擇卡片'];
+    const userErr = ['限量任務不存在','此任務非挑選模式','限量任務已取消','限量任務已截止','卡片不存在','您已達此任務每人上限','未選擇卡片'];
     if (userErr.some(m => e.message.includes(m))) return res.status(400).json({ error: e.message });
     console.error('[pick]', e.message);
     res.status(500).json({ error: e.message });

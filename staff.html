@@ -1214,7 +1214,7 @@ async function loadStaffGrab() {
       const modeLabel = t.pick_mode ? '挑選' : '數量';
       const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
-      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : '開放中';
+      const statusLabel = t.status === 'closed' ? '已取消' : expired ? '已截止' : '開放中';
       const records = recordsList[i] || [];
       // 挑選模式：直接列出每張卡片（代號-編號），已選灰掉標被誰選
       const pickHtml = t.pick_mode

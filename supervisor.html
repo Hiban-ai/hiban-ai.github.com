@@ -832,11 +832,11 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
-<!-- 關閉限量任務（原因快選＋雙重確認） overlay -->
+<!-- 取消限量任務（原因快選＋雙重確認） overlay -->
 <div class="pw-overlay" id="close-grab-overlay">
   <div class="pw-box" style="width:400px;max-width:96vw">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✖ 關閉限量任務</div>
-    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">關閉後夥伴將無法再認領，系統會自動發公告通知工作夥伴（含關閉人員與原因）。</div>
+    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✖ 取消限量任務</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">取消後夥伴將無法再認領，系統會自動發公告通知工作夥伴（含取消人員與原因）。</div>
     <input type="hidden" id="close-grab-id">
     <div id="close-grab-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
     <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem">
@@ -845,8 +845,8 @@ textarea.form-input{resize:none}
       <label style="display:flex;align-items:center;gap:.5rem;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:var(--rs);cursor:pointer;font-size:.88rem"><input type="radio" name="close-grab-reason" value="其他" onchange="onCloseGrabReason()"> 3. 其他（自行說明）</label>
     </div>
     <div id="close-grab-note-wrap" style="display:none;margin-bottom:.75rem">
-      <label class="form-label" style="font-size:.82rem;color:var(--text-s)">請說明關閉原因</label>
-      <textarea class="form-input" id="close-grab-note" rows="3" placeholder="請輸入關閉原因..."></textarea>
+      <label class="form-label" style="font-size:.82rem;color:var(--text-s)">請說明取消原因</label>
+      <textarea class="form-input" id="close-grab-note" rows="3" placeholder="請輸入取消原因..."></textarea>
     </div>
     <button class="btn-primary" onclick="submitCloseGrab()">確定</button>
     <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeCloseGrab()">取消</button>
@@ -1650,7 +1650,7 @@ async function loadGrabHistory() {
       const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
       const isFull    = !t.qty_unlimited && remaining <= 0;
       const statusColor = t.status !== 'open' || expired ? 'var(--text-s)' : isFull ? 'var(--orange)' : 'var(--green)';
-      const statusLabel = t.status === 'closed' ? '已關閉' : expired ? '已截止' : isFull ? '已額滿' : (t.qty_unlimited ? '開放中' : `開放中 (剩 ${remaining})`);
+      const statusLabel = t.status === 'closed' ? '已取消' : expired ? '已截止' : isFull ? '已額滿' : (t.qty_unlimited ? '開放中' : `開放中 (剩 ${remaining})`);
       return `
       <div style="background:#fff;border-radius:var(--r);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.75rem;border-left:5px solid ${statusColor}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
@@ -1658,11 +1658,11 @@ async function loadGrabHistory() {
             <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">🎯 ${t.company ? t.company+'：'+t.task_name : t.task_name} <span style="font-size:.68rem;font-weight:700;padding:.08rem .45rem;border-radius:10px;background:var(--blue-p);color:var(--blue-d)">${modeLabel}</span></div>
             ${(t.task_code||t.task_no) ? `<div style="margin-top:.2rem">${taskCodeBadge(t)}</div>` : ''}
             <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">建立：${(t.created_at||'').slice(0,16)}${t.free_mode ? ' ・ 每人同時1個' : ` ・ 每人上限${t.per_person_limit === 0 ? '不限' : (t.per_person_limit ?? 1) + '張'}`}${(!t.free_mode && t.status === 'open' && !expired) ? ` <button onclick="editPerLimit(${t.id},${t.per_person_limit ?? 1})" style="padding:.1rem .5rem;font-size:.72rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1px solid var(--blue-pp);border-radius:10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 調整</button>` : ''}</div>
-            ${t.status === 'closed' && t.closed_reason ? `<div style="font-size:.78rem;color:var(--red);margin-top:.1rem">✖ 關閉：${t.closed_by || '—'}（${(t.closed_at||'').slice(0,16)}）・原因：${t.closed_reason}</div>` : ''}
+            ${t.status === 'closed' && t.closed_reason ? `<div style="font-size:.78rem;color:var(--red);margin-top:.1rem">✖ 取消：${t.closed_by || '—'}（${(t.closed_at||'').slice(0,16)}）・原因：${t.closed_reason}</div>` : ''}
           </div>
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:.75rem;font-weight:700;padding:.2rem .6rem;border-radius:10px;background:${statusColor+'22'};color:${statusColor}">${statusLabel}</span>
-            ${t.status === 'open' && !expired ? `<button onclick="closeGrabTask(${t.id})" style="padding:.2rem .6rem;font-size:.72rem;font-weight:700;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">關閉</button>` : ''}
+            ${t.status === 'open' && !expired && !isFull ? `<button onclick="closeGrabTask(${t.id})" style="padding:.2rem .6rem;font-size:.72rem;font-weight:700;background:var(--red-p);color:var(--red);border:1.5px solid var(--red);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">取消</button>` : ''}
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem .75rem;font-size:.83rem;color:var(--text-m);margin-bottom:.6rem">
@@ -1682,7 +1682,7 @@ async function loadGrabHistory() {
         </div>
       </div>`;
     };
-    // 依狀態分區：開放中（預設展開）／已額滿／已截止／已關閉（預設收合）
+    // 依狀態分區：開放中（預設展開）／已額滿／已截止／已取消（預設收合）
     const nowStr = new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
     const isExpired = t => t.deadline && t.deadline <= nowStr;
     const isFullT   = t => !t.qty_unlimited && ((t.total_slots || 0) - (t.grabbed_count || 0)) <= 0;
@@ -1690,7 +1690,7 @@ async function loadGrabHistory() {
       { key: 'open',    label: '🟢 開放中', color: 'var(--green)',  items: list.filter(t => t.status !== 'closed' && !isExpired(t) && !isFullT(t)), defOpen: true },
       { key: 'full',    label: '🈵 已額滿', color: 'var(--orange)', items: list.filter(t => t.status !== 'closed' && !isExpired(t) && isFullT(t)),  defOpen: false },
       { key: 'expired', label: '⏰ 已截止', color: 'var(--orange)', items: list.filter(t => t.status !== 'closed' && isExpired(t)),                 defOpen: false },
-      { key: 'closed',  label: '✖ 已關閉', color: 'var(--red)',    items: list.filter(t => t.status === 'closed'),                                 defOpen: false },
+      { key: 'closed',  label: '✖ 已取消', color: 'var(--red)',    items: list.filter(t => t.status === 'closed'),                                 defOpen: false },
     ];
     el.innerHTML = sections.filter(s => s.items.length).map(s => {
       const gid = 'grab-sec-' + s.key;
@@ -1752,7 +1752,7 @@ async function editPerLimit(id, cur) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// 關閉限量任務：原因彈窗（快選＋其他自填）→ 確定 → 雙重確認 → 送出
+// 取消限量任務：原因彈窗（快選＋其他自填）→ 確定 → 雙重確認 → 送出
 function closeGrabTask(id) {
   document.getElementById('close-grab-id').value = id;
   document.querySelectorAll('input[name="close-grab-reason"]').forEach(r => r.checked = false);
@@ -1771,7 +1771,7 @@ async function submitCloseGrab() {
   err.style.display = 'none';
   const id = parseInt(document.getElementById('close-grab-id').value);
   const opt = document.querySelector('input[name="close-grab-reason"]:checked')?.value;
-  if (!opt) { err.textContent = '請選擇關閉原因'; err.style.display = 'block'; return; }
+  if (!opt) { err.textContent = '請選擇取消原因'; err.style.display = 'block'; return; }
   let reason = opt;
   if (opt === '其他') {
     const note = document.getElementById('close-grab-note').value.trim();
@@ -1779,11 +1779,11 @@ async function submitCloseGrab() {
     reason = note;
   }
   // 雙重確認
-  if (!confirm(`雙重確認：確定要關閉此限量任務嗎？\n\n關閉原因：${reason}\n\n關閉後夥伴將無法再認領，並會發送公告通知工作夥伴。`)) return;
+  if (!confirm(`雙重確認：確定要取消此限量任務嗎？\n\n取消原因：${reason}\n\n取消後夥伴將無法再認領，並會發送公告通知工作夥伴。`)) return;
   try {
     await API.put(`/api/grab-tasks/${id}/close`, { reason });
     closeCloseGrab();
-    showToast('已關閉限量任務，公告已通知夥伴', 'success');
+    showToast('已取消限量任務，公告已通知夥伴', 'success');
     loadGrabHistory();
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }

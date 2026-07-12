@@ -515,7 +515,8 @@ textarea.form-input{resize:none}
     <!-- 公告管理 -->
     <div class="page-section" id="page-notices">
       <div class="page-title" style="margin-bottom:.75rem">📢 公告管理
-        <button onclick="openAnnForm()" style="margin-left:auto;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增公告</button>
+        <button onclick="markAllAnnsRead()" style="margin-left:auto;padding:.42rem 1rem;background:#fff;color:var(--green);border:1.5px solid var(--green);border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✓ 全部已讀</button>
+        <button onclick="openAnnForm()" style="margin-left:.5rem;padding:.42rem 1.1rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增公告</button>
       </div>
       <div id="ann-list-wrap">
         <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
@@ -3071,6 +3072,16 @@ function syncNotifyBar() {
       bar.style.display = 'none';
     }
   }
+}
+
+function markAllAnnsRead() {
+  if (!me) return;
+  const now = new Date().toISOString().slice(0,10);
+  const ids = annList.filter(a => !a.expires_at || a.expires_at >= now).map(a => a.id);
+  markAllRead(me.id, ids);
+  renderAnnList();
+  try { syncNotifyBar(); } catch(e) {}
+  showToast('公告已全部標為已讀', 'success');
 }
 
 // ── 公告欄列表 ─────────────────────────────

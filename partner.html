@@ -705,6 +705,7 @@ textarea.form-input{resize:none}
       <div style="display:flex;gap:.5rem;margin-bottom:.85rem">
         <button id="ann-tab-general" onclick="setAnnTab('general')" style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--blue-d);background:var(--blue-d);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📢 公告<span id="ann-tab-general-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.08rem .42rem;border-radius:10px">0</span></button>
         <button id="ann-tab-task" onclick="setAnnTab('task')" style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text-m);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🎯 任務<span id="ann-tab-task-badge" style="display:none;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:.08rem .42rem;border-radius:10px">0</span></button>
+        <button onclick="markAllAnnsRead()" style="margin-left:auto;display:inline-flex;align-items:center;gap:.3rem;padding:.5rem 1rem;border-radius:20px;border:1.5px solid var(--green);background:#fff;color:var(--green);font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✓ 全部已讀</button>
       </div>
       <div id="ann-list-wrap">
         <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
@@ -1981,6 +1982,16 @@ function renderAnnList() {
 function openAnnDetail(ann) {
   showAnnDetail(ann, meId || null);
   try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+}
+
+function markAllAnnsRead() {
+  if (!meId) return;
+  const now = new Date().toISOString().slice(0,10);
+  const ids = annList.filter(a => !a.expires_at || a.expires_at >= now).map(a => a.id);
+  markAllRead(meId, ids);
+  renderAnnList();
+  try { syncNotifyBar(); } catch(e) {}
+  showToast('公告已全部標為已讀', 'success');
 }
 
 // ── 子分頁切換 ────────────────────────────────────────────────

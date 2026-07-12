@@ -534,7 +534,9 @@ textarea.form-input{resize:none}
 
     <!-- 公告 -->
     <div class="page-section" id="page-notices">
-      <div class="page-title">📢 公告</div>
+      <div class="page-title" style="display:flex;align-items:center">📢 公告
+        <button onclick="markAllAnnsRead()" style="margin-left:auto;display:inline-flex;align-items:center;gap:.3rem;padding:.42rem 1rem;border-radius:20px;border:1.5px solid var(--green);background:#fff;color:var(--green);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✓ 全部已讀</button>
+      </div>
       <div id="ann-list-wrap">
         <div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>
       </div>
@@ -2150,6 +2152,16 @@ function syncNotifyBar() {
 function notifyBarClick() {
   if (_issueUnreadSv > 0) switchPage('issues', document.querySelector('[onclick*=issues]'));
   else switchPage('notices', document.querySelector('[onclick*=notices]'));
+}
+
+function markAllAnnsRead() {
+  if (!svMe) return;
+  const now = new Date().toISOString().slice(0,10);
+  const ids = annList.filter(a => !a.expires_at || a.expires_at >= now).map(a => a.id);
+  markAllRead(svMe.id, ids);
+  renderAnnList();
+  try { syncNotifyBar(); } catch(e) {}
+  showToast('公告已全部標為已讀', 'success');
 }
 
 function renderAnnList() {

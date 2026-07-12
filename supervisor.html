@@ -1643,7 +1643,7 @@ async function loadGrabHistory() {
     const el = document.getElementById('grab-history');
     if (!el) return;
     if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無限量任務紀錄</div>'; return; }
-    el.innerHTML = list.map(t => {
+    const grabCardHtml = t => {
       const remaining = t.qty_unlimited ? null : (t.total_slots - t.grabbed_count);
       const modeLabel = t.pick_mode ? '挑選' : t.free_mode ? '自由' : '數量';
       const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
@@ -1678,6 +1678,28 @@ async function loadGrabHistory() {
         <div id="grab-rec-${t.id}">
           <button onclick="toggleGrabRec(${t.id})" style="font-size:.75rem;color:var(--blue-d);background:none;border:none;cursor:pointer;padding:0;font-family:'Noto Sans TC',sans-serif">▶ 展開認領明細（${t.grabbed_count} 筆）</button>
         </div>
+      </div>`;
+    };
+    // 依狀態分區：開放中（預設展開）／已截止／已關閉（預設收合）
+    const nowStr = new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
+    const isExpired = t => t.deadline && t.deadline <= nowStr;
+    const sections = [
+      { key: 'open',    label: '🟢 開放中', color: 'var(--green)',  items: list.filter(t => t.status !== 'closed' && !isExpired(t)), defOpen: true },
+      { key: 'expired', label: '⏰ 已截止', color: 'var(--orange)', items: list.filter(t => t.status !== 'closed' && isExpired(t)),  defOpen: false },
+      { key: 'closed',  label: '✖ 已關閉', color: 'var(--red)',    items: list.filter(t => t.status === 'closed'),                  defOpen: false },
+    ];
+    el.innerHTML = sections.filter(s => s.items.length).map(s => {
+      const gid = 'grab-sec-' + s.key;
+      const open = (gid in _arExpanded) ? _arExpanded[gid] : s.defOpen;
+      _arExpanded[gid] = open;
+      return `
+      <div style="margin-bottom:.9rem">
+        <div onclick="arToggleGroup('${gid}')" style="cursor:pointer;display:flex;align-items:center;gap:.55rem;padding:.6rem .9rem;background:#fff;border-radius:var(--r);box-shadow:var(--shadow);border-left:5px solid ${s.color};margin-bottom:.6rem">
+          <span style="font-weight:700;font-size:.92rem">${s.label}</span>
+          <span style="font-size:.8rem;font-weight:700;padding:.1rem .55rem;border-radius:10px;background:${s.color}22;color:${s.color}">${s.items.length}</span>
+          <span id="${gid}-arr" style="margin-left:auto;color:var(--text-s);font-size:.85rem">${open ? '▲' : '▼'}</span>
+        </div>
+        <div id="${gid}" style="display:${open ? '' : 'none'}">${s.items.map(grabCardHtml).join('')}</div>
       </div>`;
     }).join('');
   } catch(e) { console.error('[grabHistory]', e.message); }

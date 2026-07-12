@@ -1194,7 +1194,7 @@ async function loadTaskReviews() {
             <div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity || '—'} 件</div>
             <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
           `}
-          ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+          ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">回報網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
           ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>
           ${r.assign_type === 'hourly' ? '' : `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date) || '—'}</div>`}
@@ -3915,7 +3915,7 @@ function taskRecordCardHtml(r) {
           ${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
         `}
-        ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+        ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">回報網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
         ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
         ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}
         ${r.assign_type !== 'hourly' && r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}

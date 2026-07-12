@@ -2046,7 +2046,7 @@ async function openReportView(partnerId, assignmentId) {
   };
   document.getElementById('report-view-overlay').classList.add('open');
   try {
-    const approved = await API.get('/api/reports/approved');
+    const approved = mergeApprovedReports(await API.get('/api/reports/approved'));
     _taskRecordsCache.approved = approved;
     const cards = approved.filter(r => r.assignment_id === assignmentId);
     body.innerHTML = cards.length ? cards.map(taskRecordCardHtml).join('') : '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">找不到回報紀錄</div>';
@@ -3850,7 +3850,7 @@ async function loadTaskRecords() {
       API.get('/api/reports/approved'),
       API.get('/api/users-list?role=partner')
     ]);
-    _taskRecordsCache = { approved, partners };
+    _taskRecordsCache = { approved: mergeApprovedReports(approved), partners };
 
     const tabs = [{ id: 'all', label: '全部' }, ...partners.map(p => ({ id: String(p.id), label: p.real_name }))];
     if (!tabs.find(t => t.id === _taskRecordsCurrentTab)) _taskRecordsCurrentTab = 'all';
@@ -3896,6 +3896,26 @@ function renderTaskRecordsContent() {
   contentEl.innerHTML = filtered.map(taskRecordCardHtml).join('');
 }
 
+// 雙重回報：同一派案的第一／第二階段核可合併成一張卡（第二階段成果為主體＋第一階段附件）
+function mergeApprovedReports(list) {
+  const byAsg = new Map();
+  const out = [];
+  (list || []).forEach(r => {
+    if (!r.dual_report || !r.assignment_id) { out.push(r); return; }
+    const k = r.assignment_id;
+    if (!byAsg.has(k)) { const copy = { ...r }; byAsg.set(k, copy); out.push(copy); return; }
+    const m = byAsg.get(k);
+    if (r.stage === 2) {
+      const keepAtts = m.stage_attachments;
+      Object.assign(m, r);
+      if ((!m.stage_attachments || !m.stage_attachments.length) && keepAtts) m.stage_attachments = keepAtts;
+    } else if (r.stage === 1 && r.stage_attachments && r.stage_attachments.length && (!m.stage_attachments || !m.stage_attachments.length)) {
+      m.stage_attachments = r.stage_attachments;
+    }
+  });
+  return out;
+}
+
 // 任務紀錄卡片（任務紀錄頁與「查看回報」彈窗共用同一份渲染）
 function taskRecordCardHtml(r) {
   return `
@@ -3907,7 +3927,7 @@ function taskRecordCardHtml(r) {
           <div style="font-size:.82rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📤 派案 ${fmtDate(r.assigned_at)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0">
-          ${r.dual_report && r.stage ? `<span style="background:#EEE6FA;color:#6B3FA0;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:10px;white-space:nowrap">雙重・第${r.stage === 1 ? '一階段（附件）' : '二階段（成果）'}</span>` : ''}
+          ${r.dual_report ? `<span style="background:#EEE6FA;color:#6B3FA0;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:10px;white-space:nowrap">雙重回報${r.stage === 1 ? '・僅第一階段已核' : ''}</span>` : ''}
           <span style="background:var(--green-p);color:var(--green);font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:10px;white-space:nowrap">✓ 已完成</span>
         </div>
       </div>

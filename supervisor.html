@@ -3203,9 +3203,16 @@ function showAiImportGrabAutoPreview(rows) {
     const g = map.get(key);
     if (!g.unit_price && parseInt(r.unit_price)) g.unit_price = parseInt(r.unit_price);
     if (!g.notes && r.notes) g.notes = r.notes;
+    // 防呆：AI 有時會把「執行日期」換算成天數塞進完成期限——天數恰等於今天到執行日期的間隔即剔除
+    let dd = parseInt(r.deadline_days) || null;
+    if (dd && r.work_date) {
+      const wd = new Date(String(r.work_date).replace(/-/g, '/'));
+      const today = new Date(); today.setHours(0,0,0,0); wd.setHours(0,0,0,0);
+      if (Math.round((wd - today) / 86400000) === dd) dd = null;
+    }
     g.slots.push({
       work_date: r.work_date || null,
-      deadline_days: parseInt(r.deadline_days) || null,
+      deadline_days: dd,
       custom_fields: Array.isArray(r.custom_fields) ? r.custom_fields : [],
     });
   });

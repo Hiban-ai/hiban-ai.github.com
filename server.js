@@ -2728,13 +2728,10 @@ app.get('/api/reports/supervisor-summary/export', requireRole('supervisor'), asy
     const ym = (req.query.year_month || '').replace(/-/g, '/').slice(0, 7); // YYYY/MM 或 ''
     const type = req.query.type || 'all'; // all/individual/hourly/grab
 
-    const [allAssign, approvedReports, grabTasks, allUsers] = await Promise.all([
-      Assignments.all(), WorklogReports.approvedForSupervisor(supervisorId),
-      GrabTasks.forSupervisor(supervisorId), Users.all(),
+    const [allAssign, grabTasks, allUsers] = await Promise.all([
+      Assignments.all(), GrabTasks.forSupervisor(supervisorId), Users.all(),
     ]);
     const nameOf = id => (allUsers.find(u => u.id === id) || {}).real_name || '';
-    const imgByAsg = new Map();
-    approvedReports.forEach(r => { if (r.images && r.images.length) imgByAsg.set(parseInt(r.assignment_id), r.images); });
 
     const typeMatch = a => type === 'all' ? true
       : type === 'individual' ? (a.assign_type === 'individual' || a.assign_type === 'all')
@@ -2764,6 +2761,7 @@ app.get('/api/reports/supervisor-summary/export', requireRole('supervisor'), asy
     // 建一個分頁（標題＋表頭），回傳 ws
     function makeSheet(tabName, headColor, cols) {
       const ws = wb.addWorksheet(tabName);
+      ws.views = [{ zoomScale: 130 }]; // 開啟時放大顯示
       ws.columns = cols.map(c => ({ key: c.key, width: c.width }));
       ws.getCell('A1').value = `${tabName} — ${supName}${ymLabel}`;
       ws.mergeCells(1, 1, 1, cols.length);
@@ -2777,24 +2775,14 @@ app.get('/api/reports/supervisor-summary/export', requireRole('supervisor'), asy
       return ws;
     }
 
-    // 頁簽1：完成（附回報縮圖）
+    // 頁簽1：完成（圖片會跑出格子，暫不嵌入）
     const wsDone = makeSheet('完成', 'FFCBE7D3', [
       { key: 'tcode', label: '任務代號', width: 11 }, { key: 'code', label: '代號-編號', width: 14 }, { key: 'task', label: '任務', width: 22 },
       { key: 'co', label: '公司', width: 15 }, { key: 'who', label: '夥伴', width: 12 }, { key: 'amt', label: '金額', width: 10 },
-      { key: 'date', label: '完成日期', width: 13 }, { key: 'img', label: '圖片', width: 16 },
+      { key: 'date', label: '完成日期', width: 13 },
     ]);
     grouped(completed).forEach(a => {
-      const r = wsDone.addRow({ tcode: a.task_code || '', code: codeOf(a), task: a.task_name || '', co: a.company || '', who: nameOf(a.accepted_by) || '', amt: a.total_price || 0, date: (a.completed_at || '').slice(0, 10), img: '' });
-      r.alignment = { vertical: 'middle' };
-      const imgs = imgByAsg.get(parseInt(a.id));
-      if (imgs && imgs.length) {
-        const img = imgs[0];
-        const b64 = img.data ? img.data.replace(/^data:[^;]+;base64,/, '') : img;
-        let ext = ((img.mime || 'image/jpeg').split('/')[1] || 'jpeg').toLowerCase(); if (ext === 'jpg') ext = 'jpeg';
-        if (['jpeg', 'png', 'gif'].includes(ext)) {
-          try { const id = wb.addImage({ buffer: Buffer.from(b64, 'base64'), extension: ext }); r.height = 62; wsDone.addImage(id, { tl: { col: 7.1, row: r.number - 1 + 0.1 }, ext: { width: 78, height: 78 } }); } catch(e) {}
-        }
-      }
+      wsDone.addRow({ tcode: a.task_code || '', code: codeOf(a), task: a.task_name || '', co: a.company || '', who: nameOf(a.accepted_by) || '', amt: a.total_price || 0, date: (a.completed_at || '').slice(0, 10) }).alignment = { vertical: 'middle' };
     });
     if (!completed.length) wsDone.addRow({ tcode: '（本期無完成項目）' });
     applyReportGrid(wsDone);

@@ -1842,11 +1842,12 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
       return { recId: nextRecId, grabNo: grabNoStr, task };
     });
 
-    // 完成期限：卡片自己的 deadline_days 優先，否則用任務整體 deadline_days。
+    // 完成期限：卡片自己的 deadline_days 優先；該筆有執行日期時不繼承任務整體期限。
     // 未設定完成期限時 deadline_date 留 null（不可用「認領截止 deadline」頂替）。
     const slot = result.task.slot_data && result.task.slot_data[parseInt(result.grabNo)-1];
+    const grabWorkDate = (slot && slot.work_date) || result.task.work_date || null;
     let deadline_days = (slot && parseInt(slot.deadline_days) >= 1) ? parseInt(slot.deadline_days)
-                      : (parseInt(result.task.deadline_days) >= 1 ? parseInt(result.task.deadline_days) : null);
+                      : ((!grabWorkDate && parseInt(result.task.deadline_days) >= 1) ? parseInt(result.task.deadline_days) : null);
     let deadline_date = null;
     if (deadline_days >= 1) {
       const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
@@ -1943,10 +1944,11 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
     });
 
     const { task, slot, recId } = result;
-    // 完成期限：卡片自己的 deadline_days 優先，否則用任務整體 deadline_days。
+    // 完成期限：卡片自己的 deadline_days 優先；卡片有執行日期時不繼承任務整體期限。
     // 未設定完成期限時 deadline_date 留 null（不可用「認領截止 deadline」頂替）。
+    const pickWorkDate = slot.work_date || task.work_date || null;
     let deadline_days = (slot.deadline_days && parseInt(slot.deadline_days) >= 1) ? parseInt(slot.deadline_days)
-                      : (parseInt(task.deadline_days) >= 1 ? parseInt(task.deadline_days) : null);
+                      : ((!pickWorkDate && parseInt(task.deadline_days) >= 1) ? parseInt(task.deadline_days) : null);
     let deadline_date = null;
     if (deadline_days >= 1) {
       const dlBase = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));

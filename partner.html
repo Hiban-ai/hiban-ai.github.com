@@ -2143,7 +2143,7 @@ async function loadGrabZone() {
           return `<div style="display:flex;flex-wrap:wrap;gap:.15rem .7rem;font-size:.84rem;color:var(--text-m);margin-bottom:.4rem;padding:.35rem .55rem;background:var(--bg);border-radius:var(--rs)">${items.map(x=>`<span>${x}</span>`).join('')}</div>`;
         })()}
         <div style="font-size:.86rem;color:var(--text-s);margin-bottom:.3rem">${t.deadline ? '⏰ 認領截止：'+t.deadline.slice(0,16) : '⏰ 永久開放'}</div>
-        ${t.deadline_days ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
+        ${(t.deadline_days && !t.work_date) ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.3rem">🏁 完成期限：接案後 ${t.deadline_days} 天內</div>` : ''}
         ${t.work_date ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.3rem">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
         ${t.notes ? `<div style="font-size:.86rem;color:var(--text-m);margin-bottom:.5rem">📝 備註：${t.notes}</div>` : ''}
         ${attachmentsHtml(t.attachments)}${customFieldsHtml(t.custom_fields)}
@@ -2235,7 +2235,7 @@ function renderPickBody(id) {
             : `<span style="font-size:.78rem;color:var(--text-s)">可選</span>`}
       </div>
       ${claimed ? `<div style="margin-top:.25rem;font-size:.82rem;color:var(--text-s)">👤 ${s.claimed_by_name || '他人'}</div>` : fieldsHtml}
-      ${(s.deadline_days || t.deadline_days) ? `<div style="margin-top:.3rem;font-size:.8rem;color:var(--text-s)">⏳ 完成期限：接案後 ${s.deadline_days || t.deadline_days} 天內</div>` : ''}
+      ${(s.deadline_days || (!(s.work_date || t.work_date) && t.deadline_days)) ? `<div style="margin-top:.3rem;font-size:.8rem;color:var(--text-s)">⏳ 完成期限：接案後 ${s.deadline_days || t.deadline_days} 天內</div>` : ''}
       ${(s.work_date || t.work_date) ? `<div style="margin-top:.2rem;font-size:.8rem;color:var(--text-s)">📅 執行日期：${s.work_date || t.work_date}</div>` : ''}
     </div>`;
   }).join('');

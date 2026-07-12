@@ -1729,6 +1729,7 @@ async function toggleGrabRec(taskId) {
           <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
           <span style="font-size:.72rem;color:var(--text-s)">📌 ${(r.grabbed_at||'').slice(0,16)}</span>
           <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${stLabel[r.status]||r.status}</span>
+          ${(r.status === 'completed' && r.assignment_id) ? `<button onclick="jumpToTaskRecord(${r.partner_id || 0},${r.assignment_id})" style="flex-shrink:0;padding:.15rem .55rem;font-size:.72rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報 →</button>` : ''}
         </div>`).join('')
       : '<div style="font-size:.82rem;color:var(--text-s)">尚無人認領</div>';
     el.innerHTML = `

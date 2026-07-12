@@ -1668,8 +1668,15 @@ app.post('/api/grab-tasks', requireRole('supervisor'), async (req, res) => {
     });
     cacheDel('grab-tasks-open');
     await logTaskAction(req, isPick ? '建立限量任務(挑選)' : '建立限量任務', `${company ? company+'：' : ''}${task_name} 名額${slots}`, { type: 'grab_task', id: item.id });
-    await postTaskAnnouncement('🎯 新限量任務上架',
-      `${company ? company+'：' : ''}${task_name}｜單價 $${price}｜名額 ${qtyUnlimited ? '不限' : slots}${deadline ? `｜認領截止 ${deadline}` : ''}\n歡迎前往「限量任務」查看認領！`);
+    {
+      // 公告內容：只列有資料的欄位
+      const annParts = [`${company ? company + '：' : ''}${task_name}`];
+      if (price) annParts.push(`單價 $${price}`);
+      if (qtyUnlimited) annParts.push('名額 不限');
+      else if (slots) annParts.push(`名額 ${slots}`);
+      if (deadline) annParts.push(`認領截止 ${deadline}`);
+      await postTaskAnnouncement('🎯 新限量任務上架', annParts.join('｜') + '\n歡迎前往「限量任務」查看認領！');
+    }
     res.json({ ok: true, id: item.id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

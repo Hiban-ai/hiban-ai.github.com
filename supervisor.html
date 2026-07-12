@@ -1920,7 +1920,7 @@ function renderAssignCards(list, containerId) {
     if (!list.length) { el.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無派案紀錄</div>'; return; }
     const statusLabel = { pending:'待回覆', accepted:'進行中', completed:'已完成', rejected:'已拒絕' };
     const statusColor = { pending:'var(--orange)', accepted:'var(--blue)', completed:'var(--green)', rejected:'var(--red)' };
-    el.innerHTML = list.map(a => {
+    const cardHtml = a => {
       const s = a.status || 'pending';
       const reviewTag = a.review_status === 'reviewing'
         ? `<span style="font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:8px;background:var(--blue-p);color:var(--blue-d);margin-left:.4rem">審核中</span>` : '';
@@ -1959,7 +1959,47 @@ function renderAssignCards(list, containerId) {
           ${customFieldsHtml(a.custom_fields)}
         </div>
       </div>`
+    };
+    // 依任務分組（代號優先，其次 公司＋任務名稱），組卡預設收合
+    const groups = new Map();
+    list.forEach(a => {
+      const key = a.task_code || ((a.company || '') + '：' + (a.task_name || ''));
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(a);
+    });
+    el.innerHTML = [...groups.entries()].map(([key, items], gi) => {
+      const first = items[0];
+      const gid = containerId + '-g' + gi;
+      const open = !!_arExpanded[gid];
+      const total = items.reduce((s, a) => s + (a.total_price || 0), 0);
+      const cnt = st => items.filter(a => a.status === st).length;
+      const reviewing = items.filter(a => a.review_status === 'reviewing').length;
+      const chip = (label, n, color) => n ? `<span style="font-size:.76rem;font-weight:700;padding:.12rem .5rem;border-radius:10px;background:${color}22;color:${color}">${label} ${n}</span>` : '';
+      return `
+      <div style="background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:.8rem;overflow:hidden">
+        <div onclick="arToggleGroup('${gid}')" style="cursor:pointer;padding:.85rem 1.1rem;background:linear-gradient(135deg,#F5FAFD,#EBF5FB);display:flex;align-items:center;gap:.55rem;flex-wrap:wrap">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem">${first.company ? first.company + '：' : ''}${first.task_name || ''}</div>
+          ${first.task_code ? `<span style="display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .5rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.72rem;font-weight:700">🏷️ ${first.task_code}</span>` : ''}
+          <span style="font-size:.78rem;color:var(--blue-d);font-weight:700">共 ${items.length} 筆</span>
+          ${chip('待回覆', cnt('pending'), 'var(--orange)')}
+          ${chip('進行中', cnt('accepted'), 'var(--blue)')}
+          ${chip('審核中', reviewing, 'var(--blue)')}
+          ${chip('完成', cnt('completed'), 'var(--green)')}
+          ${chip('拒絕', cnt('rejected'), 'var(--red)')}
+          <span style="margin-left:auto;font-weight:700;color:var(--yellow);font-size:.9rem">$${total.toLocaleString()}</span>
+          <span id="${gid}-arr" style="color:var(--text-s);font-size:.85rem">${open ? '▲' : '▼'}</span>
+        </div>
+        <div id="${gid}" style="display:${open ? '' : 'none'};padding:.6rem .9rem .9rem;background:var(--bg)">${items.map(cardHtml).join('')}</div>
+      </div>`;
     }).join('');
+}
+let _arExpanded = {};
+function arToggleGroup(gid) {
+  _arExpanded[gid] = !_arExpanded[gid];
+  const el = document.getElementById(gid);
+  if (el) el.style.display = _arExpanded[gid] ? '' : 'none';
+  const arr = document.getElementById(gid + '-arr');
+  if (arr) arr.textContent = _arExpanded[gid] ? '▲' : '▼';
 }
 
 // 動態自訂欄位顯示

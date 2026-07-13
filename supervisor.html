@@ -832,6 +832,24 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- 最後核可：額外獎勵 overlay -->
+<div class="pw-overlay" id="bonus-approve-overlay">
+  <div class="pw-box" style="width:400px;max-width:96vw">
+    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✓ 核可回報</div>
+    <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">可加發額外獎勵（選填，未輸入＝0），將與任務金額加總計入夥伴收入。</div>
+    <input type="hidden" id="bonus-report-id"><input type="hidden" id="bonus-base">
+    <div id="bonus-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
+    <div style="display:flex;flex-direction:column;gap:.55rem;background:var(--bg);border-radius:var(--rs);padding:.7rem .9rem;margin-bottom:.8rem;font-size:.9rem">
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-s)">原金額</span><b id="bonus-base-label" style="color:var(--text-m)">$0</b></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#8A6010;font-weight:700">🎁 額外獎勵</span>
+        <span>$ <input class="form-input" id="bonus-extra" type="number" min="0" placeholder="0" style="width:110px;display:inline-block;padding:.35rem .5rem;font-size:.9rem;text-align:right" oninput="bonusCalc()"></span></div>
+      <div style="display:flex;justify-content:space-between;border-top:1.5px dashed var(--border);padding-top:.55rem"><span style="font-weight:700">總金額</span><b id="bonus-total-label" style="color:var(--yellow);font-size:1.05rem">$0</b></div>
+    </div>
+    <button class="btn-primary" onclick="submitBonusApprove()">✓ 核可</button>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text-m);box-shadow:none;border:1.5px solid var(--border);margin-top:.4rem" onclick="closeBonusApprove()">取消</button>
+  </div>
+</div>
+
 <!-- 查看回報（重用任務紀錄卡片渲染） overlay -->
 <div class="pw-overlay" id="report-view-overlay">
   <div class="pw-box" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg)">
@@ -1022,22 +1040,39 @@ function downloadOverlayImg() {
   a.click();
 }
 
-async function approveReport(reportId, assignmentId, isFree) {
-  let extra = 0;
-  if (isFree) {
-    const inp = document.getElementById('extra-' + reportId);
-    extra = inp ? Math.max(0, parseInt(inp.value) || 0) : 0;
-  }
-  if (!confirm('確定要核可這筆任務回報嗎？\n核可後任務將標記為完成。' + (isFree && extra ? `\n額外獎勵 $${extra.toLocaleString()} 將計入錢包。` : ''))) return;
+// 最後一次核可：額外獎勵彈窗（未輸入=0）→ 雙重確認（原金額/額外/總金額）→ 送出
+function openBonusApprove(reportId, assignmentId, base) {
+  document.getElementById('bonus-report-id').value = reportId;
+  document.getElementById('bonus-base').value = Math.max(0, parseInt(base) || 0);
+  document.getElementById('bonus-extra').value = '';
+  document.getElementById('bonus-err').style.display = 'none';
+  bonusCalc();
+  document.getElementById('bonus-approve-overlay').classList.add('open');
+}
+function closeBonusApprove() { document.getElementById('bonus-approve-overlay').classList.remove('open'); }
+function bonusCalc() {
+  const base  = parseInt(document.getElementById('bonus-base').value) || 0;
+  const extra = Math.max(0, parseInt(document.getElementById('bonus-extra').value) || 0);
+  document.getElementById('bonus-base-label').textContent  = '$' + base.toLocaleString();
+  document.getElementById('bonus-total-label').textContent = '$' + (base + extra).toLocaleString();
+}
+async function submitBonusApprove() {
+  const err = document.getElementById('bonus-err');
+  err.style.display = 'none';
+  const reportId = parseInt(document.getElementById('bonus-report-id').value);
+  const base  = parseInt(document.getElementById('bonus-base').value) || 0;
+  const extra = Math.max(0, parseInt(document.getElementById('bonus-extra').value) || 0);
+  if (!confirm(`雙重確認：\n原金額：$${base.toLocaleString()}\n額外獎勵：$${extra.toLocaleString()}\n總金額：$${(base + extra).toLocaleString()}\n\n確定核可嗎？核可後任務將標記為完成。`)) return;
   try {
-    await API.put(`/api/reports/${reportId}/approve`, isFree ? { extra_reward: extra } : {});
-    showToast('已同意，任務標記為完成 ✓', 'success');
+    await API.put(`/api/reports/${reportId}/approve`, { extra_reward: extra });
+    closeBonusApprove();
+    showToast(extra ? `已核可，含額外獎勵 $${extra.toLocaleString()}，總金額 $${(base + extra).toLocaleString()} ✓` : '已同意，任務標記為完成 ✓', 'success');
     loadTaskReviews();
     // 若任務紀錄頁已開啟則同步刷新
     if (document.getElementById('page-task-records').classList.contains('active')) {
       loadTaskRecords();
     }
-  } catch(e) { showToast(e.message, 'error'); }
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 
 // 雙重回報第一階段核可（可回覆說明＋附件）
@@ -1215,15 +1250,8 @@ async function loadTaskReviews() {
           `).join('')}
         </div>` : ''}
         ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一階段附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
-        ${r.assign_type === 'free' ? `
-        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;background:#FFF8E8;border:1.5px solid #F0C040;border-radius:var(--rs);padding:.5rem .7rem">
-          <span style="font-size:.82rem;color:#8A6010;font-weight:700;white-space:nowrap">🎁 額外獎勵</span>
-          <div style="position:relative;flex:1"><span style="position:absolute;left:.6rem;top:50%;transform:translateY(-50%);color:var(--text-s)">$</span>
-            <input id="extra-${r.id}" type="number" min="0" value="0" style="width:100%;padding:.4rem .4rem .4rem 1.4rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem"></div>
-          <span style="font-size:.72rem;color:var(--text-s);white-space:nowrap">基本 $${(r.total_price||0).toLocaleString()}＋額外＝進錢包</span>
-        </div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
-          <button onclick="${r.dual_report && r.stage === 1 ? `openStage1Approve(${r.id},${r.assignment_id})` : `approveReport(${r.id},${r.assignment_id},${r.assign_type === 'free'})`}" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">${r.dual_report && r.stage === 1 ? '✓ 核可・進第二階段' : '✓ 同意'}</button>
+          <button onclick="${r.dual_report && r.stage === 1 ? `openStage1Approve(${r.id},${r.assignment_id})` : `openBonusApprove(${r.id},${r.assignment_id},${(r.total_price||0) - (r.extra_reward||0)})`}" style="flex:1;padding:.65rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;box-shadow:0 4px 12px rgba(46,170,122,.3)">${r.dual_report && r.stage === 1 ? '✓ 核可・進第二階段' : '✓ 同意'}</button>
           <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.65rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">✎ 退回</button>
         </div>
       </div>`;
@@ -3943,6 +3971,8 @@ function taskRecordCardHtml(r) {
           ${(r.dual_report && r.stage === 1) ? '' : `${r.task_quantity != null ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">任務數量</span>${r.task_quantity} 件</div>` : ''}
           <div><span style="color:var(--text-s);width:80px;display:inline-block">完成數量</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>`}
         `}
+        ${r.extra_reward ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">額外獎勵</span><strong style="color:#C8901A">+$${(r.extra_reward||0).toLocaleString()}</strong></div>` : ''}
+        ${r.assign_type !== 'hourly' ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">總金額</span><strong style="color:var(--green)">$${(r.total_price||0).toLocaleString()}</strong></div>` : ''}
         ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">回報網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
         ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
         ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}

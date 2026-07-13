@@ -2293,6 +2293,7 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
         grab_no:       a ? a.grab_no        : (r.grab_no || null),
         total_price:   a ? a.total_price    : (r.total_price || 0),
         unit_price:    a ? a.unit_price     : 0,
+        extra_reward:  a ? (a.extra_reward || 0) : 0,
         task_no:       a ? a.task_no        : (r.task_no || null),
         full_code:     a ? (a.full_code || null) : null,
         task_code:     a ? (a.task_code || null) : null,
@@ -2328,6 +2329,8 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
         work_content:  a ? a.work_content  : '',
         work_date:     a ? (a.work_date || null) : null,
         hourly_wage:   a ? a.hourly_wage   : (r.hourly_wage || null),
+        total_price:   a ? (a.total_price || 0) : (r.total_price || 0),
+        extra_reward:  a ? (a.extra_reward || 0) : 0,
         grab_no:       a ? a.grab_no       : (r.grab_no || null),
         task_no:       a ? (a.task_no || null)   : (r.task_no || null),
         full_code:     a ? (a.full_code || null) : null,
@@ -2342,7 +2345,7 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
 app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const extraReward = Math.max(0, parseInt(req.body && req.body.extra_reward) || 0); // 自由任務額外獎勵
+    const extraReward = Math.max(0, parseInt(req.body && req.body.extra_reward) || 0); // 最後核可的額外獎勵（所有任務類型，未填=0）
     await WorklogReports.update(id, { status: 'approved' });
     // 取回 report 找到 assignment_id，把 assignment 改成 completed
     const snap = await require('./db').WorklogReports;
@@ -2365,10 +2368,13 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
         return res.json({ ok: true, stage: 1 });
       }
       const patch = { status: 'completed', completed_at: nowTW(), review_status: 'approved' };
-      // 自由任務：額外獎勵與任務金額加總 → 進錢包（total_price = 基本金額 + 額外，重算冪等）
-      if (aPrev && aPrev.assign_type === 'free') {
+      // 額外獎勵（所有任務類型）：總額 = 基底 + 額外；基底 = 目前總額 − 既有額外（退回再核可重算冪等）
+      if (aPrev) {
+        const baseTotal = aPrev.assign_type === 'free'
+          ? (aPrev.unit_price || 0)
+          : ((aPrev.total_price || 0) - (aPrev.extra_reward || 0));
         patch.extra_reward = extraReward;
-        patch.total_price  = (aPrev.unit_price || 0) + extraReward;
+        patch.total_price  = baseTotal + extraReward;
       }
       await Assignments.update(r.assignment_id, patch);
       const a = await Assignments.byId(r.assignment_id);

@@ -149,8 +149,10 @@ textarea.form-input{resize:none}
       if (!cfg.apiKey) { console.warn('[onSnapshot] FIREBASE_WEB_API_KEY 未設定，略過'); return; }
       const app = initializeApp(cfg, 'hiban-client-sv');
       const db  = getFirestore(app);
-      const reviewQ = query(collection(db, 'worklog_reports'), where('supervisor_id', '==', supervisorId));
-      const u1 = onSnapshot(reviewQ, snap => { if (typeof loadTaskReviews === 'function') loadTaskReviews(); }, err => console.warn('[onSnapshot] worklog_reports', err.message));
+      // worklog_reports 集合未開放 client 端讀取權限，改監聽 assignments（安全規則已允許，夥伴端同樣用這個集合）：
+      // 送出回報時後端會把該筆 review_status 改成 'reviewing'，核可/退回後會離開此狀態，兩種轉換都會觸發監聽
+      const reviewQ = query(collection(db, 'assignments'), where('supervisor_id', '==', supervisorId), where('review_status', '==', 'reviewing'));
+      const u1 = onSnapshot(reviewQ, snap => { if (typeof loadTaskReviews === 'function') loadTaskReviews(); }, err => console.warn('[onSnapshot] assignments(review)', err.message));
       window._fsListenersSv = [u1];
       console.log('[onSnapshot] 派案人員即時監聽已啟動');
     } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }

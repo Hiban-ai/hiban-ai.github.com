@@ -676,7 +676,7 @@ textarea.form-input{resize:none}
 <!-- 任務預設單價設定 overlay -->
 <div class="pw-overlay" id="task-price-overlay">
   <div class="pw-box" style="width:340px;max-height:80vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 任務預設單價</div>
       <button onclick="closeTaskPriceMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -692,7 +692,7 @@ textarea.form-input{resize:none}
 <!-- 自訂欄位管理 overlay -->
 <div class="pw-overlay" id="cf-overlay">
   <div class="pw-box" style="width:480px;max-height:88vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理<span id="cf-mgr-mode-label" style="font-size:.8rem;color:var(--text-s);font-weight:400"></span></div>
       <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -725,7 +725,7 @@ textarea.form-input{resize:none}
 
 <div class="pw-overlay" id="ai-import-overlay">
   <div class="pw-box" style="width:min(880px,96vw);max-height:92vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🤖 任務匯入</div>
       <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -764,7 +764,7 @@ textarea.form-input{resize:none}
 <!-- AI 資料匯入（公司／任務＋單價 基礎資料） overlay -->
 <div class="pw-overlay" id="ai-base-overlay">
   <div class="pw-box" style="width:min(680px,96vw);max-height:92vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🗂️ 資料匯入</div>
       <button onclick="closeAiBaseMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -794,7 +794,7 @@ textarea.form-input{resize:none}
 
 <div class="pw-overlay" id="reject-report-overlay">
   <div class="pw-box">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✎ 退回修改意見</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;position:sticky;top:0;background:#fff;z-index:5;padding:.2rem 0"><div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">✎ 退回修改意見</div><button onclick="document.getElementById('reject-report-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">填寫退回原因，工作夥伴將會收到此意見。</div>
     <input type="hidden" id="reject-report-id">
     <div id="reject-report-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
@@ -815,7 +815,7 @@ textarea.form-input{resize:none}
 <!-- 雙重回報第一階段核可（可回覆說明＋附件） overlay -->
 <div class="pw-overlay" id="stage1-approve-overlay">
   <div class="pw-box" style="width:440px;max-width:96vw">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✓ 核可第一階段</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;position:sticky;top:0;background:#fff;z-index:5;padding:.2rem 0"><div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">✓ 核可第一階段</div><button onclick="document.getElementById('stage1-approve-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.8rem">核可後夥伴才能進行第二階段回報。可在此回覆給夥伴（皆選填）。</div>
     <input type="hidden" id="s1-report-id"><input type="hidden" id="s1-assignment-id">
     <div id="s1-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
@@ -835,7 +835,7 @@ textarea.form-input{resize:none}
 <!-- 最後核可：額外獎勵 overlay -->
 <div class="pw-overlay" id="bonus-approve-overlay">
   <div class="pw-box" style="width:400px;max-width:96vw">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✓ 核可回報</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;position:sticky;top:0;background:#fff;z-index:5;padding:.2rem 0"><div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">✓ 核可回報</div><button onclick="document.getElementById('bonus-approve-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">可加發額外獎勵（選填，未輸入＝0），將與任務金額加總計入夥伴收入。</div>
     <input type="hidden" id="bonus-report-id"><input type="hidden" id="bonus-base">
     <div id="bonus-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
@@ -853,7 +853,7 @@ textarea.form-input{resize:none}
 <!-- 查看回報（重用任務紀錄卡片渲染） overlay -->
 <div class="pw-overlay" id="report-view-overlay">
   <div class="pw-box" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;position:sticky;top:0;background:var(--bg);z-index:5;padding:.35rem 0">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📁 回報內容</div>
       <div style="display:flex;align-items:center;gap:.6rem">
         <button id="report-view-goto" style="padding:.3rem .8rem;font-size:.78rem;font-weight:700;background:#fff;color:var(--blue-d);border:1.5px solid var(--blue);border-radius:14px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📂 前往任務紀錄頁</button>
@@ -867,7 +867,7 @@ textarea.form-input{resize:none}
 <!-- 取消限量任務（原因快選＋雙重確認） overlay -->
 <div class="pw-overlay" id="close-grab-overlay">
   <div class="pw-box" style="width:400px;max-width:96vw">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">✖ 取消限量任務</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;position:sticky;top:0;background:#fff;z-index:5;padding:.2rem 0"><div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">✖ 取消限量任務</div><button onclick="document.getElementById('close-grab-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">取消後夥伴將無法再認領，系統會自動發公告通知工作夥伴（含取消人員與原因）。</div>
     <input type="hidden" id="close-grab-id">
     <div id="close-grab-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>
@@ -888,7 +888,7 @@ textarea.form-input{resize:none}
 <!-- 自由任務「結束發布」 overlay -->
 <div class="pw-overlay" id="end-free-overlay">
   <div class="pw-box">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">⏹ 結束發布</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;position:sticky;top:0;background:#fff;z-index:5;padding:.2rem 0"><div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">⏹ 結束發布</div><button onclick="document.getElementById('end-free-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">設定此自由任務的結束發布日期，到期後夥伴將無法再接案。</div>
     <div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.9rem">
       <input class="form-input" type="number" id="ef-year"  min="2024" placeholder="年" style="width:80px">
@@ -906,7 +906,7 @@ textarea.form-input{resize:none}
 <!-- 已完成任務「重新退回」 overlay -->
 <div class="pw-overlay" id="rollback-overlay">
   <div class="pw-box">
-    <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">↩ 重新退回</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;position:sticky;top:0;background:#fff;z-index:5;padding:.2rem 0"><div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">↩ 重新退回</div><button onclick="document.getElementById('rollback-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.9rem">選擇要退回的關卡並填寫原因。</div>
     <input type="hidden" id="rollback-report-id">
     <div id="rollback-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.6rem;display:none"></div>

@@ -690,7 +690,7 @@ textarea.form-input{resize:none}
     <!-- 資料管理 overlay -->
     <div class="detail-overlay" id="data-mgmt-overlay">
       <div class="detail-box" style="border-top-color:var(--blue);width:700px;max-height:90vh;overflow-y:auto">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
           <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">🗄️ 資料管理</div>
           <button onclick="closeDataMgmt()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
         </div>
@@ -980,7 +980,7 @@ textarea.form-input{resize:none}
 <!-- 更換派案人員 overlay -->
 <div class="confirm-overlay" id="chgsv-overlay">
   <div class="confirm-box" style="width:360px;text-align:left;border-top-color:var(--blue)">
-    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">🔄 更換派案人員</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem"><div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700">🔄 更換派案人員</div><button onclick="document.getElementById('chgsv-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem" id="chgsv-name-label">—</div>
     <input type="hidden" id="chgsv-user-id">
     <div id="chgsv-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
@@ -1000,7 +1000,7 @@ textarea.form-input{resize:none}
 <!-- 申請人詳細 Modal -->
 <div class="confirm-overlay" id="detail-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
   <div class="confirm-box" style="width:min(600px,96vw);text-align:left;border-top-color:var(--blue);max-height:90vh;overflow-y:auto;padding:1.25rem">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
       <div style="font-size:1.05rem;font-family:'Noto Serif TC',serif;font-weight:700">📋 申請人詳細資料</div>
       <button onclick="closeDetail()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
     </div>
@@ -1076,7 +1076,7 @@ textarea.form-input{resize:none}
 <!-- 公告新增/編輯 Modal -->
 <div class="confirm-overlay" id="ann-form-overlay" style="align-items:flex-start;padding:1rem;overflow-y:auto">
   <div class="confirm-box" style="width:min(580px,96vw);text-align:left;border-top-color:var(--blue);padding:1.5rem;max-height:90vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;position:sticky;top:0;background:#fff;z-index:5;padding:.35rem 0">
       <div style="font-size:1.05rem;font-weight:700;font-family:'Noto Serif TC',serif" id="ann-form-heading">📢 新增公告</div>
       <button onclick="closeAnnForm()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s)">✕</button>
     </div>
@@ -1151,7 +1151,7 @@ textarea.form-input{resize:none}
 <!-- 核准夥伴 - 指定派案人員 overlay -->
 <div class="confirm-overlay" id="approve-overlay">
   <div class="confirm-box" style="width:380px;text-align:left;border-top-color:var(--green)">
-    <div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700;margin-bottom:.25rem">✓ 核准工作夥伴</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem"><div style="font-size:1.1rem;font-family:'Noto Serif TC',serif;font-weight:700">✓ 核准工作夥伴</div><button onclick="document.getElementById('approve-overlay').classList.remove('open')" aria-label="關閉" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button></div>
     <div style="font-size:.82rem;color:var(--text-s);margin-bottom:1rem">請選擇負責此夥伴的派案人員</div>
     <input type="hidden" id="approve-user-id">
     <input type="hidden" id="approve-user-name">
@@ -1171,7 +1171,8 @@ textarea.form-input{resize:none}
 
 <!-- Confirm dialog -->
 <div class="confirm-overlay" id="confirm-overlay">
-  <div class="confirm-box">
+  <div class="confirm-box" style="position:relative">
+    <button onclick="document.getElementById('confirm-overlay').classList.remove('open')" aria-label="關閉" style="position:absolute;top:.8rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     <div style="font-size:2.5rem;margin-bottom:.5rem" id="confirm-icon">⚠️</div>
     <div class="confirm-title" id="confirm-title">確認操作</div>
     <div class="confirm-desc" id="confirm-desc">確定要執行此操作嗎？</div>

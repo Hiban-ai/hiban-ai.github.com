@@ -675,8 +675,8 @@ textarea.form-input{resize:none}
 
 <!-- 任務預設單價設定 overlay -->
 <div class="pw-overlay" id="task-price-overlay">
-  <div class="pw-box" style="width:340px;max-height:80vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:-1.75rem -1.75rem 1rem;padding:.9rem 1.75rem;border-radius:16px 16px 0 0;border-bottom:1px solid var(--border-l)">
+  <div class="pw-box" style="width:340px;max-height:80vh;overflow-y:auto;padding-top:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:0 -1.75rem 1rem;padding:1rem 1.75rem .8rem;border-bottom:1px solid var(--border-l)">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 任務預設單價</div>
       <button onclick="closeTaskPriceMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -691,8 +691,8 @@ textarea.form-input{resize:none}
 
 <!-- 自訂欄位管理 overlay -->
 <div class="pw-overlay" id="cf-overlay">
-  <div class="pw-box" style="width:480px;max-height:88vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:-1.75rem -1.75rem 1rem;padding:.9rem 1.75rem;border-radius:16px 16px 0 0;border-bottom:1px solid var(--border-l)">
+  <div class="pw-box" style="width:480px;max-height:88vh;overflow-y:auto;padding-top:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:0 -1.75rem 1rem;padding:1rem 1.75rem .8rem;border-bottom:1px solid var(--border-l)">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">⚙️ 自訂欄位管理<span id="cf-mgr-mode-label" style="font-size:.8rem;color:var(--text-s);font-weight:400"></span></div>
       <button onclick="closeCfMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -724,8 +724,8 @@ textarea.form-input{resize:none}
 </div>
 
 <div class="pw-overlay" id="ai-import-overlay">
-  <div class="pw-box" style="width:min(880px,96vw);max-height:92vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:-1.75rem -1.75rem 1rem;padding:.9rem 1.75rem;border-radius:16px 16px 0 0;border-bottom:1px solid var(--border-l)">
+  <div class="pw-box" style="width:min(880px,96vw);max-height:92vh;overflow-y:auto;padding-top:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:0 -1.75rem 1rem;padding:1rem 1.75rem .8rem;border-bottom:1px solid var(--border-l)">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🤖 任務匯入</div>
       <button onclick="closeAiImportMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -763,8 +763,8 @@ textarea.form-input{resize:none}
 
 <!-- AI 資料匯入（公司／任務＋單價 基礎資料） overlay -->
 <div class="pw-overlay" id="ai-base-overlay">
-  <div class="pw-box" style="width:min(680px,96vw);max-height:92vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:-1.75rem -1.75rem 1rem;padding:.9rem 1.75rem;border-radius:16px 16px 0 0;border-bottom:1px solid var(--border-l)">
+  <div class="pw-box" style="width:min(680px,96vw);max-height:92vh;overflow-y:auto;padding-top:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:#fff;z-index:5;margin:0 -1.75rem 1rem;padding:1rem 1.75rem .8rem;border-bottom:1px solid var(--border-l)">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">🗂️ 資料匯入</div>
       <button onclick="closeAiBaseMgr()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-s);line-height:1">✕</button>
     </div>
@@ -852,8 +852,8 @@ textarea.form-input{resize:none}
 
 <!-- 查看回報（重用任務紀錄卡片渲染） overlay -->
 <div class="pw-overlay" id="report-view-overlay">
-  <div class="pw-box" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;position:sticky;top:0;background:var(--bg);z-index:5;margin:-1.75rem -1.75rem 1rem;padding:.9rem 1.75rem;border-radius:16px 16px 0 0;border-bottom:1px solid var(--border-l)">
+  <div class="pw-box" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg);padding-top:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;position:sticky;top:0;background:var(--bg);z-index:5;margin:0 -1.75rem 1rem;padding:1rem 1.75rem .8rem;border-bottom:1px solid var(--border-l)">
       <div style="font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700">📁 回報內容</div>
       <div style="display:flex;align-items:center;gap:.6rem">
         <button id="report-view-goto" style="padding:.3rem .8rem;font-size:.78rem;font-weight:700;background:#fff;color:var(--blue-d);border:1.5px solid var(--blue);border-radius:14px;cursor:pointer;font-family:'Noto Sans TC',sans-serif">📂 前往任務紀錄頁</button>

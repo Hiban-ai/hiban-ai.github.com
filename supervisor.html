@@ -157,9 +157,11 @@ textarea.form-input{resize:none}
       const u2 = onSnapshot(grabQ, snap => {
         if (document.getElementById('page-assign-records')?.classList.contains('active') && typeof loadGrabHistory === 'function') loadGrabHistory();
       }, err => console.warn('[onSnapshot] grab_tasks', err.message));
-      // 註：announcements／reports 兩集合 Firestore 安全規則未開放 client 端讀取（已實測確認），
-      // 無替代訊號可用，暫維持原有「頁面切換時載入」行為，不做即時監聽
-      window._fsListenersSv = [u1, u2];
+      const annQ = query(collection(db, 'announcements'), where('target', 'in', ['all', 'supervisor']));
+      const u3 = onSnapshot(annQ, snap => { if (typeof loadAnnouncements === 'function') loadAnnouncements(); }, err => console.warn('[onSnapshot] announcements', err.message));
+      const repQ = query(collection(db, 'reports'), where('report_type', '==', 'supervisor'), where('supervisor_id', '==', supervisorId));
+      const u4 = onSnapshot(repQ, snap => { if (typeof syncIssueNotifyBar === 'function') syncIssueNotifyBar(); }, err => console.warn('[onSnapshot] reports', err.message));
+      window._fsListenersSv = [u1, u2, u3, u4];
       console.log('[onSnapshot] 派案人員即時監聽已啟動');
     } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }
   };

@@ -199,6 +199,29 @@ textarea.form-input{resize:none}
 .dp-empty{background:transparent!important;border:none!important;cursor:default!important}
 .dp-hint{font-size:.75rem;color:var(--text-s);margin-top:.5rem;min-height:1rem}
 </style>
+<!-- Firebase SDK for real-time onSnapshot（比照 partner/supervisor：有異動才觸發，非輪詢） -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  window._fsListenersSt = [];
+  window._initFirestoreSt = async function() {
+    try {
+      const cfg = await fetch('/api/firebase-config').then(r=>r.json());
+      if (!cfg.apiKey) { console.warn('[onSnapshot] FIREBASE_WEB_API_KEY 未設定，略過'); return; }
+      const app = initializeApp(cfg, 'hiban-client-st');
+      const db  = getFirestore(app);
+      // 註：users 集合含身分證/銀行帳號/密碼雜湊，故意不開放 client 端讀取，此處不監聽新帳號申請
+      const fgQ = query(collection(db, 'forgot_requests'), where('status', '==', 'pending'));
+      const u1 = onSnapshot(fgQ, snap => { if (typeof loadForgotRequests === 'function') loadForgotRequests(); }, err => console.warn('[onSnapshot] forgot_requests', err.message));
+      const repQ = query(collection(db, 'reports'), where('report_type', '==', 'admin'));
+      const u2 = onSnapshot(repQ, snap => { if (typeof syncIssueNotifyBar === 'function') syncIssueNotifyBar(); }, err => console.warn('[onSnapshot] reports', err.message));
+      const annQ = query(collection(db, 'announcements'), where('target', 'in', ['all', 'staff']));
+      const u3 = onSnapshot(annQ, snap => { if (typeof loadAnnouncements === 'function') loadAnnouncements(); }, err => console.warn('[onSnapshot] announcements', err.message));
+      window._fsListenersSt = [u1, u2, u3];
+      console.log('[onSnapshot] 管理人員即時監聽已啟動');
+    } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }
+  };
+</script>
 </head>
 <body>
 
@@ -1608,6 +1631,7 @@ async function init() {
   updateDashboard();
   loadAnnouncements(); // 背景載入，不阻塞主流程
   syncIssueNotifyBar();
+  if (window._initFirestoreSt) window._initFirestoreSt(); // 有異動才觸發（onSnapshot 即時監聽）
   // 重整後還原上次頁面
   const hash = location.hash.replace('#','');
   const pages = ['dashboard','accounts','forgot','payroll','tasks','reports','notices','settings','profile','issues','traffic'];

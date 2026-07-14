@@ -330,9 +330,14 @@ textarea.form-input{resize:none}
       }, err => console.warn('[onSnapshot] pending', err.message));
       const xpQ = query(collection(db, 'xp_logs'), where('userId', '==', meId));
       const u4 = onSnapshot(xpQ, snap => { if (typeof checkNewXPLog === 'function') checkNewXPLog(); }, err => console.warn('[onSnapshot] xp_logs', err.message));
-      // 註：announcements／reports 兩集合 Firestore 安全規則未開放 client 端讀取（已實測確認），
-      // 無替代訊號可用，暫維持原有「頁面切換時載入」行為，不做即時監聽
-      window._fsListeners = [u1, u2, u3, u4];
+      const annQ = query(collection(db, 'announcements'), where('target', 'in', ['all', 'partner']));
+      const u5 = onSnapshot(annQ, snap => { if (typeof loadAnnouncements === 'function') loadAnnouncements(); }, err => console.warn('[onSnapshot] announcements', err.message));
+      const repQ = query(collection(db, 'reports'), where('reporter_id', '==', meId));
+      const u6 = onSnapshot(repQ, snap => {
+        if (typeof syncPtIssueNotifyBar === 'function') syncPtIssueNotifyBar();
+        if (typeof loadIssuesPt === 'function' && document.getElementById('page-issues')?.classList.contains('active')) loadIssuesPt();
+      }, err => console.warn('[onSnapshot] reports', err.message));
+      window._fsListeners = [u1, u2, u3, u4, u5, u6];
       console.log('[onSnapshot] 即時監聽已啟動');
     } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }
   };

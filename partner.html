@@ -1265,6 +1265,7 @@ function buildTaskCards(list) {
         ${a.work_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">📅 執行：${fmtDay(a.work_date)}</span>` : ''}
         ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
+        ${a.dual_report ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:#EEE6FA;color:#6B3FA0">🔖 雙重回報</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.65rem;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.65rem">派案人員：${a.supervisor_name||'—'}</div>`}
       ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
@@ -1300,6 +1301,7 @@ function buildTaskCardsReadonly(list) {
         ${a.work_date ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--blue-p);color:var(--blue-d)">📅 執行：${fmtDay(a.work_date)}</span>` : ''}
         ${a.assign_type === 'hourly' ? `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">⏱️ 時薪 $${(a.hourly_wage||0).toLocaleString()}/小時</span>` : `<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--yellow-p);color:#8A6010">📦 ${a.quantity} 件・$${(a.unit_price||0).toLocaleString()}</span>`}
         ${a.assign_type==='all' ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:var(--orange-p);color:var(--orange)">📢 公開</span>' : ''}
+        ${a.dual_report ? '<span style="padding:.18rem .55rem;border-radius:4px;font-size:.72rem;font-weight:600;background:#EEE6FA;color:#6B3FA0">🔖 雙重回報</span>' : ''}
       </div>
       ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;white-space:pre-wrap">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s)">派案人員：${a.supervisor_name||'—'}</div>`}
       ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
@@ -1523,7 +1525,7 @@ function buildActiveCardsOverview(list) {
       + back
       + '<div style="position:relative;background:#fff;border-radius:var(--r);padding:.85rem 1rem;border-left:5px solid ' + m.color + ';box-shadow:0 4px 16px rgba(72,180,232,.12);display:flex;align-items:center;justify-content:space-between;gap:.75rem">'
       + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:.72rem;font-weight:700;color:' + m.color + ';margin-bottom:.2rem">' + m.label + countBadge + '</div>'
+      + '<div style="font-size:.72rem;font-weight:700;color:' + m.color + ';margin-bottom:.2rem">' + m.label + countBadge + (top.dual_report ? ' <span style="background:#EEE6FA;color:#6B3FA0;font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:8px">🔖雙重</span>' : '') + '</div>'
       + '<div style="font-family:serif;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + taskLabelNo(top) + '</div>'
       + '<div style="font-size:.72rem;color:var(--text-s);margin-top:.15rem">' + (reviewing ? '🔍 審核中' : '⚔️ 進行中') + (deadlineInfo ? ' &nbsp;·&nbsp; ' + deadlineInfo : '') + '</div>'
       + '</div>' + reportBtn + '</div>'

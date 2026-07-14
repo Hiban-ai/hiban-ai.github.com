@@ -296,13 +296,19 @@ textarea.form-input{resize:none}
 }
 #pt-exp-wrap.flash .pt-exp-track{animation:barFlash .9s steps(6)}
 @keyframes barFlash{0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 2px var(--level-color,#FFC845)}}
-#tco-levelup{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);z-index:9999;text-align:center;opacity:0;pointer-events:none}
-#tco-levelup.show{animation:levelUpPop .5s cubic-bezier(.34,1.56,.64,1) forwards}
-#tco-levelup .lu-main{font-family:'Noto Serif TC',serif;font-size:1.6rem;font-weight:800;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4)}
-#tco-levelup .lu-title{font-size:1rem;font-weight:700;color:#FFE9A8;margin-top:.25rem;opacity:0;animation:fadeIn .4s ease forwards;animation-delay:.3s}
-@keyframes levelUpPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)} 60%{opacity:1;transform:translate(-50%,-50%) scale(1.2)} 100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* 升等慶祝：全螢幕彩帶＋大字，恭喜升等／等級／職稱 */
+#levelup-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(20,20,40,.6);backdrop-filter:blur(3px)}
+#levelup-overlay.show{display:flex}
+#levelup-overlay .lvup-confetti{position:absolute;top:-10px;border-radius:2px;opacity:0;animation:gso-fall linear forwards}
+#levelup-overlay .lvup-text{text-align:center;opacity:0;transform:scale(.6) translateY(10px);transition:opacity .55s ease, transform .55s cubic-bezier(.34,1.56,.64,1)}
+#levelup-overlay.show .lvup-text.go{opacity:1;transform:scale(1) translateY(0)}
+#levelup-overlay .lvup-badge{font-size:3.8rem;line-height:1;margin-bottom:.4rem;display:inline-block;animation:lvupBadgeSpin 1s cubic-bezier(.34,1.56,.64,1)}
+#levelup-overlay .lvup-headline{font-family:'Noto Serif TC',serif;font-size:2rem;font-weight:800;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.45);margin-bottom:.6rem;letter-spacing:.05em}
+#levelup-overlay .lvup-level{font-family:'Noto Serif TC',serif;font-size:3.4rem;font-weight:900;text-shadow:0 3px 18px rgba(0,0,0,.5);margin-bottom:.4rem}
+#levelup-overlay .lvup-rank{font-size:1.5rem;font-weight:700;color:#FFE9A8;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+@keyframes lvupBadgeSpin{0%{opacity:0;transform:scale(.2) rotate(-30deg)} 60%{opacity:1;transform:scale(1.3) rotate(10deg)} 100%{opacity:1;transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion: reduce){
-  #task-complete-overlay,#task-complete-overlay #tco-card,#tco-xpfly,#tco-levelup,#tco-company,#tco-title,#tco-congrats,.lu-title{animation-duration:.2s !important;transition-duration:.2s !important}
+  #task-complete-overlay,#task-complete-overlay #tco-card,#tco-xpfly,#tco-company,#tco-title,#tco-congrats,#levelup-overlay .lvup-text,#levelup-overlay .lvup-badge{animation-duration:.2s !important;transition-duration:.2s !important}
 }
 </style>
 <!-- Firebase SDK for real-time onSnapshot -->
@@ -364,9 +370,13 @@ textarea.form-input{resize:none}
   </div>
 </div>
 <div id="tco-xpfly"></div>
-<div id="tco-levelup">
-  <div class="lu-main"></div>
-  <div class="lu-title"></div>
+<div id="levelup-overlay">
+  <div class="lvup-text">
+    <div class="lvup-badge">👑</div>
+    <div class="lvup-headline">🎉 恭喜升等！</div>
+    <div class="lvup-level"></div>
+    <div class="lvup-rank"></div>
+  </div>
 </div>
 
 <!-- 認領成功動畫 -->
@@ -2515,12 +2525,8 @@ async function playCompletionAnimation(data) {
   animateXPBarTo(newInfo);
   if (data.levelUp) {
     await wait(900);
-    showLevelUp(data.newLevel, data.newLevelTitle, data.newLevelColor);
-    showGrabSuccessOverlay(null); // 升等彩帶慶祝
-    document.getElementById('gso-grabno').textContent = '';
-    document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 升等！';
-    await wait(1800);
-    document.querySelector('#grab-success-overlay .gso-title').textContent = '🎉 恭喜認領成功！';
+    celebrateLevelUp(data.newLevel, data.newLevelTitle, data.newLevelColor);
+    await wait(3700);
   } else {
     await wait(800);
   }
@@ -2547,15 +2553,36 @@ function flyXPToBar(xpFinal, multiplier, card) {
   fly.classList.add('fly');
 }
 
-function showLevelUp(level, title, color) {
-  const el = document.getElementById('tco-levelup');
-  el.querySelector('.lu-main').textContent = '升等！Lv.' + (level-1) + ' → Lv.' + level;
-  el.querySelector('.lu-title').textContent = title;
-  el.querySelector('.lu-main').style.color = color;
-  el.classList.remove('show');
-  void el.offsetWidth;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 1700);
+// 升等慶祝：全螢幕彩帶＋大字顯示「恭喜升等！Lv.X／職稱」
+function celebrateLevelUp(level, title, color) {
+  const overlay = document.getElementById('levelup-overlay');
+  const text = overlay.querySelector('.lvup-text');
+  overlay.querySelectorAll('.lvup-confetti').forEach(el => el.remove());
+  overlay.classList.remove('show');
+  text.classList.remove('go');
+  const levelEl = overlay.querySelector('.lvup-level');
+  levelEl.textContent = 'Lv. ' + level;
+  levelEl.style.color = color || '#FFC845';
+  overlay.querySelector('.lvup-rank').textContent = title || '';
+  const colors = ['#1A8AC0','#48B4E8','#F07840','#FFC845','#3CB371','#E05555','#9B59B6'];
+  for (let i = 0; i < 110; i++) {
+    const c = document.createElement('div');
+    c.className = 'lvup-confetti';
+    const size = 6 + Math.random() * 9;
+    c.style.width = size + 'px';
+    c.style.height = (size * (0.4 + Math.random()*0.6)) + 'px';
+    c.style.left = (Math.random() * 100) + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = (1.8 + Math.random() * 1.4) + 's';
+    c.style.animationDelay = (Math.random() * 0.5) + 's';
+    overlay.appendChild(c);
+  }
+  overlay.classList.add('show');
+  setTimeout(() => text.classList.add('go'), 500);
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    overlay.querySelectorAll('.lvup-confetti').forEach(el => el.remove());
+  }, 3600);
 }
 
 function hideCompletionOverlay() {

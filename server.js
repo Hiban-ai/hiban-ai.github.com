@@ -2272,6 +2272,9 @@ app.post('/api/reports', requireRole('partner'), async (req, res) => {
 
 app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) => {
   try {
+    const cacheKey = 'sup-reviews-' + req.session.user.id; // sup- 前綴：任務/回報異動的 cacheClear('sup-') 會一併失效
+    const cached = cacheGet(cacheKey);
+    if (cached) return res.json(cached);
     const list = await WorklogReports.pendingForSupervisor(req.session.user.id);
     const enriched = await Promise.all(list.map(async r => {
       const a = await Assignments.byId(r.assignment_id);
@@ -2300,6 +2303,7 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
         custom_fields: a ? (a.custom_fields || []) : [],
       };
     }));
+    cacheSet(cacheKey, enriched, 45 * 1000);
     res.json(enriched);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

@@ -39,6 +39,35 @@ async function signOut() {
   location.href = '/index.html';
 }
 
+// 登出前二次確認（畫面正中央彈窗）；自動登出（如午夜自動登出）請直接呼叫 signOut()，不要走這個
+function confirmSignOut() {
+  let modal = document.getElementById('_signout_confirm_modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = '_signout_confirm_modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    modal.onclick = e => { if (e.target === modal) closeSignOutConfirm(); };
+    modal.addEventListener('keydown', e => { if (e.key === 'Escape') closeSignOutConfirm(); });
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div role="dialog" aria-modal="true" aria-label="確認登出" style="background:#fff;border-radius:20px;width:min(340px,92vw);padding:1.75rem;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center;border-top:4px solid #E05555">
+      <div style="font-size:2.3rem;margin-bottom:.5rem">🚪</div>
+      <div style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:#333;margin-bottom:.4rem">確定要登出嗎？</div>
+      <div style="font-size:.85rem;color:#888;margin-bottom:1.4rem">登出後需要重新輸入帳號密碼才能繼續使用</div>
+      <div style="display:flex;gap:.6rem">
+        <button onclick="closeSignOutConfirm()" style="flex:1;padding:.7rem;background:#f2f2f2;color:#555;border:none;border-radius:12px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit">取消</button>
+        <button onclick="signOut()" style="flex:1;padding:.7rem;background:#E05555;color:#fff;border:none;border-radius:12px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit">確定登出</button>
+      </div>
+    </div>`;
+  modal.style.display = 'flex';
+  modal.querySelector('button').focus();
+}
+function closeSignOutConfirm() {
+  const modal = document.getElementById('_signout_confirm_modal');
+  if (modal) modal.style.display = 'none';
+}
+
 // ── 公告已讀追蹤 ──────────────────────────────────────────────
 function getReadIds(userId) {
   try { return JSON.parse(localStorage.getItem(`ann_read_${userId}`) || '[]'); } catch { return []; }

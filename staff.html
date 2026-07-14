@@ -228,7 +228,7 @@ textarea.form-input{resize:none}
 <!-- Mobile topbar -->
 <div class="mobile-topbar">
   <div style="display:flex;align-items:center;gap:.5rem">
-    <button onclick="signOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
+    <button onclick="confirmSignOut()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif">🚪 登出</button>
     <span style="font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff">希絆雲作所</span>
   </div>
   <span style="font-size:.78rem;color:rgba(255,255,255,.7)">🧹 管理人員</span>
@@ -265,7 +265,7 @@ textarea.form-input{resize:none}
         <div class="st-menu-item" onclick="switchPage('profile',this)"><span class="mi-icon">🧑</span>個人資料</div>
       </div>
     </div>
-    <div class="st-logout" onclick="signOut()"><span>🚪</span>登出</div>
+    <div class="st-logout" onclick="confirmSignOut()"><span>🚪</span>登出</div>
   </div>
 
   <!-- Main -->

@@ -1208,22 +1208,25 @@ async function loadStaffGrab() {
     const list = await API.get('/api/grab-tasks/all');
     if (!list.length) { wrap.innerHTML = '<div style="color:var(--text-s);font-size:.85rem">尚無搶單任務</div>'; return; }
     const recordsList = await Promise.all(list.map(t => API.get(`/api/grab-tasks/${t.id}/records`).catch(() => [])));
-    wrap.innerHTML = list.map((t, i) => {
+    const nowStr = new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
+    const cardHtml = (t, records) => {
       const remaining = t.qty_unlimited ? null : (t.total_slots - t.grabbed_count);
       const pct       = t.qty_unlimited ? 0 : Math.round((t.grabbed_count / t.total_slots) * 100);
       const modeLabel = t.pick_mode ? '挑選' : '數量';
-      const expired   = t.deadline && t.deadline <= new Date().toISOString().slice(0,16).replace('T',' ').replace(/-/g,'/');
-      const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : 'var(--green)';
-      const statusLabel = t.status === 'closed' ? '已取消' : expired ? '已截止' : '開放中';
-      const records = recordsList[i] || [];
-      // 挑選模式：直接列出每張卡片（代號-編號），已選灰掉標被誰選
+      const expired   = t.deadline && t.deadline <= nowStr;
+      const isFull    = !t.qty_unlimited && remaining <= 0;
+      const statusColor = t.status === 'closed' ? 'var(--text-s)' : expired ? 'var(--orange)' : isFull ? 'var(--orange)' : 'var(--green)';
+      const statusLabel = t.status === 'closed' ? '已取消' : expired ? '已截止' : isFull ? '已額滿' : '開放中';
+      // 挑選模式：直接列出每張卡片（代號-編號），已選灰掉標被誰選；已選卡可點看完整歷程
       const pickHtml = t.pick_mode
         ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.4rem;margin-top:.5rem">${(t.slot_data||[]).map((s, idx) => {
             const codeNo = s.full_code ? s.full_code.split('-') : null;
             const codeBadge = codeNo ? `<span style="color:var(--blue-d)">${codeNo[0]}</span>-<span style="color:#C8901A">${codeNo[1]}</span>` : ('#'+(idx+1));
-            return `<div style="border:1.5px solid var(--border);border-radius:10px;padding:.4rem .5rem;background:${s.claimed?'#f3f4f6':'#fff'};font-size:.72rem">
+            const rec = s.claimed ? (records || []).find(r => String(r.grab_no) === String(s.grab_no || s.item_no)) : null;
+            const clickable = rec && rec.assignment_id;
+            return `<div ${clickable ? `onclick="showTaskDetail(${rec.assignment_id})" title="點擊查看完整歷程"` : ''} style="border:1.5px solid var(--border);border-radius:10px;padding:.4rem .5rem;background:${s.claimed?'#f3f4f6':'#fff'};font-size:.72rem;${clickable ? 'cursor:pointer' : ''}">
               <div style="font-weight:700">${codeBadge}</div>
-              <div style="margin-top:.15rem;color:${s.claimed?'var(--text-s)':'var(--green)'}">${s.claimed ? '👤 '+(s.claimed_by_name||'—') : '可選'}</div>
+              <div style="margin-top:.15rem;color:${s.claimed?'var(--text-s)':'var(--green)'}">${s.claimed ? '👤 '+(s.claimed_by_name||'—')+(clickable?' ›':'') : '可選'}</div>
               ${s.work_date ? `<div style="margin-top:.1rem;color:var(--text-s)">📅 ${s.work_date}</div>` : ''}
             </div>`;
           }).join('')}</div>`
@@ -1254,8 +1257,40 @@ async function loadStaffGrab() {
         <div style="font-size:.72rem;color:var(--text-s);margin-top:.3rem">${t.pick_mode ? '🃏 挑選模式 ・ ' : '🔢 數量模式 ・ '}已認領 ${t.grabbed_count}${t.qty_unlimited ? ' 件（不限）' : '，剩餘 '+remaining+' 件'}</div>
         ${grabbersHtml}
       </div>`;
+    };
+    // 依狀態分區（與派案人員一致）：開放中（預設展開）／已額滿／已截止／已取消（預設收合）
+    const isExpiredT = t => t.deadline && t.deadline <= nowStr;
+    const isFullT    = t => !t.qty_unlimited && ((t.total_slots || 0) - (t.grabbed_count || 0)) <= 0;
+    const pairs = list.map((t, i) => ({ t, records: recordsList[i] || [] }));
+    const sections = [
+      { key: 'open',    label: '🟢 開放中', color: 'var(--green)',  items: pairs.filter(p => p.t.status !== 'closed' && !isExpiredT(p.t) && !isFullT(p.t)), defOpen: true },
+      { key: 'full',    label: '🈵 已額滿', color: 'var(--orange)', items: pairs.filter(p => p.t.status !== 'closed' && !isExpiredT(p.t) && isFullT(p.t)),  defOpen: false },
+      { key: 'expired', label: '⏰ 已截止', color: 'var(--orange)', items: pairs.filter(p => p.t.status !== 'closed' && isExpiredT(p.t)),                   defOpen: false },
+      { key: 'closed',  label: '✖ 已取消', color: 'var(--red)',    items: pairs.filter(p => p.t.status === 'closed'),                                       defOpen: false },
+    ];
+    wrap.innerHTML = sections.filter(s => s.items.length).map(s => {
+      const gid = 'stgrab-sec-' + s.key;
+      const open = (gid in _stGrabExpanded) ? _stGrabExpanded[gid] : s.defOpen;
+      _stGrabExpanded[gid] = open;
+      return `
+      <div style="margin-bottom:.9rem">
+        <div onclick="stGrabToggle('${gid}')" style="cursor:pointer;display:flex;align-items:center;gap:.55rem;padding:.6rem .9rem;background:#fff;border-radius:var(--r);box-shadow:var(--shadow);border-left:5px solid ${s.color};margin-bottom:.6rem">
+          <span style="font-weight:700;font-size:.92rem">${s.label}</span>
+          <span style="font-size:.8rem;font-weight:700;padding:.1rem .55rem;border-radius:10px;background:${s.color}22;color:${s.color}">${s.items.length}</span>
+          <span id="${gid}-arr" style="margin-left:auto;color:var(--text-s);font-size:.85rem">${open ? '▲' : '▼'}</span>
+        </div>
+        <div id="${gid}" style="display:${open ? '' : 'none'}">${s.items.map(p => cardHtml(p.t, p.records)).join('')}</div>
+      </div>`;
     }).join('');
   } catch(e) { console.error('[staffGrab]', e.message); }
+}
+let _stGrabExpanded = {};
+function stGrabToggle(gid) {
+  _stGrabExpanded[gid] = !_stGrabExpanded[gid];
+  const el = document.getElementById(gid);
+  if (el) el.style.display = _stGrabExpanded[gid] ? '' : 'none';
+  const arr = document.getElementById(gid + '-arr');
+  if (arr) arr.textContent = _stGrabExpanded[gid] ? '▲' : '▼';
 }
 
 // ── 自由任務資訊（管理員，一個代號多個編號，收合可展開）──────────────
@@ -2921,34 +2956,58 @@ async function showTaskDetail(id) {
   try { reports = await API.get('/api/reports/' + id); } catch(e) {}
   const stLabel = r => r.dual_report ? (r.stage === 1 ? '第一階段回報（附件）' : '第二階段回報') : '回報';
   const rStatus = { pending: ['審核中','var(--blue)'], approved: ['已核可','var(--green)'], rejected: ['已退回','var(--red)'] };
-  const evs = [];
-  if (a.created_at)  evs.push({ t: a.created_at,  h: tdMilestone('📮', '派案', a.created_at) });
-  if (a.accepted_at) evs.push({ t: a.accepted_at, h: tdMilestone('🤝', '接案', a.accepted_at) });
+  const evs = []; // { t, stage(0=非雙重/1/2), h }
   reports.forEach(r => {
     const [sl, sc] = rStatus[r.status] || [r.status || '—', 'var(--text-s)'];
     let inner = '';
     if (r.url) inner += `<div><span style="color:var(--text-s)">網址：</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>`;
     if (r.notes) inner += `<div><span style="color:var(--text-s)">說明：</span>${r.notes}</div>`;
     if (r.assign_type !== 'hourly' && r.completed_qty) inner += `<div><span style="color:var(--text-s)">完成數量：</span>${r.completed_qty} 件</div>`;
-    if (r.stage_attachments && r.stage_attachments.length) inner += tdAtts(r.stage_attachments);
-    if (r.images && r.images.length) inner += tdImgs(r.images);
-    // 第一階段核可回覆（附在已核可的第一階段回報下）
+    // 附件只放核可的（被退回的回報不顯示附件/圖片）
+    if (r.status === 'approved') {
+      if (r.stage_attachments && r.stage_attachments.length) inner += tdAtts(r.stage_attachments);
+      if (r.images && r.images.length) inner += tdImgs(r.images);
+    }
+    // 第一階段核可說明（附在已核可的第一階段回報下）
     if (r.dual_report && r.stage === 1 && r.status === 'approved' && (a.stage1_reply_note || (a.stage1_reply_attachments && a.stage1_reply_attachments.length))) {
       inner += `<div style="margin-top:.35rem;background:var(--green-p);border:1px solid #B5DDC0;border-radius:6px;padding:.35rem .5rem">
-        <div style="font-size:.72rem;color:#2E7D56;font-weight:700">第一階段核可回覆</div>
+        <div style="font-size:.72rem;color:#2E7D56;font-weight:700">核可說明</div>
         ${a.stage1_reply_note ? `<div style="font-size:.8rem;color:#2E7D56;white-space:pre-wrap">${a.stage1_reply_note}</div>` : ''}
         ${tdAtts(a.stage1_reply_attachments)}</div>`;
     }
-    evs.push({ t: r.created_at, h: tdEvent('📝', stLabel(r), r.created_at, sl, sc, inner) });
+    evs.push({ t: r.created_at, stage: a.dual_report ? (r.stage || 1) : 0, h: tdEvent('📝', stLabel(r), r.created_at, sl, sc, inner) });
   });
+  // 退回意見：雙重回報依時間歸屬階段（第二階段首筆回報之前＝第一階段），每階段內編號「第 N 次退回」
+  const s2Start = reports.filter(r => r.dual_report && r.stage === 2).map(r => r.created_at || '').sort()[0] || null;
+  const cmtByStage = { 0: [], 1: [], 2: [] };
   (a.supervisor_comments || []).forEach(c => {
     const t = (c.date || '') + ' ' + (c.time || '');
-    evs.push({ t, h: tdEvent('↩️', '退回意見', t, '退回', 'var(--red)', `<div style="white-space:pre-wrap">${c.text || ''}</div>${tdAtts(c.attachments)}`) });
+    const st = a.dual_report ? ((s2Start && t > s2Start) ? 2 : 1) : 0;
+    cmtByStage[st].push({ t, c });
   });
-  if (a.completed_at) evs.push({ t: a.completed_at, h: tdMilestone('✅', '完成', a.completed_at) });
-  evs.sort((x, y) => (x.t || '').localeCompare(y.t || ''));
+  Object.keys(cmtByStage).forEach(st => {
+    cmtByStage[st].sort((p, q) => p.t.localeCompare(q.t)).forEach((x, i) => {
+      evs.push({ t: x.t, stage: parseInt(st), h: tdEvent('↩️', `第 ${i + 1} 次退回`, x.t, '退回', 'var(--red)', `<div style="white-space:pre-wrap">${x.c.text || ''}</div>${tdAtts(x.c.attachments)}`) });
+    });
+  });
+  const byT = (x, y) => (x.t || '').localeCompare(y.t || '');
+  let headHtml = '';
+  if (a.created_at)  headHtml += tdMilestone('📮', '派案', a.created_at);
+  if (a.accepted_at) headHtml += tdMilestone('🤝', '接案', a.accepted_at);
+  const tailHtml = a.completed_at ? tdMilestone('✅', '完成', a.completed_at) : '';
+  let evHtml;
+  if (a.dual_report) {
+    // 雙重回報：分「第一階段／第二階段」兩個區塊
+    const secHdr = label => `<div style="margin:.7rem 0 .4rem;font-size:.82rem;font-weight:700;color:#6B3FA0;background:#EEE6FA;border-radius:8px;padding:.32rem .65rem">${label}</div>`;
+    const empty = '<div style="color:var(--text-s);font-size:.82rem;padding:.2rem .1rem">尚無紀錄</div>';
+    const s1 = evs.filter(e => e.stage === 1).sort(byT).map(e => e.h).join('');
+    const s2 = evs.filter(e => e.stage === 2).sort(byT).map(e => e.h).join('');
+    evHtml = secHdr('🔖 第一階段（附件）') + (s1 || empty) + secHdr('🔖 第二階段（成果）') + (s2 || empty);
+  } else {
+    evHtml = evs.sort(byT).map(e => e.h).join('');
+  }
   const timeline = `<div style="margin-top:.9rem;font-weight:700;font-size:.85rem;color:var(--text-m);border-top:1px solid var(--border);padding-top:.7rem;margin-bottom:.5rem">🕒 完整歷程</div>`
-    + (evs.length ? evs.map(e => e.h).join('') : '<div style="color:var(--text-s);font-size:.82rem">尚無歷程</div>');
+    + ((headHtml + evHtml + tailHtml) || '<div style="color:var(--text-s);font-size:.82rem">尚無歷程</div>');
   document.getElementById('task-detail-body').innerHTML = body + timeline;
 }
 function closeTaskDetail() {

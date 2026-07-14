@@ -2368,6 +2368,8 @@ async function init() {
   syncIssueNotifyBar();
   loadAlerts();
   loadDashboard();
+  loadTaskReviews(); // 讓側邊欄待審核紅點一登入就顯示，不必先點過該頁
+  setInterval(loadTaskReviews, 30000); // 30 秒輪詢，讓夥伴送出回報後自動顯示（比照夥伴端 loadTasks 輪詢）
 }
 init();
 

@@ -138,6 +138,24 @@ textarea.form-input{resize:none}
 .acc-tab{padding:.55rem 1.1rem;background:transparent;border:none;color:var(--text-s);font-size:.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2.5px solid transparent}
 .acc-tab.active{color:var(--blue-d);font-weight:700;border-bottom-color:var(--blue)}
 </style>
+<!-- Firebase SDK for real-time onSnapshot（比照 partner.html：有異動才觸發，非輪詢） -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  window._fsListenersSv = [];
+  window._initFirestoreSv = async function(supervisorId) {
+    try {
+      const cfg = await fetch('/api/firebase-config').then(r=>r.json());
+      if (!cfg.apiKey) { console.warn('[onSnapshot] FIREBASE_WEB_API_KEY 未設定，略過'); return; }
+      const app = initializeApp(cfg, 'hiban-client-sv');
+      const db  = getFirestore(app);
+      const reviewQ = query(collection(db, 'worklog_reports'), where('supervisor_id', '==', supervisorId));
+      const u1 = onSnapshot(reviewQ, snap => { if (typeof loadTaskReviews === 'function') loadTaskReviews(); }, err => console.warn('[onSnapshot] worklog_reports', err.message));
+      window._fsListenersSv = [u1];
+      console.log('[onSnapshot] 派案人員即時監聽已啟動');
+    } catch(e) { console.warn('[onSnapshot] 初始化失敗', e.message); }
+  };
+</script>
 </head>
 <body>
 
@@ -2369,7 +2387,8 @@ async function init() {
   loadAlerts();
   loadDashboard();
   loadTaskReviews(); // 讓側邊欄待審核紅點一登入就顯示，不必先點過該頁
-  setInterval(loadTaskReviews, 30000); // 30 秒輪詢，讓夥伴送出回報後自動顯示（比照夥伴端 loadTasks 輪詢）
+  if (window._initFirestoreSv) window._initFirestoreSv(me.id); // 有異動才觸發（onSnapshot 即時監聽，主要機制）
+  setInterval(loadTaskReviews, 30000); // 30 秒輪詢作備援（比照夥伴端），命中快取成本很低
 }
 init();
 

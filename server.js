@@ -533,7 +533,8 @@ app.get('/api/profile', requireAuth, async (req, res) => {
 app.put('/api/profile', requireAuth, async (req, res) => {
   try {
     const role    = req.session.user.role;
-    const allowed = ['phone','address','mailing_address','email'];
+    // 電子信箱未來為登入帳號，本人不可自行修改（需由工作人員代改）
+    const allowed = ['phone','address','mailing_address'];
     const patch   = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) patch[f] = req.body[f]; });
     await Users.update(req.session.user.id, patch);
@@ -925,6 +926,20 @@ app.put('/api/admin/users/:id/reset-password', requireRole('staff'), async (req,
     const id = parseInt(req.params.id);
     await Users.update(id, { password_hash: bcrypt.hashSync('0000', 10), is_first_login: true });
     await ForgotReqs.resolveByUser(id);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 電子信箱本人不可改，由工作人員代為修正（未來為登入帳號）
+app.put('/api/admin/users/:id/update-email', requireRole('staff'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const email = String((req.body && req.body.email) || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: '電子信箱格式不正確' });
+    const u = await Users.byId(id);
+    if (!u) return res.status(404).json({ error: '找不到此帳號' });
+    await Users.update(id, { email });
+    await logTaskAction(req, '修改信箱', `${u.real_name}（${u.username}）信箱改為 ${email}`, { type: 'user', id });
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

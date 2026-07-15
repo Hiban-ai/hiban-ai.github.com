@@ -308,7 +308,8 @@ textarea.form-input{resize:none}
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">身分證</label><input class="form-input" id="sv-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">生日</label><input class="form-input" id="sv-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="sv-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
-          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" type="email" id="sv-prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="example@mail.com"></div>
+          <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" type="email" id="sv-prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="example@mail.com" title="電子信箱不可自行修改，如需變更請聯絡工作人員"></div>
+          <div style="font-size:.72rem;color:var(--text-s);margin:-.3rem 0 0 calc(80px + .75rem)">🔒 電子信箱不可自行修改（未來為登入帳號），如需變更請聯絡工作人員</div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="sv-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
         </div>
         <div id="sv-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
@@ -2273,13 +2274,13 @@ function setSvFieldEditable(ids, on) {
   });
 }
 function toggleSvProfEdit() {
-  setSvFieldEditable(['sv-prof-phone','sv-prof-email','sv-prof-address'], true);
+  setSvFieldEditable(['sv-prof-phone','sv-prof-address'], true);
   document.getElementById('sv-prof-edit-btn').style.display = 'none';
   document.getElementById('sv-prof-save-row').style.display = 'flex';
 }
 function cancelSvProfEdit() {
   fillSvProfile(svProfData);
-  setSvFieldEditable(['sv-prof-phone','sv-prof-email','sv-prof-address'], false);
+  setSvFieldEditable(['sv-prof-phone','sv-prof-address'], false);
   document.getElementById('sv-prof-edit-btn').style.display = '';
   document.getElementById('sv-prof-save-row').style.display = 'none';
 }
@@ -2287,11 +2288,9 @@ async function saveSvProfile() {
   try {
     await API.put('/api/profile', {
       phone:   document.getElementById('sv-prof-phone').value,
-      email:   document.getElementById('sv-prof-email').value.trim(),
       address: document.getElementById('sv-prof-address').value,
     });
     svProfData.phone   = document.getElementById('sv-prof-phone').value;
-    svProfData.email   = document.getElementById('sv-prof-email').value.trim();
     svProfData.address = document.getElementById('sv-prof-address').value;
     cancelSvProfEdit();
     showToast('個人資料已儲存', 'success');

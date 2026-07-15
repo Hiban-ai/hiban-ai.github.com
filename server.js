@@ -2308,6 +2308,30 @@ app.get('/api/reports/supervisor', requireRole('supervisor'), async (req, res) =
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 限量任務為共用任務池，任一派案人員皆可查看任一筆完成回報（不限本人負責的夥伴）
+// 一般指派(件/小時)不適用：那些的回報審核權限仍只屬於夥伴自己的派案人員
+app.get('/api/reports/grab/:assignmentId', requireRole('supervisor','staff'), async (req, res) => {
+  try {
+    const assignmentId = parseInt(req.params.assignmentId);
+    const a = await Assignments.byId(assignmentId);
+    if (!a || a.assign_type !== 'grab') return res.status(404).json({ error: '找不到限量任務回報' });
+    const list = (await WorklogReports.forAssignment(assignmentId)).filter(r => r.status === 'approved');
+    const u = a.accepted_by ? await Users.byId(a.accepted_by) : null;
+    const enriched = list.map(r => ({
+      ...r,
+      task_name: a.task_name, company: a.company || '', task_quantity: a.task_quantity,
+      partner_name: u ? u.real_name : '—', partner_id: a.accepted_by,
+      assigned_at: a.assigned_at, accepted_at: a.accepted_at, deadline_date: a.deadline_date,
+      completed_at: a.completed_at, assign_type: a.assign_type,
+      work_content: a.work_content, work_date: a.work_date || null,
+      hourly_wage: a.hourly_wage, total_price: a.total_price || 0, extra_reward: a.extra_reward || 0,
+      grab_no: a.grab_no, task_no: a.task_no || null, full_code: a.full_code || null,
+      task_code: a.task_code || null, custom_fields: a.custom_fields || [],
+    }));
+    res.json(enriched);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => {
   try {
     const list = await WorklogReports.approvedForSupervisor(req.session.user.id);

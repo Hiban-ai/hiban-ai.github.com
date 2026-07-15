@@ -1799,7 +1799,7 @@ async function toggleGrabRec(taskId) {
           <span style="font-size:.85rem;font-weight:600">${r.partner_name}</span>
           <span style="font-size:.72rem;color:var(--text-s)">📌 ${(r.grabbed_at||'').slice(0,16)}</span>
           <span style="font-size:.72rem;color:var(--text-s);margin-left:auto">${stLabel[r.status]||r.status}</span>
-          ${(r.status === 'completed' && r.assignment_id) ? `<button onclick="openReportView(${r.partner_id || 0},${r.assignment_id})" style="flex-shrink:0;padding:.15rem .55rem;font-size:.72rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報</button>` : ''}
+          ${(r.status === 'completed' && r.assignment_id) ? `<button onclick="openReportView(${r.partner_id || 0},${r.assignment_id},true)" style="flex-shrink:0;padding:.15rem .55rem;font-size:.72rem;font-weight:700;background:var(--green-p);color:var(--green);border:1.5px solid var(--green);border-radius:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">📁 查看回報</button>` : ''}
         </div>`).join('')
       : '<div style="font-size:.82rem;color:var(--text-s)">尚無人認領</div>';
     el.innerHTML = `
@@ -2092,19 +2092,29 @@ function renderAssignCards(list, containerId) {
     }).join('');
 }
 // 查看回報彈窗：不換頁，重用任務紀錄卡片渲染；「前往任務紀錄頁」可再跳全頁
-async function openReportView(partnerId, assignmentId) {
+// isGrab=true：限量任務為共用任務池，任一派案人員皆可查看（不限本人負責的夥伴），
+// 走專屬端點、不進 _taskRecordsCache、不提供「前往任務紀錄頁」（該頁僅列本人負責的夥伴）
+async function openReportView(partnerId, assignmentId, isGrab) {
   const body = document.getElementById('report-view-body');
   body.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">載入中…</div>';
   const goto = document.getElementById('report-view-goto');
-  if (goto) goto.onclick = () => {
-    document.getElementById('report-view-overlay').classList.remove('open');
-    jumpToTaskRecord(partnerId, assignmentId);
-  };
+  if (goto) {
+    goto.style.display = isGrab ? 'none' : '';
+    goto.onclick = () => {
+      document.getElementById('report-view-overlay').classList.remove('open');
+      jumpToTaskRecord(partnerId, assignmentId);
+    };
+  }
   document.getElementById('report-view-overlay').classList.add('open');
   try {
-    const approved = mergeApprovedReports(await API.get('/api/reports/approved'));
-    _taskRecordsCache.approved = approved;
-    const cards = approved.filter(r => r.assignment_id === assignmentId);
+    let cards;
+    if (isGrab) {
+      cards = mergeApprovedReports(await API.get(`/api/reports/grab/${assignmentId}`));
+    } else {
+      const approved = mergeApprovedReports(await API.get('/api/reports/approved'));
+      _taskRecordsCache.approved = approved;
+      cards = approved.filter(r => r.assignment_id === assignmentId);
+    }
     body.innerHTML = cards.length ? cards.map(taskRecordCardHtml).join('') : '<div style="color:var(--text-s);font-size:.85rem;padding:1rem">找不到回報紀錄</div>';
   } catch(e) { body.innerHTML = `<div style="color:var(--red);font-size:.85rem;padding:1rem">${e.message}</div>`; }
 }

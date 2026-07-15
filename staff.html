@@ -867,20 +867,22 @@ textarea.form-input{resize:none}
           <button onclick="closeDeactivate()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
         </div>
         <div id="deactivate-name" style="font-size:.9rem;font-weight:700;margin-bottom:.85rem;color:var(--text-m)"></div>
-        <div class="form-group">
-          <label class="form-label">停用日期</label>
-          <input id="deactivate-start" type="date" class="form-input" onchange="updateSuspendUntil()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">停用天數</label>
-          <select id="deactivate-days" class="form-input" onchange="updateSuspendUntil()">
-            <option value="7">7 天</option>
-            <option value="14">14 天</option>
-            <option value="30" selected>30 天</option>
-            <option value="60">60 天</option>
-            <option value="90">90 天</option>
-            <option value="永久">永久停用</option>
-          </select>
+        <div id="deact-schedule-fields">
+          <div class="form-group">
+            <label class="form-label">停用日期</label>
+            <input id="deactivate-start" type="date" class="form-input" onchange="updateSuspendUntil()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">停用天數</label>
+            <select id="deactivate-days" class="form-input" onchange="updateSuspendUntil()">
+              <option value="7">7 天</option>
+              <option value="14">14 天</option>
+              <option value="30" selected>30 天</option>
+              <option value="60">60 天</option>
+              <option value="90">90 天</option>
+              <option value="永久">永久停用</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">違規理由</label>
@@ -892,7 +894,7 @@ textarea.form-input{resize:none}
             <option value="其他">其他</option>
           </select>
         </div>
-        <div style="font-size:.82rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#fff3f3;border:1.5px solid var(--red);border-radius:var(--rs);line-height:1.7">
+        <div id="deactivate-until-box" style="font-size:.82rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#fff3f3;border:1.5px solid var(--red);border-radius:var(--rs);line-height:1.7">
           停用期間帳號無法登入。解除日期：<strong id="deactivate-until-show">—</strong>
         </div>
         <div style="display:flex;gap:.5rem">
@@ -2032,7 +2034,7 @@ function roleActions(u) {
   }
   if (u.role === 'staff') {
     if (isSelf) return detail;
-    if (u.username === 'admin' && !isAdmin) return detail;
+    if (!isAdmin) return detail; // 停用/封存/啟用管理人員帳號僅限系統管理員
     const reset = isAdmin ? resetBtn : '';
     if (u.status === 'active')     return detail + stopBtn + reset + archiveBtn;
     if (u.status === 'suspended')  return detail + unsuspendBtn + reset + archiveBtn;
@@ -2121,14 +2123,23 @@ async function submitApprove() {
   } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
 }
 let _deactivateId = null;
+let _deactivateRole = 'partner';
 function deactivateUser(id, name) {
   _deactivateId = id;
+  const u = usersCache.find(x => x.id === id);
+  _deactivateRole = u ? u.role : 'partner';
+  const isPartnerTarget = _deactivateRole === 'partner';
   document.getElementById('deactivate-name').textContent = `停用對象：${name}`;
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('deactivate-start').value = today;
   document.getElementById('deactivate-days').value = '30';
   document.getElementById('deactivate-reason').value = '違反合作規範';
-  updateSuspendUntil();
+  // 停用日期/天數規則僅適用工作夥伴；派案/管理人員只需填理由（需手動解除）
+  document.getElementById('deact-schedule-fields').style.display = isPartnerTarget ? '' : 'none';
+  document.getElementById('deactivate-until-box').innerHTML = isPartnerTarget
+    ? '停用期間帳號無法登入。解除日期：<strong id="deactivate-until-show">—</strong>'
+    : '停用期間帳號無法登入，需手動解除停用。';
+  if (isPartnerTarget) updateSuspendUntil();
   document.getElementById('deactivate-overlay').classList.add('open');
 }
 function updateSuspendUntil() {
@@ -2146,11 +2157,16 @@ function closeDeactivate() {
 }
 async function confirmDeactivate() {
   if (!_deactivateId) return;
-  const suspended_at   = document.getElementById('deactivate-start').value;
-  const suspend_days   = document.getElementById('deactivate-days').value;
   const suspend_reason = document.getElementById('deactivate-reason').value;
+  const payload = _deactivateRole === 'partner'
+    ? {
+        suspended_at: document.getElementById('deactivate-start').value,
+        suspend_days: document.getElementById('deactivate-days').value,
+        suspend_reason,
+      }
+    : { suspend_reason }; // 派案/管理人員：只填理由，無期限（手動解除）
   try {
-    await API.put(`/api/admin/users/${_deactivateId}/deactivate`, { suspended_at, suspend_days, suspend_reason });
+    await API.put(`/api/admin/users/${_deactivateId}/deactivate`, payload);
     showToast('已停用帳號', 'warn');
     closeDeactivate();
     loadAccounts();

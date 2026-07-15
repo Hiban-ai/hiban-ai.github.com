@@ -808,6 +808,9 @@ app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req,
 
 app.put('/api/admin/users/:id/deactivate', requireRole('staff'), async (req, res) => {
   try {
+    const target = await Users.byId(parseInt(req.params.id));
+    if (target && target.role === 'staff' && !req.session.user.is_admin)
+      return res.status(403).json({ error: '僅系統管理員可停用管理人員帳號' });
     const { suspend_days, suspend_reason, suspended_at } = req.body || {};
     const startDate = suspended_at || nowTW().split('T')[0];
     const days = suspend_days === '永久' || !suspend_days ? null : parseInt(suspend_days);
@@ -830,6 +833,9 @@ app.put('/api/admin/users/:id/deactivate', requireRole('staff'), async (req, res
 // 解除停用
 app.put('/api/admin/users/:id/unsuspend', requireRole('staff'), async (req, res) => {
   try {
+    const target = await Users.byId(parseInt(req.params.id));
+    if (target && target.role === 'staff' && !req.session.user.is_admin)
+      return res.status(403).json({ error: '僅系統管理員可解除管理人員停用' });
     await Users.update(parseInt(req.params.id), {
       status: 'active',
       suspended_at: null, suspend_days: null, suspend_reason: null, suspend_until: null,
@@ -844,6 +850,9 @@ app.put('/api/admin/users/:id/archive-user', requireRole('staff'), async (req, r
   try {
     const id = parseInt(req.params.id);
     if (id === req.session.user.id) return res.status(400).json({ error: '無法封存自己的帳號' });
+    const target = await Users.byId(id);
+    if (target && target.role === 'staff' && !req.session.user.is_admin)
+      return res.status(403).json({ error: '僅系統管理員可封存管理人員帳號' });
     const archiveDate = nowTW().split('T')[0];
     const retainUntil = (() => {
       const d = new Date(archiveDate); d.setFullYear(d.getFullYear() + 5);
@@ -863,6 +872,9 @@ app.put('/api/admin/users/:id/archive-user', requireRole('staff'), async (req, r
 // 解封帳號（恢復為 inactive，再由 staff 手動啟用）
 app.put('/api/admin/users/:id/unarchive-user', requireRole('staff'), async (req, res) => {
   try {
+    const target = await Users.byId(parseInt(req.params.id));
+    if (target && target.role === 'staff' && !req.session.user.is_admin)
+      return res.status(403).json({ error: '僅系統管理員可解封管理人員帳號' });
     await Users.update(parseInt(req.params.id), {
       status: 'inactive',
       archived_at: null, data_retain_until: null,

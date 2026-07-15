@@ -1677,7 +1677,7 @@ function handleReportImages(input) {
   const thumbs = document.getElementById('report-thumbnails');
   files.forEach(file => {
     if (reportImages.length >= 6) { showToast('最多上傳 6 張圖片', 'warn'); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} 超過 5MB，略過`, 'warn'); return; }
+    if (file.size > 10 * 1024 * 1024) { showToast(`${file.name} 超過 10MB，略過`, 'warn'); return; }
     const reader = new FileReader();
     reader.onload = e => {
       // 壓縮圖片到最寬 900px、品質 0.75

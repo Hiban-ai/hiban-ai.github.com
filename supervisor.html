@@ -1266,7 +1266,9 @@ async function loadTaskReviews() {
           ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s);width:80px;display:inline-block">${f.label}</span>${linkify(f.value)}</div>`).join('')}
         </div>
         ${r.images && r.images.length ? `
-        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+        <div style="margin-bottom:.75rem">
+          ${r.dual_report ? `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.3rem">第二階段附件：</div>` : ''}
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem">
           ${r.images.map((img,i) => `
             <div style="width:80px">
               <img src="${img.data}" alt="${img.name}"
@@ -1276,6 +1278,7 @@ async function loadTaskReviews() {
               <div style="font-size:.65rem;color:var(--text-s);margin-top:.2rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${img.name||''}">${img.name||''}</div>
             </div>
           `).join('')}
+          </div>
         </div>` : ''}
         ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一階段附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
         <div style="display:flex;gap:.5rem;margin-top:.5rem">
@@ -4026,7 +4029,9 @@ function taskRecordCardHtml(r) {
       </div>
       ${(r.stage_attachments && r.stage_attachments.length) ? `<div style="margin-bottom:.6rem"><span style="font-size:.8rem;color:var(--text-s)">第一階段附件：</span>${attachmentsHtml(r.stage_attachments)}</div>` : ''}
       ${r.images && r.images.length ? `
-      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+      <div style="margin-bottom:.6rem">
+        ${r.dual_report ? `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.3rem">第二階段附件：</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem">
         ${r.images.map(img => `
           <div style="width:80px">
             <img src="${img.data}" alt="${img.name}"
@@ -4036,6 +4041,7 @@ function taskRecordCardHtml(r) {
             <div style="font-size:.65rem;color:var(--text-s);margin-top:.2rem;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${img.name||''}">${img.name||''}</div>
           </div>
         `).join('')}
+        </div>
       </div>` : ''}
       <div style="display:flex;justify-content:flex-end;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--border)">
         <button onclick="openRollback(${r.id})" style="padding:.45rem 1rem;background:#fff;color:var(--orange);border:1.5px solid var(--orange);border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">↩ 重新退回</button>

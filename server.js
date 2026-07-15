@@ -795,8 +795,12 @@ app.put('/api/admin/users/:id/set-supervisor', requireRole('staff'), async (req,
     const sv = await Users.byId(parseInt(supervisor_id));
     if (!sv || sv.role !== 'supervisor') return res.status(400).json({ error: '無效的派案人員' });
     await Users.update(id, { supervisor_id: parseInt(supervisor_id) });
+    // 該夥伴既有的派案/回報紀錄(含歷史)一併轉給新派案人員可見；誰實際核可的(approved_by)欄位不受影響
+    const movedCount = await Assignments.reassignSupervisor(id, parseInt(supervisor_id));
     cacheDel('users-list'); // 改派案人員會影響派案人員範圍的下拉，需清快取
-    res.json({ ok: true });
+    cacheClear('sup-'); // 紀錄轉移影響新舊派案人員的儀表板/派案紀錄/任務審核快取
+    await logTaskAction(req, '更換派案人員', `夥伴 #${id} → 派案人員 ${sv.real_name}（轉移 ${movedCount} 筆紀錄）`, { type: 'user', id });
+    res.json({ ok: true, moved: movedCount });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -2327,6 +2331,8 @@ app.get('/api/reports/grab/:assignmentId', requireRole('supervisor','staff'), as
       hourly_wage: a.hourly_wage, total_price: a.total_price || 0, extra_reward: a.extra_reward || 0,
       grab_no: a.grab_no, task_no: a.task_no || null, full_code: a.full_code || null,
       task_code: a.task_code || null, custom_fields: a.custom_fields || [],
+      approved_by_name: a.approved_by_name || null,
+      stage1_approved_by_name: a.stage1_approved_by_name || null,
     }));
     res.json(enriched);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -2364,6 +2370,8 @@ app.get('/api/reports/approved', requireRole('supervisor'), async (req, res) => 
         full_code:     a ? (a.full_code || null) : null,
         task_code:     a ? (a.task_code || null) : null,
         custom_fields: a ? (a.custom_fields || []) : [],
+        approved_by_name: a ? (a.approved_by_name || null) : null,
+        stage1_approved_by_name: a ? (a.stage1_approved_by_name || null) : null,
       };
     }));
     res.json(enriched);
@@ -2390,12 +2398,17 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
           report_stage: 1, review_status: null,
           stage1_reply_note: replyNote,
           stage1_reply_attachments: replyAtts,
+          stage1_approved_by: req.session.user.id,
+          stage1_approved_by_name: req.session.user.real_name,
         });
         cacheClear('sup-');
         await logTaskAction(req, '核可第一階段回報', `回報 #${id}`, { type: 'report', id });
         return res.json({ ok: true, stage: 1 });
       }
-      const patch = { status: 'completed', completed_at: nowTW(), review_status: 'approved' };
+      const patch = {
+        status: 'completed', completed_at: nowTW(), review_status: 'approved',
+        approved_by: req.session.user.id, approved_by_name: req.session.user.real_name,
+      };
       // 額外獎勵（所有任務類型）：總額 = 基底 + 額外；基底 = 目前總額 − 既有額外（退回再核可重算冪等）
       if (aPrev) {
         const baseTotal = aPrev.assign_type === 'free'

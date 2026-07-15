@@ -286,6 +286,23 @@ const Assignments = {
       .where('accepted_by','==',userId).where('status','==','completed').get();
     return snap.size;
   },
+  // 換派案人員：該夥伴既有紀錄(含歷史)一併轉給新派案人員可見；誰實際核可的(approved_by)不受影響
+  async reassignSupervisor(partnerId, newSupervisorId) {
+    const [acceptedSnap, targetSnap] = await Promise.all([
+      db.collection('assignments').where('accepted_by','==',partnerId).get(),
+      db.collection('assignments').where('target_partner_id','==',partnerId).get(),
+    ]);
+    const docs = new Map();
+    acceptedSnap.docs.forEach(d => docs.set(d.id, d));
+    targetSnap.docs.forEach(d => docs.set(d.id, d));
+    const refs = [...docs.values()];
+    for (let i = 0; i < refs.length; i += 450) { // Firestore batch 上限 500，留餘裕
+      const batch = db.batch();
+      refs.slice(i, i + 450).forEach(d => batch.update(d.ref, { supervisor_id: newSupervisorId }));
+      await batch.commit();
+    }
+    return refs.length;
+  },
 };
 
 // ── WorklogReports ────────────────────────────────────────────

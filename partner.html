@@ -1528,7 +1528,7 @@ function buildActiveCardsOverview(list) {
   var groups = { assign:[], grab:[], free:[] };
   list.forEach(function(a){ groups[taskCat(a)].push(a); });
   Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return (b.accepted_at||b.created_at||'').localeCompare(a.accepted_at||a.created_at||''); }); });
-  return ['assign','grab','free'].filter(function(k){ return groups[k].length; }).map(function(k){
+  return ['assign','grab'].filter(function(k){ return groups[k].length; }).map(function(k){ // 自由任務已停用：不再於總覽顯示（保留 free 分類邏輯以相容舊資料）
     var arr = groups[k], m = META[k], top = arr[0], n = arr.length;
     var reviewing = top.review_status === 'reviewing';
     var taskName = (top.task_name || '').replace(/'/g, '&#39;');

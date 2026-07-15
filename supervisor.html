@@ -4016,8 +4016,8 @@ function taskRecordCardHtml(r) {
         ${r.assign_type !== 'hourly' ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">總金額</span><strong style="color:var(--green)">$${(r.total_price||0).toLocaleString()}</strong></div>` : ''}
         ${r.url ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">回報網址</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
         ${r.notes ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">說明</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
-        ${(r.dual_report && r.stage1_approved_by_name) ? `<div><span style="color:var(--text-s);width:80px;display:inline-block;white-space:nowrap">第一階段</span>${r.stage1_approved_by_name}</div>` : ''}
-        ${r.approved_by_name ? `<div><span style="color:var(--text-s);width:80px;display:inline-block;white-space:nowrap">${r.dual_report ? '第二階段' : '審核人員'}</span>${r.approved_by_name}</div>` : ''}
+        ${(r.dual_report && r.stage1_approved_by_name) ? `<div><span style="color:var(--text-s);width:112px;display:inline-block;white-space:nowrap">第一階段審核</span>${r.stage1_approved_by_name}</div>` : ''}
+        ${r.approved_by_name ? `<div><span style="color:var(--text-s);width:112px;display:inline-block;white-space:nowrap">${r.dual_report ? '第二階段審核' : '審核派案人員'}</span>${r.approved_by_name}</div>` : ''}
         ${r.accepted_at   ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">接案日期</span>${fmtDate(r.accepted_at)}</div>`   : ''}
         ${r.assign_type !== 'hourly' && r.deadline_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">完成期限</span>${fmtDay(r.deadline_date)}</div>` : ''}
         ${r.work_date ? `<div><span style="color:var(--text-s);width:80px;display:inline-block">執行日期</span>${fmtDay(r.work_date)}</div>` : ''}

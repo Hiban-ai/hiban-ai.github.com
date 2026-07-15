@@ -1830,7 +1830,7 @@ async function openDetail(id) {
     ${row('通訊地址', u.mailing_address || u.address)}
     ${row('身份別', u.identity||'—')}
     ${isPartner ? row('負責派案人員', svName) : ''}
-    ${(me.is_admin && u.role === 'staff') ? row('系統管理員', u.is_admin ? '✅ 是' : '—') : ''}
+    ${(me.is_admin && u.role === 'staff') ? `<div class="det-row"><span class="det-label">系統管理員</span><span class="det-val" id="det-admin-val">${u.is_admin ? '✅ 是' : '—'}</span><button id="det-admin-btn" onclick="toggleUserAdmin(${u.id})" style="margin-left:.4rem;padding:.15rem .55rem;border-radius:12px;border:1px solid ${u.is_admin ? 'var(--red)' : 'var(--blue)'};background:transparent;color:${u.is_admin ? 'var(--red)' : 'var(--blue-d)'};font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;flex-shrink:0">${u.is_admin ? '取消身分' : '⬆️ 提升'}</button></div>` : ''}
     ${row('狀態', statusLabel[u.status]||u.status)}
     ${row('申請時間', u.created_at)}
     ${bankBlock}
@@ -1891,6 +1891,30 @@ async function openDetail(id) {
 
 function row(label, val) {
   return `<div class="det-row"><span class="det-label">${label}</span><span class="det-val">${val||'—'}</span></div>`;
+}
+
+// 系統管理員可將既有管理人員提升／取消系統管理員身分（重新登入後生效）
+async function toggleUserAdmin(id) {
+  const u = usersCache.find(x => x.id === id);
+  if (!u) return;
+  const on = !u.is_admin;
+  const msg = on
+    ? `確定要將「${u.real_name}」提升為系統管理員？\n提升後可管理 admin 帳號、修改信箱與提權，該帳號重新登入即生效。`
+    : `確定要取消「${u.real_name}」的系統管理員身分？\n取消後重新登入即生效。`;
+  if (!confirm(msg)) return;
+  try {
+    await API.put(`/api/admin/users/${id}/set-admin`, { is_admin: on });
+    u.is_admin = on;
+    const valEl = document.getElementById('det-admin-val');
+    if (valEl) valEl.textContent = on ? '✅ 是' : '—';
+    const btn = document.getElementById('det-admin-btn');
+    if (btn) {
+      btn.textContent = on ? '取消身分' : '⬆️ 提升';
+      btn.style.borderColor = on ? 'var(--red)' : 'var(--blue)';
+      btn.style.color = on ? 'var(--red)' : 'var(--blue-d)';
+    }
+    showToast(on ? '已提升為系統管理員' : '已取消系統管理員身分', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
 }
 
 // 電子信箱本人不可改，由工作人員在此代為修正（未來為登入帳號）

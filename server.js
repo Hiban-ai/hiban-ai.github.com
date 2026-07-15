@@ -946,6 +946,22 @@ app.put('/api/admin/users/:id/update-email', requireRole('staff'), async (req, r
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 系統管理員可將既有管理人員提升／取消系統管理員身分
+app.put('/api/admin/users/:id/set-admin', requireRole('staff'), async (req, res) => {
+  try {
+    if (!req.session.user.is_admin) return res.status(403).json({ error: '僅系統管理員可調整此權限' });
+    const id = parseInt(req.params.id);
+    const on = !!(req.body && req.body.is_admin);
+    const u = await Users.byId(id);
+    if (!u) return res.status(404).json({ error: '找不到此帳號' });
+    if (u.role !== 'staff') return res.status(400).json({ error: '僅管理人員帳號可設定系統管理員' });
+    if (!on && id === req.session.user.id) return res.status(400).json({ error: '不能取消自己的系統管理員身分' });
+    await Users.update(id, { is_admin: on });
+    await logTaskAction(req, on ? '提升系統管理員' : '取消系統管理員', `${u.real_name}（${u.username}）`, { type: 'user', id });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/admin/forgot-requests', requireRole('staff'), async (req, res) => {
   try {
     const rows = await ForgotReqs.pending();

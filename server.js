@@ -2396,6 +2396,7 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
         const replyAtts = await uploadTaskAttachments((req.body && req.body.reply_attachments) || []);
         await Assignments.update(r.assignment_id, {
           report_stage: 1, review_status: null,
+          stage1_attachments: r.stage_attachments || [],
           stage1_reply_note: replyNote,
           stage1_reply_attachments: replyAtts,
           stage1_approved_by: req.session.user.id,

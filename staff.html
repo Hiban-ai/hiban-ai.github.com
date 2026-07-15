@@ -980,7 +980,7 @@ textarea.form-input{resize:none}
         <input type="hidden" id="cu-birthday">
       </div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱</label><input class="form-input" id="cu-email" placeholder="選填" type="email" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-email" placeholder="例：example@gmail.com（未來為登入帳號）" type="email" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">戶籍地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1" oninput="cuSyncMailing()"></div>
       <div style="display:flex;align-items:center;gap:.75rem">
         <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">通訊地址</label>
@@ -1825,11 +1825,12 @@ async function openDetail(id) {
     ${row('身分證', u.id_number)}
     ${row('生日', u.birthday)}
     ${row('電話', u.phone)}
-    <div class="det-row"><span class="det-label">信箱</span><span class="det-val" id="det-email-val">${u.email||'—'}</span><button onclick="editUserEmail(${u.id})" style="margin-left:.4rem;padding:.15rem .55rem;border-radius:12px;border:1px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;flex-shrink:0">✏️ 修改</button></div>
+    <div class="det-row"><span class="det-label">信箱</span><span class="det-val" id="det-email-val">${u.email||'—'}</span>${me.is_admin ? `<button onclick="editUserEmail(${u.id})" style="margin-left:.4rem;padding:.15rem .55rem;border-radius:12px;border:1px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;flex-shrink:0">✏️ 修改</button>` : ''}</div>
     ${row('戶籍地址', u.address)}
     ${row('通訊地址', u.mailing_address || u.address)}
     ${row('身份別', u.identity||'—')}
     ${isPartner ? row('負責派案人員', svName) : ''}
+    ${(me.is_admin && u.role === 'staff') ? row('系統管理員', u.is_admin ? '✅ 是' : '—') : ''}
     ${row('狀態', statusLabel[u.status]||u.status)}
     ${row('申請時間', u.created_at)}
     ${bankBlock}
@@ -2327,6 +2328,8 @@ async function submitCreateUser() {
   if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
   if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
   if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
+  if (!email)     { err.textContent='請填寫電子信箱（未來為登入帳號）'; err.style.display='block'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='電子信箱格式不正確'; err.style.display='block'; return; }
   try {
     const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, mailing_address, is_admin });
     closeCreateUser();

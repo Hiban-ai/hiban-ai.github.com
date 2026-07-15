@@ -670,6 +670,7 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
     const { role, real_name, id_number, birthday, phone, email, address, mailing_address, identity, is_admin } = req.body;
     if (!['supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (!real_name || !id_number || !birthday || !phone) return res.status(400).json({ error: 'Missing required fields' });
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) return res.status(400).json({ error: '請填寫正確的電子信箱（未來為登入帳號）' });
     // 只有 system admin 才能建立 is_admin 帳號
     if (is_admin && !req.session.user.is_admin) return res.status(403).json({ error: '權限不足' });
     const prefix   = role === 'supervisor' ? 'sv' : 'st';
@@ -930,9 +931,10 @@ app.put('/api/admin/users/:id/reset-password', requireRole('staff'), async (req,
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 電子信箱本人不可改，由工作人員代為修正（未來為登入帳號）
+// 電子信箱本人不可改，僅系統管理員可代為修正（未來為登入帳號）
 app.put('/api/admin/users/:id/update-email', requireRole('staff'), async (req, res) => {
   try {
+    if (!req.session.user.is_admin) return res.status(403).json({ error: '僅系統管理員可修改電子信箱' });
     const id = parseInt(req.params.id);
     const email = String((req.body && req.body.email) || '').trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: '電子信箱格式不正確' });

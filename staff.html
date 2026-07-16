@@ -886,13 +886,18 @@ textarea.form-input{resize:none}
         </div>
         <div class="form-group">
           <label class="form-label">違規理由</label>
-          <select id="deactivate-reason" class="form-input">
+          <select id="deactivate-reason" class="form-input" onchange="toggleDeactOther()">
             <option value="違反合作規範">違反合作規範</option>
             <option value="工作品質不佳">工作品質不佳</option>
             <option value="多次缺席或失聯">多次缺席或失聯</option>
             <option value="違反保密協議">違反保密協議</option>
             <option value="其他">其他</option>
           </select>
+        </div>
+        <div class="form-group" id="deact-other-row" style="display:none">
+          <label class="form-label">其他理由 <span style="color:var(--red)">＊必填</span></label>
+          <textarea id="deactivate-reason-other" class="form-input" rows="2" placeholder="請說明停用理由" style="resize:vertical;font-family:'Noto Sans TC',sans-serif" oninput="document.getElementById('deact-other-err').style.display='none'"></textarea>
+          <div id="deact-other-err" style="display:none;color:var(--red);font-size:.8rem;margin-top:.25rem">請填寫停用理由</div>
         </div>
         <div id="deactivate-until-box" style="font-size:.82rem;color:var(--text-s);margin-bottom:.85rem;padding:.5rem .75rem;background:#fff3f3;border:1.5px solid var(--red);border-radius:var(--rs);line-height:1.7">
           停用期間帳號無法登入。解除日期：<strong id="deactivate-until-show">—</strong>
@@ -2140,6 +2145,8 @@ function deactivateUser(id, name) {
     : ['職務調整／離職','違反公司規範','帳號安全疑慮','長期未使用','其他'];
   reasonSel.innerHTML = reasons.map(r => `<option value="${r}">${r}</option>`).join('');
   reasonSel.value = reasons[0];
+  document.getElementById('deactivate-reason-other').value = '';
+  toggleDeactOther();
   // 停用日期/天數規則僅適用工作夥伴；派案/管理人員只需填理由（需手動解除）
   document.getElementById('deact-schedule-fields').style.display = isPartnerTarget ? '' : 'none';
   document.getElementById('deactivate-until-box').innerHTML = isPartnerTarget
@@ -2161,9 +2168,24 @@ function closeDeactivate() {
   document.getElementById('deactivate-overlay').classList.remove('open');
   _deactivateId = null;
 }
+// 選「其他」時顯示必填的理由欄
+function toggleDeactOther() {
+  const isOther = document.getElementById('deactivate-reason').value === '其他';
+  document.getElementById('deact-other-row').style.display = isOther ? '' : 'none';
+  if (!isOther) document.getElementById('deact-other-err').style.display = 'none';
+}
 async function confirmDeactivate() {
   if (!_deactivateId) return;
-  const suspend_reason = document.getElementById('deactivate-reason').value;
+  let suspend_reason = document.getElementById('deactivate-reason').value;
+  if (suspend_reason === '其他') {
+    const other = document.getElementById('deactivate-reason-other').value.trim();
+    if (!other) {
+      document.getElementById('deact-other-err').style.display = '';
+      document.getElementById('deactivate-reason-other').focus();
+      return;
+    }
+    suspend_reason = '其他：' + other;
+  }
   const payload = _deactivateRole === 'partner'
     ? {
         suspended_at: document.getElementById('deactivate-start').value,

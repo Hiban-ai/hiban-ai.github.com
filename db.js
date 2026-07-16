@@ -151,6 +151,18 @@ const Users = {
     await db.collection('users').doc(String(id)).update(patch);
     return this.byId(id);
   },
+  // 信箱在同一角色內須唯一（三角色各自獨立檢查）；已退回/已封存帳號不佔用
+  async emailTakenInRole(email, role, excludeId) {
+    if (!email) return false;
+    const norm = String(email).trim().toLowerCase();
+    const snap = await db.collection('users').where('role','==',role).get();
+    return snap.docs.some(d => {
+      const u = d.data();
+      return u.id !== excludeId
+        && !['rejected','archived'].includes(u.status)
+        && String(u.email || '').trim().toLowerCase() === norm;
+    });
+  },
   // 核准工作夥伴時配發永久編號（從 1 開始），已有編號則不變
   async assignPartnerNo(id) {
     const u = await this.byId(id);

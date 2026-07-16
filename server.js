@@ -600,6 +600,8 @@ app.post('/api/register', async (req, res) => {
     const { email, gender, nickname, identity, bank_type, bank_code, bank_name, bank_branch, bank_account, bank_holder, post_office_code,
             mailing_address, id_front_b64, id_back_b64, bank_b64, disability_b64 } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
+    if (await Users.emailTakenInRole(email, 'partner'))
+      return res.status(400).json({ error: '此電子信箱已有工作夥伴帳號使用，請改用其他信箱' });
     const base     = real_name.charCodeAt(0).toString(36);
     const username = await generateUsername('user_' + base);
     const newUser = await Users.create({
@@ -671,6 +673,8 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
     if (!['supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (!real_name || !id_number || !birthday || !phone) return res.status(400).json({ error: 'Missing required fields' });
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) return res.status(400).json({ error: '請填寫正確的電子信箱（未來為登入帳號）' });
+    if (await Users.emailTakenInRole(email, role))
+      return res.status(400).json({ error: `此電子信箱已有${role === 'supervisor' ? '派案人員' : '管理人員'}帳號使用，請改用其他信箱` });
     // 只有 system admin 才能建立 is_admin 帳號
     if (is_admin && !req.session.user.is_admin) return res.status(403).json({ error: '權限不足' });
     const prefix   = role === 'supervisor' ? 'sv' : 'st';
@@ -952,6 +956,10 @@ app.put('/api/admin/users/:id/update-email', requireRole('staff'), async (req, r
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: '電子信箱格式不正確' });
     const u = await Users.byId(id);
     if (!u) return res.status(404).json({ error: '找不到此帳號' });
+    if (await Users.emailTakenInRole(email, u.role, id)) {
+      const roleName = { partner: '工作夥伴', supervisor: '派案人員', staff: '管理人員' }[u.role] || u.role;
+      return res.status(400).json({ error: `此電子信箱已有${roleName}帳號使用，請改用其他信箱` });
+    }
     await Users.update(id, { email });
     await logTaskAction(req, '修改信箱', `${u.real_name}（${u.username}）信箱改為 ${email}`, { type: 'user', id });
     res.json({ ok: true });

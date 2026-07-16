@@ -2133,7 +2133,13 @@ function deactivateUser(id, name) {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('deactivate-start').value = today;
   document.getElementById('deactivate-days').value = '30';
-  document.getElementById('deactivate-reason').value = '違反合作規範';
+  // 理由選項依對象區分：夥伴用合作面理由，派案/管理人員用內部人事面理由
+  const reasonSel = document.getElementById('deactivate-reason');
+  const reasons = isPartnerTarget
+    ? ['違反合作規範','工作品質不佳','多次缺席或失聯','違反保密協議','其他']
+    : ['職務調整／離職','違反公司規範','帳號安全疑慮','長期未使用','其他'];
+  reasonSel.innerHTML = reasons.map(r => `<option value="${r}">${r}</option>`).join('');
+  reasonSel.value = reasons[0];
   // 停用日期/天數規則僅適用工作夥伴；派案/管理人員只需填理由（需手動解除）
   document.getElementById('deact-schedule-fields').style.display = isPartnerTarget ? '' : 'none';
   document.getElementById('deactivate-until-box').innerHTML = isPartnerTarget

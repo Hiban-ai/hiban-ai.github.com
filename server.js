@@ -159,10 +159,22 @@ app.get('/api/users-list', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
-    const user = await Users.byName(username);
-    if (!user) return res.status(401).json({ error: 'Account not found' });
+    const { username, email, role, password } = req.body;
+    if ((!username && !email) || !password) return res.status(400).json({ error: 'Missing fields' });
+    let user;
+    if (email) {
+      // 信箱登入：依角色頁籤分開查（同信箱可同時有三種角色帳號）
+      if (!['partner','supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Missing role' });
+      const input = String(email).trim();
+      user = input.includes('@')
+        ? await Users.byEmailRole(input, role)
+        : await Users.byName(input); // 相容：無信箱的舊帳號（如 admin）可輸入帳號名
+      if (user && user.role !== role) return res.status(401).json({ error: '找不到此角色的帳號，請確認選對登入頁籤' });
+      if (!user) return res.status(401).json({ error: '找不到此電子信箱的帳號，請確認信箱與登入頁籤' });
+    } else {
+      user = await Users.byName(username);
+      if (!user) return res.status(401).json({ error: 'Account not found' });
+    }
     if (user.status === 'pending')  return res.status(403).json({ error: 'Account pending approval' });
     if (user.status === 'archived') return res.status(403).json({ error: 'Account archived' });
     if (user.status === 'inactive') return res.status(403).json({ error: 'Account disabled' });
@@ -533,7 +545,7 @@ app.get('/api/profile', requireAuth, async (req, res) => {
 app.put('/api/profile', requireAuth, async (req, res) => {
   try {
     const role    = req.session.user.role;
-    // 電子信箱未來為登入帳號，本人不可自行修改（需由工作人員代改）
+    // 電子信箱此信箱即登入帳號，本人不可自行修改（需由工作人員代改）
     const allowed = ['phone','address','mailing_address'];
     const patch   = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) patch[f] = req.body[f]; });
@@ -672,7 +684,7 @@ app.post('/api/admin/users/create', requireRole('staff'), async (req, res) => {
     const { role, real_name, id_number, birthday, phone, email, address, mailing_address, identity, is_admin } = req.body;
     if (!['supervisor','staff'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (!real_name || !id_number || !birthday || !phone) return res.status(400).json({ error: 'Missing required fields' });
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) return res.status(400).json({ error: '請填寫正確的電子信箱（未來為登入帳號）' });
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) return res.status(400).json({ error: '請填寫正確的電子信箱（此信箱即登入帳號）' });
     if (await Users.emailTakenInRole(email, role))
       return res.status(400).json({ error: `此電子信箱已有${role === 'supervisor' ? '派案人員' : '管理人員'}帳號使用，請改用其他信箱` });
     // 只有 system admin 才能建立 is_admin 帳號
@@ -947,7 +959,7 @@ app.put('/api/admin/users/:id/reset-password', requireRole('staff'), async (req,
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// 電子信箱本人不可改，僅系統管理員可代為修正（未來為登入帳號）
+// 電子信箱本人不可改，僅系統管理員可代為修正（此信箱即登入帳號）
 app.put('/api/admin/users/:id/update-email', requireRole('staff'), async (req, res) => {
   try {
     if (!req.session.user.is_admin) return res.status(403).json({ error: '僅系統管理員可修改電子信箱' });

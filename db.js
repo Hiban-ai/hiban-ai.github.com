@@ -141,6 +141,18 @@ const Users = {
     const snap = await db.collection('users').where('username','==',username).limit(1).get();
     return snap.empty ? null : snap.docs[0].data();
   },
+  // 信箱登入：同角色內找帳號（大小寫不敏感）；若歷史資料有重複，優先取啟用中的
+  async byEmailRole(email, role) {
+    const norm = String(email).trim().toLowerCase();
+    if (!norm) return null;
+    const snap = await db.collection('users').where('role','==',role).get();
+    const matches = snap.docs.map(d => d.data())
+      .filter(u => String(u.email || '').trim().toLowerCase() === norm);
+    if (!matches.length) return null;
+    return matches.find(u => u.status === 'active')
+        || matches.find(u => !['archived','rejected'].includes(u.status))
+        || matches[0];
+  },
   async create(data) {
     const id   = await nextId('users');
     const user = { id, created_at: now(), ...data };

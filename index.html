@@ -121,8 +121,8 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
   <div class="form-panel active" id="panel-partner" data-role="partner" role="tabpanel" aria-labelledby="rtab-partner">
     <div class="error-msg" id="err-partner" role="alert"></div>
     <div class="form-group">
-      <label class="form-label" for="sel-partner">選擇帳號</label>
-      <select class="form-select" id="sel-partner"><option value="">— 載入中 —</option></select>
+      <label class="form-label" for="sel-partner">電子信箱（Mail）</label>
+      <input class="form-input" type="email" id="sel-partner" placeholder="例：example@gmail.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin('partner')">
     </div>
     <div class="form-group">
       <label class="form-label" for="pw-partner">密碼</label>
@@ -142,8 +142,8 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
   <div class="form-panel" id="panel-supervisor" data-role="supervisor" role="tabpanel" aria-labelledby="rtab-supervisor">
     <div class="error-msg" id="err-supervisor" role="alert"></div>
     <div class="form-group">
-      <label class="form-label" for="sel-supervisor">選擇帳號</label>
-      <select class="form-select" id="sel-supervisor"><option value="">— 載入中 —</option></select>
+      <label class="form-label" for="sel-supervisor">電子信箱（Mail）</label>
+      <input class="form-input" type="email" id="sel-supervisor" placeholder="例：example@gmail.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin('supervisor')">
     </div>
     <div class="form-group">
       <label class="form-label" for="pw-supervisor">密碼</label>
@@ -161,8 +161,8 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
   <div class="form-panel" id="panel-staff" data-role="staff" role="tabpanel" aria-labelledby="rtab-staff">
     <div class="error-msg" id="err-staff" role="alert"></div>
     <div class="form-group">
-      <label class="form-label" for="sel-staff">選擇帳號</label>
-      <select class="form-select" id="sel-staff"><option value="">— 載入中 —</option></select>
+      <label class="form-label" for="sel-staff">電子信箱（Mail）</label>
+      <input class="form-input" type="email" id="sel-staff" placeholder="例：example@gmail.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin('staff')">
     </div>
     <div class="form-group">
       <label class="form-label" for="pw-staff">密碼</label>
@@ -246,24 +246,6 @@ function switchTab(role) {
     tab.setAttribute('aria-selected', r===role ? 'true' : 'false');
     document.getElementById('panel-'+r).classList.toggle('active', r===role);
   });
-  loadUsers(role);
-}
-
-// 載入帳號下拉
-async function loadUsers(role) {
-  const sel = document.getElementById('sel-'+role);
-  sel.innerHTML = '<option value="">— 選擇帳號 —</option>';
-  try {
-    const users = await API.get('/api/users-list?role='+role);
-    users.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u.username;
-      opt.textContent = u.real_name;
-      sel.appendChild(opt);
-    });
-  } catch {
-    sel.innerHTML = '<option value="">載入失敗，請重新整理</option>';
-  }
 }
 
 // 顯示/隱藏密碼
@@ -274,17 +256,17 @@ function togglePw(id, btn) {
   btn.setAttribute('aria-label', el.type === 'password' ? '顯示密碼' : '隱藏密碼');
 }
 
-// 登入
+// 登入（輸入電子信箱＋角色頁籤；同信箱可同時有三種角色帳號）
 async function doLogin(role) {
   const err = document.getElementById('err-'+role);
   err.style.display = 'none';
-  const username = document.getElementById('sel-'+role).value;
+  const email = document.getElementById('sel-'+role).value.trim();
   const password = document.getElementById('pw-'+role).value;
-  if (!username) { err.textContent='請選擇帳號'; err.style.display='block'; return; }
+  if (!email) { err.textContent='請輸入電子信箱'; err.style.display='block'; return; }
   if (!password) { err.textContent='請輸入密碼'; err.style.display='block'; return; }
 
   try {
-    const res = await API.post('/api/login', { username, password });
+    const res = await API.post('/api/login', { email, role, password });
     if (res.is_first_login) {
       // 強制改密碼
       document.getElementById('fl-role').value = role;
@@ -401,9 +383,6 @@ initForgotBday();
     const me = await API.get('/api/me');
     if (me && me.role) { goToRole(me.role); return; }
   } catch {}
-  loadUsers('partner');
-  loadUsers('supervisor');
-  loadUsers('staff');
 })();
 </script>
 </body>

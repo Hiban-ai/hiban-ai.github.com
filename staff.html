@@ -565,7 +565,7 @@ textarea.form-input{resize:none}
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話</label><input class="form-input" id="st-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">聯絡地址</label><input class="form-input" id="st-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s)"></div>
           <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">Email</label><input class="form-input" type="email" id="st-prof-email" disabled style="flex:1;background:var(--bg);color:var(--text-s)" placeholder="設定後可接收薪資彙整" title="電子信箱不可自行修改，請由帳號管理修改"></div>
-          <div style="font-size:.72rem;color:var(--text-s);margin:-.3rem 0 0 calc(80px + .75rem)">🔒 電子信箱不可自行修改（未來為登入帳號），請由帳號管理修改</div>
+          <div style="font-size:.72rem;color:var(--text-s);margin:-.3rem 0 0 calc(80px + .75rem)">🔒 電子信箱不可自行修改（此信箱即登入帳號），請由帳號管理修改</div>
         </div>
         <div id="st-prof-save-row" style="display:none;gap:.5rem;margin-top:1rem">
           <button onclick="saveStProfile()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">儲存</button>
@@ -987,7 +987,7 @@ textarea.form-input{resize:none}
         <input type="hidden" id="cu-birthday">
       </div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電話 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-phone" placeholder="例：0912345678" style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-email" placeholder="例：example@gmail.com（未來為登入帳號）" type="email" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">電子信箱 <span style="color:var(--red)">＊</span></label><input class="form-input" id="cu-email" placeholder="例：example@gmail.com（此信箱即登入帳號）" type="email" style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:.75rem"><label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">戶籍地址</label><input class="form-input" id="cu-address" placeholder="選填" style="flex:1" oninput="cuSyncMailing()"></div>
       <div style="display:flex;align-items:center;gap:.75rem">
         <label style="font-size:.82rem;color:var(--text-s);width:80px;flex-shrink:0">通訊地址</label>
@@ -1924,7 +1924,7 @@ async function toggleUserAdmin(id) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// 電子信箱本人不可改，由工作人員在此代為修正（未來為登入帳號）
+// 電子信箱本人不可改，由工作人員在此代為修正（此信箱即登入帳號）
 async function editUserEmail(id) {
   const u = usersCache.find(x => x.id === id);
   const cur = (u && u.email) || '';
@@ -2396,7 +2396,7 @@ async function submitCreateUser() {
   if (!id_number) { err.textContent='請填寫身分證'; err.style.display='block'; return; }
   if (!birthday)  { err.textContent='請選擇生日'; err.style.display='block'; return; }
   if (!phone)     { err.textContent='請填寫電話'; err.style.display='block'; return; }
-  if (!email)     { err.textContent='請填寫電子信箱（未來為登入帳號）'; err.style.display='block'; return; }
+  if (!email)     { err.textContent='請填寫電子信箱（此信箱即登入帳號）'; err.style.display='block'; return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='電子信箱格式不正確'; err.style.display='block'; return; }
   try {
     const res = await API.post('/api/admin/users/create', { role, real_name, id_number, birthday, phone, email, address, mailing_address, is_admin });

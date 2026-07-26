@@ -106,8 +106,9 @@ app.use(express.static(path.join(__dirname), {
     }
   }
 }));
+app.set('trust proxy', 1);
 app.use(session({
-  secret: 'hiban-secret-2025',
+  secret: process.env.SESSION_SECRET || 'hiban-secret-2025',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: (() => {
@@ -3492,6 +3493,8 @@ async function autoSendPayroll(year, month) {
 }
 
 // 每月1號 08:00（台北時間）執行
+// ENABLE_CRON=false 可關閉本機排程（多平台併行部署時，只讓其中一邊跑排程，避免重複寄信/備份）
+if (process.env.ENABLE_CRON !== 'false') {
 cron.schedule('0 8 1 * *', () => {
   const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
   // 寄上個月資料
@@ -3501,6 +3504,9 @@ cron.schedule('0 8 1 * *', () => {
   console.log(`[cron] 開始自動寄送 ${lastMonth.year}/${lastMonth.month} 薪資通知`);
   autoSendPayroll(lastMonth.year, lastMonth.month).catch(console.error);
 }, { timezone: 'Asia/Taipei' });
+} else {
+  console.log('⚠️  ENABLE_CRON=false，本機排程停用（由其他部署節點負責）');
+}
 
 // ── Gemini 圖片辨識 ──────────────────────────────────────────
 // ── Google Drive helper ───────────────────────────────────────
@@ -3620,6 +3626,7 @@ async function backupToDrive(mode = 'full') {
 }
 
 // 自動排程：週一～六 03:00 資料備份（不含圖片）；週日 04:00 完整備份（含圖片，已涵蓋 data）
+if (process.env.ENABLE_CRON !== 'false') {
 cron.schedule('0 3 * * 1-6', () => {
   console.log('[cron] 資料備份（data，週一～六）');
   backupToDrive('data').catch(console.error);
@@ -3628,6 +3635,7 @@ cron.schedule('0 4 * * 0', () => {
   console.log('[cron] 完整備份（full，週日）');
   backupToDrive('full').catch(console.error);
 }, { timezone: 'Asia/Taipei' });
+}
 
 // 浮水印：把 assets/watermark.png 疊到圖片上（縮放鋪滿），失敗則回傳原圖
 let _watermarkPromise = null;

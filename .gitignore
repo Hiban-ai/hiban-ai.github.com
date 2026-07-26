@@ -14,5 +14,6 @@ seed_bulk_tasks.js
 normalize_dates.js
 traffic_stats.json
 cookies.txt
+ngrok.exe
 
 refresh_token.txt

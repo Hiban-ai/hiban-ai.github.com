@@ -1,0 +1,11 @@
+node_modules
+.git
+.claude
+*.log
+*.bak
+*.json.bak
+hiban_db.json
+firebase-key.json
+ngrok.exe
+*.md
+.env

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "希絆雲作所 管理系統",
   "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"

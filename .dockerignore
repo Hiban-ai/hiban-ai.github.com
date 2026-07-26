@@ -8,4 +8,5 @@ hiban_db.json
 firebase-key.json
 ngrok.exe
 *.md
+*.bat
 .env

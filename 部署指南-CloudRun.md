@@ -179,6 +179,7 @@ gcloud scheduler jobs create http backup-weekly --location asia-east1 --schedule
 
 | 狀況 | 處理 |
 |---|---|
+| `Container import failed.` / `ContainerImageImportFailed` | **容器內有非 UTF-8 檔名**（中文檔名）。確認 `.dockerignore` 有排除 `*.bat`、`*.md` 等中文檔名檔案。2026-07-26 首次部署就是卡在 `啟動伺服器.bat` |
 | 部署失敗說權限不足 | 回頭做階段三 3-3 的授權指令 |
 | 網站打得開但登入後跳掉 | 確認程式有 `trust proxy`（階段一第 2 項） |
 | 排程沒反應 | Cloud Scheduler 控制台看執行紀錄；確認 header 的 CRON_SECRET 跟部署的一致 |

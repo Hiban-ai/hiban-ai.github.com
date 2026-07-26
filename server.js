@@ -3637,6 +3637,41 @@ cron.schedule('0 4 * * 0', () => {
 }, { timezone: 'Asia/Taipei' });
 }
 
+// ── Cloud Scheduler 觸發端點 ────────────────────────────────
+// Cloud Run 閒置時 CPU 會凍結，node-cron 不會執行，改由 Cloud Scheduler 定時打這些端點。
+// 以 x-cron-key header 驗證，值為環境變數 CRON_SECRET。
+function checkCronKey(req, res) {
+  const key = process.env.CRON_SECRET;
+  if (!key) { res.status(503).json({ error: 'CRON_SECRET not configured' }); return false; }
+  if (req.get('x-cron-key') !== key) { res.status(403).json({ error: 'forbidden' }); return false; }
+  return true;
+}
+
+app.post('/api/cron/payroll', (req, res) => {
+  if (!checkCronKey(req, res)) return;
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const lastMonth = now.getMonth() === 0
+    ? { year: now.getFullYear() - 1, month: 12 }
+    : { year: now.getFullYear(), month: now.getMonth() };
+  console.log(`[cron-http] 開始自動寄送 ${lastMonth.year}/${lastMonth.month} 薪資通知`);
+  res.json({ ok: true, started: `${lastMonth.year}/${lastMonth.month}` });
+  autoSendPayroll(lastMonth.year, lastMonth.month).catch(console.error);
+});
+
+app.post('/api/cron/backup-data', async (req, res) => {
+  if (!checkCronKey(req, res)) return;
+  console.log('[cron-http] 資料備份（data）');
+  try { res.json(await backupToDrive('data')); }
+  catch (e) { console.error('[cron-http] 備份失敗', e.message); res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/cron/backup-full', async (req, res) => {
+  if (!checkCronKey(req, res)) return;
+  console.log('[cron-http] 完整備份（full）');
+  try { res.json(await backupToDrive('full')); }
+  catch (e) { console.error('[cron-http] 備份失敗', e.message); res.status(500).json({ error: e.message }); }
+});
+
 // 浮水印：把 assets/watermark.png 疊到圖片上（縮放鋪滿），失敗則回傳原圖
 let _watermarkPromise = null;
 function loadWatermark() {

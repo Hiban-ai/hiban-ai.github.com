@@ -22,6 +22,37 @@ function cacheSet(key, data, ttlMs) { _cache[key] = { data, ts: Date.now(), ttl:
 function cacheDel(key) { delete _cache[key]; }
 function cacheClear(prefix) { Object.keys(_cache).filter(k => k.startsWith(prefix)).forEach(k => delete _cache[k]); }
 
+// ── 職務分離：禁止對自己動作 ─────────────────────────────────
+// 同一個人可以同時擁有多種角色帳號（例如網站維護者同時也接案），但永遠
+// 不能自己派案給自己、接自己派的任務、審核自己的回報。判定依據是信箱或
+// 身分證字號相符（任一相符即視為同一人）。
+function isSamePerson(a, b) {
+  if (!a || !b) return false;
+  if (a.id && b.id && a.id === b.id) return true;
+  const mail = v => String(v || '').trim().toLowerCase();
+  const idno = v => String(v || '').trim().toUpperCase();
+  if (mail(a.email) && mail(a.email) === mail(b.email)) return true;
+  if (idno(a.id_number) && idno(a.id_number) === idno(b.id_number)) return true;
+  return false;
+}
+
+// target 可傳 user 物件或 user id。回傳 true 代表操作對象就是自己，呼叫端應拒絕。
+// session 只存精簡欄位（沒有 email / id_number），所以要回資料庫取完整資料。
+async function isSelfTarget(req, target) {
+  if (target === null || target === undefined || target === '') return false;
+  const other = typeof target === 'object' ? target : await Users.byId(parseInt(target));
+  if (!other) return false;
+  const me = await Users.byId(req.session.user.id);
+  return isSamePerson(me, other);
+}
+
+// 審核端點用：取回報的夥伴 id（審核前要先確認不是自己送的）
+async function reportPartnerId(id) {
+  const snap = await require('firebase-admin').firestore()
+    .collection('worklog_reports').where('id','==',id).limit(1).get();
+  return snap.empty ? null : snap.docs[0].data().partner_id;
+}
+
 // ── Google Apps Script 寄件設定 ───────────────────────────
 const GAS_URL    = process.env.GAS_URL;
 const GAS_SECRET = process.env.GAS_SECRET || 'hiban2026';
@@ -130,6 +161,17 @@ function requireRole(...roles) {
   };
 }
 
+// ── 唯讀檢視模式 ─────────────────────────────────────────────
+// 系統管理員可用任一帳號的身分檢視畫面（維護、排版用），但全程唯讀：
+// 這裡直接在伺服器端擋掉所有非 GET 請求，不是只把前端按鈕藏起來。
+const VIEW_AS_ALLOW = ['/api/logout', '/api/admin/view-as/exit'];
+app.use((req, res, next) => {
+  if (!req.session.viewAs) return next();
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+  if (VIEW_AS_ALLOW.includes(req.path)) return next();
+  return res.status(403).json({ error: '檢視模式為唯讀，無法執行此操作，請先結束檢視模式' });
+});
+
 app.get('/api/users-list', async (req, res) => {
   const { role } = req.query;
   const cacheKey = 'users-list';
@@ -215,8 +257,13 @@ app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: tr
 app.get('/api/me', requireAuth, async (req, res) => {
   try {
     const u = await Users.byId(req.session.user.id);
-    res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin, login_dates: u ? (u.login_dates || []) : [] });
-  } catch(e) { res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin, login_dates: [] }); }
+    res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin,
+      view_as: !!req.session.viewAs,
+      view_as_by: req.session.realUser ? req.session.realUser.real_name : null,
+      login_dates: u ? (u.login_dates || []) : [] });
+  } catch(e) { res.json({ ...req.session.user, is_admin: !!req.session.user.is_admin,
+      view_as: !!req.session.viewAs,
+      view_as_by: req.session.realUser ? req.session.realUser.real_name : null, login_dates: [] }); }
 });
 
 // ── 公告 API ─────────────────────────────────────────────────
@@ -1006,6 +1053,34 @@ app.get('/api/admin/forgot-requests', requireRole('staff'), async (req, res) => 
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// 進入唯讀檢視模式（僅系統管理員）：用指定帳號的身分看畫面，全程不能寫入
+app.post('/api/admin/view-as', requireRole('staff'), async (req, res) => {
+  try {
+    if (!req.session.user.is_admin) return res.status(403).json({ error: '僅系統管理員可使用檢視模式' });
+    const target = await Users.byId(parseInt(req.body.user_id));
+    if (!target) return res.status(404).json({ error: '找不到此帳號' });
+    req.session.realUser = req.session.user;
+    req.session.viewAs   = true;
+    req.session.user = {
+      id: target.id, username: target.username, real_name: target.real_name,
+      nickname: target.nickname || null, role: target.role,
+      is_admin: false, // 檢視模式一律不帶系統管理員權限
+      supervisor_id: target.supervisor_id || null,
+    };
+    console.log(`[view-as] ${req.session.realUser.real_name} 進入檢視模式 → ${target.real_name}(${target.role})`);
+    res.json({ ok: true, role: target.role, real_name: target.real_name });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 結束檢視模式，回到原本身分
+app.post('/api/admin/view-as/exit', requireAuth, (req, res) => {
+  if (!req.session.realUser) return res.status(400).json({ error: '目前不在檢視模式' });
+  req.session.user = req.session.realUser;
+  delete req.session.realUser;
+  delete req.session.viewAs;
+  res.json({ ok: true, role: req.session.user.role });
+});
+
 // 一次性：修復 admin 角色
 app.get('/api/_setup/admin', async (req, res) => {
   const existing = await Users.byName('admin');
@@ -1211,6 +1286,8 @@ app.post('/api/assignments', requireRole('supervisor'), async (req, res) => {
     let supervisor_name = req.session.user.real_name;
     if (indivTarget) {
       const targetPartner = await Users.byId(parseInt(target_partner_id));
+      if (await isSelfTarget(req, targetPartner))
+        return res.status(403).json({ error: '職務分離：不能把任務指派給自己的夥伴帳號' });
       if (targetPartner && targetPartner.supervisor_id && targetPartner.supervisor_id !== req.session.user.id) {
         const ownSupervisor = await Users.byId(targetPartner.supervisor_id);
         if (ownSupervisor) {
@@ -1449,6 +1526,8 @@ app.put('/api/assignments/:id/accept', requireRole('partner'), async (req, res) 
     const id = parseInt(req.params.id);
     const a  = await Assignments.byId(id);
     if (!a || a.status !== 'pending') return res.status(400).json({ error: '任務已不可接受' });
+    if (await isSelfTarget(req, a.supervisor_id))
+      return res.status(403).json({ error: '職務分離：不能接受自己派的任務' });
     await Assignments.update(id, { status: 'accepted', accepted_by: req.session.user.id, accepted_at: nowTW() });
     cacheClear('sup-');
     res.json({ ok: true });
@@ -1878,6 +1957,8 @@ app.post('/api/grab-tasks/:id/grab', requireRole('partner'), async (req, res) =>
   try {
     // 數量模式：每次只能接一個（同任務名+公司進行中唯一，完成後才能再接）
     const task0 = await GrabTasks.byId(taskId);
+    if (task0 && await isSelfTarget(req, task0.supervisor_id))
+      return res.status(403).json({ error: '職務分離：不能接自己發布的任務' });
     if (task0) {
       const mine = await Assignments.forPartners([partnerId]);
       const dup = mine.find(a => a.assign_type === 'grab' && a.status === 'accepted'
@@ -1994,6 +2075,9 @@ app.post('/api/grab-tasks/:id/pick', requireRole('partner'), async (req, res) =>
   const partnerName = req.session.user.real_name;
   try {
     if (!(idx >= 0)) return res.status(400).json({ error: '未選擇卡片' });
+    const task0 = await GrabTasks.byId(taskId);
+    if (task0 && await isSelfTarget(req, task0.supervisor_id))
+      return res.status(403).json({ error: '職務分離：不能接自己發布的任務' });
     const taskRef = firestoreDb.collection('grab_tasks').doc(String(taskId));
     const counterRef = firestoreDb.collection('_meta').doc('counters');
     const result = await firestoreDb.runTransaction(async t => {
@@ -2160,6 +2244,8 @@ app.post('/api/free-tasks/:id/accept', requireRole('partner'), async (req, res) 
   try {
     const task0 = await FreeTasks.byId(taskId);
     if (!task0) return res.status(404).json({ error: '自由任務不存在' });
+    if (await isSelfTarget(req, task0.supervisor_id))
+      return res.status(403).json({ error: '職務分離：不能接自己發布的任務' });
     // 同名 + 同公司，進行中不可重複接
     const mine = await Assignments.forPartners([partnerId]);
     const dup = mine.find(a => a.assign_type === 'free' && a.status === 'accepted'
@@ -2448,6 +2534,8 @@ app.put('/api/reports/:id/approve', requireRole('supervisor'), async (req, res) 
   try {
     const id = parseInt(req.params.id);
     const extraReward = Math.max(0, parseInt(req.body && req.body.extra_reward) || 0); // 最後核可的額外獎勵（所有任務類型，未填=0）
+    if (await isSelfTarget(req, await reportPartnerId(id)))
+      return res.status(403).json({ error: '職務分離：不能審核自己的回報' });
     await WorklogReports.update(id, { status: 'approved' });
     // 取回 report 找到 assignment_id，把 assignment 改成 completed
     const snap = await require('./db').WorklogReports;
@@ -2555,6 +2643,8 @@ app.put('/api/reports/:id/reject', requireRole('supervisor'), async (req, res) =
     const id = parseInt(req.params.id);
     const { reason } = req.body;
     if (!reason) return res.status(400).json({ error: '請填寫退回原因' });
+    if (await isSelfTarget(req, await reportPartnerId(id)))
+      return res.status(403).json({ error: '職務分離：不能退回自己的回報' });
     const replyAtts = await uploadTaskAttachments((req.body && req.body.reply_attachments) || []);
     await WorklogReports.update(id, { status: 'rejected' });
     const rSnap = await require('firebase-admin').firestore()
@@ -2585,6 +2675,8 @@ app.put('/api/reports/:id/rollback', requireRole('supervisor'), async (req, res)
       .collection('worklog_reports').where('id','==',id).limit(1).get();
     if (rSnap.empty) return res.status(404).json({ error: '找不到回報' });
     const r = rSnap.docs[0].data();
+    if (await isSelfTarget(req, r.partner_id))
+      return res.status(403).json({ error: '職務分離：不能退回自己的回報' });
     const a = await Assignments.byId(r.assignment_id);
     if (!a) return res.status(404).json({ error: '找不到任務' });
     const ts = nowTW();

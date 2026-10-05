@@ -2015,6 +2015,9 @@ function roleActions(u) {
   const isAdmin   = me.username === 'admin' || me.is_admin === true;
   const isSelf    = u.id === me.id;
   const detail    = `<button class="action-btn" onclick="openDetail(${u.id})">詳細</button>`;
+  // 唯讀檢視：系統管理員可用此帳號的身分看畫面（維護、排版用），全程不能寫入
+  const viewBtn   = (isAdmin && !isSelf && u.status === 'active')
+    ? `<button class="action-btn" onclick="viewAsUser(${u.id},'${u.real_name}')">檢視畫面</button>` : '';
   const archiveBtn  = !isSelf ? `<button class="action-btn danger" onclick="archiveUser(${u.id},'${u.real_name}')">封存</button>` : '';
   const unarchiveBtn= `<button class="action-btn approve" onclick="unarchiveUser(${u.id},'${u.real_name}')">解封</button>`;
   const stopBtn     = `<button class="action-btn warn" onclick="deactivateUser(${u.id},'${u.real_name}')">停用</button>`;
@@ -2026,13 +2029,13 @@ function roleActions(u) {
   if (u.role === 'partner') {
     if (u.status === 'pending')    return approveBtn;
     if (u.status === 'rejected')   return detail + archiveBtn;
-    if (u.status === 'active')     return detail + stopBtn + resetBtn + archiveBtn;
+    if (u.status === 'active')     return detail + viewBtn + stopBtn + resetBtn + archiveBtn;
     if (u.status === 'suspended')  return detail + unsuspendBtn + resetBtn + archiveBtn;
     if (u.status === 'inactive')   return detail + startBtn + archiveBtn;
     if (u.status === 'archived')   return detail + unarchiveBtn;
   }
   if (u.role === 'supervisor') {
-    if (u.status === 'active')     return detail + stopBtn + resetBtn + archiveBtn;
+    if (u.status === 'active')     return detail + viewBtn + stopBtn + resetBtn + archiveBtn;
     if (u.status === 'suspended')  return detail + unsuspendBtn + resetBtn + archiveBtn;
     if (u.status === 'inactive')   return detail + startBtn + archiveBtn;
     if (u.status === 'archived')   return detail + unarchiveBtn;
@@ -2041,7 +2044,7 @@ function roleActions(u) {
     if (isSelf) return detail;
     if (!isAdmin) return detail; // 停用/封存/啟用管理人員帳號僅限系統管理員
     const reset = isAdmin ? resetBtn : '';
-    if (u.status === 'active')     return detail + stopBtn + reset + archiveBtn;
+    if (u.status === 'active')     return detail + viewBtn + stopBtn + reset + archiveBtn;
     if (u.status === 'suspended')  return detail + unsuspendBtn + reset + archiveBtn;
     if (u.status === 'inactive')   return detail + startBtn + reset + archiveBtn;
     if (u.status === 'archived')   return detail + unarchiveBtn;
@@ -2226,6 +2229,14 @@ async function resetPassword(id, name) {
     await API.put(`/api/admin/users/${id}/reset-password`);
     showToast(`已重設 ${name} 的密碼為 0000`, 'success');
     loadForgotRequests();
+  });
+}
+// 唯讀檢視：以該帳號的身分看畫面（維護、排版用），檢視期間伺服器會擋下所有寫入
+async function viewAsUser(id, name) {
+  openConfirm('👁', '檢視畫面', `將以「${name}」的身分檢視畫面。\n檢視期間為唯讀，無法做任何變更。`, async () => {
+    const r = await API.post('/api/admin/view-as', { user_id: id });
+    const page = { partner: 'partner.html', supervisor: 'supervisor.html', staff: 'staff.html' }[r.role];
+    location.href = '/' + (page || 'index.html');
   });
 }
 async function deleteUser(id, name) {

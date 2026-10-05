@@ -26,11 +26,41 @@ async function requireAuth(allowedRoles) {
       location.href = '/index.html';
       return null;
     }
+    if (me.view_as) showViewAsBanner(me);
     return me;
   } catch {
     location.href = '/index.html';
     return null;
   }
+}
+
+// 唯讀檢視模式橫幅：提醒目前不是本人身分，且任何變更都會被伺服器擋下
+function showViewAsBanner(me) {
+  if (document.getElementById('_view_as_bar')) return;
+  const roleName = { partner: '工作夥伴', supervisor: '派案人員', staff: '管理人員' }[me.role] || me.role;
+  const bar = document.createElement('div');
+  bar.id = '_view_as_bar';
+  bar.setAttribute('role', 'status');
+  bar.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:99999;
+    background:#F07840;color:#fff;font-family:'Noto Sans TC',sans-serif;
+    font-size:.85rem;font-weight:600;padding:.5rem 1rem;display:flex;flex-wrap:wrap;
+    align-items:center;justify-content:center;gap:.8rem;box-shadow:0 2px 10px rgba(0,0,0,.2)`;
+  const txt = document.createElement('span');
+  txt.textContent = `👁 檢視模式（唯讀）：正在以 ${me.real_name}（${roleName}）的身分檢視，無法做任何變更`;
+  bar.appendChild(txt);
+  const btn = document.createElement('button');
+  btn.textContent = '結束檢視';
+  btn.style.cssText = `background:#fff;color:#C0491A;border:none;border-radius:6px;
+    padding:.35rem 1rem;font-size:.8rem;font-weight:700;cursor:pointer;min-height:32px;
+    font-family:'Noto Sans TC',sans-serif`;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try { await API.post('/api/admin/view-as/exit'); location.href = '/staff.html'; }
+    catch (e) { btn.disabled = false; showToast(e.message || '結束檢視失敗', 'error'); }
+  });
+  bar.appendChild(btn);
+  document.body.appendChild(bar);
+  document.body.style.paddingTop = '3rem';
 }
 
 // 登出

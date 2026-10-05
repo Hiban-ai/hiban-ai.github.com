@@ -175,6 +175,72 @@ function showToast(msg, type = 'info') {
   el._timer = setTimeout(() => { el.style.opacity = '0'; }, 2800);
 }
 
+// ── 密碼欄位顯示/隱藏（眼睛切換）──────────────────────────────
+// 自動為頁面上所有 input[type=password] 加上眼睛按鈕，預設隱藏、點擊可顯示。
+// 新增密碼欄位不需額外處理；MutationObserver 涵蓋動態插入的欄位。
+(function () {
+  const CSS = `
+.pw-wrap{position:relative;display:block;min-width:0}
+.pw-toggle{position:absolute;right:.3rem;top:50%;transform:translateY(-50%);
+  width:2.4rem;height:2.4rem;display:flex;align-items:center;justify-content:center;
+  background:none;border:none;border-radius:6px;cursor:pointer;padding:0;line-height:1;
+  color:var(--text-s);font-size:1.05rem}
+.pw-toggle:hover{background:rgba(72,180,232,.12)}
+.pw-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+`;
+
+  function injectCss() {
+    if (document.getElementById('_pw-toggle-css')) return;
+    const s = document.createElement('style');
+    s.id = '_pw-toggle-css';
+    s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+
+  function enhance(input) {
+    if (input.dataset.pwEnhanced) return;
+    input.dataset.pwEnhanced = '1';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'pw-wrap';
+    // 原本掛在 input 上的 flex 要交給外層，否則包一層之後欄位不會撐開
+    if (input.style.flex) { wrap.style.flex = input.style.flex; input.style.flex = ''; }
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    // 用 inline 設定，才能蓋掉欄位自己的 inline padding（避免文字被按鈕蓋住）
+    input.style.paddingRight = '3rem';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pw-toggle';
+    btn.textContent = '👁';
+    btn.setAttribute('aria-label', '顯示密碼');
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁';
+      btn.setAttribute('aria-label', show ? '隱藏密碼' : '顯示密碼');
+    });
+    wrap.appendChild(btn);
+  }
+
+  function enhanceTree(root) {
+    if (root.nodeType !== 1) return;
+    if (root.matches && root.matches('input[type="password"]')) enhance(root);
+    root.querySelectorAll && root.querySelectorAll('input[type="password"]').forEach(enhance);
+  }
+
+  function init() {
+    injectCss();
+    enhanceTree(document.body);
+    new MutationObserver(muts => {
+      muts.forEach(m => m.addedNodes.forEach(n => enhanceTree(n)));
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
 // ── 無障礙補強：讓 onclick 的 div/span/img 可用鍵盤操作 ──────
 // 1. 為所有帶 inline onclick 的非原生互動元素加上 tabindex 與 role="button"
 // 2. 聚焦時按 Enter / Space 等同點擊（Space 同時阻止頁面捲動）

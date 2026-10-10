@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>管理人員（手機版）— 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mobile.css">
+<style>
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.9rem}
+.stat{background:#fff;border:none;border-radius:var(--r);padding:.8rem .4rem;box-shadow:0 2px 10px rgba(26,112,160,.08);text-align:center;cursor:pointer;min-height:88px}
+.stat .n{font-size:1.7rem;font-weight:700;line-height:1.2;color:var(--blue-dd)}
+.stat .n.hot{color:var(--red)}
+.stat .l{font-size:.88rem;color:var(--text-m);font-weight:700}
+.kv{display:grid;grid-template-columns:5.5em 1fr;gap:.2rem .5rem;font-size:.95rem;margin:.4rem 0}
+.kv dt{color:var(--text-s)}
+.kv dd{word-break:break-word}
+.kv-h{font-weight:700;color:var(--text-m);margin:.8rem 0 .2rem;padding-bottom:.2rem;border-bottom:1px solid var(--border)}
+.idimgs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.4rem 0}
+.idimgs figure{margin:0}
+.idimgs button{width:100%;aspect-ratio:4/3;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);padding:0;overflow:hidden}
+.idimgs img{width:100%;height:100%;object-fit:cover;display:block}
+.idimgs figcaption{font-size:.85rem;color:var(--text-m);text-align:center;margin-top:.15rem}
+.viewer{display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.9);align-items:center;justify-content:center;flex-direction:column;gap:.75rem;padding:1rem}
+.viewer.open{display:flex}
+.viewer img{max-width:100%;max-height:80vh;border-radius:8px}
+.check{display:flex;align-items:center;gap:.6rem;min-height:48px;font-weight:700;color:var(--text-m)}
+.check input{width:22px;height:22px}
+.tag{display:inline-block;font-size:.8rem;font-weight:700;padding:.05rem .45rem;border-radius:6px;background:var(--blue-p);color:var(--blue-dd)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="ava" id="ava" aria-hidden="true">管</div>
+  <div class="who">
+    <div class="name" id="me-name">—</div>
+    <div class="role">管理人員</div>
+  </div>
+  <button class="logout" onclick="confirmSignOut()">登出</button>
+</header>
+
+<main>
+  <!-- 🏠 首頁 -->
+  <section class="page" id="page-home" aria-labelledby="h-home">
+    <h1 class="page-title" id="h-home"><span id="hello-text">您好！</span></h1>
+    <div class="stats">
+      <button class="stat" onclick="go('accounts')"><div class="n" id="st-accounts">—</div><div class="l">待審核帳號</div></button>
+      <button class="stat" onclick="go('forgot')"><div class="n" id="st-forgot">—</div><div class="l">忘記密碼</div></button>
+      <button class="stat" onclick="go('issues')"><div class="n" id="st-issues">—</div><div class="l">未讀問題</div></button>
+    </div>
+    <div class="section">📌 等您處理</div>
+    <div id="home-todo"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 👤 帳號審核 -->
+  <section class="page" id="page-accounts" aria-labelledby="h-accounts">
+    <h1 class="page-title" id="h-accounts">👤 帳號審核</h1>
+    <div class="hint" style="margin:-.4rem 0 .7rem">新申請的帳號。點「查看資料」看證件照片，再核准或退回。</div>
+    <div id="acc-list"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 🔑 忘記密碼 -->
+  <section class="page" id="page-forgot" aria-labelledby="h-forgot">
+    <h1 class="page-title" id="h-forgot">🔑 忘記密碼</h1>
+    <div class="hint" style="margin:-.4rem 0 .7rem">重設後密碼會變成 0000，對方下次登入要改新密碼。重設後記得通知本人。</div>
+    <div id="forgot-list"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- ⋯ 我的 -->
+  <section class="page" id="page-me" aria-labelledby="h-me">
+    <h1 class="page-title" id="h-me">⋯ 我的</h1>
+    <nav class="menu" aria-label="我的功能">
+      <button onclick="go('issues')"><span class="ic">📝</span>問題處理<span class="count" id="me-issue-n" style="display:none;margin-left:.4rem"></span><span class="arrow">›</span></button>
+      <button onclick="go('notices')"><span class="ic">📢</span>公告管理<span class="arrow">›</span></button>
+      <button onclick="go('profile')"><span class="ic">🧑</span>個人資料<span class="arrow">›</span></button>
+    </nav>
+    <div class="card muted" style="font-size:.92rem">💻 薪資、任務管理、報表匯出、帳號管理（停用、封存等）、系統設定，請用電腦版操作。</div>
+    <nav class="menu" aria-label="其他">
+      <a href="faq.html"><span class="ic">❓</span>常見問題<span class="arrow">›</span></a>
+      <button onclick="switchToDesktop('staff.html')"><span class="ic">💻</span>切換電腦版<span class="arrow">›</span></button>
+      <button onclick="confirmSignOut()"><span class="ic">🚪</span>登出<span class="arrow">›</span></button>
+    </nav>
+  </section>
+
+  <!-- 我的 → 問題處理 -->
+  <section class="page" id="page-issues" aria-labelledby="h-issues">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-issues">📝 問題處理</h1>
+    <div class="seg" role="tablist" aria-label="問題狀態">
+      <button role="tab" id="iss-tab-open" aria-selected="true" onclick="setIssueTab('open')">未解決 <span id="iss-n-open"></span></button>
+      <button role="tab" id="iss-tab-resolved" aria-selected="false" onclick="setIssueTab('resolved')">已解決</button>
+    </div>
+    <div id="iss-list"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 我的 → 公告管理 -->
+  <section class="page" id="page-notices" aria-labelledby="h-notices">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-notices">📢 公告管理</h1>
+    <button class="btn primary block" style="margin-bottom:.75rem" onclick="openAnnForm(null)">＋ 發布公告</button>
+    <div class="seg" role="tablist" aria-label="公告分類">
+      <button role="tab" id="adm-ann-tab-general" aria-selected="true" onclick="setAdmAnnTab('general')">一般公告</button>
+      <button role="tab" id="adm-ann-tab-task" aria-selected="false" onclick="setAdmAnnTab('task')">任務通知</button>
+    </div>
+    <div id="adm-ann-list"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 我的 → 個人資料 -->
+  <section class="page" id="page-profile" aria-labelledby="h-profile">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-profile">🧑 個人資料</h1>
+    <div class="card">
+      <div class="row" style="margin-bottom:.6rem"><b>基本資料</b><span class="spacer"></span><button class="btn ghost" id="prof-edit-btn" style="min-height:40px;padding:.3rem .9rem" onclick="toggleProfEdit(true)">修改</button></div>
+      <div class="field"><label>姓名</label><input class="input" id="prof-name" disabled></div>
+      <div class="field"><label>身分證</label><input class="input" id="prof-idno" disabled></div>
+      <div class="field"><label>生日</label><input class="input" id="prof-birthday" disabled></div>
+      <div class="field"><label for="prof-phone">電話</label><input class="input" id="prof-phone" type="tel" disabled></div>
+      <div class="field"><label for="prof-address">聯絡地址</label><input class="input" id="prof-address" disabled></div>
+      <div class="field"><label>電子信箱（登入帳號）</label><input class="input" id="prof-email" disabled><div class="hint">🔒 信箱就是登入帳號，需要更換請由系統管理員在電腦版修改</div></div>
+      <div class="btns" id="prof-save-row" style="display:none"><button class="btn ghost" onclick="toggleProfEdit(false)">取消</button><button class="btn primary" onclick="saveProfile()">儲存</button></div>
+    </div>
+    <div class="card">
+      <b>🔑 修改密碼</b>
+      <div class="err" id="pw-err" role="alert" style="margin-top:.6rem"></div>
+      <div class="field" style="margin-top:.6rem"><label for="pw-current">目前密碼</label><input class="input" type="password" id="pw-current" autocomplete="current-password"></div>
+      <div class="field"><label for="pw-new">新密碼（6～12 碼）</label><input class="input" type="password" id="pw-new" maxlength="12" autocomplete="new-password"></div>
+      <div class="field"><label for="pw-confirm">再輸入一次新密碼</label><input class="input" type="password" id="pw-confirm" maxlength="12" autocomplete="new-password"></div>
+      <button class="btn primary block" onclick="changePassword()">更新密碼</button>
+    </div>
+  </section>
+</main>
+
+<nav class="nav" aria-label="主選單">
+  <button id="nav-home" onclick="go('home')"><span class="ic" aria-hidden="true">🏠</span>首頁</button>
+  <button id="nav-accounts" onclick="go('accounts')"><span class="ic" aria-hidden="true">👤</span>帳號審核<span class="badge" id="badge-accounts"></span></button>
+  <button id="nav-forgot" onclick="go('forgot')"><span class="ic" aria-hidden="true">🔑</span>忘記密碼<span class="badge" id="badge-forgot"></span></button>
+  <button id="nav-me" onclick="go('me')"><span class="ic" aria-hidden="true">⋯</span>我的<span class="badge" id="badge-me"></span></button>
+</nav>
+
+<!-- 申請人資料：核准／退回 -->
+<div class="sheet-overlay" id="acc-overlay" onclick="if(event.target===this)closeSheet('acc-overlay')">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="acc-title">
+    <div class="sheet-head"><div class="t" id="acc-title">申請資料</div><button class="x" aria-label="關閉" onclick="closeSheet('acc-overlay')">✕</button></div>
+    <div id="acc-detail"></div>
+    <div id="acc-imgs-wrap">
+      <div class="kv-h">🪪 證件照片（點圖放大）</div>
+      <div class="idimgs" id="acc-imgs"><div class="empty">載入中…</div></div>
+    </div>
+    <div class="err" id="acc-err" role="alert"></div>
+    <div class="field" id="acc-sv-wrap" style="margin-top:.75rem"><label for="acc-sv">負責的派案人員（工作夥伴必選）</label><select class="input" id="acc-sv"></select></div>
+    <button class="btn ok block" id="acc-approve" onclick="approveAccount()">✓ 核准</button>
+    <details class="more" style="margin-top:.6rem">
+      <summary>退回這個申請</summary>
+      <div class="field" style="margin-top:.4rem"><label for="acc-reason">退回原因（選填，會寄給申請人）</label><textarea class="input" id="acc-reason" rows="3"></textarea></div>
+      <button class="btn danger block" id="acc-reject" onclick="rejectAccount()">確定退回</button>
+    </details>
+  </div>
+</div>
+
+<!-- 公告：新增／編輯 -->
+<div class="sheet-overlay" id="ann-form-overlay" onclick="if(event.target===this)closeSheet('ann-form-overlay')">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ann-form-title">
+    <div class="sheet-head"><div class="t" id="ann-form-title">發布公告</div><button class="x" aria-label="關閉" onclick="closeSheet('ann-form-overlay')">✕</button></div>
+    <div class="err" id="ann-err" role="alert"></div>
+    <div class="field"><label for="ann-title">標題</label><input class="input" id="ann-title" maxlength="80"></div>
+    <div class="field"><label for="ann-content">內容</label><textarea class="input" id="ann-content" rows="6"></textarea></div>
+    <div class="field"><label for="ann-target">給誰看</label>
+      <select class="input" id="ann-target"><option value="all">全部角色</option><option value="partner">工作夥伴</option><option value="supervisor">派案人員</option><option value="staff">管理人員</option></select></div>
+    <label class="check"><input type="checkbox" id="ann-pinned">📌 置頂</label>
+    <label class="check"><input type="checkbox" id="ann-permanent" onchange="$('ann-exp-wrap').style.display=this.checked?'none':''">🔒 永久公告（不會到期）</label>
+    <div class="field" id="ann-exp-wrap"><label for="ann-expires">到期日（選填）</label><input class="input" type="date" id="ann-expires"></div>
+    <div class="field">
+      <label>附件（選填，每個 15MB 以內）</label>
+      <label class="upload" for="ann-files">📎 拍照或選擇檔案</label>
+      <input type="file" id="ann-files" multiple style="display:none" onchange="addAnnFiles(this)">
+      <div id="ann-file-list"></div>
+    </div>
+    <button class="btn primary block" id="ann-save" onclick="saveAnn()">發布</button>
+  </div>
+</div>
+
+<!-- 看證件照片 -->
+<div class="viewer sheet-overlay" id="img-viewer" onclick="if(event.target===this)closeSheet('img-viewer')">
+  <img id="img-viewer-src" alt="證件照片">
+  <button class="btn ghost" onclick="closeSheet('img-viewer')">✕ 關閉</button>
+</div>
+
+<script src="shared.js"></script>
+<script src="mobile.js"></script>
+<script>
+const PAGES = ['home', 'accounts', 'forgot', 'me', 'issues', 'notices', 'profile'];
+const NAV_OF = { issues: 'me', notices: 'me', profile: 'me' };
+let meId = null, me = null, booted = false;
+let users = [], forgots = [], issues = [], admAnns = [], issueUnread = 0;
+const ROLE = { partner: '工作夥伴', supervisor: '派案人員', staff: '管理人員' };
+
+function onShowPage(name) {
+  if (!booted) return;
+  if (name === 'accounts' || name === 'home') loadUsers();
+  if (name === 'forgot' || name === 'home') loadForgot();
+  if (name === 'issues') loadIssues();
+  if (name === 'notices') loadAdmAnns();
+}
+
+// ── 👤 帳號審核 ────────────────────────────────────────────────
+const pendingUsers = () => users.filter(u => u.status === 'pending').sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+async function loadUsers() {
+  try { users = await API.get('/api/admin/users'); }
+  catch (e) { $('acc-list').innerHTML = `<div class="card empty">${esc(e.message)}</div>`; return; }
+  renderAccounts(); renderHome(); updateBadges();
+}
+function renderAccounts() {
+  const list = pendingUsers();
+  $('acc-list').innerHTML = list.length ? list.map(u => `
+    <div class="card line">
+      <div class="row"><b style="flex:1">${esc(u.real_name)}</b><span class="tag">${ROLE[u.role] || esc(u.role)}</span></div>
+      <div class="muted">申請時間：${esc((u.created_at || '').slice(0, 16))}</div>
+      <div class="muted">${u.phone ? `📞 <a href="tel:${esc(u.phone)}">${esc(u.phone)}</a>` : ''}${u.identity ? `・${esc(u.identity)}` : ''}</div>
+      <button class="btn primary block" style="margin-top:.6rem" onclick="openAccount(${u.id})">查看資料 › 核准或退回</button>
+    </div>`).join('') : '<div class="card empty">目前沒有待審核的申請 🎉</div>';
+}
+let curUser = null;
+const GENDER = { M: '男', F: '女', X: '多元性別' };
+function kvRows(rows) { return `<dl class="kv">${rows.filter(r => r[1] !== undefined).map(([k, v]) => `<dt>${k}</dt><dd>${esc(v || '—')}</dd>`).join('')}</dl>`; }
+function openAccount(id) {
+  curUser = users.find(u => u.id === id); if (!curUser) return;
+  const u = curUser, isPartner = u.role === 'partner';
+  $('acc-title').textContent = `${u.real_name}（${ROLE[u.role] || u.role}）`;
+  $('acc-detail').innerHTML = `<div class="kv-h">👤 基本資料</div>` + kvRows([
+    ['姓名', u.real_name], ['性別', GENDER[u.gender] || u.gender], ['身分證', u.id_number], ['生日', u.birthday],
+    ['電話', u.phone], ['信箱', u.email], ['戶籍地址', u.address], ['通訊地址', u.mailing_address || u.address],
+    ['身份別', u.identity], ['申請時間', (u.created_at || '').slice(0, 16)],
+  ]) + (isPartner ? `<div class="kv-h">🏦 收款資訊</div>` + kvRows([
+    ['類型', u.bank_type === 'post' ? '中華郵政' : '一般銀行'], ['戶名', u.bank_holder],
+    ...(u.bank_type !== 'post' ? [['銀行代號', u.bank_code]] : []), ['銀行/郵局', u.bank_name], ['分行', u.bank_branch], ['帳號', u.bank_account],
+    ...(u.post_office_code ? [['郵局局號', u.post_office_code]] : []),
+  ]) : '');
+  $('acc-imgs-wrap').style.display = isPartner ? '' : 'none';
+  $('acc-sv-wrap').style.display = isPartner ? '' : 'none';
+  const svs = users.filter(x => x.role === 'supervisor' && x.status === 'active');
+  $('acc-sv').innerHTML = '<option value="">請選擇派案人員</option>' + svs.map(s => `<option value="${s.id}">${esc(s.real_name)}</option>`).join('');
+  $('acc-err').style.display = 'none'; $('acc-reason').value = '';
+  $('acc-approve').disabled = false; $('acc-reject').disabled = false;
+  openSheet('acc-overlay');
+  if (isPartner) loadIdImages(u);
+}
+async function loadIdImages(u) {
+  $('acc-imgs').innerHTML = '<div class="empty" style="grid-column:1/-1">載入中…</div>';
+  let d = {};
+  try { d = (await API.get(`/api/admin/users/${u.id}/images`)).data || {}; } catch (e) {}
+  if (curUser !== u) return;
+  const items = [['front', '身分證正面'], ['back', '身分證反面'], ['bank', u.bank_type === 'post' ? '郵局存簿' : '銀行存摺'], ...(d.disability ? [['disability', '身心障礙證明']] : [])];
+  $('acc-imgs').innerHTML = items.map(([k, label]) => `<figure>
+      ${d[k] ? `<button aria-label="放大 ${label}" onclick="viewImg('${k}')"><img src="data:image/jpeg;base64,${d[k]}" alt="${label}"></button>` : `<button disabled><span class="muted">沒有上傳</span></button>`}
+      <figcaption>${label}</figcaption></figure>`).join('');
+  curUser._imgs = d;
+}
+function viewImg(k) {
+  if (!curUser || !curUser._imgs || !curUser._imgs[k]) return;
+  $('img-viewer-src').src = 'data:image/jpeg;base64,' + curUser._imgs[k];
+  openSheet('img-viewer');
+}
+function accErr(m) { const el = $('acc-err'); el.textContent = m; el.style.display = 'block'; el.scrollIntoView({ block: 'center' }); }
+async function approveAccount() {
+  const u = curUser, isPartner = u.role === 'partner', svId = $('acc-sv').value;
+  if (isPartner && !svId) return accErr('請先選擇負責的派案人員');
+  const svName = isPartner ? $('acc-sv').options[$('acc-sv').selectedIndex].textContent : '';
+  if (!confirm(`確定核准「${u.real_name}」？${isPartner ? `\n負責派案人員：${svName}` : ''}\n核准後會寄歡迎信給申請人。`)) return;
+  $('acc-approve').disabled = true;
+  try {
+    await API.put(`/api/admin/users/${u.id}/approve`, isPartner ? { supervisor_id: parseInt(svId) } : {});
+    closeSheet('acc-overlay'); showToast(`已核准 ${u.real_name}`, 'success'); loadUsers();
+  } catch (e) { accErr(e.message); $('acc-approve').disabled = false; }
+}
+async function rejectAccount() {
+  const u = curUser, reason = $('acc-reason').value.trim();
+  if (!confirm(`確定退回「${u.real_name}」的申請？${reason ? '\n原因：' + reason : ''}\n會寄信通知申請人。`)) return;
+  $('acc-reject').disabled = true;
+  try {
+    await API.put(`/api/admin/users/${u.id}/reject`, { reason });
+    closeSheet('acc-overlay'); showToast(`已退回 ${u.real_name} 的申請`, 'warn'); loadUsers();
+  } catch (e) { accErr(e.message); $('acc-reject').disabled = false; }
+}
+
+// ── 🔑 忘記密碼 ────────────────────────────────────────────────
+async function loadForgot() {
+  try { forgots = await API.get('/api/admin/forgot-requests'); }
+  catch (e) { $('forgot-list').innerHTML = `<div class="card empty">${esc(e.message)}</div>`; return; }
+  renderForgot(); renderHome(); updateBadges();
+}
+function renderForgot() {
+  $('forgot-list').innerHTML = forgots.length ? forgots.map(r => {
+    const u = users.find(x => x.id === r.user_id) || {};
+    return `<div class="card line" style="border-left-color:var(--orange)">
+      <div class="row"><b style="flex:1">${esc(r.real_name)}</b>${u.role ? `<span class="tag">${ROLE[u.role] || ''}</span>` : ''}</div>
+      <div class="muted">申請時間：${esc((r.created_at || '').slice(0, 16))}</div>
+      ${u.phone || u.email ? `<div class="muted">${u.phone ? `📞 <a href="tel:${esc(u.phone)}">${esc(u.phone)}</a>` : ''}${u.email ? `　✉️ ${esc(u.email)}` : ''}</div>` : ''}
+      <button class="btn warn block" style="margin-top:.6rem" onclick="resetPw(${r.user_id})">🔑 重設密碼為 0000</button>
+    </div>`;
+  }).join('') : '<div class="card empty">目前沒有忘記密碼的申請 🎉</div>';
+}
+async function resetPw(userId) {
+  const r = forgots.find(x => x.user_id === userId); if (!r) return;
+  if (!confirm(`確定把「${r.real_name}」的密碼重設為 0000？\n對方下次登入要改新密碼。`)) return;
+  try { await API.put(`/api/admin/users/${userId}/reset-password`); showToast(`已重設，請通知 ${r.real_name} 用 0000 登入`, 'success'); loadForgot(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── 📝 問題處理 ────────────────────────────────────────────────
+let issueTab = 'open';
+function setIssueTab(t) {
+  issueTab = t;
+  ['open', 'resolved'].forEach(x => $('iss-tab-' + x).setAttribute('aria-selected', x === t));
+  renderIssues();
+}
+async function loadIssues() {
+  try { issues = await API.get('/api/issues/inbox/admin'); } catch (e) { issues = []; }
+  renderIssues(); syncIssueUnread();
+}
+async function syncIssueUnread() {
+  try { const d = await API.get('/api/issues/unread'); issueUnread = d.from_reporter || 0; } catch (e) {}
+  $('st-issues').textContent = issueUnread; $('st-issues').classList.toggle('hot', issueUnread > 0);
+  $('iss-n-open').textContent = issueUnread ? `(${issueUnread})` : '';
+  renderHome(); updateBadges();
+}
+function issueCard(r) {
+  const st = { pending: ['待處理', 'orange'], processing: ['處理中', ''], resolved: ['已解決', 'green'] }[r.status] || [r.status, ''];
+  const btn = (s, label) => r.status === s ? '' : `<button class="btn ghost" onclick="setIssueStatus(${r.id},'${s}')">${label}</button>`;
+  return `<details class="card" style="padding:.85rem 1rem" ontoggle="if(this.open)markIssueRead(${r.id})">
+    <summary style="list-style:none;cursor:pointer;min-height:44px">
+      <div class="row">${r.unread_handler ? '<span class="dot" aria-label="未讀"></span>' : ''}<b style="flex:1;min-width:0">${esc(r.title)}</b><span class="chip ${st[1]}">${st[0]}</span></div>
+      <div class="muted">${esc(r.reporter_name || '')}（${esc(ROLE[r.reporter_role] || r.reporter_role || '')}）・${fmtDay(r.created_at)}${r.replies && r.replies.length ? `・💬 ${r.replies.length}` : ''}</div>
+    </summary>
+    <div class="box gray" style="margin-top:.6rem">${linkify(r.content)}</div>
+    ${r.assignment_name ? `<div class="muted">📎 關聯任務：${esc(r.assignment_name)}</div>` : ''}
+    ${r.image_count > 0 ? `<div class="thumbs">${Array.from({ length: r.image_count }, (_, i) => `<a href="/api/issues/${r.id}/image/${i}" target="_blank" rel="noopener" class="thumb"><img src="/api/issues/${r.id}/image/${i}" alt="附圖 ${i + 1}"></a>`).join('')}</div>` : ''}
+    ${(r.replies || []).map(rp => `<div class="box ${rp.author_role === 'staff' ? 'gray' : 'green'}"><span class="lbl">${esc(rp.author_name)}（${esc(ROLE[rp.author_role] || rp.author_role)}）・${fmtDay(rp.created_at)}</span>${linkify(rp.text)}</div>`).join('')}
+    <div class="field" style="margin-top:.6rem"><label for="iss-reply-${r.id}">回覆</label><textarea class="input" id="iss-reply-${r.id}" rows="2"></textarea></div>
+    <button class="btn primary block" onclick="replyIssue(${r.id})">送出回覆</button>
+    <div class="btns">${btn('processing', '處理中')}${btn('resolved', '✅ 已解決')}${btn('pending', '改回待處理')}</div>
+  </details>`;
+}
+function renderIssues() {
+  const list = issues.filter(r => issueTab === 'resolved' ? r.status === 'resolved' : r.status !== 'resolved');
+  $('iss-list').innerHTML = list.length ? list.map(issueCard).join('') : `<div class="card empty">${issueTab === 'resolved' ? '還沒有已解決的問題' : '目前沒有未解決的問題 🎉'}</div>`;
+}
+async function markIssueRead(id) {
+  const r = issues.find(x => x.id === id);
+  if (!r || !r.unread_handler) return;
+  try { await API.put(`/api/issues/${id}/read`, {}); r.unread_handler = false; syncIssueUnread(); } catch (e) {}
+}
+async function replyIssue(id) {
+  const text = $('iss-reply-' + id).value.trim();
+  if (!text) { showToast('請輸入回覆內容', 'warn'); return; }
+  try { await API.post(`/api/issues/${id}/reply`, { text }); showToast('回覆已送出', 'success'); await loadIssues(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+async function setIssueStatus(id, status) {
+  try { await API.put(`/api/issues/${id}/status`, { status }); showToast('狀態已更新', 'success'); await loadIssues(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── 📢 公告管理 ────────────────────────────────────────────────
+let admAnnTab = 'general';
+async function loadAdmAnns() {
+  try { admAnns = await API.get('/api/admin/announcements'); }
+  catch (e) { $('adm-ann-list').innerHTML = `<div class="card empty">${esc(e.message)}</div>`; return; }
+  renderAdmAnns();
+}
+function setAdmAnnTab(t) {
+  admAnnTab = t;
+  ['general', 'task'].forEach(x => $('adm-ann-tab-' + x).setAttribute('aria-selected', x === t));
+  renderAdmAnns();
+}
+const annAtts = a => (a.attachments && a.attachments.length) ? a.attachments : (a.attachment_drive_id ? [{ drive_id: a.attachment_drive_id, name: a.attachment_name, mime: a.attachment_mime }] : []);
+function renderAdmAnns() {
+  const today = new Date().toISOString().slice(0, 10);
+  const list = admAnns.filter(a => (a.category === 'task') === (admAnnTab === 'task'))
+    .sort((a, b) => ((b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0)) || (b.created_at || '').localeCompare(a.created_at || ''));
+  const TARGET = { all: '全部角色', ...ROLE };
+  $('adm-ann-list').innerHTML = list.length ? list.map(a => {
+    const expired = a.expires_at && a.expires_at < today, n = annAtts(a).length;
+    return `<div class="card" style="${expired ? 'opacity:.6' : ''}">
+      <button class="ann" style="box-shadow:none;padding:0;margin:0" onclick="viewAdmAnn('${esc(String(a.id))}')">
+        <div class="row" style="flex-wrap:wrap">${a.is_pinned ? '📌' : ''}<b style="flex:1;min-width:0">${esc(a.title)}</b></div>
+        <div class="chips"><span class="tag">${TARGET[a.target || 'all'] || '全部角色'}</span>${expired ? '<span class="chip red">已到期</span>' : a.expires_at ? `<span class="chip">到期 ${esc(a.expires_at)}</span>` : '<span class="chip purple">🔒 永久</span>'}${n ? `<span class="chip">📎 ${n}</span>` : ''}</div>
+        <div class="muted">${esc((a.created_at || '').slice(0, 16))}・${esc(a.created_by || '—')}</div>
+      </button>
+      <div class="btns"><button class="btn danger" onclick="deleteAnn('${esc(String(a.id))}')">刪除</button><button class="btn ghost" onclick="openAnnForm('${esc(String(a.id))}')">編輯</button></div>
+    </div>`;
+  }).join('') : `<div class="card empty">${admAnnTab === 'task' ? '目前沒有任務通知' : '目前沒有公告'}</div>`;
+}
+function viewAdmAnn(id) { const a = admAnns.find(x => String(x.id) === id); if (a) showAnnDetail(a, meId); }
+let annEdit = null, annExisting = [], annNew = [], annRemove = [];
+function openAnnForm(id) {
+  annEdit = id ? admAnns.find(x => String(x.id) === id) : null;
+  const a = annEdit;
+  $('ann-form-title').textContent = a ? '編輯公告' : '發布公告';
+  $('ann-save').textContent = a ? '更新公告' : '發布';
+  $('ann-title').value = a ? a.title || '' : ''; $('ann-content').value = a ? a.content || '' : '';
+  $('ann-target').value = a ? a.target || 'all' : 'all'; $('ann-pinned').checked = a ? !!a.is_pinned : false;
+  const perm = a ? !a.expires_at : false;
+  $('ann-permanent').checked = perm; $('ann-exp-wrap').style.display = perm ? 'none' : '';
+  $('ann-expires').value = a && a.expires_at ? a.expires_at : '';
+  $('ann-expires').min = new Date().toISOString().slice(0, 10);
+  annExisting = a ? annAtts(a).slice() : []; annNew = []; annRemove = [];
+  renderAnnFiles(); $('ann-err').style.display = 'none'; $('ann-save').disabled = false;
+  openSheet('ann-form-overlay');
+}
+function addAnnFiles(input) {
+  for (const f of input.files) {
+    if (f.size > 15 * 1024 * 1024) { showToast(`「${f.name}」超過 15MB`, 'error'); continue; }
+    annNew.push(f);
+  }
+  input.value = ''; renderAnnFiles();
+}
+function renderAnnFiles() {
+  $('ann-file-list').innerHTML =
+    annExisting.map((f, i) => `<div class="filechip">📎 <span>${esc(f.name || '附件')}</span><button aria-label="移除 ${esc(f.name || '附件')}" onclick="annRemove.push(annExisting[${i}].drive_id);annExisting.splice(${i},1);renderAnnFiles()">✕</button></div>`).join('') +
+    annNew.map((f, i) => `<div class="filechip">＋ <span>${esc(f.name)}</span><button aria-label="移除 ${esc(f.name)}" onclick="annNew.splice(${i},1);renderAnnFiles()">✕</button></div>`).join('');
+}
+async function saveAnn() {
+  const err = $('ann-err'), btn = $('ann-save');
+  const fail = m => { err.textContent = m; err.style.display = 'block'; err.scrollIntoView({ block: 'center' }); };
+  err.style.display = 'none';
+  const title = $('ann-title').value.trim(), content = $('ann-content').value.trim();
+  const permanent = $('ann-permanent').checked, expires_at = permanent ? null : ($('ann-expires').value || null);
+  if (!title) return fail('請輸入公告標題');
+  if (!content) return fail('請輸入公告內容');
+  if (expires_at && expires_at < new Date().toISOString().slice(0, 10)) return fail('到期日不能早於今天');
+  const body = { title, content, target: $('ann-target').value, is_pinned: $('ann-pinned').checked, expires_at };
+  btn.disabled = true; btn.textContent = '儲存中…';
+  try {
+    let id = annEdit && annEdit.id;
+    if (id) await API.put(`/api/admin/announcements/${id}`, body);
+    else id = (await API.post('/api/admin/announcements', body)).id;
+    for (const driveId of annRemove) await API.delete(`/api/admin/announcements/${id}/attachment/${driveId}`).catch(() => {});
+    for (let i = 0; i < annNew.length; i++) {
+      btn.textContent = `上傳附件 ${i + 1}/${annNew.length}…`;
+      const f = annNew[i], data = (await fileToB64(f)).split(',')[1];
+      await API.post(`/api/admin/announcements/${id}/attachment`, { name: f.name, mime: f.type || 'application/octet-stream', data });
+    }
+    closeSheet('ann-form-overlay');
+    showToast(annEdit ? '公告已更新 ✓' : '公告已發布 ✓', 'success');
+    loadAdmAnns();
+  } catch (e) { fail(e.message); }
+  btn.disabled = false; btn.textContent = annEdit ? '更新公告' : '發布';
+}
+async function deleteAnn(id) {
+  const a = admAnns.find(x => String(x.id) === id); if (!a) return;
+  if (!confirm(`確定刪除公告「${a.title}」？`)) return;
+  try { await API.delete(`/api/admin/announcements/${a.id}`); showToast('公告已刪除', 'success'); loadAdmAnns(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── 🏠 首頁 ────────────────────────────────────────────────────
+function renderHome() {
+  const p = pendingUsers();
+  $('st-accounts').textContent = p.length; $('st-accounts').classList.toggle('hot', p.length > 0);
+  $('st-forgot').textContent = forgots.length; $('st-forgot').classList.toggle('hot', forgots.length > 0);
+  const items = [
+    ...p.slice(0, 3).map(u => `<button class="todo" onclick="go('accounts')"><span class="ic">👤</span><span class="tx"><span class="tt">${esc(u.real_name)} 申請加入</span><span class="ts" style="display:block">${esc(ROLE[u.role] || '')}・${esc((u.created_at || '').slice(0, 10))}</span></span><span class="go">審核 ›</span></button>`),
+    ...forgots.slice(0, 3).map(r => `<button class="todo" style="border-left-color:var(--orange)" onclick="go('forgot')"><span class="ic">🔑</span><span class="tx"><span class="tt">${esc(r.real_name)} 忘記密碼</span><span class="ts" style="display:block">${esc((r.created_at || '').slice(0, 16))}</span></span><span class="go">處理 ›</span></button>`),
+    ...(issueUnread ? [`<button class="todo" style="border-left-color:var(--green)" onclick="go('issues')"><span class="ic">📝</span><span class="tx"><span class="tt">${issueUnread} 個問題回報未讀</span><span class="ts" style="display:block">夥伴或派案人員的回報</span></span><span class="go">查看 ›</span></button>`] : []),
+  ];
+  $('home-todo').innerHTML = items.length ? items.join('') : '<div class="card empty">目前沒有待處理的事項 🎉</div>';
+}
+
+// ── 角標 ───────────────────────────────────────────────────────
+function updateBadges() {
+  setBadge('badge-accounts', pendingUsers().length);
+  setBadge('badge-forgot', forgots.length);
+  setBadge('me-issue-n', issueUnread); setBadge('badge-me', issueUnread);
+}
+
+// ── 啟動 ───────────────────────────────────────────────────────
+async function init() {
+  me = await requireAuth(['staff']);
+  if (!me) return;
+  meId = me.id;
+  $('me-name').textContent = me.real_name || '';
+  $('ava').textContent = (me.real_name || '管').slice(-1);
+  $('hello-text').textContent = `${me.nickname || me.real_name || ''}，您好！`;
+  scheduleMidnightLogout();
+  showPage(location.hash.slice(1) || 'home');
+  API.get('/api/profile').then(p => { prof = p; fillProfile(); }).catch(() => {});
+  loadIssues();
+  if (location.hash === '#notices') loadAdmAnns();
+  await loadUsers(); await loadForgot();
+  booted = true;
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { loadUsers(); loadForgot(); syncIssueUnread(); } });
+  setInterval(() => { if (!document.hidden) { loadForgot(); syncIssueUnread(); } }, 120000);
+}
+init();
+</script>
+</body>
+</html>

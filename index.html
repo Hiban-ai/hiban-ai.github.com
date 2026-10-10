@@ -304,7 +304,7 @@ function goToRole(role) {
   const pages = {
     partner: isMobile ? 'partner-mobile.html' : 'partner.html',
     supervisor: isMobile ? 'supervisor-mobile.html' : 'supervisor.html',
-    staff: 'staff.html'
+    staff: isMobile ? 'staff-mobile.html' : 'staff.html'
   };
   location.href = pages[role] || 'index.html';
 }

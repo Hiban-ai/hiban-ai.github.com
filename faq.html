@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常見問題 — 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#48B4E8;--blue-d:#1A8AC0;--blue-dd:#0F5A99;--blue-p:#EBF7FD;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#5B7385;
+  --border:#C8E8F6;--bg:#F0F8FE;--r:16px;--rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;background:#EBF7FD}
+body{font-family:'Noto Sans TC',sans-serif;color:var(--text);min-height:100vh;
+  background:linear-gradient(160deg,#48B4E8 0%,#74CAEF 30%,#A8DCEF 55%,#EBF7FD 80%);
+  padding:1.5rem 1rem 2.5rem;line-height:1.7}
+.wrap{max-width:720px;margin:0 auto}
+
+.head{text-align:center;color:#fff;margin-bottom:1.25rem}
+.head .brand{font-family:'Noto Serif TC',serif;font-weight:900;font-size:1.05rem;letter-spacing:.12em;opacity:.95}
+.head h1{font-family:'Noto Serif TC',serif;font-weight:900;font-size:2rem;letter-spacing:.08em;margin-top:.15rem}
+
+/* 分類快速跳轉 */
+.cats{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1.25rem}
+.cats a{display:inline-flex;align-items:center;min-height:44px;padding:.4rem 1.1rem;border-radius:22px;
+  background:rgba(255,255,255,.92);color:var(--blue-dd);font-weight:700;font-size:1rem;text-decoration:none;
+  box-shadow:0 3px 10px rgba(15,90,153,.12)}
+.cats a:hover{background:#fff}
+.cats a:focus-visible,summary:focus-visible,.btn:focus-visible{outline:3px solid var(--blue-dd);outline-offset:2px}
+
+.card{background:rgba(255,255,255,.97);border-radius:var(--r);padding:1.25rem 1.25rem 1rem;margin-bottom:1rem;
+  box-shadow:0 10px 30px rgba(26,112,160,.12)}
+.card h2{font-size:1.2rem;font-weight:700;color:var(--blue-dd);margin-bottom:.6rem;padding-left:.6rem;border-left:5px solid var(--blue)}
+section{scroll-margin-top:1rem}
+
+details{border-bottom:1px solid var(--border)}
+details:last-child{border-bottom:none}
+summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.75rem;
+  padding:.85rem .25rem;font-size:1.05rem;font-weight:700;color:var(--text);min-height:52px}
+summary::-webkit-details-marker{display:none}
+summary .q{color:var(--blue-d);font-family:'Noto Serif TC',serif;font-weight:900;flex:none}
+summary .t{flex:1}
+summary .arrow{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue-p);color:var(--blue-dd);
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:transform .2s}
+details[open] summary .arrow{transform:rotate(180deg)}
+.answer{padding:.1rem .25rem 1rem 2.1rem;font-size:1rem;color:var(--text-m);white-space:pre-wrap;word-break:break-word}
+.answer a{color:var(--blue-dd);font-weight:700}
+
+.help{text-align:center}
+.help .title{font-size:1.1rem;font-weight:700;margin-bottom:.25rem}
+.help p{font-size:.95rem;color:var(--text-m)}
+.btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:.9rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.5rem 1.4rem;border-radius:var(--rs);
+  font-size:1rem;font-weight:700;text-decoration:none;font-family:inherit}
+.btn.primary{background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;box-shadow:0 4px 14px rgba(72,180,232,.35)}
+.btn.ghost{background:var(--bg);color:var(--blue-dd);border:1.5px solid var(--border)}
+.state{text-align:center;color:var(--text-s);padding:1.5rem 0;font-size:1rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="brand">希絆雲作所</div>
+    <h1>常見問題</h1>
+  </header>
+
+  <nav class="cats" id="cats" aria-label="問題分類"></nav>
+
+  <main id="list"><div class="card"><div class="state">載入中…</div></div></main>
+
+  <div class="card help">
+    <div class="title">找不到答案嗎？</div>
+    <p>請在希絆雲作所 LINE 官方帳號直接傳訊息給我們。<br>客服時間：週一～週五 8:30–17:30</p>
+    <div class="btns">
+      <a class="btn primary" href="index.html">登入希絆</a>
+      <a class="btn ghost" href="register.html">申請加入</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+// 先跳脫再把網址轉成連結（只接受 http/https）
+function linkify(s) {
+  return esc(s).replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+}
+
+async function loadFaq() {
+  const list = document.getElementById('list');
+  try {
+    const res = await fetch('/api/faq');
+    if (!res.ok) throw new Error();
+    const { categories, items } = await res.json();
+    const groups = categories
+      .map(c => ({ ...c, items: items.filter(i => i.category === c.key) }))
+      .filter(g => g.items.length);
+    if (!groups.length) {
+      list.innerHTML = '<div class="card"><div class="state">目前還沒有常見問題。</div></div>';
+      return;
+    }
+    document.getElementById('cats').innerHTML =
+      groups.map(g => `<a href="#${g.key}">${esc(g.label)}</a>`).join('');
+    list.innerHTML = groups.map(g => `
+      <section class="card" id="${g.key}" aria-labelledby="h-${g.key}">
+        <h2 id="h-${g.key}">${esc(g.label)}</h2>
+        ${g.items.map(i => `
+          <details id="q-${esc(i.id)}">
+            <summary><span class="q" aria-hidden="true">Q</span><span class="t">${esc(i.question)}</span><span class="arrow" aria-hidden="true">▼</span></summary>
+            <div class="answer">${linkify(i.answer)}</div>
+          </details>`).join('')}
+      </section>`).join('');
+    openFromHash();
+  } catch (e) {
+    list.innerHTML = '<div class="card"><div class="state">載入失敗，請稍後再試。</div></div>';
+  }
+}
+
+// 支援 faq.html#salary（跳到分類）與 faq.html#q-xxx（直接展開某題），方便 LINE 自動回覆連結
+function openFromHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.tagName === 'DETAILS') el.open = true;
+  el.scrollIntoView();
+}
+window.addEventListener('hashchange', openFromHash);
+loadFaq();
+</script>
+</body>
+</html>

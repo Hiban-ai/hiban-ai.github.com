@@ -1590,6 +1590,120 @@ app.put('/api/system/contract', requireRole('staff'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── 常見問題（faq.html 公開讀取；系統設定可增修刪）──────────────────
+// 全部問題存在 system_config/faq 一份文件的 items 陣列：公開頁只讀一次文件＋快取，省 Firestore 讀取量。
+// 文件還不存在時回傳預設題目（不寫入），管理員第一次編輯時才建立。
+const FAQ_CATEGORIES = [
+  { key: 'account', label: '帳號' },
+  { key: 'task',    label: '接案' },
+  { key: 'report',  label: '回報' },
+  { key: 'salary',  label: '薪資' },
+  { key: 'other',   label: '其他' },
+];
+const FAQ_DEFAULTS = [
+  { id: 'd1', category: 'account', question: '忘記密碼怎麼辦？',
+    answer: '請在登入頁按「忘記密碼？」送出申請，工作人員會在上班時間幫您重設。\n請不要在 LINE 聊天室傳您的密碼。' },
+  { id: 'd2', category: 'report', question: '回報送出後，什麼時候會審核？',
+    answer: '回報送出後，會由派案給您的督導審核，審核時間依督導的安排而定。\n審核結果可以在「我的任務」看到。' },
+  { id: 'd3', category: 'salary', question: '薪資什麼時候發？',
+    answer: '每月 15 號發薪。\n可以登入系統後，在「錢包」查看明細。' },
+  { id: 'd4', category: 'other', question: '客服時間是什麼時候？怎麼聯絡？',
+    answer: '客服時間：週一～週五 8:30–17:30。\n可以在希絆雲作所 LINE 官方帳號直接傳訊息給我們，其他時間留言，我們上班後會盡快回覆。' },
+];
+const faqDoc = () => firestoreDb.collection('system_config').doc('faq');
+const FAQ_CACHE_KEY = 'faq';
+
+async function loadFaqItems() {
+  let items = cacheGet(FAQ_CACHE_KEY);
+  if (items) return items;
+  const doc = await faqDoc().get();
+  items = doc.exists ? (doc.data().items || []) : FAQ_DEFAULTS;
+  cacheSet(FAQ_CACHE_KEY, items, 10 * 60 * 1000); // 快取 10 分鐘，寫入時清除
+  return items;
+}
+// 以交易修改 items，避免兩位管理員同時編輯互相覆蓋
+async function updateFaqItems(mutate) {
+  await firestoreDb.runTransaction(async tx => {
+    const doc = await tx.get(faqDoc());
+    const items = doc.exists ? (doc.data().items || []) : FAQ_DEFAULTS.map(i => ({ ...i }));
+    const next = mutate(items);
+    tx.set(faqDoc(), { items: next, updated_at: nowTW() });
+  });
+  cacheDel(FAQ_CACHE_KEY);
+}
+function validateFaq(body) {
+  const category = String(body.category || '');
+  const question = String(body.question || '').trim();
+  const answer   = String(body.answer || '').trim();
+  if (!FAQ_CATEGORIES.some(c => c.key === category)) return { error: '請選擇分類' };
+  if (!question) return { error: '請輸入問題' };
+  if (question.length > 100) return { error: '問題最多 100 字' };
+  if (!answer) return { error: '請輸入回答' };
+  if (answer.length > 2000) return { error: '回答最多 2000 字' };
+  return { category, question, answer };
+}
+function requireSystemAdmin(req, res, next) {
+  const u = req.session.user;
+  if (!u || u.role !== 'staff') return res.status(403).json({ error: '權限不足' });
+  if (u.username !== 'admin' && !u.is_admin) return res.status(403).json({ error: '權限不足' });
+  next();
+}
+class FaqError extends Error {}
+
+app.get('/api/faq', async (req, res) => {
+  try {
+    res.json({ categories: FAQ_CATEGORIES, items: await loadFaqItems() });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/faq', requireSystemAdmin, async (req, res) => {
+  const v = validateFaq(req.body || {});
+  if (v.error) return res.status(400).json({ error: v.error });
+  try {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await updateFaqItems(items => [...items, { id, ...v, updated_at: nowTW() }]);
+    res.json({ ok: true, id });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/admin/faq/:id', requireSystemAdmin, async (req, res) => {
+  const v = validateFaq(req.body || {});
+  if (v.error) return res.status(400).json({ error: v.error });
+  try {
+    await updateFaqItems(items => {
+      if (!items.some(i => i.id === req.params.id)) throw new FaqError('找不到這個問題，可能已被刪除');
+      return items.map(i => i.id === req.params.id ? { ...i, ...v, updated_at: nowTW() } : i);
+    });
+    res.json({ ok: true });
+  } catch(e) { res.status(e instanceof FaqError ? 404 : 500).json({ error: e.message }); }
+});
+
+app.delete('/api/admin/faq/:id', requireSystemAdmin, async (req, res) => {
+  try {
+    await updateFaqItems(items => items.filter(i => i.id !== req.params.id));
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// 同分類內上移／下移
+app.put('/api/admin/faq/:id/move', requireSystemAdmin, async (req, res) => {
+  const dir = req.body && req.body.dir === 'up' ? -1 : 1;
+  try {
+    await updateFaqItems(items => {
+      const idx = items.findIndex(i => i.id === req.params.id);
+      if (idx < 0) throw new FaqError('找不到這個問題，可能已被刪除');
+      const cat = items[idx].category;
+      let j = idx + dir;
+      while (j >= 0 && j < items.length && items[j].category !== cat) j += dir;
+      if (j < 0 || j >= items.length) return items;
+      const next = items.slice();
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+    res.json({ ok: true });
+  } catch(e) { res.status(e instanceof FaqError ? 404 : 500).json({ error: e.message }); }
+});
+
 // ══════════════════════════════════════════════════════════════
 // 問題回報系統
 // ══════════════════════════════════════════════════════════════

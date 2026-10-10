@@ -627,10 +627,29 @@ textarea.form-input{resize:none}
           <button onclick="openSettingModal('contract')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
             <span>📄 合約設定</span><span style="color:var(--text-s)">›</span>
           </button>
+          <button onclick="openFaqSetting()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span>❓ 常見問題設定</span><span style="color:var(--text-s)">›</span>
+          </button>
           <button onclick="openDataMgmt()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.85rem 1rem;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:700;color:var(--text-m);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
             <span>🗄️ 資料管理</span><span style="color:var(--text-s)">›</span>
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 常見問題設定 overlay -->
+    <div class="detail-overlay" id="faq-setting-overlay">
+      <div class="detail-box" style="border-top-color:var(--blue);width:680px" role="dialog" aria-modal="true" aria-labelledby="faq-setting-title">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+          <div id="faq-setting-title" style="font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700">❓ 常見問題設定</div>
+          <button onclick="closeSettingModal('faq')" aria-label="關閉" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-s)">✕</button>
+        </div>
+        <div style="font-size:.82rem;color:var(--text-m);margin-bottom:.85rem;line-height:1.6">
+          一個欄位就是一題，儲存後會顯示在公開的<a href="faq.html" target="_blank" rel="noopener" style="color:var(--blue-d);font-weight:700">常見問題頁 ↗</a>。回答可以換行；貼上網址會自動變成連結。
+        </div>
+        <div id="faq-cat-tabs" role="tablist" aria-label="常見問題分類" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem"></div>
+        <div id="faq-list"></div>
+        <button onclick="addFaqItem()" style="width:100%;margin-top:.6rem;padding:.75rem;border:1.5px dashed var(--blue);border-radius:var(--rs);background:var(--blue-p);color:var(--blue-d);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">＋ 新增問題</button>
       </div>
     </div>
 
@@ -2423,6 +2442,174 @@ function openSettingModal(name) {
 }
 function closeSettingModal(name) {
   document.getElementById(name + '-setting-overlay').classList.remove('open');
+}
+
+// ── 常見問題設定 ──────────────────────────────────────────────
+let faqData = { categories: [], items: [] };
+let faqCat = 'account';
+let faqAdding = false; // 目前分類是否有一個尚未儲存的新欄位
+
+function faqEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+async function openFaqSetting() {
+  openSettingModal('faq');
+  await loadFaqSetting();
+}
+async function loadFaqSetting() {
+  try {
+    faqData = await API.get('/api/faq');
+    if (!faqData.categories.some(c => c.key === faqCat)) faqCat = faqData.categories[0].key;
+    renderFaqSetting();
+  } catch(e) { showToast('常見問題載入失敗：' + e.message, 'error'); }
+}
+function faqHasUnsaved() {
+  return !!document.querySelector('#faq-list .faq-item[data-dirty="1"]');
+}
+function switchFaqCat(key) {
+  if (key === faqCat) return;
+  if (faqHasUnsaved() && !confirm('這個分類有尚未儲存的修改，確定要切換嗎？')) return;
+  faqCat = key;
+  faqAdding = false;
+  renderFaqSetting();
+}
+function renderFaqSetting() {
+  const tabs = faqData.categories.map(c => {
+    const n = faqData.items.filter(i => i.category === c.key).length;
+    const on = c.key === faqCat;
+    return `<button role="tab" aria-selected="${on}" onclick="switchFaqCat('${c.key}')"
+      style="padding:.45rem 1rem;border-radius:20px;border:1.5px solid ${on ? 'var(--blue)' : 'var(--border)'};background:${on ? 'var(--blue)' : '#fff'};color:${on ? '#fff' : 'var(--text-m)'};font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif">
+      ${faqEsc(c.label)} <span style="opacity:.8">(${n})</span></button>`;
+  }).join('');
+  document.getElementById('faq-cat-tabs').innerHTML = tabs;
+
+  const items = faqData.items.filter(i => i.category === faqCat);
+  let html = items.map((it, idx) => faqItemCard(it, idx + 1, idx === 0, idx === items.length - 1)).join('');
+  if (faqAdding) html += faqItemCard({ id: 'new', category: faqCat, question: '', answer: '' }, items.length + 1, true, true);
+  if (!html) html = '<div style="text-align:center;color:var(--text-s);font-size:.85rem;padding:1.25rem 0">這個分類還沒有問題，按下方「＋ 新增問題」開始。</div>';
+  document.getElementById('faq-list').innerHTML = html;
+}
+function faqItemCard(it, no, isFirst, isLast) {
+  const isNew = it.id === 'new';
+  const id = faqEsc(it.id);
+  const catOpts = faqData.categories.map(c =>
+    `<option value="${c.key}"${c.key === it.category ? ' selected' : ''}>${faqEsc(c.label)}</option>`).join('');
+  const moveBtn = (dir, label, disabled) =>
+    `<button class="action-btn" onclick="moveFaqItem('${id}','${dir}')" ${disabled ? 'disabled style="opacity:.35;cursor:default"' : ''} aria-label="${label}">${dir === 'up' ? '↑' : '↓'}</button>`;
+  return `
+  <div class="faq-item" id="faq-item-${id}" data-dirty="${isNew ? 1 : 0}" oninput="markFaqDirty('${id}')"
+    style="border:1.5px solid ${isNew ? 'var(--orange)' : 'var(--border)'};border-radius:var(--rs);padding:.85rem;margin-bottom:.6rem;background:#fff">
+    <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem">
+      <span style="font-size:.82rem;font-weight:700;color:var(--blue-d)">${isNew ? '新問題' : '第 ' + no + ' 題'}</span>
+      <span id="faq-dirty-${id}" style="font-size:.78rem;color:var(--orange);font-weight:700;${isNew ? '' : 'display:none'}">● 尚未儲存</span>
+      <span style="flex:1"></span>
+      ${isNew ? '' : moveBtn('up', '上移', isFirst) + moveBtn('down', '下移', isLast)}
+    </div>
+    <label class="form-label" for="faq-q-${id}" style="font-size:.8rem">問題</label>
+    <input class="form-input" id="faq-q-${id}" maxlength="100" value="${faqEsc(it.question)}" placeholder="例：薪資什麼時候發？" style="margin-bottom:.5rem">
+    <label class="form-label" for="faq-a-${id}" style="font-size:.8rem">回答</label>
+    <textarea class="form-input" id="faq-a-${id}" maxlength="2000" rows="4" placeholder="用簡單的句子回答，一行說一件事" style="resize:vertical;line-height:1.6;margin-bottom:.5rem">${faqEsc(it.answer)}</textarea>
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+      <label for="faq-c-${id}" style="font-size:.8rem;color:var(--text-m)">分類</label>
+      <select class="form-input" id="faq-c-${id}" style="width:auto;padding:.35rem .6rem">${catOpts}</select>
+      <span style="flex:1"></span>
+      ${isNew
+        ? `<button class="action-btn" onclick="cancelFaqNew()">取消</button>
+           <button class="action-btn approve" onclick="saveFaqItem('new')">＋ 新增</button>`
+        : `<button class="action-btn danger" onclick="deleteFaqItem('${id}')">刪除</button>
+           <button class="action-btn approve" onclick="saveFaqItem('${id}')">儲存</button>`}
+    </div>
+  </div>`;
+}
+function markFaqDirty(id) {
+  const card = document.getElementById('faq-item-' + id);
+  if (!card || card.dataset.dirty === '1') return;
+  card.dataset.dirty = '1';
+  card.style.borderColor = 'var(--orange)';
+  document.getElementById('faq-dirty-' + id).style.display = '';
+}
+// 重繪清單但保留其他欄位尚未儲存的內容
+function rerenderFaqKeepDrafts(exceptId) {
+  const drafts = faqCollectDrafts(exceptId);
+  renderFaqSetting();
+  faqRestoreDrafts(drafts);
+}
+function addFaqItem() {
+  if (faqAdding) { document.getElementById('faq-q-new')?.focus(); return; }
+  faqAdding = true;
+  rerenderFaqKeepDrafts(null);
+  document.getElementById('faq-q-new')?.focus();
+}
+function cancelFaqNew() {
+  faqAdding = false;
+  rerenderFaqKeepDrafts('new');
+}
+async function saveFaqItem(id) {
+  const body = {
+    question: document.getElementById('faq-q-' + id).value.trim(),
+    answer:   document.getElementById('faq-a-' + id).value.trim(),
+    category: document.getElementById('faq-c-' + id).value,
+  };
+  if (!body.question) { showToast('請輸入問題', 'error'); return; }
+  if (!body.answer)   { showToast('請輸入回答', 'error'); return; }
+  // 其他欄位尚未儲存的內容先保留，重新整理清單後填回
+  const drafts = faqCollectDrafts(id);
+  try {
+    if (id === 'new') {
+      await API.post('/api/admin/faq', body);
+      faqAdding = false;
+      showToast('已新增問題', 'success');
+    } else {
+      await API.put('/api/admin/faq/' + encodeURIComponent(id), body);
+      showToast('已儲存', 'success');
+    }
+    if (!Object.keys(drafts).length) faqCat = body.category; // 有其他草稿時留在原分類，草稿才填得回去
+    await loadFaqSetting();
+    faqRestoreDrafts(drafts);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+async function deleteFaqItem(id) {
+  const q = document.getElementById('faq-q-' + id)?.value || '';
+  if (!confirm(`確定刪除這一題？\n「${q}」\n\n刪除後無法復原。`)) return;
+  const drafts = faqCollectDrafts(id);
+  try {
+    await API.delete('/api/admin/faq/' + encodeURIComponent(id));
+    showToast('已刪除', 'success');
+    await loadFaqSetting();
+    faqRestoreDrafts(drafts);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+async function moveFaqItem(id, dir) {
+  const drafts = faqCollectDrafts(null);
+  try {
+    await API.put('/api/admin/faq/' + encodeURIComponent(id) + '/move', { dir });
+    await loadFaqSetting();
+    faqRestoreDrafts(drafts);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+function faqCollectDrafts(exceptId) {
+  const drafts = {};
+  document.querySelectorAll('#faq-list .faq-item[data-dirty="1"]').forEach(card => {
+    const id = card.id.replace('faq-item-', '');
+    if (id === exceptId) return;
+    drafts[id] = {
+      q: document.getElementById('faq-q-' + id).value,
+      a: document.getElementById('faq-a-' + id).value,
+      c: document.getElementById('faq-c-' + id).value,
+    };
+  });
+  if (drafts.new) faqAdding = true;
+  return drafts;
+}
+function faqRestoreDrafts(drafts) {
+  Object.entries(drafts).forEach(([id, d]) => {
+    const q = document.getElementById('faq-q-' + id);
+    if (!q) return;
+    q.value = d.q;
+    document.getElementById('faq-a-' + id).value = d.a;
+    document.getElementById('faq-c-' + id).value = d.c;
+    markFaqDirty(id);
+  });
 }
 let contractOriginal = '';
 async function loadSystemSettings() {

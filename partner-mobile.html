@@ -41,40 +41,26 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto S
 .m-user-name{font-size:.82rem;font-weight:700;color:#fff;max-width:80px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── Drawer overlay ── */
-.drawer-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200}
-.drawer-mask.open{display:block}
-.drawer{position:fixed;top:0;left:-280px;width:280px;height:100%;
-  background:linear-gradient(180deg,#1260A0,#1A8AC0);
-  z-index:201;transition:left .28s ease;display:flex;flex-direction:column;
-  box-shadow:4px 0 24px rgba(0,0,0,.25)}
-.drawer.open{left:0}
-.drawer-header{padding:1.25rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,.12)}
-.drawer-logo{font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:900;color:#fff;margin-bottom:.75rem}
-.drawer-char{display:flex;align-items:center;gap:.65rem}
-.drawer-ava-wrap{position:relative;cursor:pointer}
-.drawer-ava{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.2);
-  border:2px solid rgba(255,255,255,.35);overflow:hidden;display:flex;align-items:center;
-  justify-content:center;font-size:1.5rem}
-.drawer-ava img{width:100%;height:100%;object-fit:cover;display:none}
-.drawer-ava-edit{position:absolute;bottom:-4px;right:-4px;background:var(--yellow);
-  color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;
-  display:flex;align-items:center;justify-content:center;font-weight:700}
-.drawer-name{font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:#fff}
-.drawer-class{display:inline-block;margin-top:.2rem;padding:.1rem .4rem;
-  background:rgba(255,255,255,.15);border-radius:4px;font-size:.62rem;color:rgba(255,255,255,.85);font-weight:600}
-.drawer-menu{flex:1;overflow-y:auto;padding:.5rem 0}
-.drawer-item{display:flex;align-items:center;gap:.75rem;padding:.85rem 1.25rem;
-  color:rgba(255,255,255,.65);font-size:.9rem;cursor:pointer;transition:all .2s;
-  border-left:4px solid transparent;margin:.1rem .5rem;border-radius:var(--rs)}
-.drawer-item:hover,.drawer-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:var(--yellow-l);font-weight:700}
-.drawer-item .d-icon{width:22px;text-align:center;font-size:1.05rem;flex-shrink:0}
-.d-badge{background:var(--red);color:#fff;font-size:.6rem;font-weight:700;
-  padding:.1rem .38rem;border-radius:10px;margin-left:auto}
-.drawer-logout{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.12);
-  color:rgba(255,255,255,.45);font-size:.82rem;cursor:pointer;
-  display:flex;align-items:center;gap:.5rem}
-.drawer-logout:hover{color:rgba(255,255,255,.85)}
+/* ── Home tiles ── */
+.home-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1.1rem}
+.home-tile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.home-tile{position:relative;background:#fff;border-radius:var(--r);padding:1.3rem .75rem;
+  box-shadow:var(--shadow);border:1px solid var(--border-l);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:.5rem;cursor:pointer;transition:transform .15s}
+.home-tile:active{transform:scale(.96)}
+.home-tile .ht-icon{font-size:2rem}
+.home-tile .ht-label{font-size:.88rem;font-weight:700;color:var(--text)}
+.home-tile .ht-badge{position:absolute;top:.6rem;right:.6rem;background:var(--red);color:#fff;
+  font-size:.65rem;font-weight:700;padding:.1rem .42rem;border-radius:10px}
+
+/* ── Back-to-home button ── */
+.page-back{display:inline-flex;align-items:center;gap:.35rem;background:var(--blue-p);
+  color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;padding:.4rem 1rem;
+  font-size:.82rem;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:.85rem}
+
+.m-logout-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:#fff;height:34px;padding:0 .65rem;border-radius:20px;font-size:.78rem;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;font-family:sans-serif}
 
 /* ── Main scroll ── */
 .m-body{flex:1;overflow-y:auto;padding:1rem;padding-bottom:2rem;display:flex;flex-direction:column}
@@ -164,6 +150,13 @@ textarea.form-input{resize:vertical}
   background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.6rem;font-weight:700;
   display:flex;align-items:center;justify-content:center}
 
+/* ── Wallet ── */
+.wallet-hero{background:linear-gradient(135deg,#1A8AC0,#48B4E8,#74CAEF);border-radius:var(--r);
+  padding:1.5rem;text-align:center;color:#fff;margin-bottom:1rem;box-shadow:0 12px 36px rgba(72,180,232,.3)}
+.wh-amount{font-family:'Noto Serif TC',serif;font-size:2.4rem;font-weight:900;color:var(--yellow-l)}
+.txn-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)}
+.txn-p{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--green);white-space:nowrap}
+
 /* ── Issue card ── */
 .issue-card{background:#fff;border-left:4px solid var(--orange);border-radius:var(--rs);
   padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10);margin-bottom:.6rem}
@@ -182,8 +175,7 @@ textarea.form-input{resize:vertical}
 <!-- Topbar -->
 <div class="m-topbar">
   <div class="m-topbar-left">
-    <button class="m-hamburger" onclick="toggleDrawer()" aria-label="開啟選單" aria-expanded="false" aria-controls="drawer">☰</button>
-    <div class="m-topbar-title">希絆雲作所</div>
+    <div class="m-topbar-title" style="cursor:pointer" onclick="goHome()">希絆雲作所</div>
   </div>
   <div class="m-topbar-right">
     <div class="m-user-name" id="m-username">—</div>
@@ -192,92 +184,55 @@ textarea.form-input{resize:vertical}
       <span id="m-ava-emoji">🧑</span>
     </div>
     <input type="file" id="m-ava-input" accept="image/*" style="display:none" onchange="uploadAvatarM(this)">
+    <button class="m-logout-btn" onclick="signOut()" aria-label="登出" title="登出">🚪 登出</button>
   </div>
 </div>
 
 <!-- Notify bar -->
-<div class="notify-bar" id="m-notify-bar" aria-live="polite" onclick="switchPage('notices',document.querySelector('[data-page=notices]'))">
+<div class="notify-bar" id="m-notify-bar" aria-live="polite" onclick="switchPage('notices')">
   <span>📢</span><span id="m-notify-text">您有新公告</span>
   <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
-</div>
-
-<!-- Drawer mask -->
-<div class="drawer-mask" id="drawer-mask" onclick="closeDrawer()"></div>
-
-<!-- Drawer -->
-<div class="drawer" id="drawer">
-  <div class="drawer-header">
-    <div class="drawer-logo">希絆雲作所</div>
-    <div class="drawer-char">
-      <div class="drawer-ava-wrap" onclick="document.getElementById('m-ava-input').click()" aria-label="更換頭像">
-        <div class="drawer-ava">
-          <img id="drawer-ava-img" alt="">
-          <span id="drawer-ava-emoji">🧑</span>
-        </div>
-        <div class="drawer-ava-edit">✏️</div>
-      </div>
-      <div>
-        <div class="drawer-name" id="drawer-username">—</div>
-        <div class="drawer-class">⚔️ 工作夥伴</div>
-      </div>
-    </div>
-  </div>
-  <div class="drawer-menu" role="navigation" aria-label="主選單">
-    <div class="drawer-item active" data-page="quests" onclick="switchPage('quests',this);closeDrawer()"><span class="d-icon">📊</span>總覽儀表板</div>
-    <div class="drawer-item" data-page="tasks" onclick="switchPage('tasks',this);closeDrawer()"><span class="d-icon">⚔️</span>任務<span class="d-badge" id="badge-active-tasks" style="display:none">0</span></div>
-    <div class="drawer-item" data-page="grab" onclick="switchPage('grab',this);closeDrawer()"><span class="d-icon">🎯</span>搶單區<span class="d-badge" id="badge-grab" style="display:none">0</span></div>
-    <div class="drawer-item" data-page="notices" onclick="switchPage('notices',this);closeDrawer()"><span class="d-icon">📢</span>公告<span class="d-badge" id="badge-notices" style="display:none">0</span></div>
-    <div class="drawer-item" data-page="issues" onclick="switchPage('issues',this);closeDrawer()"><span class="d-icon">🚩</span>問題回報<span class="d-badge" id="badge-issues" style="display:none">0</span></div>
-    <div class="drawer-item" data-page="profile" onclick="switchPage('profile',this);closeDrawer()"><span class="d-icon">🧑</span>個人資料</div>
-  </div>
-  <div class="drawer-logout" onclick="signOut()"><span>🚪</span>登出</div>
 </div>
 
 <!-- Main scrollable area -->
 <div class="m-body" id="m-body">
 
-  <!-- 總覽 -->
-  <div class="page-section active" id="page-quests">
-    <div class="page-title">📊 總覽</div>
-    <div class="stat-grid">
+  <!-- 首頁 -->
+  <div class="page-section active" id="page-home">
+    <div class="home-stat-strip">
       <div class="stat-box"><div class="stat-val" id="overview-income">$0</div><div class="stat-label">本月收入</div></div>
       <div class="stat-box"><div class="stat-val" id="overview-month-done">0件</div><div class="stat-label">本月完成</div></div>
       <div class="stat-box"><div class="stat-val" id="overview-login-days">—</div><div class="stat-label">登入天數</div></div>
     </div>
-
-    <!-- 需要修改 -->
-    <div id="overview-rejected-section" style="display:none;margin-bottom:.85rem">
-      <div class="section-label" style="color:var(--orange)">⚠️ 需要修改 <span id="overview-rejected-badge" style="background:var(--orange);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:10px">0</span></div>
-      <div id="overview-rejected-list"></div>
-    </div>
-
-    <!-- 搶單快覽 -->
-    <div id="overview-grab-block" style="display:none;background:var(--blue-pp);border-radius:var(--r);padding:.75rem .85rem;border:2px solid var(--blue);margin-bottom:.85rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-        <div style="font-size:.95rem;font-weight:800;color:var(--blue-d)">🎯 搶單區 <span id="overview-grab-badge" style="background:var(--red);color:#fff;font-size:.62rem;font-weight:700;padding:.12rem .45rem;border-radius:10px;margin-left:.25rem">0</span></div>
-        <button onclick="switchPage('grab',document.querySelector('[data-page=grab]'))" style="padding:.32rem .85rem;font-size:.78rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">前往 →</button>
+    <div class="home-tile-grid">
+      <div class="home-tile" onclick="switchPage('tasks')">
+        <span class="ht-badge" id="badge-active-tasks" style="display:none">0</span>
+        <span class="ht-icon">⚔️</span><span class="ht-label">任務</span>
       </div>
-      <div id="overview-grab-list"></div>
-    </div>
-
-    <!-- 可接任務 -->
-    <div id="overview-pending-section" style="display:none;margin-bottom:.85rem">
-      <div class="section-label">📋 可接任務 <span id="overview-pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:10px">0</span></div>
-      <div id="overview-quest-list"></div>
-    </div>
-
-    <!-- 進行中 -->
-    <div id="overview-active-section" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-        <div class="section-label" style="margin:0">⚔️ 進行中 <span id="overview-active-badge" style="background:var(--blue);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;margin-left:.2rem">0</span></div>
-        <button onclick="switchPage('tasks',document.querySelector('[data-page=tasks]'))" style="padding:.28rem .7rem;font-size:.75rem;font-weight:700;background:var(--blue-p);color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;cursor:pointer;font-family:sans-serif">查看全部 →</button>
+      <div class="home-tile" onclick="switchPage('grab')">
+        <span class="ht-badge" id="badge-grab" style="display:none">0</span>
+        <span class="ht-icon">🎯</span><span class="ht-label">搶單區</span>
       </div>
-      <div id="overview-active-list"></div>
+      <div class="home-tile" onclick="switchPage('wallet')">
+        <span class="ht-icon">💰</span><span class="ht-label">錢包</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('notices')">
+        <span class="ht-badge" id="badge-notices" style="display:none">0</span>
+        <span class="ht-icon">📢</span><span class="ht-label">公告</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('issues')">
+        <span class="ht-badge" id="badge-issues" style="display:none">0</span>
+        <span class="ht-icon">🚩</span><span class="ht-label">問題回報</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('profile')">
+        <span class="ht-icon">🧑</span><span class="ht-label">個人資料</span>
+      </div>
     </div>
   </div>
 
   <!-- 任務 -->
   <div class="page-section" id="page-tasks">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
     <div class="page-title">⚔️ 任務</div>
     <div class="section-label">🔔 待回覆 <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:10px">0</span></div>
     <div id="pending-list"><div class="empty">載入中...</div></div>
@@ -292,18 +247,38 @@ textarea.form-input{resize:vertical}
 
   <!-- 搶單區 -->
   <div class="page-section" id="page-grab">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
     <div class="page-title">🎯 搶單區</div>
     <div id="grab-zone-wrap"><div class="empty">載入中…</div></div>
   </div>
 
+  <!-- 錢包 -->
+  <div class="page-section" id="page-wallet">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">💰 錢包</div>
+    <div class="wallet-hero">
+      <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">本月收入</div>
+      <div class="wh-amount" id="wallet-total">$0</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div style="font-size:.85rem;font-weight:700;color:var(--text-m)">收入明細</div>
+        <select id="wallet-month" onchange="renderWallet()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.78rem;background:var(--bg);cursor:pointer"></select>
+      </div>
+      <div id="wallet-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
+    </div>
+  </div>
+
   <!-- 公告 -->
   <div class="page-section" id="page-notices">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
     <div class="page-title">📢 公告</div>
     <div id="ann-list-wrap"><div class="empty">載入中…</div></div>
   </div>
 
   <!-- 問題回報 -->
   <div class="page-section" id="page-issues">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
     <div class="page-title">🚩 問題回報</div>
     <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
       <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.5rem 1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">回報督導</button>
@@ -378,6 +353,7 @@ textarea.form-input{resize:vertical}
 
   <!-- 個人資料 -->
   <div class="page-section" id="page-profile">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
     <div class="page-title">🧑 個人資料</div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
@@ -469,32 +445,19 @@ textarea.form-input{resize:vertical}
 
 <script src="shared.js"></script>
 <script>
-// ── Drawer ────────────────────────────────────────────────────
-function toggleDrawer(){
-  const open = document.getElementById('drawer').classList.toggle('open');
-  document.getElementById('drawer-mask').classList.toggle('open');
-  const btn = document.querySelector('.m-hamburger');
-  if (btn) { btn.setAttribute('aria-expanded', open ? 'true' : 'false'); btn.setAttribute('aria-label', open ? '關閉選單' : '開啟選單'); }
-}
-function closeDrawer(){
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('drawer-mask').classList.remove('open');
-  const btn = document.querySelector('.m-hamburger');
-  if (btn) { btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', '開啟選單'); }
-}
-
 // ── Page switch ───────────────────────────────────────────────
-function switchPage(name, el) {
+function switchPage(name) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.drawer-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
   document.getElementById('m-body').scrollTop = 0;
-  if (name === 'tasks' || name === 'quests') loadTasks();
+  if (name === 'tasks' || name === 'home') loadTasks();
   if (name === 'grab') loadGrabZone();
+  if (name === 'wallet') renderWallet();
   if (name === 'notices') try { renderAnnList(); } catch(e) {}
   if (name === 'issues') loadIssuesPt();
 }
+
+function goHome() { switchPage('home'); }
 
 // ── 日期 ─────────────────────────────────────────────────────
 function taskLabel(a) { return a.company ? a.company+'：'+a.task_name : a.task_name; }
@@ -575,6 +538,45 @@ function syncOverviewStats(completed) {
   if (el) el.textContent = '$'+total.toLocaleString();
   const el2 = document.getElementById('overview-month-done');
   if (el2) el2.textContent = thisMonth.length+'件';
+  buildWalletFilter();
+  renderWallet();
+}
+
+function buildWalletFilter() {
+  const months = last3Months();
+  const sel = document.getElementById('wallet-month');
+  if (!sel || sel.options.length) return;
+  const now = new Date();
+  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  sel.innerHTML = months.map(m =>
+    `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
+  ).join('');
+  sel.value = defaultVal;
+}
+
+function renderWallet() {
+  const monthSel = document.getElementById('wallet-month');
+  const listEl = document.getElementById('wallet-list');
+  if (!listEl) return;
+  const ym = monthSel ? monthSel.value : '';
+  let list = completedCache || [];
+  if (ym) {
+    const [y, m] = ym.split('-');
+    list = list.filter(a => (a.completed_at||'').startsWith(y+'/'+m));
+  }
+  list = [...list].sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||''));
+  const monthTotal = list.reduce((s,a) => s+(a.total_price||0), 0);
+  const totalEl = document.getElementById('wallet-total');
+  if (totalEl) totalEl.textContent = '$'+monthTotal.toLocaleString();
+  if (!list.length) { listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">本月無收入紀錄</div>'; return; }
+  listEl.innerHTML = list.map(a => `
+    <div class="txn-row">
+      <div>
+        <div style="font-size:.88rem;font-weight:600;color:var(--text-m)">${taskLabel(a)}</div>
+        <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${fmtDate(a.completed_at)}</div>
+      </div>
+      <div class="txn-p">+$${(a.total_price||0).toLocaleString()}</div>
+    </div>`).join('');
 }
 
 function renderPending(list) {
@@ -583,12 +585,6 @@ function renderPending(list) {
   if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
   const tb = document.getElementById('badge-active-tasks');
   if (tb) { tb.textContent = list.length; tb.style.display = list.length ? '' : 'none'; }
-  const ovSection = document.getElementById('overview-pending-section');
-  const ovBadge = document.getElementById('overview-pending-badge');
-  const ovList = document.getElementById('overview-quest-list');
-  if (ovSection) ovSection.style.display = list.length ? '' : 'none';
-  if (ovBadge) ovBadge.textContent = list.length;
-  if (ovList) ovList.innerHTML = buildPendingCardsReadonly(list);
   if (!el) return;
   if (!list.length) { el.innerHTML = '<div class="empty">目前沒有待回覆的派案</div>'; return; }
   el.innerHTML = buildPendingCards(list);
@@ -615,36 +611,7 @@ function buildPendingCards(list) {
     </div>`).join('');
 }
 
-function buildPendingCardsReadonly(list) {
-  if (!list.length) return '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">目前沒有可接任務</div>';
-  return list.map(a => `
-    <div class="task-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.35rem">
-        <div class="task-name">${taskLabel(a)}</div>
-        <div class="task-price">$${(a.total_price||0).toLocaleString()}</div>
-      </div>
-      <div class="task-tags">
-        ${a.deadline_date ? `<span class="tag tag-green">⏰ ${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span class="tag tag-green">⏰ ${a.deadline_days}天</span>` : ''}
-        <span class="tag tag-yellow">📦 ${a.quantity}件</span>
-      </div>
-    </div>`).join('');
-}
-
 function renderActive(list) {
-  var rejected = list.filter(function(a){ return !a.review_status && a.supervisor_comments && a.supervisor_comments.length > 0; });
-  var realActive = list.filter(function(a){ return !(a.supervisor_comments && a.supervisor_comments.length > 0 && !a.review_status); });
-  var ovRejSection = document.getElementById('overview-rejected-section');
-  var ovRejBadge = document.getElementById('overview-rejected-badge');
-  var ovRejList = document.getElementById('overview-rejected-list');
-  if (ovRejSection) ovRejSection.style.display = rejected.length ? '' : 'none';
-  if (ovRejBadge) ovRejBadge.textContent = rejected.length;
-  if (ovRejList) ovRejList.innerHTML = buildRejectedCards(rejected);
-  var ovActiveSection = document.getElementById('overview-active-section');
-  var ovActiveBadge = document.getElementById('overview-active-badge');
-  var ovActiveList = document.getElementById('overview-active-list');
-  if (ovActiveSection) ovActiveSection.style.display = realActive.length ? '' : 'none';
-  if (ovActiveBadge) ovActiveBadge.textContent = realActive.length;
-  if (ovActiveList) ovActiveList.innerHTML = buildActiveCardsOverview(realActive);
   const el = document.getElementById('active-list');
   if (!el) return;
   if (!list.length) { el.innerHTML = '<div class="empty">目前沒有進行中的任務</div>'; return; }
@@ -669,38 +636,6 @@ function renderActive(list) {
         ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
       </button>
     </div>`}).join('');
-}
-
-function buildRejectedCards(list) {
-  if (!list.length) return '';
-  return list.map(function(a) {
-    var sc = a.supervisor_comments || [];
-    var last = sc.length ? sc[sc.length-1] : null;
-    var taskName = (a.task_name||'').replace(/'/g,'&#39;');
-    var comment = last ? `<div style="margin-top:.3rem;background:var(--orange-p);border-radius:var(--rs);padding:.3rem .55rem;font-size:.78rem;color:var(--text-m)">${last.text}</div>` : '';
-    return `<div class="task-card" style="border-left-color:var(--orange);padding:.7rem .85rem">
-      <div style="display:flex;align-items:center;gap:.5rem">
-        <div style="flex:1;font-size:.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${taskLabel(a)}</div>
-        <button onclick="openReport(${a.id},'${taskName}')" style="flex-shrink:0;padding:.3rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#F07840,#E05555);color:#fff;border:none;border-radius:20px;cursor:pointer">📝 修改</button>
-      </div>${comment}</div>`;
-  }).join('');
-}
-
-function buildActiveCardsOverview(list) {
-  if (!list.length) return '';
-  var shown = list.slice(0,3);
-  var cards = shown.map(function(a) {
-    var reviewing = a.review_status === 'reviewing';
-    var taskName = (a.task_name||'').replace(/'/g,'&#39;');
-    var reportBtn = reviewing ? '' : `<button onclick="openReport(${a.id},'${taskName}')" style="flex-shrink:0;padding:.32rem .7rem;font-size:.75rem;font-weight:700;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:20px;cursor:pointer">回報</button>`;
-    return `<div style="background:#fff;border-radius:var(--r);padding:.8rem 1rem;border-left:5px solid var(--green);box-shadow:0 3px 10px rgba(46,170,122,.10);margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem">
-      <div style="flex:1;min-width:0">
-        <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${taskLabel(a)}</div>
-        <div style="font-size:.72rem;color:var(--text-s);margin-top:.15rem">${reviewing ? '🔍 審核中' : '⚔️ 進行中'}</div>
-      </div>${reportBtn}</div>`;
-  }).join('');
-  var more = list.length > 3 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center;padding:.25rem">還有 ${list.length-3} 個任務 →</div>` : '';
-  return cards + more;
 }
 
 function renderCompleted(list) {
@@ -747,22 +682,6 @@ async function loadGrabZone() {
     const available = list.filter(t => !t.my_grab_no && t.grabbed_count < t.total_slots);
     const badge = document.getElementById('badge-grab');
     if (badge) { badge.textContent = available.length; badge.style.display = available.length ? '' : 'none'; }
-    const ovBlock = document.getElementById('overview-grab-block');
-    const ovBadge = document.getElementById('overview-grab-badge');
-    const ovList = document.getElementById('overview-grab-list');
-    if (ovBlock) {
-      ovBlock.style.display = available.length ? '' : 'none';
-      if (available.length) {
-        if (ovBadge) ovBadge.textContent = available.length;
-        if (ovList) ovList.innerHTML = available.slice(0,2).map(t => {
-          const rem = t.total_slots - t.grabbed_count;
-          return `<div style="background:#fff;border-radius:var(--rs);padding:.75rem;margin-bottom:.45rem;border:1.5px solid var(--blue);display:flex;align-items:center;gap:.6rem">
-            <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.company ? t.company+'：'+t.task_name : t.task_name}</div><div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">💰 $${(t.unit_price||0).toLocaleString()} · 剩 ${rem} 名額</div></div>
-            ${rem > 0 ? `<button onclick="doGrab(${t.id},this)" style="padding:.45rem 1rem;font-size:.82rem;font-weight:700;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border:none;border-radius:20px;cursor:pointer;font-family:sans-serif">搶</button>` : '<span style="font-size:.75rem;color:var(--text-s)">滿</span>'}
-          </div>`;
-        }).join('') + (available.length > 2 ? `<div style="font-size:.75rem;color:var(--text-s);text-align:center">還有 ${available.length-2} 個 →</div>` : '');
-      }
-    }
     if (!wrap) return;
     if (!available.length) { wrap.innerHTML = '<div class="empty">目前沒有開放搶單的任務</div>'; return; }
     wrap.innerHTML = available.map(t => {
@@ -1247,12 +1166,9 @@ let meId = null;
 function loadAvatarM(id) {
   const saved = localStorage.getItem('hiban_ava_'+id);
   if (saved) {
-    ['m-ava-img','drawer-ava-img'].forEach(imgId => {
-      const el = document.getElementById(imgId);
-      if (el) { el.src=saved; el.style.display='block'; }
-    });
+    const el = document.getElementById('m-ava-img');
+    if (el) { el.src=saved; el.style.display='block'; }
     document.getElementById('m-ava-emoji').style.display='none';
-    document.getElementById('drawer-ava-emoji').style.display='none';
   }
 }
 
@@ -1264,12 +1180,9 @@ function uploadAvatarM(input) {
   reader.onload = e => {
     const base64 = e.target.result;
     localStorage.setItem('hiban_ava_'+meId, base64);
-    ['m-ava-img','drawer-ava-img'].forEach(imgId => {
-      const el = document.getElementById(imgId);
-      if (el) { el.src=base64; el.style.display='block'; }
-    });
+    const el = document.getElementById('m-ava-img');
+    if (el) { el.src=base64; el.style.display='block'; }
     document.getElementById('m-ava-emoji').style.display='none';
-    document.getElementById('drawer-ava-emoji').style.display='none';
     showToast('頭像已更新 ✓', 'success');
   };
   reader.readAsDataURL(file);
@@ -1289,7 +1202,6 @@ async function init() {
   if (!me) return;
   meId = me.id;
   document.getElementById('m-username').textContent = me.real_name;
-  document.getElementById('drawer-username').textContent = me.real_name;
   loadAvatarM(me.id);
   var loginDates = me.login_dates||[];
   var twNow = new Date(new Date().toLocaleString('en-US', { timeZone:'Asia/Taipei' }));

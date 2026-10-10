@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>督導人員（手機版）— 希絆雲作所</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#48B4E8;--blue-l:#74CAEF;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
+  --yellow:#FFB830;--yellow-l:#FFD166;--yellow-p:#FFF7E6;
+  --white:#FFFFFF;--bg:#F0F8FE;--bg-card:#FFFFFF;
+  --green:#2EAA7A;--green-p:#E8F8F2;
+  --red:#E05555;--red-p:#FEF0F0;
+  --orange:#F07840;--orange-p:#FEF3EE;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#7A9AAF;
+  --border:#C8E8F6;--border-l:#E0F2FB;
+  --shadow:0 4px 20px rgba(72,180,232,.10);
+  --r:14px;--rs:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.6;overflow:hidden}
+
+/* ── Topbar ── */
+.m-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,#1260A0,#1A8AC0);
+  padding:.75rem 1rem;position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 16px rgba(18,96,160,.3);flex-shrink:0
+}
+.m-topbar-left{display:flex;align-items:center;gap:.6rem}
+.m-topbar-title{font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:900;color:#fff}
+.m-topbar-right{display:flex;align-items:center;gap:.5rem}
+.m-ava{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);
+  border:2px solid rgba(255,255,255,.35);overflow:hidden;display:flex;align-items:center;
+  justify-content:center;font-size:1.1rem;flex-shrink:0;cursor:pointer;position:relative}
+.m-ava img{width:100%;height:100%;object-fit:cover;display:none}
+.m-user-name{font-size:.82rem;font-weight:700;color:#fff;max-width:80px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-logout-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:#fff;height:34px;padding:0 .65rem;border-radius:20px;font-size:.78rem;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;font-family:sans-serif}
+
+/* ── Home tiles ── */
+.home-stat-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-bottom:1.1rem}
+.home-tile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.home-tile{position:relative;background:#fff;border-radius:var(--r);padding:1.3rem .75rem;
+  box-shadow:var(--shadow);border:1px solid var(--border-l);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:.5rem;cursor:pointer;transition:transform .15s}
+.home-tile:active{transform:scale(.96)}
+.home-tile .ht-icon{font-size:2rem}
+.home-tile .ht-label{font-size:.88rem;font-weight:700;color:var(--text)}
+.home-tile .ht-badge{position:absolute;top:.6rem;right:.6rem;background:var(--red);color:#fff;
+  font-size:.65rem;font-weight:700;padding:.1rem .42rem;border-radius:10px}
+
+/* ── Back-to-home button ── */
+.page-back{display:inline-flex;align-items:center;gap:.35rem;background:var(--blue-p);
+  color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;padding:.4rem 1rem;
+  font-size:.82rem;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:.85rem}
+
+/* ── Main scroll ── */
+.m-body{flex:1;overflow-y:auto;padding:1rem;padding-bottom:2rem;display:flex;flex-direction:column}
+.m-body::-webkit-scrollbar{width:3px}
+.m-body::-webkit-scrollbar-thumb{background:var(--blue-l);border-radius:3px}
+
+/* ── Page sections ── */
+.page-section{display:none}
+.page-section.active{display:block}
+.page-title{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700;
+  margin-bottom:1rem;color:var(--text);display:flex;align-items:center;gap:.6rem}
+
+/* ── Notify bar ── */
+.notify-bar{display:none;background:linear-gradient(90deg,var(--blue-p),var(--blue-pp));
+  border-bottom:1.5px solid var(--border);padding:.42rem 1rem;font-size:.82rem;
+  font-weight:600;color:var(--blue-d);align-items:center;gap:.6rem;cursor:pointer;flex-shrink:0}
+.notify-bar.show{display:flex}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:var(--r);padding:1.1rem;
+  box-shadow:var(--shadow);border:1px solid var(--border-l);margin-bottom:.85rem}
+.stat-box{background:#fff;border-radius:var(--rs);padding:.6rem;text-align:center;
+  border:1px solid var(--border-l);box-shadow:0 2px 8px rgba(72,180,232,.07)}
+.stat-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d)}
+.stat-label{font-size:.62rem;color:var(--text-s);margin-top:.1rem}
+
+/* ── Section label ── */
+.section-label{font-size:.85rem;font-weight:700;color:var(--text-m);
+  margin:1rem 0 .55rem;display:flex;align-items:center;gap:.4rem}
+
+/* ── Empty / form ── */
+.empty{background:#fff;border-radius:var(--r);padding:1rem;
+  box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem;margin-bottom:.65rem}
+.form-group{margin-bottom:.9rem}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:var(--text-m);margin-bottom:.35rem}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:.7rem .9rem;font-size:.9rem;font-family:'Noto Sans TC',sans-serif;outline:none;
+  transition:border-color .2s;background:#fff;color:var(--text)}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.12)}
+textarea.form-input{resize:vertical}
+.btn-primary{width:100%;padding:.8rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
+  color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;
+  cursor:pointer;font-family:sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3)}
+
+/* ── Alert card ── */
+.alert-card{display:flex;gap:.6rem;background:#fff;border-radius:var(--rs);padding:.75rem .9rem;
+  margin-bottom:.6rem;border-left:4px solid var(--orange);box-shadow:0 2px 10px rgba(72,180,232,.08)}
+.ac-red{border-left-color:var(--red)}
+.ac-orange{border-left-color:var(--orange)}
+
+/* ── Review card ── */
+.review-card{background:#fff;border-radius:var(--r);padding:1.1rem;box-shadow:var(--shadow);
+  margin-bottom:.85rem;border-left:5px solid var(--blue)}
+
+/* ── Partner card ── */
+.partner-card{background:#fff;border-radius:var(--r);padding:1rem 1.1rem;box-shadow:var(--shadow);
+  margin-bottom:.65rem;border:1px solid var(--border-l);cursor:pointer}
+.status-badge{font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:10px}
+.sb-active{background:var(--green-p);color:var(--green)}
+.sb-pending{background:var(--yellow-p);color:#8A6010}
+.sb-warn{background:var(--red-p);color:var(--red)}
+
+/* ── Issue card ── */
+.issue-card{background:#fff;border-left:4px solid var(--orange);border-radius:var(--rs);
+  padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10);margin-bottom:.6rem}
+
+/* ── Announcement ── */
+.ann-card{background:#fff;border-radius:var(--rs);padding:.85rem 1rem;
+  margin-bottom:.6rem;border:1.5px solid var(--border);cursor:pointer}
+.ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
+.ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
+
+/* ── Overlay ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;
+  align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.overlay-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;
+  overflow-y:auto;padding:1.5rem 1.25rem 2rem;
+  box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:slideUp .28s ease}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.overlay-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto .9rem}
+.overlay-title{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
+
+/* ── Image thumbs ── */
+.imgpick-row{display:flex;gap:.5rem}
+.imgpick-box{width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;
+  position:relative;background:var(--bg)}
+.imgpick-box img{display:none;width:100%;height:100%;object-fit:cover;position:absolute}
+</style>
+</head>
+<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden">
+
+<!-- Topbar -->
+<div class="m-topbar">
+  <div class="m-topbar-left">
+    <div class="m-topbar-title" style="cursor:pointer" onclick="goHome()">希絆雲作所</div>
+  </div>
+  <div class="m-topbar-right">
+    <div class="m-user-name" id="m-username">—</div>
+    <div class="m-ava" onclick="document.getElementById('m-ava-input').click()" title="更換頭像" aria-label="更換頭像">
+      <img id="m-ava-img" alt="">
+      <span id="m-ava-emoji">🧑</span>
+    </div>
+    <input type="file" id="m-ava-input" accept="image/*" style="display:none" onchange="uploadAvatarM(this)">
+    <button class="m-logout-btn" onclick="signOut()" aria-label="登出" title="登出">🚪 登出</button>
+  </div>
+</div>
+
+<!-- Notify bar -->
+<div class="notify-bar" id="m-notify-bar" aria-live="polite" onclick="notifyBarClick()">
+  <span>📢</span><span id="m-notify-text">您有新公告</span>
+  <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
+</div>
+
+<!-- Main scrollable area -->
+<div class="m-body" id="m-body">
+
+  <!-- 首頁 -->
+  <div class="page-section active" id="page-home">
+    <div class="home-stat-strip">
+      <div class="stat-box"><div class="stat-val" id="dashboard-partner-count">—</div><div class="stat-label">負責夥伴數</div></div>
+      <div class="stat-box"><div class="stat-val" id="dashboard-month-completed">—</div><div class="stat-label">本月完成任務</div></div>
+      <div class="stat-box"><div class="stat-val" id="dashboard-pending-worklog">—</div><div class="stat-label">待審核WorkLog</div></div>
+      <div class="stat-box"><div class="stat-val" id="dashboard-unread-issues">—</div><div class="stat-label">未讀問題回報</div></div>
+    </div>
+    <div class="home-tile-grid">
+      <div class="home-tile" onclick="switchPage('alerts')">
+        <span class="ht-badge" id="badge-alerts" style="display:none">0</span>
+        <span class="ht-icon">⚠️</span><span class="ht-label">預警通知</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('worklog-review')">
+        <span class="ht-badge" id="badge-task-review" style="display:none">0</span>
+        <span class="ht-icon">📋</span><span class="ht-label">任務審核</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('partners')">
+        <span class="ht-icon">👥</span><span class="ht-label">夥伴管理</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('mentor')">
+        <span class="ht-icon">💬</span><span class="ht-label">督導紀錄</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('issues')">
+        <span class="ht-badge" id="badge-issues" style="display:none">0</span>
+        <span class="ht-icon">📝</span><span class="ht-label">問題管理</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('notices')">
+        <span class="ht-badge" id="badge-notices" style="display:none">0</span>
+        <span class="ht-icon">📢</span><span class="ht-label">公告</span>
+      </div>
+      <div class="home-tile" onclick="switchPage('profile')">
+        <span class="ht-icon">🧑</span><span class="ht-label">個人資料</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 預警通知 -->
+  <div class="page-section" id="page-alerts">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">⚠️ 預警通知</div>
+    <div id="alerts-list"><div class="empty">載入中…</div></div>
+  </div>
+
+  <!-- 任務審核 -->
+  <div class="page-section" id="page-worklog-review">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">📋 任務審核</div>
+    <div id="task-review-list"><div class="empty">載入中…</div></div>
+  </div>
+
+  <!-- 夥伴管理 -->
+  <div class="page-section" id="page-partners">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">👥 夥伴管理</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+      <input id="sv-partner-search" oninput="renderSvPartners()" placeholder="🔍 搜尋姓名 / 編號" style="flex:1;min-width:140px;padding:.5rem .8rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem">
+    </div>
+    <div style="display:flex;gap:.5rem;margin-bottom:.85rem">
+      <select id="sv-partner-status" onchange="renderSvPartners()" style="flex:1;padding:.5rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;color:var(--text-m)">
+        <option value="all">全部狀態</option>
+        <option value="active">正常</option>
+        <option value="inactive">停用</option>
+      </select>
+      <select id="sv-partner-sort" onchange="renderSvPartners()" style="flex:1;padding:.5rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.82rem;color:var(--text-m)">
+        <option value="no">依編號</option>
+        <option value="income">依累計收入</option>
+        <option value="tasks">依本月完成</option>
+      </select>
+    </div>
+    <div id="sv-partner-list"><div class="empty">載入中…</div></div>
+  </div>
+
+  <!-- 督導紀錄 -->
+  <div class="page-section" id="page-mentor">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">💬 督導紀錄</div>
+    <div class="card">
+      <div style="font-size:.9rem;font-weight:700;margin-bottom:.75rem">新增督導紀錄</div>
+      <div class="form-group">
+        <label class="form-label">選擇夥伴</label>
+        <select class="form-input" id="mentor-partner-sel"><option value="">請選擇夥伴</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">輔導類型</label>
+        <select class="form-input" id="mentor-type-sel">
+          <option>電話關心</option><option>線上輔導</option><option>面談</option>
+          <option>任務指導</option><option>心理支持</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">輔導內容</label>
+        <textarea class="form-input" id="mentor-content" rows="4" placeholder="記錄本次輔導的主要內容、夥伴狀況、後續追蹤事項..."></textarea>
+      </div>
+      <button class="btn-primary" onclick="saveMentorRecord()">儲存紀錄</button>
+    </div>
+  </div>
+
+  <!-- 問題管理 -->
+  <div class="page-section" id="page-issues">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">📝 問題管理</div>
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
+      <button id="svitab-inbox" onclick="switchSvIssueTab('inbox')" style="padding:.5rem 1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">夥伴問題收件匣</button>
+      <button id="svitab-admin" onclick="switchSvIssueTab('admin')" style="padding:.5rem 1rem;background:transparent;border:none;color:var(--text-s);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
+    </div>
+
+    <!-- 收件匣 tab -->
+    <div id="sv-issue-tab-inbox">
+      <div id="issues-sv-inbox"><div class="empty">載入中…</div></div>
+    </div>
+
+    <!-- 回報管理人員 tab -->
+    <div id="sv-issue-tab-admin" style="display:none">
+      <div class="card">
+        <div style="font-size:.88rem;font-weight:700;margin-bottom:.65rem;color:var(--text-m)">📝 新增回報</div>
+        <div id="issue-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.5rem"></div>
+        <input id="issue-admin-title" class="form-input" placeholder="問題標題＊" style="margin-bottom:.55rem">
+        <textarea id="issue-admin-content" class="form-input" placeholder="詳細說明＊" rows="4" style="margin-bottom:.55rem"></textarea>
+        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
+        <div class="imgpick-row" style="margin-bottom:.7rem">
+          <label class="imgpick-box">
+            <input type="file" accept="image/*" capture="environment" style="display:none" onchange="issueImgPreview(this,0,'admin')">
+            <span id="issue-admin-img-icon-0" style="font-size:1.3rem">📷</span>
+            <img id="issue-admin-img-prev-0" alt="圖片預覽">
+          </label>
+          <label class="imgpick-box">
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none" onchange="issueImgPreview(this,1,'admin')">
+            <span id="issue-admin-img-icon-1" style="font-size:1.3rem">🖼️</span>
+            <img id="issue-admin-img-prev-1" alt="圖片預覽">
+          </label>
+          <label class="imgpick-box">
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none" onchange="issueImgPreview(this,2,'admin')">
+            <span id="issue-admin-img-icon-2" style="font-size:1.3rem">🖼️</span>
+            <img id="issue-admin-img-prev-2" alt="圖片預覽">
+          </label>
+        </div>
+        <button onclick="submitIssueAdmin('sv')" class="btn-primary">送出回報</button>
+      </div>
+      <div class="section-label">我的回報紀錄</div>
+      <div id="issues-sv-mine"><div class="empty">載入中…</div></div>
+    </div>
+  </div>
+
+  <!-- 公告 -->
+  <div class="page-section" id="page-notices">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">📢 公告</div>
+    <div id="ann-list-wrap"><div class="empty">載入中…</div></div>
+  </div>
+
+  <!-- 個人資料 -->
+  <div class="page-section" id="page-profile">
+    <button class="page-back" onclick="goHome()">← 返回首頁</button>
+    <div class="page-title">🧑 個人資料</div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <div style="font-size:.88rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
+        <button id="sv-prof-edit-btn" onclick="toggleSvProfEdit()" style="padding:.28rem .8rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:sans-serif">修改</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.55rem">
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">姓名</label><input class="form-input" id="sv-prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">身分證</label><input class="form-input" id="sv-prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">生日</label><input class="form-input" id="sv-prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">電話</label><input class="form-input" id="sv-prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">聯絡地址</label><input class="form-input" id="sv-prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
+      </div>
+      <div id="sv-prof-save-row" style="display:none;gap:.5rem;margin-top:.85rem">
+        <button onclick="saveSvProfile()" class="btn-primary" style="flex:2;margin-top:0">儲存</button>
+        <button onclick="cancelSvProfEdit()" style="flex:1;padding:.75rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:sans-serif">取消</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:.88rem;font-weight:700;color:var(--text-m);margin-bottom:.8rem">🔐 修改密碼</div>
+      <div id="cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
+      <div style="display:flex;flex-direction:column;gap:.55rem">
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="cpw-current" placeholder="目前密碼" style="flex:1;padding:.55rem .75rem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="cpw-new" placeholder="6～12 位" maxlength="12" style="flex:1;padding:.55rem .75rem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">確認密碼</label><input class="form-input" type="password" id="cpw-confirm" placeholder="再輸入一次" style="flex:1;padding:.55rem .75rem"></div>
+      </div>
+      <button onclick="changePassword()" class="btn-primary" style="margin-top:.85rem">更新密碼</button>
+    </div>
+  </div>
+
+</div><!-- m-body -->
+
+<!-- 退回原因 overlay -->
+<div class="overlay" id="reject-report-overlay">
+  <div class="overlay-box">
+    <div class="overlay-handle"></div>
+    <div class="overlay-title">✎ 退回回報</div>
+    <input type="hidden" id="reject-report-id">
+    <div class="form-group">
+      <label class="form-label">退回原因</label>
+      <textarea class="form-input" id="reject-report-reason" rows="4" placeholder="請說明退回原因，讓夥伴知道需要修改的地方..."></textarea>
+    </div>
+    <div id="reject-report-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem"></div>
+    <div style="display:flex;gap:.5rem">
+      <button onclick="submitRejectReport()" class="btn-primary" style="flex:2">送出</button>
+      <button onclick="closeRejectReport()" style="flex:1;padding:.8rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.95rem;font-weight:600;cursor:pointer;font-family:sans-serif">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 圖片放大 overlay -->
+<div id="img-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:.75rem">
+  <div style="display:flex;gap:.75rem;align-items:center">
+    <button onclick="downloadOverlayImg()" style="padding:.45rem 1.1rem;background:#fff;color:#222;border:none;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:sans-serif">⬇ 下載</button>
+    <button onclick="document.getElementById('img-overlay').style.display='none'" style="padding:.45rem 1.1rem;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:20px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:sans-serif">✕ 關閉</button>
+  </div>
+  <img id="img-overlay-src" alt="放大檢視圖片，點擊關閉" onclick="document.getElementById('img-overlay').style.display='none'" style="max-width:90vw;max-height:82vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:zoom-out">
+</div>
+
+<script src="shared.js"></script>
+<script>
+// ── Page switch ───────────────────────────────────────────────
+function switchPage(name) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('m-body').scrollTop = 0;
+  if (name === 'alerts') loadAlerts();
+  if (name === 'worklog-review') loadTaskReviews();
+  if (name === 'partners') loadSvPartners();
+  if (name === 'mentor') loadPartnersForMentor();
+  if (name === 'issues') loadIssuesSv();
+  if (name === 'notices') try { renderAnnList(); } catch(e) {}
+  if (name === 'profile') {}
+}
+
+function goHome() { switchPage('home'); loadDashboard(); }
+
+// ── 日期格式化 ───────────────────────────────────────────────
+function fmtDate(s) {
+  if (!s) return '—';
+  const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
+  const [y,m,d] = datePart.split('/');
+  const date = `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+  return timePart ? `${date} ${timePart}` : date;
+}
+function fmtDay(s) {
+  if (!s) return '—';
+  const datePart = s.replace(/-/g,'/').split(' ')[0];
+  const [y,m,d] = datePart.split('/');
+  return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+}
+function taskNoBadge(a) {
+  return a.task_no ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700">📋 #${a.task_no}</span>` : '';
+}
+function enlargeImg(src, name) {
+  document.getElementById('img-overlay-src').src = src;
+  document.getElementById('img-overlay-src').dataset.name = name || 'image.jpg';
+  document.getElementById('img-overlay').style.display = 'flex';
+}
+function downloadOverlayImg() {
+  const img = document.getElementById('img-overlay-src');
+  const a = document.createElement('a');
+  a.href = img.src;
+  a.download = img.dataset.name || 'image.jpg';
+  a.click();
+}
+
+// ── 預警通知 ─────────────────────────────────────────────────
+async function loadAlerts() {
+  const listEl = document.getElementById('alerts-list');
+  try {
+    const a = await API.get('/api/supervisor/alerts');
+    const groups = [
+      { key: 'income_warning', icon: '💰', cls: 'ac-red', title: n => `夥伴當月金額接近上限（${n}）`, item: x => `${x.real_name} — 當月累計 $${x.amount.toLocaleString()}（上限 $19,000）` },
+      { key: 'overdue', icon: '🔴', cls: 'ac-red', title: n => `任務已逾期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
+      { key: 'due_soon', icon: '🟠', cls: 'ac-orange', title: n => `任務即將到期（${n}）`, item: x => `${x.task_name}（${x.partner_name||'未指派'}）— 期限 ${x.deadline_date}` },
+      { key: 'pending_worklogs', icon: '📝', cls: 'ac-orange', title: n => `待審核 WorkLog（${n}）`, item: x => `任務 #${x.assignment_id} 的回報待審核` },
+      { key: 'rejected', icon: '↩️', cls: 'ac-red', title: n => `被拒絕需重新指派（${n}）`, item: x => `${x.task_name}${x.reject_reason ? '：'+x.reject_reason : ''}` },
+      { key: 'grab_unfilled', icon: '🎯', cls: 'ac-orange', title: n => `搶單名額未滿且即將截止（${n}）`, item: x => `${x.task_name} — ${x.grabbed_count}/${x.total_slots} 已搶，截止 ${x.deadline}` },
+      { key: 'inactive_partners', icon: '😴', cls: 'ac-red', title: n => `夥伴久未登入（${n}）`, item: x => `${x.real_name} — ${x.login_dates.length ? '上次登入 '+x.login_dates[x.login_dates.length-1] : '尚未登入過'}` },
+      { key: 'unassigned_partners', icon: '❓', cls: 'ac-orange', title: n => `夥伴尚未設定督導（${n}）`, item: x => `${x.real_name}` },
+    ];
+    let totalCount = 0;
+    let html = '';
+    groups.forEach((g, gi) => {
+      const arr = a[g.key] || [];
+      if (!arr.length) return;
+      totalCount += arr.length;
+      const visible = arr.slice(0,5).map(x=>g.item(x)).join('<br>');
+      const rest = arr.slice(5).map(x=>g.item(x)).join('<br>');
+      const moreId = `alert-more-${gi}`;
+      html += `<div class="alert-card ${g.cls}" style="${rest?'cursor:pointer':''}" ${rest?`onclick="const m=document.getElementById('${moreId}'),t=this.querySelector('.alert-more-toggle');const open=m.style.display==='block';m.style.display=open?'none':'block';t.textContent=open?'...等共 ${arr.length} 筆，點此展開 ▼':'收合 ▲'"`:''}><span style="font-size:1.1rem">${g.icon}</span><div style="flex:1">
+        <div style="font-family:'Noto Serif TC',serif;font-size:.92rem;font-weight:700">${g.title(arr.length)}</div>
+        <div style="font-size:.8rem;color:var(--text-m);line-height:1.6">${visible}</div>
+        ${rest?`<div id="${moreId}" style="display:none;font-size:.8rem;color:var(--text-m);line-height:1.6;margin-top:.2rem">${rest}</div><div class="alert-more-toggle" style="font-size:.78rem;color:var(--blue);margin-top:.3rem;font-weight:700">...等共 ${arr.length} 筆，點此展開 ▼</div>`:''}
+      </div></div>`;
+    });
+    if (listEl) listEl.innerHTML = html || `<div class="empty">目前沒有需要注意的事項 🎉</div>`;
+    const badge = document.getElementById('badge-alerts');
+    if (badge) { badge.textContent = totalCount; badge.style.display = totalCount ? '' : 'none'; }
+  } catch(e) {
+    if (listEl) listEl.innerHTML = `<div class="empty" style="color:var(--red)">載入失敗：${e.message}</div>`;
+  }
+}
+
+// ── 任務審核 ─────────────────────────────────────────────────
+async function loadTaskReviews() {
+  const el = document.getElementById('task-review-list');
+  const badge = document.getElementById('badge-task-review');
+  try {
+    const list = await API.get('/api/reports/supervisor');
+    if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
+    if (!list.length) { el.innerHTML = '<div class="empty">目前沒有待審核的回報</div>'; return; }
+    el.innerHTML = list.map(r => `
+      <div class="review-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.55rem">
+          <div>
+            <div style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:.96rem">${r.company ? r.company+"："+r.task_name : r.task_name}</div>
+            ${r.task_no ? `<div style="margin-top:.2rem">${taskNoBadge(r)}</div>` : ''}
+            <div style="font-size:.78rem;color:var(--text-s);margin-top:.15rem">👤 ${r.partner_name} ・ 📅 ${fmtDate(r.created_at)}</div>
+          </div>
+          <span style="background:var(--blue-p);color:var(--blue-d);font-size:.68rem;font-weight:700;padding:.18rem .55rem;border-radius:10px;white-space:nowrap">待審核</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--text-m);margin-bottom:.65rem">
+          ${r.assign_type === 'hourly' ? `
+            ${r.work_content ? `<div><span style="color:var(--text-s)">工作內容：</span>${r.work_content}</div>` : ''}
+            <div><span style="color:var(--text-s)">時薪：</span>$${(r.hourly_wage||0).toLocaleString()} / 小時</div>
+            <div><span style="color:var(--text-s)">開始：</span>${r.work_start || '—'}　<span style="color:var(--text-s)">完成：</span>${r.work_end || '—'}</div>
+            <div><span style="color:var(--text-s)">總時數：</span>${Math.floor((r.work_minutes||0)/60)} 小時 ${(r.work_minutes||0)%60} 分</div>
+            <div><span style="color:var(--text-s)">總金額：</span><strong style="color:var(--green)">$${(r.total_price||0).toLocaleString()}</strong></div>
+          ` : `
+            <div><span style="color:var(--text-s)">任務數量：</span>${r.task_quantity || '—'} 件</div>
+            <div><span style="color:var(--text-s)">完成數量：</span><strong style="color:var(--green)">${r.completed_qty || 0} 件</strong></div>
+          `}
+          ${r.url ? `<div><span style="color:var(--text-s)">網址：</span><a href="${r.url}" target="_blank" style="color:var(--blue-d);word-break:break-all">${r.url}</a></div>` : ''}
+          ${r.notes ? `<div><span style="color:var(--text-s)">說明：</span><span style="font-size:14px;font-family:'標楷體','DFKai-SB',serif">${r.notes}</span></div>` : ''}
+          <div><span style="color:var(--text-s)">接案：</span>${fmtDate(r.accepted_at)}</div>
+          ${r.assign_type === 'hourly' ? '' : `<div><span style="color:var(--text-s)">完成期限：</span>${fmtDay(r.deadline_date)}</div>`}
+          ${(r.custom_fields||[]).filter(f=>f.value!=='').map(f => `<div><span style="color:var(--text-s)">${f.label}：</span>${f.value}</div>`).join('')}
+        </div>
+        ${r.images && r.images.length ? `
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.65rem">
+          ${r.images.map((img) => `
+            <img src="${img.data}" alt="${img.name}" onclick="enlargeImg(this.src,'${img.name}')"
+              style="width:68px;height:68px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);cursor:zoom-in">
+          `).join('')}
+        </div>` : ''}
+        <div style="display:flex;gap:.5rem;margin-top:.4rem">
+          <button onclick="approveReport(${r.id},${r.assignment_id})" style="flex:1;padding:.6rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif">✓ 同意</button>
+          <button onclick="openRejectReport(${r.id})" style="flex:1;padding:.6rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif">✎ 退回</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty" style="color:var(--red)">${e.message}</div>`;
+  }
+}
+
+async function approveReport(reportId) {
+  if (!confirm('確定要核可這筆任務回報嗎？\n核可後任務將標記為完成。')) return;
+  try {
+    await API.put(`/api/reports/${reportId}/approve`);
+    showToast('已同意，任務標記為完成 ✓', 'success');
+    loadTaskReviews();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openRejectReport(reportId) {
+  document.getElementById('reject-report-id').value = reportId;
+  document.getElementById('reject-report-reason').value = '';
+  document.getElementById('reject-report-err').style.display = 'none';
+  document.getElementById('reject-report-overlay').classList.add('open');
+}
+function closeRejectReport() {
+  document.getElementById('reject-report-overlay').classList.remove('open');
+}
+async function submitRejectReport() {
+  const err = document.getElementById('reject-report-err');
+  err.style.display = 'none';
+  const id = parseInt(document.getElementById('reject-report-id').value);
+  const reason = document.getElementById('reject-report-reason').value.trim();
+  if (!reason) { err.textContent = '請填寫退回原因'; err.style.display = 'block'; return; }
+  try {
+    await API.put(`/api/reports/${id}/reject`, { reason });
+    closeRejectReport();
+    showToast('已退回，意見已傳送給夥伴', 'warn');
+    loadTaskReviews();
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+// ── 夥伴管理 ─────────────────────────────────────────────────
+let svPartnerCache = [];
+async function loadSvPartners() {
+  try {
+    svPartnerCache = await API.get('/api/supervisor/partners');
+    renderSvPartners();
+  } catch(e) { console.error('[svPartners]', e.message); }
+}
+
+function renderSvPartners() {
+  const wrap = document.getElementById('sv-partner-list');
+  if (!wrap) return;
+  const q = (document.getElementById('sv-partner-search')?.value || '').trim().toLowerCase();
+  const statusF = document.getElementById('sv-partner-status')?.value || 'all';
+  const sortF = document.getElementById('sv-partner-sort')?.value || 'no';
+  let list = svPartnerCache.slice();
+  if (q) list = list.filter(p => (p.real_name||'').toLowerCase().includes(q) || ('p'+String(p.partner_no||'').padStart(3,'0')).includes(q) || String(p.partner_no||'').includes(q));
+  if (statusF !== 'all') list = list.filter(p => statusF === 'active' ? p.status === 'active' : p.status !== 'active');
+  if (sortF === 'income') list.sort((a,b)=> (b.total_income||0)-(a.total_income||0));
+  else if (sortF === 'tasks') list.sort((a,b)=> (b.month_tasks||0)-(a.month_tasks||0));
+  else list.sort((a,b)=> (a.partner_no||9999)-(b.partner_no||9999));
+  if (!list.length) { wrap.innerHTML = '<div class="empty">無符合的夥伴</div>'; return; }
+  wrap.innerHTML = list.map(p => {
+    const no = p.partner_no ? 'P'+String(p.partner_no).padStart(3,'0') : '—';
+    const stCls = p.status === 'active' ? 'sb-active' : (p.status === 'pending' ? 'sb-pending' : 'sb-warn');
+    const stTxt = p.status === 'active' ? '正常' : (p.status === 'pending' ? '待審核' : '停用');
+    return `<div class="partner-card" onclick="toggleSvPartnerDetail(${p.id})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.4rem">
+        <div>
+          <div style="font-weight:700;font-size:.95rem">${p.real_name} <span style="color:var(--text-s);font-size:.72rem;font-family:monospace">${no}</span></div>
+          <div style="font-size:.78rem;color:var(--text-s);margin-top:.1rem">📞 ${p.phone||'—'}</div>
+        </div>
+        <span class="status-badge ${stCls}">${stTxt}</span>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;font-size:.78rem;color:var(--text-m)">
+        <span>進行中 <b>${p.active_count||0}</b></span>
+        <span>本月完成 <b>${p.month_tasks||0}</b></span>
+        <span>累計收入 <b style="color:var(--green)">$${(p.total_income||0).toLocaleString()}</b></span>
+      </div>
+      <div id="sv-pd-${p.id}" style="display:none;margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border-l)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem;font-size:.8rem;color:var(--text-m)">
+          <div>身份別：<b>${p.identity||'—'}</b></div>
+          <div>待審核：<b>${p.reviewing_count||0}</b> 件</div>
+          <div>已完成：<b>${p.completed_count||0}</b> 件</div>
+          <div>本月收入：<b style="color:var(--green)">$${(p.month_income||0).toLocaleString()}</b></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSvPartnerDetail(id) {
+  const row = document.getElementById('sv-pd-'+id);
+  if (row) row.style.display = row.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── 督導紀錄 ─────────────────────────────────────────────────
+async function loadPartnersForMentor() {
+  try {
+    const users = await API.get('/api/users-list?role=partner');
+    const sel = document.getElementById('mentor-partner-sel');
+    if (sel) sel.innerHTML = '<option value="">請選擇夥伴</option>' + users.map(u=>`<option value="${u.id}">${u.real_name}</option>`).join('');
+  } catch(e) {}
+}
+function saveMentorRecord() {
+  const sel = document.getElementById('mentor-partner-sel');
+  if (!sel.value) { showToast('請選擇夥伴', 'warn'); return; }
+  const content = document.getElementById('mentor-content').value.trim();
+  if (!content) { showToast('請填寫輔導內容', 'warn'); return; }
+  showToast('督導紀錄已儲存', 'success');
+  document.getElementById('mentor-content').value = '';
+}
+
+// ── 問題管理 ─────────────────────────────────────────────────
+let issuesSvInboxCache = [];
+let issuesSvMineCache = [];
+let issueAdminImgs = [null, null, null];
+let _issueUnreadSv = 0;
+let svIssueTab = 'inbox';
+
+function switchSvIssueTab(tab) {
+  svIssueTab = tab;
+  ['inbox','admin'].forEach(t => {
+    const btn = document.getElementById('svitab-'+t);
+    if (btn) { btn.style.color = tab===t ? 'var(--blue-d)' : 'var(--text-s)'; btn.style.borderBottomColor = tab===t ? 'var(--blue)' : 'transparent'; btn.style.fontWeight = tab===t ? '700' : '400'; }
+    const el = document.getElementById('sv-issue-tab-'+t);
+    if (el) el.style.display = tab===t ? 'block' : 'none';
+  });
+  if (tab==='inbox') loadIssuesSvInbox(); else loadMyIssues();
+}
+
+async function loadIssuesSv() {
+  await loadIssuesSvInbox();
+  await loadMyIssues();
+  syncIssueNotifyBar();
+}
+
+async function loadIssuesSvInbox() {
+  try {
+    issuesSvInboxCache = await API.get('/api/issues/inbox/supervisor');
+    const el = document.getElementById('issues-sv-inbox');
+    if (!el) return;
+    if (!issuesSvInboxCache.length) { el.innerHTML = '<div class="empty">目前無問題回報</div>'; return; }
+    el.innerHTML = issuesSvInboxCache.map(r => issueCard(r,'sv-inbox')).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadMyIssues() {
+  try {
+    const all = await API.get('/api/issues/mine');
+    issuesSvMineCache = all.filter(r => r.report_type === 'admin');
+    const el = document.getElementById('issues-sv-mine');
+    if (!el) return;
+    if (!issuesSvMineCache.length) { el.innerHTML = '<div class="empty">尚無回報紀錄</div>'; return; }
+    el.innerHTML = issuesSvMineCache.map(r => issueCard(r,'mine-sv')).join('');
+  } catch(e) { console.error(e); }
+}
+
+function issueImgPreview(input, idx, ns) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const max = 600;
+      let w = img.width, h = img.height;
+      if (w > max) { h = Math.round(h * max / w); w = max; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      if (ns === 'admin') issueAdminImgs[idx] = { data: dataUrl, mime: 'image/jpeg' };
+      const prevEl = document.getElementById('issue-admin-img-prev-'+idx);
+      const iconEl = document.getElementById('issue-admin-img-icon-'+idx);
+      if (prevEl) { prevEl.src = dataUrl; prevEl.style.display = 'block'; }
+      if (iconEl) iconEl.style.display = 'none';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitIssueAdmin() {
+  const titleEl = document.getElementById('issue-admin-title');
+  const contEl = document.getElementById('issue-admin-content');
+  const errEl = document.getElementById('issue-admin-err');
+  errEl.style.display = 'none';
+  const title = titleEl && titleEl.value.trim();
+  const content = contEl && contEl.value.trim();
+  if (!title || !content) { errEl.textContent = '請填寫標題與內容'; errEl.style.display = 'block'; return; }
+  try {
+    const r = await API.post('/api/issues', { report_type: 'admin', title, content });
+    const id = r.id;
+    let imgIdx = 0;
+    for (const img of issueAdminImgs) {
+      if (img) await API.post('/api/issues/'+id+'/image', { index: imgIdx, data: img.data, mime: img.mime });
+      imgIdx++;
+    }
+    titleEl.value = ''; contEl.value = '';
+    issueAdminImgs = [null,null,null];
+    for (let i=0;i<3;i++) {
+      const prev = document.getElementById('issue-admin-img-prev-'+i);
+      const icon = document.getElementById('issue-admin-img-icon-'+i);
+      if (prev) { prev.style.display='none'; prev.src=''; }
+      if (icon) icon.style.display='';
+    }
+    showToast('回報已送出！', 'success');
+    await loadMyIssues();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+function issueCard(r, viewer) {
+  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
+  const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
+  const roleMap2 = { partner:'工作夥伴', supervisor:'督導人員' };
+  const unread = (viewer === 'sv-inbox') ? r.unread_handler : r.unread_reporter;
+  return `<div class="issue-card" style="border-left-color:${statusColor[r.status]}" onclick="toggleIssueSv(${r.id},'${viewer}')">
+    <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
+      ${unread ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>' : ''}
+      <span style="font-weight:700;font-size:.9rem;flex:1">${r.title}</span>
+      <span style="font-size:.7rem;padding:.15rem .5rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700;white-space:nowrap">${statusMap[r.status]}</span>
+    </div>
+    <div style="font-size:.75rem;color:var(--text-s)">${r.reporter_name}（${roleMap2[r.reporter_role]||r.reporter_role}）· ${fmtDay(r.created_at)}${r.replies&&r.replies.length ? ' · 💬 '+r.replies.length+' 則回覆' : ''}</div>
+    <div id="sv-issue-detail-${r.id}" style="display:none;margin-top:.65rem;border-top:1px solid var(--border);padding-top:.65rem">
+      <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
+      ${r.image_count > 0 ? '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.65rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" alt="問題回報附圖 ${i+1}，點擊以新視窗開啟" style="height:68px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
+      ${r.assignment_name ? `<div style="font-size:.75rem;color:var(--text-s);margin-bottom:.5rem">📎 關聯任務：${r.assignment_name}</div>` : ''}
+      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.35rem">回覆紀錄</div>
+      <div style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.55rem">${issueRepliesHtml(r.replies||[])}</div>
+      ${viewer === 'sv-inbox' ? `
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.55rem" onclick="event.stopPropagation()">
+        <button onclick="setIssueSvStatus(${r.id},'processing','${viewer}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);font-size:.75rem;cursor:pointer;font-family:sans-serif">處理中</button>
+        <button onclick="escalateToAdmin(${r.id},'${r.title.replace(/'/g,"&#39;")}')" style="padding:.3rem .7rem;border-radius:20px;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font-size:.75rem;cursor:pointer;font-family:sans-serif">回報管理人員</button>
+      </div>` : ''}
+      <div style="display:flex;gap:.4rem;align-items:center" onclick="event.stopPropagation()">
+        <input id="sv-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.55rem .75rem">
+        <button onclick="submitIssueSvReply(${r.id},'${viewer}')" style="padding:.45rem .85rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:sans-serif;white-space:nowrap">送出</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function issueRepliesHtml(replies) {
+  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
+  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
+  return replies.map(rp => `<div style="background:var(--bg);border-radius:var(--rs);padding:.4rem .65rem"><div style="font-size:.7rem;color:var(--text-s);margin-bottom:.15rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div><div style="font-size:.85rem;color:var(--text)">${rp.text}</div></div>`).join('');
+}
+
+async function toggleIssueSv(id, viewer) {
+  const el = document.getElementById('sv-issue-detail-' + id);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  document.querySelectorAll('[id^="sv-issue-detail-"]').forEach(e => e.style.display = 'none');
+  if (!isOpen) {
+    el.style.display = 'block';
+    try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
+    if (viewer === 'sv-inbox') await loadIssuesSvInbox();
+    else if (viewer === 'mine-sv') await loadMyIssues();
+    const el2 = document.getElementById('sv-issue-detail-' + id);
+    if (el2) el2.style.display = 'block';
+    syncIssueNotifyBar();
+  }
+}
+
+async function setIssueSvStatus(id, status, viewer) {
+  try {
+    await API.put('/api/issues/'+id+'/status', { status });
+    showToast('狀態已更新', 'success');
+    if (viewer === 'sv-inbox') await loadIssuesSvInbox();
+    else if (viewer === 'mine-sv') await loadMyIssues();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function submitIssueSvReply(id, viewer) {
+  const input = document.getElementById('sv-issue-reply-input-' + id);
+  const text = input && input.value && input.value.trim();
+  if (!text) return;
+  try {
+    await API.post('/api/issues/'+id+'/reply', { text });
+    input.value = '';
+    showToast('回覆已送出', 'success');
+    if (viewer === 'sv-inbox') await loadIssuesSvInbox();
+    else if (viewer === 'mine-sv') await loadMyIssues();
+    const el2 = document.getElementById('sv-issue-detail-' + id);
+    if (el2) el2.style.display = 'block';
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function escalateToAdmin(issueId, title) {
+  switchSvIssueTab('admin');
+  const t = document.getElementById('issue-admin-title');
+  if (t && !t.value) t.value = '轉報：' + title;
+}
+
+async function syncIssueNotifyBar() {
+  try {
+    const data = await API.get('/api/issues/unread');
+    const badge = document.getElementById('badge-issues');
+    const total = (data.from_reporter||0) + (data.from_handler||0);
+    _issueUnreadSv = total;
+    syncNotifyBar();
+    if (badge) { badge.style.display = total > 0 ? '' : 'none'; badge.textContent = total; }
+  } catch(e){}
+}
+
+// ── 公告 ─────────────────────────────────────────────────────
+let annList = [];
+let svMe = null;
+
+async function loadAnnouncements() {
+  try { annList = await API.get('/api/announcements'); } catch(e) { annList = []; }
+  try { renderAnnList(); } catch(e) {}
+  try { syncNotifyBar(); } catch(e) {}
+}
+
+function syncNotifyBar() {
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  const uid = svMe ? svMe.id : null;
+  const readIds = uid ? getReadIds(uid) : [];
+  const annUnread = visible.filter(a => !readIds.includes(String(a.id))).length;
+  const badge = document.getElementById('badge-notices');
+  if (badge) { badge.textContent = annUnread; badge.style.display = annUnread ? '' : 'none'; }
+  const bar = document.getElementById('m-notify-bar');
+  const text = document.getElementById('m-notify-text');
+  if (bar) {
+    const parts = [];
+    if (annUnread > 0) parts.push(`${annUnread} 則新公告`);
+    if (_issueUnreadSv > 0) parts.push(`${_issueUnreadSv} 則新回覆`);
+    if (parts.length > 0) { text.textContent = '您有　' + parts.join('　'); bar.classList.add('show'); }
+    else bar.classList.remove('show');
+  }
+}
+
+function notifyBarClick() {
+  if (_issueUnreadSv > 0) switchPage('issues'); else switchPage('notices');
+}
+
+function renderAnnList() {
+  const wrap = document.getElementById('ann-list-wrap');
+  if (!wrap) return;
+  const now = new Date().toISOString().slice(0,10);
+  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
+  if (!visible.length) { wrap.innerHTML = '<div class="empty">目前沒有公告</div>'; return; }
+  const uid = svMe ? svMe.id : null;
+  const readIds = uid ? getReadIds(uid) : [];
+  const sorted = [...visible].sort((a,b) => {
+    if (a.is_pinned !== b.is_pinned) return (b.is_pinned?1:0)-(a.is_pinned?1:0);
+    return (b.created_at||'').localeCompare(a.created_at||'');
+  });
+  wrap.innerHTML = sorted.map(a => {
+    const unread = !readIds.includes(String(a.id));
+    const annJson = JSON.stringify(a).replace(/'/g,'&#39;');
+    return `<div class="ann-card${a.is_pinned ? ' pinned':''}" onclick='openAnnDetail(${annJson})'>
+      <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.2rem">
+        ${unread ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
+        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
+        <span style="font-weight:700;font-size:.9rem">${a.title}</span>
+      </div>
+      <div class="ann-meta">${(a.created_at||'').slice(0,16)} · ${a.created_by||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function openAnnDetail(ann) {
+  showAnnDetail(ann, svMe ? svMe.id : null);
+  try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+}
+
+// ── 個人資料 ──────────────────────────────────────────────────
+let svProfData = {};
+
+function fillSvProfile(p) {
+  svProfData = p;
+  document.getElementById('sv-prof-real-name').value = p.real_name || '';
+  document.getElementById('sv-prof-id-number').value = p.id_number || '';
+  document.getElementById('sv-prof-birthday').value = p.birthday || '';
+  document.getElementById('sv-prof-phone').value = p.phone || '';
+  document.getElementById('sv-prof-address').value = p.address || '';
+}
+function setSvFieldEditable(ids, on) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = !on;
+    el.style.background = on ? '#fff' : 'var(--bg)';
+    el.style.color = on ? 'var(--text)' : 'var(--text-s)';
+  });
+}
+function toggleSvProfEdit() {
+  setSvFieldEditable(['sv-prof-phone','sv-prof-address'], true);
+  document.getElementById('sv-prof-edit-btn').style.display = 'none';
+  document.getElementById('sv-prof-save-row').style.display = 'flex';
+}
+function cancelSvProfEdit() {
+  fillSvProfile(svProfData);
+  setSvFieldEditable(['sv-prof-phone','sv-prof-address'], false);
+  document.getElementById('sv-prof-edit-btn').style.display = '';
+  document.getElementById('sv-prof-save-row').style.display = 'none';
+}
+async function saveSvProfile() {
+  try {
+    await API.put('/api/profile', {
+      phone: document.getElementById('sv-prof-phone').value,
+      address: document.getElementById('sv-prof-address').value,
+    });
+    svProfData.phone = document.getElementById('sv-prof-phone').value;
+    svProfData.address = document.getElementById('sv-prof-address').value;
+    cancelSvProfEdit();
+    showToast('個人資料已儲存', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function changePassword() {
+  const err = document.getElementById('cpw-err');
+  err.style.display = 'none';
+  const current = document.getElementById('cpw-current').value;
+  const newPw = document.getElementById('cpw-new').value;
+  const confirm = document.getElementById('cpw-confirm').value;
+  if (newPw.length<6||newPw.length>12) { err.textContent='新密碼須為 6～12 位'; err.style.display='block'; return; }
+  if (newPw!==confirm) { err.textContent='兩次輸入不一致'; err.style.display='block'; return; }
+  try {
+    await API.post('/api/change-password', { current_password:current, new_password:newPw });
+    showToast('密碼已修改', 'success');
+    document.getElementById('cpw-current').value='';
+    document.getElementById('cpw-new').value='';
+    document.getElementById('cpw-confirm').value='';
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+}
+
+// ── 總覽儀表板 ────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [users, history, pending, issues] = await Promise.all([
+      API.get('/api/users-list?role=partner'),
+      API.get('/api/assignments/history'),
+      API.get('/api/reports/supervisor'),
+      API.get('/api/issues/inbox/supervisor'),
+    ]);
+    document.getElementById('dashboard-partner-count').textContent = users.length;
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+    const ym = now.getFullYear() + '/' + String(now.getMonth()+1).padStart(2,'0');
+    const monthCompleted = history.filter(a => a.status === 'completed' && (a.completed_at||'').startsWith(ym)).length;
+    document.getElementById('dashboard-month-completed').textContent = monthCompleted;
+    document.getElementById('dashboard-pending-worklog').textContent = pending.length;
+    const unread = issues.filter(i => i.unread_handler).length;
+    document.getElementById('dashboard-unread-issues').textContent = unread;
+  } catch(e) { console.warn('loadDashboard', e.message); }
+}
+
+// ── 頭像 ─────────────────────────────────────────────────────
+let meId = null;
+
+function loadAvatarM(id) {
+  const saved = localStorage.getItem('hiban_ava_'+id);
+  if (saved) {
+    const el = document.getElementById('m-ava-img');
+    if (el) { el.src=saved; el.style.display='block'; }
+    document.getElementById('m-ava-emoji').style.display='none';
+  }
+}
+
+function uploadAvatarM(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3*1024*1024) { showToast('圖片請小於 3MB', 'warn'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    localStorage.setItem('hiban_ava_'+meId, base64);
+    const el = document.getElementById('m-ava-img');
+    if (el) { el.src=base64; el.style.display='block'; }
+    document.getElementById('m-ava-emoji').style.display='none';
+    showToast('頭像已更新 ✓', 'success');
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+// ── Init ─────────────────────────────────────────────────────
+function scheduleAutoLogout() {
+  var now = new Date(new Date().toLocaleString('en-US', { timeZone:'Asia/Taipei' }));
+  var midnight = new Date(now);
+  midnight.setHours(23,59,59,999);
+  setTimeout(function(){ signOut(); }, midnight.getTime()-now.getTime()+1000);
+}
+
+async function init() {
+  const me = await requireAuth(['supervisor']);
+  if (!me) return;
+  meId = me.id;
+  svMe = me;
+  document.getElementById('m-username').textContent = me.real_name;
+  loadAvatarM(me.id);
+  scheduleAutoLogout();
+  const p = await API.get('/api/profile');
+  fillSvProfile(p);
+  loadAnnouncements();
+  loadDashboard();
+  loadAlerts();
+  loadTaskReviews();
+  loadSvPartners();
+  loadPartnersForMentor();
+  syncIssueNotifyBar();
+}
+init();
+</script>
+</body>
+</html>

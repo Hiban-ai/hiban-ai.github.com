@@ -5,151 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>工作夥伴（手機版）— 希絆雲作所</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --blue:#48B4E8;--blue-d:#1A8AC0;--blue-dd:#0F5A99;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
-  --yellow:#C8901A;--yellow-p:#FFF7E6;
-  --green:#2E8A5E;--green-p:#E8F8F2;
-  --red:#D04545;--red-p:#FEF0F0;
-  --orange:#D9622A;--orange-p:#FEF3EE;
-  --purple:#6B3FA0;--purple-p:#EEE6FA;
-  --text:#1A2E40;--text-m:#3D5A70;--text-s:#5B7385;
-  --border:#C8E8F6;--bg:#F0F8FE;
-  --r:16px;--rs:10px;--nav-h:64px;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg)}
-body{font-family:'Noto Sans TC',sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.6;
-  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 1rem)}
-button,input,select,textarea{font-family:inherit;font-size:1rem}
-a{color:var(--blue-dd)}
-:focus-visible{outline:3px solid var(--blue-dd);outline-offset:2px}
-
-/* 上方：名字、角色、登出 */
-.topbar{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;background:linear-gradient(135deg,#0F5A99,#1A8AC0);color:#fff}
-.topbar .ava{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.05rem;flex:none}
-.topbar .who{flex:1;min-width:0}
-.topbar .name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.topbar .role{font-size:.85rem;opacity:.9}
-.topbar .logout{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:20px;padding:.35rem .9rem;font-size:.9rem;font-weight:700;min-height:40px}
-
-main{padding:1rem}
-.page{display:none}
-.page.active{display:block}
-.page-title{font-size:1.25rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
-.back{display:inline-flex;align-items:center;gap:.3rem;background:none;border:none;color:var(--blue-dd);font-weight:700;font-size:1rem;padding:.4rem 0;margin-bottom:.4rem;min-height:44px}
-.section{font-size:1rem;font-weight:700;color:var(--text-m);margin:1.1rem 0 .55rem;display:flex;align-items:center;gap:.4rem}
-.count{background:var(--red);color:#fff;font-size:.8rem;font-weight:700;padding:.05rem .5rem;border-radius:10px}
-
-.card{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:0 2px 10px rgba(26,112,160,.08);margin-bottom:.75rem}
-.card.line{border-left:5px solid var(--blue)}
-.empty{color:var(--text-s);font-size:.95rem;text-align:center;padding:1.25rem .5rem}
-.muted{color:var(--text-s);font-size:.9rem}
-.row{display:flex;align-items:center;gap:.5rem}
-.spacer{flex:1}
-
-.t-name{font-weight:700;font-size:1.05rem;line-height:1.45}
-.price{font-weight:700;color:var(--yellow);font-size:1.1rem;white-space:nowrap}
-.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
-.chip{display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .55rem;border-radius:6px;font-size:.85rem;font-weight:700;background:var(--blue-p);color:var(--blue-dd)}
-.chip.green{background:var(--green-p);color:var(--green)}
-.chip.orange{background:var(--orange-p);color:var(--orange)}
-.chip.yellow{background:var(--yellow-p);color:#7A5508}
-.chip.purple{background:var(--purple-p);color:var(--purple)}
-.chip.red{background:var(--red-p);color:var(--red)}
-.box{border-radius:var(--rs);padding:.55rem .7rem;font-size:.92rem;line-height:1.6;margin:.45rem 0;white-space:pre-wrap;word-break:break-word}
-.box.orange{background:var(--orange-p);border:1px solid rgba(217,98,42,.25)}
-.box.green{background:var(--green-p);border:1px solid #B5DDC0}
-.box.gray{background:var(--bg);border:1px solid var(--border)}
-.box .lbl{display:block;font-size:.82rem;font-weight:700;color:var(--text-m);margin-bottom:.15rem;white-space:normal}
-.att{display:inline-flex;align-items:center;gap:.25rem;background:var(--blue-p);color:var(--blue-dd);border:1px solid var(--blue-pp);border-radius:14px;padding:.25rem .65rem;font-size:.88rem;font-weight:700;text-decoration:none;margin:.15rem .3rem .15rem 0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-summary::-webkit-details-marker{display:none}
-details.more{margin:.35rem 0}
-details.more summary{cursor:pointer;color:var(--blue-dd);font-weight:700;font-size:.92rem;padding:.35rem 0;min-height:40px;display:flex;align-items:center}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;min-height:48px;padding:.55rem 1rem;border-radius:12px;border:none;font-weight:700;font-size:1rem;cursor:pointer;text-decoration:none}
-.btn.block{width:100%}
-.btn.primary{background:linear-gradient(135deg,#0F5A99,#1A8AC0);color:#fff}
-.btn.ok{background:linear-gradient(135deg,#2E7D56,#2E9A6A);color:#fff}
-.btn.warn{background:linear-gradient(135deg,#D9622A,#D04545);color:#fff}
-.btn.ghost{background:#fff;color:var(--blue-dd);border:1.5px solid var(--blue-pp)}
-.btn.danger{background:#fff;color:var(--red);border:2px solid var(--red)}
-.btn:disabled{background:#E5ECF1;color:var(--text-s);border:none;cursor:not-allowed}
-.btns{display:flex;gap:.5rem;margin-top:.6rem}
-.btns .btn{flex:1}
-
-/* 首頁 */
-.hello{background:#fff;border-radius:var(--r);padding:.85rem 1rem;box-shadow:0 2px 10px rgba(26,112,160,.08);margin-bottom:.9rem}
-.income{display:flex;align-items:center;gap:.5rem;width:100%;background:none;border:none;text-align:left;padding:.2rem 0;min-height:44px;color:var(--text-m);font-size:.95rem}
-.income b{color:var(--yellow);font-size:1.1rem}
-.todo{display:flex;align-items:center;gap:.75rem;width:100%;background:#fff;border:none;border-radius:var(--r);padding:.85rem 1rem;box-shadow:0 2px 10px rgba(26,112,160,.08);margin-bottom:.6rem;text-align:left;min-height:64px;cursor:pointer;border-left:5px solid var(--blue)}
-.todo .ic{font-size:1.5rem;flex:none}
-.todo .tx{flex:1;min-width:0}
-.todo .tt{font-weight:700;font-size:1rem}
-.todo .ts{font-size:.88rem;color:var(--text-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.todo .go{color:var(--blue-dd);font-weight:700;flex:none}
-
-/* 分段切換 */
-.seg{display:flex;background:#fff;border-radius:12px;padding:4px;gap:4px;margin-bottom:.85rem;box-shadow:0 2px 8px rgba(26,112,160,.06)}
-.seg button{flex:1;border:none;background:none;border-radius:9px;padding:.55rem .3rem;font-weight:700;color:var(--text-m);min-height:44px}
-.seg button[aria-selected="true"]{background:var(--blue-d);color:#fff}
-
-/* 我的：清單 */
-.menu{background:#fff;border-radius:var(--r);box-shadow:0 2px 10px rgba(26,112,160,.08);overflow:hidden;margin-bottom:.9rem}
-.menu a,.menu button{display:flex;align-items:center;gap:.75rem;width:100%;padding:.9rem 1rem;min-height:56px;background:none;border:none;border-bottom:1px solid var(--bg);color:var(--text);text-decoration:none;font-size:1rem;font-weight:500;text-align:left;cursor:pointer}
-.menu a:last-child,.menu button:last-child{border-bottom:none}
-.menu .ic{font-size:1.3rem;width:1.6rem;text-align:center}
-.menu .arrow{margin-left:auto;color:var(--text-s)}
-
-/* 表單 */
-.field{margin-bottom:.85rem}
-.field label{display:block;font-size:.92rem;font-weight:700;color:var(--text-m);margin-bottom:.3rem}
-.input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.7rem .85rem;background:#fff;color:var(--text);min-height:48px}
-.input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(72,180,232,.2)}
-.input:disabled{background:var(--bg);color:var(--text-m)}
-textarea.input{resize:vertical;line-height:1.6}
-.err{display:none;background:var(--red-p);border:1.5px solid var(--red);color:var(--red);border-radius:var(--rs);padding:.55rem .75rem;font-size:.92rem;margin-bottom:.75rem}
-.hint{font-size:.85rem;color:var(--text-s);margin-top:.25rem}
-.field label.upload,.upload{display:flex;align-items:center;justify-content:center;gap:.4rem;border:2px dashed var(--blue);border-radius:var(--rs);background:var(--blue-p);color:var(--blue-dd);font-weight:700;min-height:52px;cursor:pointer}
-.thumbs{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
-.thumb{position:relative;width:76px;height:76px}
-.thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)}
-.thumb button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;border:2px solid #fff;font-weight:700;font-size:.85rem}
-.filechip{display:flex;align-items:center;gap:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.4rem .6rem;margin-top:.4rem;font-size:.92rem}
-.filechip span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.filechip button{border:none;background:none;color:var(--red);font-weight:700;min-width:40px;min-height:40px}
-
-/* 限量任務：挑選卡片 */
-.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.6rem}
-.slot{border:2px solid var(--border);border-radius:12px;padding:.55rem .6rem;background:#fff;text-align:left;font-size:.88rem;min-height:64px}
-.slot.sel{border-color:var(--blue-d);background:var(--blue-p)}
-.slot.taken{background:#F1F4F6;color:var(--text-s)}
-.slot .code{font-weight:700}
-.pager{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:.6rem}
-.pager .btn{min-height:44px;padding:.35rem .8rem;font-size:.92rem}
-
-/* 下方導覽列 */
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:#fff;border-top:1px solid var(--border);
-  padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(26,112,160,.08)}
-.nav button{flex:1;border:none;background:none;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;color:var(--text-s);font-size:.85rem;font-weight:700;position:relative}
-.nav button .ic{font-size:1.35rem;line-height:1}
-.nav button[aria-current="page"]{color:var(--blue-dd)}
-.nav button[aria-current="page"]::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 3px 3px;background:var(--blue-d)}
-.nav .badge{position:absolute;top:6px;left:calc(50% + 8px);background:var(--red);color:#fff;font-size:.75rem;font-weight:700;min-width:20px;height:20px;padding:0 5px;border-radius:10px;display:none;align-items:center;justify-content:center}
-
-/* 全螢幕表單（回報、拒絕）：class 含 overlay，shared.js 的 ESC 會關閉 */
-.sheet-overlay{display:none;position:fixed;inset:0;z-index:60;background:rgba(10,30,50,.5);align-items:flex-end;justify-content:center}
-.sheet-overlay.open{display:flex}
-.sheet{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom))}
-.sheet-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;position:sticky;top:-1rem;background:#fff;padding:.4rem 0;z-index:1}
-.sheet-head .t{flex:1;font-weight:700;font-size:1.1rem}
-.sheet-head .x{border:none;background:var(--bg);border-radius:50%;width:44px;height:44px;font-size:1.1rem;color:var(--text-m)}
-
-.ann{display:block;width:100%;text-align:left;background:#fff;border:none;border-radius:var(--rs);padding:.75rem .9rem;margin-bottom:.5rem;box-shadow:0 2px 8px rgba(26,112,160,.06);cursor:pointer;min-height:56px}
-/* shared.js 的提示訊息：移到導覽列上方，長訊息可換行 */
-#_toast{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + .75rem)!important;width:max-content;max-width:92vw;white-space:normal!important;text-align:center}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex:none}
-</style>
+<link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
@@ -210,7 +66,7 @@ textarea.input{resize:vertical;line-height:1.6}
     </nav>
     <nav class="menu" aria-label="其他">
       <a href="faq.html"><span class="ic">❓</span>常見問題<span class="arrow">›</span></a>
-      <button onclick="switchToDesktop()"><span class="ic">💻</span>切換電腦版<span class="arrow">›</span></button>
+      <button onclick="switchToDesktop('partner.html')"><span class="ic">💻</span>切換電腦版<span class="arrow">›</span></button>
       <button onclick="confirmSignOut()"><span class="ic">🚪</span>登出<span class="arrow">›</span></button>
     </nav>
   </section>
@@ -357,94 +213,20 @@ textarea.input{resize:vertical;line-height:1.6}
 </div>
 
 <script src="shared.js"></script>
+<script src="mobile.js"></script>
 <script>
-// ── 小工具 ──────────────────────────────────────────────────────
-const $ = id => document.getElementById(id);
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-}
-// 先跳脫再把網址轉成連結
-function linkify(s) {
-  return esc(s).replace(/https?:\/\/[^\s<>"']+/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
-}
-const money = n => '$' + (Number(n) || 0).toLocaleString();
-function twNow() { return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' })); }
-const pad = n => String(n).padStart(2, '0');
-function ymd(d) { return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`; }
-function fmtDay(s) {
-  if (!s) return '—';
-  const [y, m, d] = s.replace(/-/g, '/').split(' ')[0].split('/');
-  return `${y}/${pad(m)}/${pad(d)}`;
-}
-// 'YYYY/MM/DD...' 或 'YYYY/M/D...' 是否落在指定年月
-function inMonth(s, y, m) { s = s || ''; return s.startsWith(`${y}/${pad(m)}/`) || s.startsWith(`${y}/${m}/`); }
-// 卡片右上角金額：時薪任務在回報前還沒有總額，改顯示時薪
-function priceHtml(a) {
-  return a.assign_type === 'hourly' && !a.total_price
-    ? `<div class="price" style="font-size:1rem">時薪 ${money(a.hourly_wage)}</div>`
-    : `<div class="price">${money(a.total_price)}</div>`;
-}
-function taskLabel(a) { return a.company ? `${a.company}：${a.task_name}` : (a.task_name || ''); }
-function taskCode(a) { return a.full_code || a.task_no || ''; }
-function attachmentsHtml(atts) {
-  if (!atts || !atts.length) return '';
-  return `<div>${atts.map(a => `<a class="att" href="/api/task-attachment/${encodeURIComponent(a.drive_id)}" target="_blank" rel="noopener">📎 ${esc(a.name || '附件')}</a>`).join('')}</div>`;
-}
-function customFieldsHtml(fields) {
-  fields = (fields || []).filter(f => f.value !== '' && f.value != null);
-  if (!fields.length) return '';
-  return `<div style="font-size:.92rem;margin:.3rem 0">${fields.map(f => `<div><span class="muted">${esc(f.label)}：</span>${linkify(f.value)}</div>`).join('')}</div>`;
-}
-function setBadge(id, n) { const el = $(id); if (!el) return; el.textContent = n; el.style.display = n ? 'inline-flex' : 'none'; }
-function closeSheet(id) { $(id).classList.remove('open'); }
-function openSheet(id) { $(id).classList.add('open'); const f = $(id).querySelector('input,textarea,select,button.x'); if (f) setTimeout(() => f.focus(), 50); }
-
-// 壓縮圖片（最寬 maxW，JPEG）
-function compressImage(file, maxW, quality) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = e => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        let w = img.width, h = img.height;
-        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-        const c = document.createElement('canvas'); c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL('image/jpeg', quality));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-function fileToB64(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
-
 // ── 頁面切換（用網址 #，手機返回鍵可回上一頁）─────────────────────
 const PAGES = ['home', 'take', 'tasks', 'me', 'wallet', 'notices', 'issues', 'profile'];
 const NAV_OF = { home: 'home', take: 'take', tasks: 'tasks', me: 'me', wallet: 'me', notices: 'me', issues: 'me', profile: 'me' };
-function go(name) { if (location.hash !== '#' + name) location.hash = name; else showPage(name); }
-function showPage(name) {
-  if (!PAGES.includes(name)) name = 'home';
-  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
-  ['home', 'take', 'tasks', 'me'].forEach(n => {
-    const b = $('nav-' + n);
-    if (NAV_OF[name] === n) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
-  });
-  window.scrollTo(0, 0);
+function onShowPage(name) {
   if (!booted) return; // 啟動時由 init() 一次載入，不重複讀取
   if (name === 'take') { loadGrab(); loadTasks(); }
   if (name === 'tasks' || name === 'home' || name === 'wallet') loadTasks();
   if (name === 'notices') renderAnnList();
   if (name === 'issues') loadIssues();
 }
-window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
+const onAnnChange = () => updateBadges();
 
-function switchToDesktop() {
-  try { localStorage.setItem('hiban_view', 'desktop'); } catch (e) {}
-  location.href = 'partner.html';
-}
 
 // ── 任務資料 ────────────────────────────────────────────────────
 let meId = null, me = null, booted = false;
@@ -716,17 +498,6 @@ async function cancelFree(id, btn) {
   try { await API.put(`/api/assignments/${id}/cancel`); showToast('已取消任務', 'success'); loadTasks(); }
   catch (e) { showToast(e.message, 'error'); btn.disabled = false; }
 }
-function monthOptions(sel) {
-  if (sel.options.length) return;
-  const now = twNow();
-  for (let i = 0; i < 24; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const o = document.createElement('option');
-    o.value = `${d.getFullYear()}-${d.getMonth() + 1}`;
-    o.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
-    sel.appendChild(o);
-  }
-}
 function doneCard(a) {
   return `<div class="card" style="padding:.8rem 1rem">
     <div class="row" style="align-items:flex-start"><div style="flex:1;font-weight:700">${esc(taskLabel(a))}</div><div class="price">${money(a.total_price)}</div></div>
@@ -842,50 +613,6 @@ async function submitReport() {
   btn.disabled = false; btn.textContent = '送出回報';
 }
 
-// ── 📢 公告 ────────────────────────────────────────────────────
-let annList = [], annTab = 'general';
-async function loadAnnouncements() {
-  try { annList = await API.get('/api/announcements'); } catch (e) { annList = []; }
-  renderAnnList(); renderHomeNotices(); updateBadges();
-}
-function visibleAnns() { const today = new Date().toISOString().slice(0, 10); return annList.filter(a => !a.expires_at || a.expires_at >= today); }
-function isUnread(a) { return !getReadIds(meId).includes(String(a.id)); }
-function setAnnTab(t) {
-  annTab = t;
-  ['general', 'task'].forEach(x => $('ann-tab-' + x).setAttribute('aria-selected', x === t));
-  renderAnnList();
-}
-function annRow(a) {
-  return `<button class="ann" onclick="openAnn('${esc(String(a.id))}')">
-    <div class="row">${isUnread(a) ? '<span class="dot" aria-label="未讀"></span>' : ''}${a.is_pinned ? '📌' : ''}<b style="flex:1;min-width:0">${esc(a.title)}</b></div>
-    <div class="muted">${esc((a.created_at || '').slice(0, 16))}・${esc(a.created_by || '—')}</div>
-  </button>`;
-}
-function renderAnnList() {
-  const vis = visibleAnns();
-  const groups = { general: vis.filter(a => a.category !== 'task'), task: vis.filter(a => a.category === 'task') };
-  ['general', 'task'].forEach(t => { const n = groups[t].filter(isUnread).length; $('ann-n-' + t).textContent = n ? `(${n})` : ''; });
-  const list = groups[annTab].slice().sort((a, b) => ((b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0)) || (b.created_at || '').localeCompare(a.created_at || ''));
-  $('ann-list').innerHTML = list.length ? list.map(annRow).join('') : `<div class="card empty">${annTab === 'task' ? '目前沒有任務通知' : '目前沒有公告'}</div>`;
-}
-function renderHomeNotices() {
-  const unread = visibleAnns().filter(isUnread).sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
-  $('home-notices').innerHTML = unread.length
-    ? `<div class="section">🔔 新公告 <span class="count">${unread.length}</span></div>${unread.slice(0, 2).map(annRow).join('')}${unread.length > 2 ? `<a href="#notices" class="muted" style="display:block;text-align:center;padding:.5rem">還有 ${unread.length - 2} 則 ›</a>` : ''}`
-    : '';
-}
-function openAnn(id) {
-  const a = annList.find(x => String(x.id) === id);
-  if (!a) return;
-  showAnnDetail(a, meId);
-  renderAnnList(); renderHomeNotices(); updateBadges();
-}
-function markAllAnnsRead() {
-  markAllRead(meId, visibleAnns().map(a => a.id));
-  renderAnnList(); renderHomeNotices(); updateBadges();
-  showToast('公告已全部標為已讀', 'success');
-}
-
 // ── 🚩 問題回報 ────────────────────────────────────────────────
 let issueTab = 'supervisor', myIssues = [], issueImgs = [], issueUnread = 0;
 function setIssueTab(t) {
@@ -984,50 +711,6 @@ async function submitIssue() {
   btn.disabled = false; btn.textContent = '送出';
 }
 
-// ── 🧑 個人資料 ────────────────────────────────────────────────
-let prof = {};
-const maskId = s => s && s.length > 4 ? s.slice(0, 2) + '*'.repeat(s.length - 5) + s.slice(-3) : (s || '');
-function fillProfile() {
-  $('prof-name').value = prof.real_name || ''; $('prof-idno').value = maskId(prof.id_number);
-  $('prof-birthday').value = prof.birthday || ''; $('prof-phone').value = prof.phone || '';
-  $('prof-address').value = prof.address || ''; $('prof-email').value = prof.email || '';
-  $('prof-bank-code').value = prof.bank_code || ''; $('prof-bank-name').value = prof.bank_name || ''; $('prof-bank-account').value = prof.bank_account || '';
-}
-function toggleProfEdit(on) {
-  ['prof-phone', 'prof-address'].forEach(i => { $(i).disabled = !on; });
-  $('prof-edit-btn').style.display = on ? 'none' : ''; $('prof-save-row').style.display = on ? 'flex' : 'none';
-  if (on) $('prof-phone').focus(); else fillProfile();
-}
-async function saveProfile() {
-  try {
-    await API.put('/api/profile', { phone: $('prof-phone').value.trim(), address: $('prof-address').value.trim() });
-    prof.phone = $('prof-phone').value.trim(); prof.address = $('prof-address').value.trim();
-    toggleProfEdit(false); showToast('個人資料已儲存', 'success');
-  } catch (e) { showToast(e.message, 'error'); }
-}
-function toggleBankEdit(on) {
-  ['prof-bank-code', 'prof-bank-name', 'prof-bank-account'].forEach(i => { $(i).disabled = !on; });
-  $('bank-edit-btn').style.display = on ? 'none' : ''; $('bank-save-row').style.display = on ? 'flex' : 'none';
-  if (on) $('prof-bank-code').focus(); else fillProfile();
-}
-async function saveBank() {
-  const body = { bank_code: $('prof-bank-code').value.trim(), bank_name: $('prof-bank-name').value.trim(), bank_account: $('prof-bank-account').value.trim() };
-  try { await API.put('/api/profile/bank', body); Object.assign(prof, body); toggleBankEdit(false); showToast('銀行資料已儲存', 'success'); }
-  catch (e) { showToast(e.message, 'error'); }
-}
-async function changePassword() {
-  const err = $('pw-err'); err.style.display = 'none';
-  const cur = $('pw-current').value, nw = $('pw-new').value, cf = $('pw-confirm').value;
-  const fail = m => { err.textContent = m; err.style.display = 'block'; };
-  if (nw.length < 6 || nw.length > 12) return fail('新密碼要 6～12 碼');
-  if (nw !== cf) return fail('兩次輸入的新密碼不一樣');
-  try {
-    await API.post('/api/change-password', { current_password: cur, new_password: nw });
-    ['pw-current', 'pw-new', 'pw-confirm'].forEach(i => { $(i).value = ''; });
-    showToast('密碼已更新', 'success');
-  } catch (e) { fail(e.status === 401 ? '目前密碼不正確' : e.message); }
-}
-
 // ── 等級（我的頁一行）──────────────────────────────────────────
 async function loadLevel() {
   try {
@@ -1048,10 +731,6 @@ function updateBadges() {
 }
 
 // ── 啟動 ───────────────────────────────────────────────────────
-function scheduleMidnightLogout() {
-  const now = twNow(), mid = new Date(now); mid.setHours(23, 59, 59, 999);
-  setTimeout(() => signOut(), mid - now + 1000);
-}
 async function init() {
   me = await requireAuth(['partner']);
   if (!me) return;

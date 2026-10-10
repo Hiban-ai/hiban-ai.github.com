@@ -297,7 +297,10 @@ async function doLogin(role) {
 }
 
 function goToRole(role) {
-  const isMobile = /Android|iPhone|iPod/i.test(navigator.userAgent);
+  // 使用者在頁面上切換過電腦版／手機版就照選擇；沒選過才看裝置（iPad 走電腦版）
+  let pref = null;
+  try { pref = localStorage.getItem('hiban_view'); } catch (e) {}
+  const isMobile = pref ? pref === 'mobile' : /Android|iPhone|iPod/i.test(navigator.userAgent);
   const pages = {
     partner: isMobile ? 'partner-mobile.html' : 'partner.html',
     supervisor: isMobile ? 'supervisor-mobile.html' : 'supervisor.html',

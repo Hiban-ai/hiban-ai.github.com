@@ -2,1223 +2,1075 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>工作夥伴（手機版）— 希絆雲作所</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --blue:#48B4E8;--blue-l:#74CAEF;--blue-d:#1A8AC0;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
-  --yellow:#FFB830;--yellow-l:#FFD166;--yellow-p:#FFF7E6;
-  --white:#FFFFFF;--bg:#F0F8FE;--bg-card:#FFFFFF;
-  --green:#2EAA7A;--green-p:#E8F8F2;
-  --red:#E05555;--red-p:#FEF0F0;
-  --orange:#F07840;--orange-p:#FEF3EE;
-  --text:#1A2E40;--text-m:#3D5A70;--text-s:#7A9AAF;
-  --border:#C8E8F6;--border-l:#E0F2FB;
-  --shadow:0 4px 20px rgba(72,180,232,.10);
-  --r:14px;--rs:10px;
+  --blue:#48B4E8;--blue-d:#1A8AC0;--blue-dd:#0F5A99;--blue-p:#EBF7FD;--blue-pp:#D0EEFA;
+  --yellow:#C8901A;--yellow-p:#FFF7E6;
+  --green:#2E8A5E;--green-p:#E8F8F2;
+  --red:#D04545;--red-p:#FEF0F0;
+  --orange:#D9622A;--orange-p:#FEF3EE;
+  --purple:#6B3FA0;--purple-p:#EEE6FA;
+  --text:#1A2E40;--text-m:#3D5A70;--text-s:#5B7385;
+  --border:#C8E8F6;--bg:#F0F8FE;
+  --r:16px;--rs:10px;--nav-h:64px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.6;overflow:hidden}
+html{background:var(--bg)}
+body{font-family:'Noto Sans TC',sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.6;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 1rem)}
+button,input,select,textarea{font-family:inherit;font-size:1rem}
+a{color:var(--blue-dd)}
+:focus-visible{outline:3px solid var(--blue-dd);outline-offset:2px}
 
-/* ── Topbar ── */
-.m-topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(135deg,#1260A0,#1A8AC0);
-  padding:.75rem 1rem;position:sticky;top:0;z-index:100;
-  box-shadow:0 4px 16px rgba(18,96,160,.3);flex-shrink:0
-}
-.m-topbar-left{display:flex;align-items:center;gap:.6rem}
-.m-hamburger{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
-  color:#fff;width:38px;height:38px;border-radius:10px;font-size:1.2rem;
-  cursor:pointer;display:flex;align-items:center;justify-content:center}
-.m-topbar-title{font-family:'Noto Serif TC',serif;font-size:1rem;font-weight:900;color:#fff}
-.m-topbar-right{display:flex;align-items:center;gap:.5rem}
-.m-ava{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);
-  border:2px solid rgba(255,255,255,.35);overflow:hidden;display:flex;align-items:center;
-  justify-content:center;font-size:1.1rem;flex-shrink:0;cursor:pointer;position:relative}
-.m-ava img{width:100%;height:100%;object-fit:cover;display:none}
-.m-user-name{font-size:.82rem;font-weight:700;color:#fff;max-width:80px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 上方：名字、角色、登出 */
+.topbar{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;background:linear-gradient(135deg,#0F5A99,#1A8AC0);color:#fff}
+.topbar .ava{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.05rem;flex:none}
+.topbar .who{flex:1;min-width:0}
+.topbar .name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .role{font-size:.85rem;opacity:.9}
+.topbar .logout{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:20px;padding:.35rem .9rem;font-size:.9rem;font-weight:700;min-height:40px}
 
-/* ── Home tiles ── */
-.home-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1.1rem}
-.home-tile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
-.home-tile{position:relative;background:#fff;border-radius:var(--r);padding:1.3rem .75rem;
-  box-shadow:var(--shadow);border:1px solid var(--border-l);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:.5rem;cursor:pointer;transition:transform .15s}
-.home-tile:active{transform:scale(.96)}
-.home-tile .ht-icon{font-size:2rem}
-.home-tile .ht-label{font-size:.88rem;font-weight:700;color:var(--text)}
-.home-tile .ht-badge{position:absolute;top:.6rem;right:.6rem;background:var(--red);color:#fff;
-  font-size:.65rem;font-weight:700;padding:.1rem .42rem;border-radius:10px}
+main{padding:1rem}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:1.25rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+.back{display:inline-flex;align-items:center;gap:.3rem;background:none;border:none;color:var(--blue-dd);font-weight:700;font-size:1rem;padding:.4rem 0;margin-bottom:.4rem;min-height:44px}
+.section{font-size:1rem;font-weight:700;color:var(--text-m);margin:1.1rem 0 .55rem;display:flex;align-items:center;gap:.4rem}
+.count{background:var(--red);color:#fff;font-size:.8rem;font-weight:700;padding:.05rem .5rem;border-radius:10px}
 
-/* ── Back-to-home button ── */
-.page-back{display:inline-flex;align-items:center;gap:.35rem;background:var(--blue-p);
-  color:var(--blue-d);border:1.5px solid var(--blue);border-radius:20px;padding:.4rem 1rem;
-  font-size:.82rem;font-weight:700;cursor:pointer;font-family:sans-serif;margin-bottom:.85rem}
+.card{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:0 2px 10px rgba(26,112,160,.08);margin-bottom:.75rem}
+.card.line{border-left:5px solid var(--blue)}
+.empty{color:var(--text-s);font-size:.95rem;text-align:center;padding:1.25rem .5rem}
+.muted{color:var(--text-s);font-size:.9rem}
+.row{display:flex;align-items:center;gap:.5rem}
+.spacer{flex:1}
 
-.m-logout-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
-  color:#fff;height:34px;padding:0 .65rem;border-radius:20px;font-size:.78rem;font-weight:700;
-  cursor:pointer;display:flex;align-items:center;gap:.3rem;white-space:nowrap;font-family:sans-serif}
+.t-name{font-weight:700;font-size:1.05rem;line-height:1.45}
+.price{font-weight:700;color:var(--yellow);font-size:1.1rem;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
+.chip{display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .55rem;border-radius:6px;font-size:.85rem;font-weight:700;background:var(--blue-p);color:var(--blue-dd)}
+.chip.green{background:var(--green-p);color:var(--green)}
+.chip.orange{background:var(--orange-p);color:var(--orange)}
+.chip.yellow{background:var(--yellow-p);color:#7A5508}
+.chip.purple{background:var(--purple-p);color:var(--purple)}
+.chip.red{background:var(--red-p);color:var(--red)}
+.box{border-radius:var(--rs);padding:.55rem .7rem;font-size:.92rem;line-height:1.6;margin:.45rem 0;white-space:pre-wrap;word-break:break-word}
+.box.orange{background:var(--orange-p);border:1px solid rgba(217,98,42,.25)}
+.box.green{background:var(--green-p);border:1px solid #B5DDC0}
+.box.gray{background:var(--bg);border:1px solid var(--border)}
+.box .lbl{display:block;font-size:.82rem;font-weight:700;color:var(--text-m);margin-bottom:.15rem;white-space:normal}
+.att{display:inline-flex;align-items:center;gap:.25rem;background:var(--blue-p);color:var(--blue-dd);border:1px solid var(--blue-pp);border-radius:14px;padding:.25rem .65rem;font-size:.88rem;font-weight:700;text-decoration:none;margin:.15rem .3rem .15rem 0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+summary::-webkit-details-marker{display:none}
+details.more{margin:.35rem 0}
+details.more summary{cursor:pointer;color:var(--blue-dd);font-weight:700;font-size:.92rem;padding:.35rem 0;min-height:40px;display:flex;align-items:center}
 
-/* ── Main scroll ── */
-.m-body{flex:1;overflow-y:auto;padding:1rem;padding-bottom:2rem;display:flex;flex-direction:column}
-.m-body::-webkit-scrollbar{width:3px}
-.m-body::-webkit-scrollbar-thumb{background:var(--blue-l);border-radius:3px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;min-height:48px;padding:.55rem 1rem;border-radius:12px;border:none;font-weight:700;font-size:1rem;cursor:pointer;text-decoration:none}
+.btn.block{width:100%}
+.btn.primary{background:linear-gradient(135deg,#0F5A99,#1A8AC0);color:#fff}
+.btn.ok{background:linear-gradient(135deg,#2E7D56,#2E9A6A);color:#fff}
+.btn.warn{background:linear-gradient(135deg,#D9622A,#D04545);color:#fff}
+.btn.ghost{background:#fff;color:var(--blue-dd);border:1.5px solid var(--blue-pp)}
+.btn.danger{background:#fff;color:var(--red);border:2px solid var(--red)}
+.btn:disabled{background:#E5ECF1;color:var(--text-s);border:none;cursor:not-allowed}
+.btns{display:flex;gap:.5rem;margin-top:.6rem}
+.btns .btn{flex:1}
 
-/* ── Page sections ── */
-.page-section{display:none}
-.page-section.active{display:block}
-.page-title{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700;
-  margin-bottom:1rem;color:var(--text);display:flex;align-items:center;gap:.6rem}
+/* 首頁 */
+.hello{background:#fff;border-radius:var(--r);padding:.85rem 1rem;box-shadow:0 2px 10px rgba(26,112,160,.08);margin-bottom:.9rem}
+.income{display:flex;align-items:center;gap:.5rem;width:100%;background:none;border:none;text-align:left;padding:.2rem 0;min-height:44px;color:var(--text-m);font-size:.95rem}
+.income b{color:var(--yellow);font-size:1.1rem}
+.todo{display:flex;align-items:center;gap:.75rem;width:100%;background:#fff;border:none;border-radius:var(--r);padding:.85rem 1rem;box-shadow:0 2px 10px rgba(26,112,160,.08);margin-bottom:.6rem;text-align:left;min-height:64px;cursor:pointer;border-left:5px solid var(--blue)}
+.todo .ic{font-size:1.5rem;flex:none}
+.todo .tx{flex:1;min-width:0}
+.todo .tt{font-weight:700;font-size:1rem}
+.todo .ts{font-size:.88rem;color:var(--text-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.todo .go{color:var(--blue-dd);font-weight:700;flex:none}
 
-/* ── Notify bar ── */
-.notify-bar{display:none;background:linear-gradient(90deg,var(--blue-p),var(--blue-pp));
-  border-bottom:1.5px solid var(--border);padding:.42rem 1rem;font-size:.82rem;
-  font-weight:600;color:var(--blue-d);align-items:center;gap:.6rem;cursor:pointer;flex-shrink:0}
-.notify-bar.show{display:flex}
+/* 分段切換 */
+.seg{display:flex;background:#fff;border-radius:12px;padding:4px;gap:4px;margin-bottom:.85rem;box-shadow:0 2px 8px rgba(26,112,160,.06)}
+.seg button{flex:1;border:none;background:none;border-radius:9px;padding:.55rem .3rem;font-weight:700;color:var(--text-m);min-height:44px}
+.seg button[aria-selected="true"]{background:var(--blue-d);color:#fff}
 
-/* ── Cards ── */
-.card{background:#fff;border-radius:var(--r);padding:1.1rem;
-  box-shadow:var(--shadow);border:1px solid var(--border-l);margin-bottom:.85rem}
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.85rem}
-.stat-box{background:#fff;border-radius:var(--rs);padding:.6rem;text-align:center;
-  border:1px solid var(--border-l);box-shadow:0 2px 8px rgba(72,180,232,.07)}
-.stat-val{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--blue-d)}
-.stat-label{font-size:.62rem;color:var(--text-s);margin-top:.1rem}
+/* 我的：清單 */
+.menu{background:#fff;border-radius:var(--r);box-shadow:0 2px 10px rgba(26,112,160,.08);overflow:hidden;margin-bottom:.9rem}
+.menu a,.menu button{display:flex;align-items:center;gap:.75rem;width:100%;padding:.9rem 1rem;min-height:56px;background:none;border:none;border-bottom:1px solid var(--bg);color:var(--text);text-decoration:none;font-size:1rem;font-weight:500;text-align:left;cursor:pointer}
+.menu a:last-child,.menu button:last-child{border-bottom:none}
+.menu .ic{font-size:1.3rem;width:1.6rem;text-align:center}
+.menu .arrow{margin-left:auto;color:var(--text-s)}
 
-/* ── Task cards ── */
-.task-card{background:#fff;border-radius:var(--r);padding:.9rem 1rem;
-  border-left:5px solid var(--blue);box-shadow:0 3px 12px rgba(72,180,232,.10);margin-bottom:.65rem}
-.task-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem;margin-bottom:.35rem}
-.task-price{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow);font-size:1rem;white-space:nowrap}
-.task-tags{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.45rem}
-.tag{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600}
-.tag-blue{background:var(--blue-p);color:var(--blue-d)}
-.tag-green{background:var(--green-p);color:var(--green)}
-.tag-yellow{background:var(--yellow-p);color:#8A6010}
-.tag-orange{background:var(--orange-p);color:var(--orange)}
-.task-btns{display:flex;gap:.4rem;margin-top:.5rem}
-.btn-accept{flex:2;padding:.6rem;background:linear-gradient(135deg,#2E7D56,#2EAA7A);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif}
-.btn-reject{flex:1;padding:.6rem;background:transparent;color:var(--red);border:2px solid var(--red);border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer}
-.btn-report{width:100%;padding:.6rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);color:#fff;border:none;border-radius:var(--rs);font-size:.85rem;font-weight:700;cursor:pointer;font-family:sans-serif}
+/* 表單 */
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.92rem;font-weight:700;color:var(--text-m);margin-bottom:.3rem}
+.input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);padding:.7rem .85rem;background:#fff;color:var(--text);min-height:48px}
+.input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(72,180,232,.2)}
+.input:disabled{background:var(--bg);color:var(--text-m)}
+textarea.input{resize:vertical;line-height:1.6}
+.err{display:none;background:var(--red-p);border:1.5px solid var(--red);color:var(--red);border-radius:var(--rs);padding:.55rem .75rem;font-size:.92rem;margin-bottom:.75rem}
+.hint{font-size:.85rem;color:var(--text-s);margin-top:.25rem}
+.field label.upload,.upload{display:flex;align-items:center;justify-content:center;gap:.4rem;border:2px dashed var(--blue);border-radius:var(--rs);background:var(--blue-p);color:var(--blue-dd);font-weight:700;min-height:52px;cursor:pointer}
+.thumbs{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.thumb{position:relative;width:76px;height:76px}
+.thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)}
+.thumb button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;border:2px solid #fff;font-weight:700;font-size:.85rem}
+.filechip{display:flex;align-items:center;gap:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.4rem .6rem;margin-top:.4rem;font-size:.92rem}
+.filechip span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filechip button{border:none;background:none;color:var(--red);font-weight:700;min-width:40px;min-height:40px}
 
-/* ── Grab zone ── */
-.grab-card{background:#fff;border-radius:var(--r);padding:1rem;
-  box-shadow:var(--shadow);margin-bottom:.65rem;border-left:5px solid var(--blue)}
-.grab-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.95rem;margin-bottom:.4rem}
-.grab-prog-bar{height:6px;background:#e5edf3;border-radius:4px;overflow:hidden;margin:.4rem 0}
-.grab-prog-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .4s}
-.btn-grab{width:100%;padding:.65rem;background:linear-gradient(135deg,#155E8C,#1A8AC0);
-  color:#fff;border:none;border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:sans-serif}
+/* 限量任務：挑選卡片 */
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.6rem}
+.slot{border:2px solid var(--border);border-radius:12px;padding:.55rem .6rem;background:#fff;text-align:left;font-size:.88rem;min-height:64px}
+.slot.sel{border-color:var(--blue-d);background:var(--blue-p)}
+.slot.taken{background:#F1F4F6;color:var(--text-s)}
+.slot .code{font-weight:700}
+.pager{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:.6rem}
+.pager .btn{min-height:44px;padding:.35rem .8rem;font-size:.92rem}
 
-/* ── Announcement ── */
-.ann-card{background:#fff;border-radius:var(--rs);padding:.85rem 1rem;
-  margin-bottom:.6rem;border:1.5px solid var(--border);cursor:pointer}
-.ann-card.pinned{border-color:var(--blue);background:var(--blue-p)}
-.ann-meta{font-size:.72rem;color:var(--text-s);margin-top:.3rem}
+/* 下方導覽列 */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:#fff;border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(26,112,160,.08)}
+.nav button{flex:1;border:none;background:none;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;color:var(--text-s);font-size:.85rem;font-weight:700;position:relative}
+.nav button .ic{font-size:1.35rem;line-height:1}
+.nav button[aria-current="page"]{color:var(--blue-dd)}
+.nav button[aria-current="page"]::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 3px 3px;background:var(--blue-d)}
+.nav .badge{position:absolute;top:6px;left:calc(50% + 8px);background:var(--red);color:#fff;font-size:.75rem;font-weight:700;min-width:20px;height:20px;padding:0 5px;border-radius:10px;display:none;align-items:center;justify-content:center}
 
-/* ── Form ── */
-.form-group{margin-bottom:.9rem}
-.form-label{display:block;font-size:.82rem;font-weight:600;color:var(--text-m);margin-bottom:.35rem}
-.form-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rs);
-  padding:.7rem .9rem;font-size:.9rem;font-family:'Noto Sans TC',sans-serif;outline:none;
-  transition:border-color .2s;background:#fff;color:var(--text)}
-.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(72,180,232,.12)}
-textarea.form-input{resize:vertical}
-.btn-primary{width:100%;padding:.8rem;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
-  color:#fff;border:none;border-radius:var(--rs);font-size:.95rem;font-weight:700;
-  cursor:pointer;font-family:sans-serif;box-shadow:0 6px 20px rgba(72,180,232,.3)}
+/* 全螢幕表單（回報、拒絕）：class 含 overlay，shared.js 的 ESC 會關閉 */
+.sheet-overlay{display:none;position:fixed;inset:0;z-index:60;background:rgba(10,30,50,.5);align-items:flex-end;justify-content:center}
+.sheet-overlay.open{display:flex}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom))}
+.sheet-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;position:sticky;top:-1rem;background:#fff;padding:.4rem 0;z-index:1}
+.sheet-head .t{flex:1;font-weight:700;font-size:1.1rem}
+.sheet-head .x{border:none;background:var(--bg);border-radius:50%;width:44px;height:44px;font-size:1.1rem;color:var(--text-m)}
 
-/* ── Overlay ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;
-  align-items:flex-end;justify-content:center}
-.overlay.open{display:flex}
-.overlay-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;
-  overflow-y:auto;padding:1.5rem 1.25rem 2rem;
-  box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:slideUp .28s ease}
-@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
-.overlay-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto .9rem}
-.overlay-title{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
-.overlay-desc{font-size:.8rem;color:var(--text-s);margin-bottom:.9rem}
-
-.thumb-row{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
-.thumb-wrap{position:relative;width:68px;height:68px;flex-shrink:0}
-.thumb-wrap img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1.5px solid var(--border)}
-.thumb-del{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;
-  background:var(--red);color:#fff;border:none;cursor:pointer;font-size:.6rem;font-weight:700;
-  display:flex;align-items:center;justify-content:center}
-
-/* ── Wallet ── */
-.wallet-hero{background:linear-gradient(135deg,#1A8AC0,#48B4E8,#74CAEF);border-radius:var(--r);
-  padding:1.5rem;text-align:center;color:#fff;margin-bottom:1rem;box-shadow:0 12px 36px rgba(72,180,232,.3)}
-.wh-amount{font-family:'Noto Serif TC',serif;font-size:2.4rem;font-weight:900;color:var(--yellow-l)}
-.txn-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border-l)}
-.txn-p{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--green);white-space:nowrap}
-
-/* ── Issue card ── */
-.issue-card{background:#fff;border-left:4px solid var(--orange);border-radius:var(--rs);
-  padding:1rem;cursor:pointer;box-shadow:0 2px 10px rgba(72,180,232,.10);margin-bottom:.6rem}
-
-/* ── Section label ── */
-.section-label{font-size:.85rem;font-weight:700;color:var(--text-m);
-  margin:1rem 0 .55rem;display:flex;align-items:center;gap:.4rem}
-
-/* ── Empty state ── */
-.empty{background:#fff;border-radius:var(--r);padding:1rem;
-  box-shadow:var(--shadow);color:var(--text-s);font-size:.85rem;margin-bottom:.65rem}
+.ann{display:block;width:100%;text-align:left;background:#fff;border:none;border-radius:var(--rs);padding:.75rem .9rem;margin-bottom:.5rem;box-shadow:0 2px 8px rgba(26,112,160,.06);cursor:pointer;min-height:56px}
+/* shared.js 的提示訊息：移到導覽列上方，長訊息可換行 */
+#_toast{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + .75rem)!important;width:max-content;max-width:92vw;white-space:normal!important;text-align:center}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;flex:none}
 </style>
 </head>
-<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden">
+<body>
 
-<!-- Topbar -->
-<div class="m-topbar">
-  <div class="m-topbar-left">
-    <div class="m-topbar-title" style="cursor:pointer" onclick="goHome()">希絆雲作所</div>
+<header class="topbar">
+  <div class="ava" id="ava" aria-hidden="true">夥</div>
+  <div class="who">
+    <div class="name" id="me-name">—</div>
+    <div class="role">工作夥伴</div>
   </div>
-  <div class="m-topbar-right">
-    <div class="m-user-name" id="m-username">—</div>
-    <div class="m-ava" onclick="document.getElementById('m-ava-input').click()" title="更換頭像" aria-label="更換頭像">
-      <img id="m-ava-img" alt="">
-      <span id="m-ava-emoji">🧑</span>
+  <button class="logout" onclick="confirmSignOut()">登出</button>
+</header>
+
+<main>
+  <!-- 🏠 首頁 -->
+  <section class="page" id="page-home" aria-labelledby="h-home">
+    <h1 class="page-title" id="h-home" style="position:absolute;left:-9999px">首頁</h1>
+    <div class="hello">
+      <div style="font-size:1.05rem;font-weight:700" id="hello-text">您好！</div>
+      <button class="income" onclick="go('wallet')">💰 本月收入 <b id="home-income">$0</b><span class="muted" id="home-done"></span><span class="spacer"></span><span class="go" style="color:var(--blue-dd);font-weight:700">明細 ›</span></button>
     </div>
-    <input type="file" id="m-ava-input" accept="image/*" style="display:none" onchange="uploadAvatarM(this)">
-    <button class="m-logout-btn" onclick="signOut()" aria-label="登出" title="登出">🚪 登出</button>
+    <div class="section">📌 今天要做的事</div>
+    <div id="home-todo"><div class="empty">載入中…</div></div>
+    <div id="home-notices"></div>
+  </section>
+
+  <!-- 🎯 接案 -->
+  <section class="page" id="page-take" aria-labelledby="h-take">
+    <h1 class="page-title" id="h-take">🎯 接案</h1>
+    <div class="section">📋 指派給我的任務 <span class="count" id="take-pending-n" style="display:none"></span></div>
+    <div id="take-pending"><div class="empty">載入中…</div></div>
+    <div class="section">🎯 限量任務（先接先得）</div>
+    <div id="take-grab"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 📝 我的任務 -->
+  <section class="page" id="page-tasks" aria-labelledby="h-tasks">
+    <h1 class="page-title" id="h-tasks">📝 我的任務</h1>
+    <div class="seg" role="tablist" aria-label="任務狀態">
+      <button role="tab" id="seg-active" aria-selected="true" onclick="setTaskSeg('active')">進行中</button>
+      <button role="tab" id="seg-done" aria-selected="false" onclick="setTaskSeg('done')">已完成</button>
+    </div>
+    <div id="tasks-active"><div class="empty">載入中…</div></div>
+    <div id="tasks-done" style="display:none">
+      <div class="field"><label for="done-month">月份</label><select class="input" id="done-month" onchange="renderDone()"></select></div>
+      <div id="done-list"></div>
+    </div>
+  </section>
+
+  <!-- 👤 我的 -->
+  <section class="page" id="page-me" aria-labelledby="h-me">
+    <h1 class="page-title" id="h-me">👤 我的</h1>
+    <div class="card" id="me-level" style="display:none"></div>
+    <nav class="menu" aria-label="我的功能">
+      <button onclick="go('wallet')"><span class="ic">💰</span>錢包（收入明細）<span class="arrow">›</span></button>
+      <button onclick="go('notices')"><span class="ic">📢</span>公告<span class="count" id="me-ann-n" style="display:none;margin-left:.4rem"></span><span class="arrow">›</span></button>
+      <button onclick="go('issues')"><span class="ic">🚩</span>問題回報<span class="count" id="me-issue-n" style="display:none;margin-left:.4rem"></span><span class="arrow">›</span></button>
+      <button onclick="go('profile')"><span class="ic">🧑</span>個人資料<span class="arrow">›</span></button>
+    </nav>
+    <nav class="menu" aria-label="其他">
+      <a href="faq.html"><span class="ic">❓</span>常見問題<span class="arrow">›</span></a>
+      <button onclick="switchToDesktop()"><span class="ic">💻</span>切換電腦版<span class="arrow">›</span></button>
+      <button onclick="confirmSignOut()"><span class="ic">🚪</span>登出<span class="arrow">›</span></button>
+    </nav>
+  </section>
+
+  <!-- 我的 → 錢包 -->
+  <section class="page" id="page-wallet" aria-labelledby="h-wallet">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-wallet">💰 錢包</h1>
+    <div class="card" style="text-align:center">
+      <div class="field" style="text-align:left"><label for="wallet-month">月份</label><select class="input" id="wallet-month" onchange="renderWallet()"></select></div>
+      <div class="muted">這個月的收入</div>
+      <div style="font-size:2rem;font-weight:700;color:var(--yellow)" id="wallet-total">$0</div>
+      <div class="hint">以審核通過的日期計算月份。每月 15 號發放上個月的收入，<a href="faq.html#salary">說明</a></div>
+    </div>
+    <div id="wallet-list"></div>
+  </section>
+
+  <!-- 我的 → 公告 -->
+  <section class="page" id="page-notices" aria-labelledby="h-notices">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-notices">📢 公告</h1>
+    <div class="seg" role="tablist" aria-label="公告分類">
+      <button role="tab" id="ann-tab-general" aria-selected="true" onclick="setAnnTab('general')">一般公告 <span id="ann-n-general"></span></button>
+      <button role="tab" id="ann-tab-task" aria-selected="false" onclick="setAnnTab('task')">任務通知 <span id="ann-n-task"></span></button>
+    </div>
+    <div id="ann-list"><div class="empty">載入中…</div></div>
+    <button class="btn ghost block" style="margin-top:.5rem" onclick="markAllAnnsRead()">全部標為已讀</button>
+  </section>
+
+  <!-- 我的 → 問題回報 -->
+  <section class="page" id="page-issues" aria-labelledby="h-issues">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-issues">🚩 問題回報</h1>
+    <div class="seg" role="tablist" aria-label="回報對象">
+      <button role="tab" id="iss-tab-supervisor" aria-selected="true" onclick="setIssueTab('supervisor')">回報派案人員</button>
+      <button role="tab" id="iss-tab-admin" aria-selected="false" onclick="setIssueTab('admin')">回報管理人員</button>
+    </div>
+    <div class="hint" id="iss-hint" style="margin:-.3rem 0 .7rem"></div>
+    <button class="btn primary block" onclick="openIssueForm()">＋ 新增問題回報</button>
+    <div class="section">我的回報紀錄</div>
+    <div id="iss-list"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 我的 → 個人資料 -->
+  <section class="page" id="page-profile" aria-labelledby="h-profile">
+    <button class="back" onclick="go('me')">‹ 我的</button>
+    <h1 class="page-title" id="h-profile">🧑 個人資料</h1>
+    <div class="card">
+      <div class="row" style="margin-bottom:.6rem"><b>基本資料</b><span class="spacer"></span><button class="btn ghost" id="prof-edit-btn" style="min-height:40px;padding:.3rem .9rem" onclick="toggleProfEdit(true)">修改</button></div>
+      <div class="field"><label>姓名</label><input class="input" id="prof-name" disabled></div>
+      <div class="field"><label>身分證</label><input class="input" id="prof-idno" disabled></div>
+      <div class="field"><label>生日</label><input class="input" id="prof-birthday" disabled></div>
+      <div class="field"><label for="prof-phone">電話</label><input class="input" id="prof-phone" type="tel" disabled></div>
+      <div class="field"><label for="prof-address">聯絡地址</label><input class="input" id="prof-address" disabled></div>
+      <div class="field"><label>電子信箱（登入帳號）</label><input class="input" id="prof-email" disabled><div class="hint">🔒 信箱就是登入帳號，不能自己修改，需要更換請聯絡管理人員</div></div>
+      <div class="btns" id="prof-save-row" style="display:none"><button class="btn ghost" onclick="toggleProfEdit(false)">取消</button><button class="btn primary" onclick="saveProfile()">儲存</button></div>
+    </div>
+    <div class="card">
+      <div class="row" style="margin-bottom:.6rem"><b>🏦 銀行資料</b><span class="spacer"></span><button class="btn ghost" id="bank-edit-btn" style="min-height:40px;padding:.3rem .9rem" onclick="toggleBankEdit(true)">修改</button></div>
+      <div class="field"><label for="prof-bank-code">銀行代號</label><input class="input" id="prof-bank-code" inputmode="numeric" disabled></div>
+      <div class="field"><label for="prof-bank-name">銀行名稱</label><input class="input" id="prof-bank-name" disabled></div>
+      <div class="field"><label for="prof-bank-account">銀行帳號</label><input class="input" id="prof-bank-account" inputmode="numeric" disabled></div>
+      <div class="btns" id="bank-save-row" style="display:none"><button class="btn ghost" onclick="toggleBankEdit(false)">取消</button><button class="btn primary" onclick="saveBank()">儲存</button></div>
+    </div>
+    <div class="card">
+      <b>🔑 修改密碼</b>
+      <div class="err" id="pw-err" role="alert" style="margin-top:.6rem"></div>
+      <div class="field" style="margin-top:.6rem"><label for="pw-current">目前密碼</label><input class="input" type="password" id="pw-current" autocomplete="current-password"></div>
+      <div class="field"><label for="pw-new">新密碼（6～12 碼）</label><input class="input" type="password" id="pw-new" maxlength="12" autocomplete="new-password"></div>
+      <div class="field"><label for="pw-confirm">再輸入一次新密碼</label><input class="input" type="password" id="pw-confirm" maxlength="12" autocomplete="new-password"></div>
+      <button class="btn primary block" onclick="changePassword()">更新密碼</button>
+    </div>
+  </section>
+</main>
+
+<nav class="nav" aria-label="主選單">
+  <button id="nav-home" onclick="go('home')"><span class="ic" aria-hidden="true">🏠</span>首頁</button>
+  <button id="nav-take" onclick="go('take')"><span class="ic" aria-hidden="true">🎯</span>接案<span class="badge" id="badge-take"></span></button>
+  <button id="nav-tasks" onclick="go('tasks')"><span class="ic" aria-hidden="true">📝</span>我的任務<span class="badge" id="badge-tasks"></span></button>
+  <button id="nav-me" onclick="go('me')"><span class="ic" aria-hidden="true">👤</span>我的<span class="badge" id="badge-me"></span></button>
+</nav>
+
+<!-- 回報表單 -->
+<div class="sheet-overlay" id="report-overlay" onclick="if(event.target===this)closeSheet('report-overlay')">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="report-title">
+    <div class="sheet-head"><div class="t" id="report-title">回報任務</div><button class="x" aria-label="關閉" onclick="closeSheet('report-overlay')">✕</button></div>
+    <div class="muted" id="report-task" style="margin-bottom:.6rem"></div>
+    <div id="report-banner"></div>
+    <div class="err" id="report-err" role="alert"></div>
+
+    <!-- 雙重回報第一階段：附件 -->
+    <div id="rp-stage1" class="field">
+      <label>第一階段附件（至少 1 個，每個 20MB 以內）</label>
+      <label class="upload" for="rp-files">📎 選擇檔案</label>
+      <input type="file" id="rp-files" multiple style="display:none" onchange="addStageFiles(this)">
+      <div id="rp-file-list"></div>
+    </div>
+    <!-- 時薪：開始、完成時間 -->
+    <div id="rp-hourly">
+      <div class="field"><label for="rp-start">開始時間</label><input class="input" type="datetime-local" id="rp-start" onchange="calcHourly()"></div>
+      <div class="field"><label for="rp-end">完成時間</label><input class="input" type="datetime-local" id="rp-end" onchange="calcHourly()"></div>
+      <div class="box green" id="rp-hourly-calc" style="display:none"></div>
+    </div>
+    <div class="field" id="rp-qty-wrap"><label for="rp-qty">完成數量</label><input class="input" type="number" id="rp-qty" min="1" value="1" inputmode="numeric"></div>
+    <div class="field" id="rp-url-wrap"><label for="rp-url">成果網址</label><input class="input" type="url" id="rp-url" placeholder="https://" inputmode="url"></div>
+    <div class="field" id="rp-img-wrap">
+      <label>成果圖片（最多 6 張）</label>
+      <label class="upload" for="rp-imgs">📷 拍照或選擇圖片</label>
+      <input type="file" id="rp-imgs" accept="image/*" multiple style="display:none" onchange="addReportImages(this)">
+      <div class="thumbs" id="rp-thumbs"></div>
+    </div>
+    <div class="field"><label for="rp-notes">補充說明（選填）</label><textarea class="input" id="rp-notes" rows="3"></textarea></div>
+    <button class="btn primary block" id="rp-submit" onclick="submitReport()">送出回報</button>
   </div>
 </div>
 
-<!-- Notify bar -->
-<div class="notify-bar" id="m-notify-bar" aria-live="polite" onclick="switchPage('notices')">
-  <span>📢</span><span id="m-notify-text">您有新公告</span>
-  <span style="margin-left:auto;font-size:.72rem;opacity:.65">前往查看 →</span>
+<!-- 拒絕指派 -->
+<div class="sheet-overlay" id="reject-overlay" onclick="if(event.target===this)closeSheet('reject-overlay')">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="reject-title">
+    <div class="sheet-head"><div class="t" id="reject-title">拒絕這個任務</div><button class="x" aria-label="關閉" onclick="closeSheet('reject-overlay')">✕</button></div>
+    <div class="muted" id="reject-task" style="margin-bottom:.6rem"></div>
+    <div class="field"><label for="reject-reason">原因（選填，讓派案人員知道）</label><textarea class="input" id="reject-reason" rows="3" placeholder="例：這週身體不太舒服"></textarea></div>
+    <div class="btns"><button class="btn ghost" onclick="closeSheet('reject-overlay')">取消</button><button class="btn danger" id="reject-submit" onclick="submitReject()">確定拒絕</button></div>
+  </div>
 </div>
 
-<!-- Main scrollable area -->
-<div class="m-body" id="m-body">
-
-  <!-- 首頁 -->
-  <div class="page-section active" id="page-home">
-    <div class="home-stat-strip">
-      <div class="stat-box"><div class="stat-val" id="overview-income">$0</div><div class="stat-label">本月收入</div></div>
-      <div class="stat-box"><div class="stat-val" id="overview-month-done">0件</div><div class="stat-label">本月完成</div></div>
-      <div class="stat-box"><div class="stat-val" id="overview-login-days">—</div><div class="stat-label">登入天數</div></div>
+<!-- 新增問題回報 -->
+<div class="sheet-overlay" id="issue-overlay" onclick="if(event.target===this)closeSheet('issue-overlay')">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="issue-title">
+    <div class="sheet-head"><div class="t" id="issue-title">新增問題回報</div><button class="x" aria-label="關閉" onclick="closeSheet('issue-overlay')">✕</button></div>
+    <div class="muted" id="issue-target" style="margin-bottom:.6rem"></div>
+    <div class="err" id="issue-err" role="alert"></div>
+    <div class="field" id="issue-task-wrap"><label for="issue-task">關聯任務（選填）</label><select class="input" id="issue-task"></select></div>
+    <div class="field"><label for="issue-title-in">標題</label><input class="input" id="issue-title-in" maxlength="60"></div>
+    <div class="field"><label for="issue-content">內容</label><textarea class="input" id="issue-content" rows="4"></textarea></div>
+    <div class="field">
+      <label>圖片（選填，最多 3 張）</label>
+      <label class="upload" for="issue-imgs">📷 拍照或選擇圖片</label>
+      <input type="file" id="issue-imgs" accept="image/*" multiple style="display:none" onchange="addIssueImages(this)">
+      <div class="thumbs" id="issue-thumbs"></div>
     </div>
-    <div class="home-tile-grid">
-      <div class="home-tile" onclick="switchPage('tasks')">
-        <span class="ht-badge" id="badge-active-tasks" style="display:none">0</span>
-        <span class="ht-icon">⚔️</span><span class="ht-label">任務</span>
-      </div>
-      <div class="home-tile" onclick="switchPage('grab')">
-        <span class="ht-badge" id="badge-grab" style="display:none">0</span>
-        <span class="ht-icon">🎯</span><span class="ht-label">搶單區</span>
-      </div>
-      <div class="home-tile" onclick="switchPage('wallet')">
-        <span class="ht-icon">💰</span><span class="ht-label">錢包</span>
-      </div>
-      <div class="home-tile" onclick="switchPage('notices')">
-        <span class="ht-badge" id="badge-notices" style="display:none">0</span>
-        <span class="ht-icon">📢</span><span class="ht-label">公告</span>
-      </div>
-      <div class="home-tile" onclick="switchPage('issues')">
-        <span class="ht-badge" id="badge-issues" style="display:none">0</span>
-        <span class="ht-icon">🚩</span><span class="ht-label">問題回報</span>
-      </div>
-      <div class="home-tile" onclick="switchPage('profile')">
-        <span class="ht-icon">🧑</span><span class="ht-label">個人資料</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 任務 -->
-  <div class="page-section" id="page-tasks">
-    <button class="page-back" onclick="goHome()">← 返回首頁</button>
-    <div class="page-title">⚔️ 任務</div>
-    <div class="section-label">🔔 待回覆 <span id="pending-badge" style="display:none;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:10px">0</span></div>
-    <div id="pending-list"><div class="empty">載入中...</div></div>
-    <div class="section-label">⚔️ 進行中</div>
-    <div id="active-list"><div class="empty">載入中...</div></div>
-    <div style="display:flex;align-items:center;gap:.5rem;margin:.85rem 0 .55rem;flex-wrap:wrap">
-      <div class="section-label" style="margin:0">✅ 已完成</div>
-      <select id="filter-month" aria-label="篩選已完成任務的月份" onchange="filterCompleted()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.78rem;background:var(--bg);cursor:pointer;flex:1"></select>
-    </div>
-    <div id="completed-list"></div>
-  </div>
-
-  <!-- 搶單區 -->
-  <div class="page-section" id="page-grab">
-    <button class="page-back" onclick="goHome()">← 返回首頁</button>
-    <div class="page-title">🎯 搶單區</div>
-    <div id="grab-zone-wrap"><div class="empty">載入中…</div></div>
-  </div>
-
-  <!-- 錢包 -->
-  <div class="page-section" id="page-wallet">
-    <button class="page-back" onclick="goHome()">← 返回首頁</button>
-    <div class="page-title">💰 錢包</div>
-    <div class="wallet-hero">
-      <div style="font-size:.72rem;opacity:.7;margin-bottom:.25rem">本月收入</div>
-      <div class="wh-amount" id="wallet-total">$0</div>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-        <div style="font-size:.85rem;font-weight:700;color:var(--text-m)">收入明細</div>
-        <select id="wallet-month" onchange="renderWallet()" style="padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.78rem;background:var(--bg);cursor:pointer"></select>
-      </div>
-      <div id="wallet-list"><div style="color:var(--text-s);font-size:.85rem">載入中...</div></div>
-    </div>
-  </div>
-
-  <!-- 公告 -->
-  <div class="page-section" id="page-notices">
-    <button class="page-back" onclick="goHome()">← 返回首頁</button>
-    <div class="page-title">📢 公告</div>
-    <div id="ann-list-wrap"><div class="empty">載入中…</div></div>
-  </div>
-
-  <!-- 問題回報 -->
-  <div class="page-section" id="page-issues">
-    <button class="page-back" onclick="goHome()">← 返回首頁</button>
-    <div class="page-title">🚩 問題回報</div>
-    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1rem">
-      <button id="ptitab-sv" onclick="switchPtIssueTab('sv')" style="padding:.5rem 1rem;background:transparent;border:none;color:var(--blue-d);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid var(--blue);font-weight:700">回報督導</button>
-      <button id="ptitab-admin" onclick="switchPtIssueTab('admin')" style="padding:.5rem 1rem;background:transparent;border:none;color:var(--text-s);font-size:.85rem;cursor:pointer;font-family:sans-serif;border-bottom:2.5px solid transparent">回報管理人員</button>
-    </div>
-
-    <!-- 督導 tab -->
-    <div id="pt-issue-tab-sv">
-      <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.65rem;color:var(--text-m)">📝 新增回報</div>
-        <div id="issue-sv-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.5rem"></div>
-        <input type="hidden" id="issue-sv-target" value="">
-        <div id="issue-sv-target-display" class="form-input" style="background:var(--bg);color:var(--text-s);margin-bottom:.55rem">督導人員載入中…</div>
-        <input id="issue-sv-title" class="form-input" placeholder="問題標題＊" style="margin-bottom:.55rem">
-        <textarea id="issue-sv-content" class="form-input" placeholder="詳細說明＊" rows="4" style="margin-bottom:.55rem"></textarea>
-        <select id="issue-sv-task" class="form-input" style="margin-bottom:.65rem"><option value="">關聯任務（選填）</option></select>
-        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
-        <div style="display:flex;gap:.5rem">
-          <label style="width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-            <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'sv-report')">
-            <span id="issue-sv-report-img-icon-0" style="font-size:1.3rem">📷</span>
-            <img id="issue-sv-report-img-prev-0" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute">
-          </label>
-          <label style="width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-            <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'sv-report')">
-            <span id="issue-sv-report-img-icon-1" style="font-size:1.3rem">📷</span>
-            <img id="issue-sv-report-img-prev-1" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute">
-          </label>
-          <label style="width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-            <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'sv-report')">
-            <span id="issue-sv-report-img-icon-2" style="font-size:1.3rem">📷</span>
-            <img id="issue-sv-report-img-prev-2" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute">
-          </label>
-        </div>
-        <button onclick="submitIssueSv()" class="btn-primary" style="margin-top:.85rem">送出回報</button>
-      </div>
-      <div class="section-label">我的回報紀錄</div>
-      <div id="issues-pt-sv-list"></div>
-    </div>
-
-    <!-- 管理人員 tab -->
-    <div id="pt-issue-tab-admin" style="display:none">
-      <div class="card">
-        <div style="font-size:.88rem;font-weight:700;margin-bottom:.65rem;color:var(--text-m)">📝 新增回報</div>
-        <div id="issue-pt-admin-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.45rem .75rem;font-size:.82rem;color:var(--red);margin-bottom:.5rem"></div>
-        <input id="issue-pt-admin-title" class="form-input" placeholder="問題標題＊" style="margin-bottom:.55rem">
-        <textarea id="issue-pt-admin-content" class="form-input" placeholder="詳細說明＊" rows="4" style="margin-bottom:.55rem"></textarea>
-        <div style="font-size:.78rem;color:var(--text-s);margin-bottom:.4rem">附圖（最多 3 張）</div>
-        <div style="display:flex;gap:.5rem">
-          <label style="width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-            <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,0,'pt-admin')">
-            <span id="issue-pt-admin-img-icon-0" style="font-size:1.3rem">📷</span>
-            <img id="issue-pt-admin-img-prev-0" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute">
-          </label>
-          <label style="width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-            <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,1,'pt-admin')">
-            <span id="issue-pt-admin-img-icon-1" style="font-size:1.3rem">📷</span>
-            <img id="issue-pt-admin-img-prev-1" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute">
-          </label>
-          <label style="width:66px;height:66px;border:1.5px dashed var(--border);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg)">
-            <input type="file" accept="image/*" style="display:none" onchange="ptIssueImgPreview(this,2,'pt-admin')">
-            <span id="issue-pt-admin-img-icon-2" style="font-size:1.3rem">📷</span>
-            <img id="issue-pt-admin-img-prev-2" alt="圖片預覽" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute">
-          </label>
-        </div>
-        <button onclick="submitPtIssueAdmin()" class="btn-primary" style="margin-top:.85rem">送出回報</button>
-      </div>
-      <div class="section-label">我的回報紀錄</div>
-      <div id="issues-pt-admin-list"></div>
-    </div>
-  </div>
-
-  <!-- 個人資料 -->
-  <div class="page-section" id="page-profile">
-    <button class="page-back" onclick="goHome()">← 返回首頁</button>
-    <div class="page-title">🧑 個人資料</div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-        <div style="font-size:.88rem;font-weight:700;color:var(--text-m)">👤 個人資料</div>
-        <button id="prof-edit-btn" onclick="toggleProfEdit()" style="padding:.28rem .8rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:sans-serif">修改</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:.55rem">
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">姓名</label><input class="form-input" id="prof-real-name" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">身分證</label><input class="form-input" id="prof-id-number" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">生日</label><input class="form-input" id="prof-birthday" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">電話</label><input class="form-input" id="prof-phone" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">地址</label><input class="form-input" id="prof-address" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-      </div>
-      <div id="prof-save-row" style="display:none;gap:.5rem;margin-top:.85rem">
-        <button onclick="saveProfile()" class="btn-primary" style="flex:2;margin-top:0">儲存</button>
-        <button onclick="cancelProfEdit()" style="flex:1;padding:.75rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:sans-serif">取消</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-        <div style="font-size:.88rem;font-weight:700;color:var(--text-m)">🏦 銀行資料</div>
-        <button id="bank-edit-btn" onclick="toggleBankEdit()" style="padding:.28rem .8rem;border-radius:20px;border:1.5px solid var(--blue);background:transparent;color:var(--blue-d);font-size:.78rem;font-weight:600;cursor:pointer;font-family:sans-serif">修改</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:.55rem">
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">銀行名稱</label><input class="form-input" id="prof-bank-name" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">銀行帳號</label><input class="form-input" id="prof-bank-account" disabled style="flex:1;background:var(--bg);color:var(--text-s);padding:.55rem .75rem"></div>
-      </div>
-      <div id="bank-save-row" style="display:none;gap:.5rem;margin-top:.85rem">
-        <button onclick="saveBank()" class="btn-primary" style="flex:2;margin-top:0">儲存</button>
-        <button onclick="cancelBankEdit()" style="flex:1;padding:.75rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;font-family:sans-serif">取消</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div style="font-size:.88rem;font-weight:700;color:var(--text-m);margin-bottom:.8rem">🔐 修改密碼</div>
-      <div id="prof-cpw-err" style="background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem;display:none"></div>
-      <div style="display:flex;flex-direction:column;gap:.55rem">
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">目前密碼</label><input class="form-input" type="password" id="prof-cpw-current" placeholder="目前密碼" style="flex:1;padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">新密碼</label><input class="form-input" type="password" id="prof-cpw-new" placeholder="6～12 位" maxlength="12" style="flex:1;padding:.55rem .75rem"></div>
-        <div style="display:flex;align-items:center;gap:.6rem"><label style="font-size:.78rem;color:var(--text-s);width:72px;flex-shrink:0">確認密碼</label><input class="form-input" type="password" id="prof-cpw-confirm" placeholder="再輸入一次" style="flex:1;padding:.55rem .75rem"></div>
-      </div>
-      <button onclick="changePassword()" class="btn-primary" style="margin-top:.85rem">更新密碼</button>
-    </div>
-  </div>
-
-
-</div><!-- m-body -->
-
-<!-- 任務回報 overlay -->
-<div class="overlay" id="report-overlay">
-  <div class="overlay-box">
-    <div class="overlay-handle"></div>
-    <div class="overlay-title">📝 任務回報</div>
-    <div class="overlay-desc" id="report-task-name"></div>
-    <div class="form-group">
-      <label class="form-label">完成數量</label>
-      <input class="form-input" type="number" id="report-qty" min="1" value="1">
-    </div>
-    <div class="form-group">
-      <label class="form-label">網址 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
-      <input class="form-input" type="url" id="report-url" placeholder="https://...">
-    </div>
-    <div class="form-group">
-      <label class="form-label">圖片 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
-      <div style="display:flex;gap:.5rem">
-        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.7rem;border:1.5px solid var(--blue);border-radius:var(--rs);background:var(--blue-p);cursor:pointer;font-size:.88rem;color:var(--blue-d);font-weight:600">
-          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleReportImages(this)">
-          📷 拍照
-        </label>
-        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.7rem;border:1.5px dashed var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer;font-size:.88rem;color:var(--text-m)">
-          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none" onchange="handleReportImages(this)">
-          🖼️ 相簿
-        </label>
-      </div>
-      <div class="thumb-row" id="report-thumbnails"></div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">補充說明 <span style="font-size:.72rem;color:var(--text-s)">（選填）</span></label>
-      <textarea class="form-input" id="report-notes" rows="3" placeholder="說明本次完成內容..."></textarea>
-    </div>
-    <div id="report-err" style="display:none;background:var(--red-p);border:1.5px solid var(--red);border-radius:var(--rs);padding:.5rem .8rem;font-size:.82rem;color:var(--red);margin-bottom:.75rem"></div>
-    <div style="display:flex;gap:.5rem">
-      <button onclick="submitReport()" class="btn-primary" style="flex:2">送出</button>
-      <button onclick="closeReport()" style="flex:1;padding:.8rem;background:var(--bg);color:var(--text-m);border:1.5px solid var(--border);border-radius:var(--rs);font-size:.95rem;font-weight:600;cursor:pointer;font-family:sans-serif">取消</button>
-    </div>
+    <button class="btn primary block" id="issue-submit" onclick="submitIssue()">送出</button>
   </div>
 </div>
 
 <script src="shared.js"></script>
 <script>
-// ── Page switch ───────────────────────────────────────────────
-function switchPage(name) {
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.getElementById('m-body').scrollTop = 0;
-  if (name === 'tasks' || name === 'home') loadTasks();
-  if (name === 'grab') loadGrabZone();
-  if (name === 'wallet') renderWallet();
-  if (name === 'notices') try { renderAnnList(); } catch(e) {}
-  if (name === 'issues') loadIssuesPt();
+// ── 小工具 ──────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
-
-function goHome() { switchPage('home'); }
-
-// ── 日期 ─────────────────────────────────────────────────────
-function taskLabel(a) { return a.company ? a.company+'：'+a.task_name : a.task_name; }
-function fmtDate(s) {
-  if (!s || s === '—') return '—';
-  const [datePart, timePart] = s.replace(/-/g,'/').split(' ');
-  const [y,m,d] = datePart.split('/');
-  const date = `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
-  return timePart ? `${date} ${timePart}` : date;
+// 先跳脫再把網址轉成連結
+function linkify(s) {
+  return esc(s).replace(/https?:\/\/[^\s<>"']+/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
 }
+const money = n => '$' + (Number(n) || 0).toLocaleString();
+function twNow() { return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' })); }
+const pad = n => String(n).padStart(2, '0');
+function ymd(d) { return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`; }
 function fmtDay(s) {
-  if (!s || s === '—') return '—';
-  const datePart = s.replace(/-/g,'/').split(' ')[0];
-  const [y,m,d] = datePart.split('/');
-  return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+  if (!s) return '—';
+  const [y, m, d] = s.replace(/-/g, '/').split(' ')[0].split('/');
+  return `${y}/${pad(m)}/${pad(d)}`;
 }
-
-// ── loadTasks ─────────────────────────────────────────────────
-let completedCache = [];
-let pollInterval = null;
-
-function last3Months() {
-  const now = new Date(), res = [];
-  for (let i = 0; i < 3; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    res.push({ year:d.getFullYear(), month:d.getMonth()+1 });
-  }
-  return res;
+// 'YYYY/MM/DD...' 或 'YYYY/M/D...' 是否落在指定年月
+function inMonth(s, y, m) { s = s || ''; return s.startsWith(`${y}/${pad(m)}/`) || s.startsWith(`${y}/${m}/`); }
+// 卡片右上角金額：時薪任務在回報前還沒有總額，改顯示時薪
+function priceHtml(a) {
+  return a.assign_type === 'hourly' && !a.total_price
+    ? `<div class="price" style="font-size:1rem">時薪 ${money(a.hourly_wage)}</div>`
+    : `<div class="price">${money(a.total_price)}</div>`;
 }
-
-async function loadTasks() {
-  try {
-    const [pending, active, completed] = await Promise.all([
-      API.get('/api/assignments/pending'),
-      API.get('/api/assignments/active'),
-      API.get('/api/assignments/completed'),
-    ]);
-    renderPending(pending);
-    renderActive(active);
-    completedCache = completed;
-    buildMonthFilter();
-    filterCompleted();
-    syncOverviewStats(completed);
-    return true;
-  } catch(e) { console.warn('loadTasks:', e.message); return false; }
+function taskLabel(a) { return a.company ? `${a.company}：${a.task_name}` : (a.task_name || ''); }
+function taskCode(a) { return a.full_code || a.task_no || ''; }
+function attachmentsHtml(atts) {
+  if (!atts || !atts.length) return '';
+  return `<div>${atts.map(a => `<a class="att" href="/api/task-attachment/${encodeURIComponent(a.drive_id)}" target="_blank" rel="noopener">📎 ${esc(a.name || '附件')}</a>`).join('')}</div>`;
 }
-
-function buildMonthFilter() {
-  const months = last3Months();
-  const sel = document.getElementById('filter-month');
-  if (!sel) return;
-  const now = new Date();
-  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  sel.innerHTML = months.map(m =>
-    `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
-  ).join('');
-  sel.value = defaultVal;
+function customFieldsHtml(fields) {
+  fields = (fields || []).filter(f => f.value !== '' && f.value != null);
+  if (!fields.length) return '';
+  return `<div style="font-size:.92rem;margin:.3rem 0">${fields.map(f => `<div><span class="muted">${esc(f.label)}：</span>${linkify(f.value)}</div>`).join('')}</div>`;
 }
+function setBadge(id, n) { const el = $(id); if (!el) return; el.textContent = n; el.style.display = n ? 'inline-flex' : 'none'; }
+function closeSheet(id) { $(id).classList.remove('open'); }
+function openSheet(id) { $(id).classList.add('open'); const f = $(id).querySelector('input,textarea,select,button.x'); if (f) setTimeout(() => f.focus(), 50); }
 
-function filterCompleted() {
-  const ym = document.getElementById('filter-month').value;
-  let list = completedCache;
-  if (ym) {
-    const [y, m] = ym.split('-');
-    list = list.filter(a => {
-      const d = a.completed_at || '';
-      return d.startsWith(y+'/'+String(parseInt(m)).padStart(2,'0')) || d.startsWith(y+'/'+parseInt(m)+'/');
-    });
-  }
-  renderCompleted(list);
-}
-
-function syncOverviewStats(completed) {
-  const now = new Date(), yy = now.getFullYear(), mm = String(now.getMonth()+1).padStart(2,'0');
-  const thisMonth = completed.filter(a => (a.completed_at||'').startsWith(`${yy}/${mm}`));
-  const total = thisMonth.reduce((s,a) => s+(a.total_price||0), 0);
-  const el = document.getElementById('overview-income');
-  if (el) el.textContent = '$'+total.toLocaleString();
-  const el2 = document.getElementById('overview-month-done');
-  if (el2) el2.textContent = thisMonth.length+'件';
-  buildWalletFilter();
-  renderWallet();
-}
-
-function buildWalletFilter() {
-  const months = last3Months();
-  const sel = document.getElementById('wallet-month');
-  if (!sel || sel.options.length) return;
-  const now = new Date();
-  const defaultVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  sel.innerHTML = months.map(m =>
-    `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.year}/${String(m.month).padStart(2,'0')}</option>`
-  ).join('');
-  sel.value = defaultVal;
-}
-
-function renderWallet() {
-  const monthSel = document.getElementById('wallet-month');
-  const listEl = document.getElementById('wallet-list');
-  if (!listEl) return;
-  const ym = monthSel ? monthSel.value : '';
-  let list = completedCache || [];
-  if (ym) {
-    const [y, m] = ym.split('-');
-    list = list.filter(a => (a.completed_at||'').startsWith(y+'/'+m));
-  }
-  list = [...list].sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||''));
-  const monthTotal = list.reduce((s,a) => s+(a.total_price||0), 0);
-  const totalEl = document.getElementById('wallet-total');
-  if (totalEl) totalEl.textContent = '$'+monthTotal.toLocaleString();
-  if (!list.length) { listEl.innerHTML = '<div style="color:var(--text-s);font-size:.85rem;padding:.5rem 0">本月無收入紀錄</div>'; return; }
-  listEl.innerHTML = list.map(a => `
-    <div class="txn-row">
-      <div>
-        <div style="font-size:.88rem;font-weight:600;color:var(--text-m)">${taskLabel(a)}</div>
-        <div style="font-size:.72rem;color:var(--text-s);margin-top:.1rem">${fmtDate(a.completed_at)}</div>
-      </div>
-      <div class="txn-p">+$${(a.total_price||0).toLocaleString()}</div>
-    </div>`).join('');
-}
-
-function renderPending(list) {
-  const badge = document.getElementById('pending-badge');
-  const el = document.getElementById('pending-list');
-  if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
-  const tb = document.getElementById('badge-active-tasks');
-  if (tb) { tb.textContent = list.length; tb.style.display = list.length ? '' : 'none'; }
-  if (!el) return;
-  if (!list.length) { el.innerHTML = '<div class="empty">目前沒有待回覆的派案</div>'; return; }
-  el.innerHTML = buildPendingCards(list);
-}
-
-function buildPendingCards(list) {
-  if (!list.length) return '<div class="empty">目前沒有待回覆的派案</div>';
-  return list.map(a => `
-    <div class="task-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.35rem">
-        <div class="task-name">${taskLabel(a)}</div>
-        <div class="task-price">$${(a.total_price||0).toLocaleString()}</div>
-      </div>
-      <div class="task-tags">
-        <span class="tag tag-blue">${a.task_name}</span>
-        ${a.deadline_date ? `<span class="tag tag-green">⏰ ${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span class="tag tag-green">⏰ ${a.deadline_days}天</span>` : ''}
-        <span class="tag tag-yellow">📦 ${a.quantity}件・$${(a.unit_price||0).toLocaleString()}</span>
-      </div>
-      ${a.notes ? `<div style="font-size:14px;color:#000;font-family:'標楷體','DFKai-SB',serif;margin-bottom:.5rem">${a.notes}</div>` : `<div style="font-size:.8rem;color:var(--text-s);margin-bottom:.5rem">督導：${a.supervisor_name||'—'}</div>`}
-      <div class="task-btns">
-        <button class="btn-accept" onclick="acceptTask(${a.id},this)">✅ 接案</button>
-        <button class="btn-reject" onclick="rejectTask(${a.id},this)">✕ 拒絕</button>
-      </div>
-    </div>`).join('');
-}
-
-function renderActive(list) {
-  const el = document.getElementById('active-list');
-  if (!el) return;
-  if (!list.length) { el.innerHTML = '<div class="empty">目前沒有進行中的任務</div>'; return; }
-  el.innerHTML = list.map(a => {
-    const reviewing = a.review_status === 'reviewing';
-    return `
-    <div class="task-card" style="${!a.review_status && a.supervisor_comments && a.supervisor_comments.length ? 'border-left-color:var(--orange)' : ''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.35rem">
-        <div class="task-name">${taskLabel(a)}</div>
-        <div class="task-price">$${(a.total_price||0).toLocaleString()}</div>
-      </div>
-      <div class="task-tags">
-        ${reviewing ? '<span class="tag tag-orange">🔍 審核中</span>' : '<span class="tag tag-green">⚔️ 進行中</span>'}
-        ${a.deadline_date ? `<span class="tag tag-blue">⏰ ${fmtDay(a.deadline_date)}</span>` : a.deadline_days ? `<span class="tag tag-blue">⏰ ${a.deadline_days}天</span>` : ''}
-        <span class="tag tag-yellow">📦 ${a.quantity}件</span>
-        ${a.grab_no ? `<span class="tag" style="background:linear-gradient(135deg,#155E8C,#1A8AC0);color:#fff">🎯 #${a.grab_no}</span>` : ''}
-      </div>
-      ${a.supervisor_comments && a.supervisor_comments.length ? `<div style="background:var(--orange-p);border-radius:var(--rs);padding:.4rem .6rem;font-size:.8rem;color:var(--text-m);margin-bottom:.5rem;border:1px solid rgba(240,120,64,.2)">${a.supervisor_comments.map(c=>`<div>${c.date} ${c.time}　${c.text}</div>`).join('')}</div>` : ''}
-      <button onclick="${reviewing ? '' : `openReport(${a.id},'${(a.task_name||'').replace(/'/g,"&#39;")}')`}"
-        ${reviewing ? 'disabled' : ''}
-        class="btn-report" style="${reviewing ? 'background:var(--bg);color:var(--text-s);border:1.5px solid var(--border)' : ''}">
-        ${reviewing ? '⏳ 審核中' : '📝 回報工作'}
-      </button>
-    </div>`}).join('');
-}
-
-function renderCompleted(list) {
-  const el = document.getElementById('completed-list');
-  if (!el) return;
-  if (!list.length) { el.innerHTML = '<div class="empty">本月沒有已完成的任務</div>'; return; }
-  el.innerHTML = list.map(a => `
-    <div class="task-card" style="border-left-color:var(--green);opacity:.9">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.3rem">
-        <div class="task-name">${taskLabel(a)}</div>
-        <div class="task-price">$${(a.total_price||0).toLocaleString()}</div>
-      </div>
-      <div class="task-tags">
-        <span class="tag tag-green">✅ 已完成</span>
-        <span class="tag tag-yellow">📦 ${a.quantity}件</span>
-      </div>
-      <div style="font-size:.78rem;color:var(--text-s)">完成：${fmtDate(a.completed_at)}</div>
-    </div>`).join('');
-}
-
-async function acceptTask(id, btn) {
-  btn.disabled = true;
-  try {
-    await API.put(`/api/assignments/${id}/accept`);
-    showToast('✅ 已接案！', 'success');
-    loadTasks();
-  } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
-}
-
-async function rejectTask(id, btn) {
-  btn.disabled = true;
-  try {
-    await API.put(`/api/assignments/${id}/reject`, { reason:'' });
-    showToast('已拒絕此派案', 'warn');
-    loadTasks();
-  } catch(e) { showToast(e.message,'error'); btn.disabled=false; }
-}
-
-// ── 搶單 ─────────────────────────────────────────────────────
-async function loadGrabZone() {
-  const wrap = document.getElementById('grab-zone-wrap');
-  try {
-    const list = await API.get('/api/grab-tasks');
-    const available = list.filter(t => !t.my_grab_no && t.grabbed_count < t.total_slots);
-    const badge = document.getElementById('badge-grab');
-    if (badge) { badge.textContent = available.length; badge.style.display = available.length ? '' : 'none'; }
-    if (!wrap) return;
-    if (!available.length) { wrap.innerHTML = '<div class="empty">目前沒有開放搶單的任務</div>'; return; }
-    wrap.innerHTML = available.map(t => {
-      const rem = t.total_slots - t.grabbed_count;
-      const pct = Math.round((t.grabbed_count/t.total_slots)*100);
-      return `<div class="grab-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
-          <div class="grab-name">${t.company ? t.company+'：'+t.task_name : t.task_name}</div>
-          <div style="font-family:'Noto Serif TC',serif;font-weight:700;color:var(--yellow)">$${(t.unit_price||0).toLocaleString()}</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-s);margin-bottom:.2rem"><span>名額 ${t.grabbed_count}/${t.total_slots}</span><span>剩 ${rem}</span></div>
-        <div class="grab-prog-bar"><div class="grab-prog-fill" style="width:${pct}%;background:${rem===0?'var(--red)':'var(--blue)'}"></div></div>
-        <div style="font-size:.75rem;color:var(--text-s);margin-bottom:.6rem">⏰ 截止：${(t.deadline||'').slice(0,16)}</div>
-        ${rem===0 ? '<div style="padding:.55rem;background:#f5f5f5;border-radius:20px;font-size:.82rem;font-weight:700;color:var(--text-s);text-align:center">名額已滿</div>' : `<button onclick="doGrab(${t.id},this)" class="btn-grab">🎯 搶單</button>`}
-      </div>`;
-    }).join('');
-  } catch(e) { if (wrap) wrap.innerHTML = `<div style="color:var(--red);font-size:.85rem">${e.message}</div>`; }
-}
-
-async function doGrab(taskId, btn) {
-  btn.disabled = true; btn.textContent = '搶單中…';
-  try {
-    const r = await API.post(`/api/grab-tasks/${taskId}/grab`);
-    showToast(`搶單成功！編號 #${r.grab_no} 🎉`, 'success');
-    loadGrabZone(); loadTasks();
-  } catch(e) {
-    showToast(e.message, 'error');
-    btn.disabled = false; btn.textContent = '🎯 搶單';
-  }
-}
-
-// ── 任務回報 ──────────────────────────────────────────────────
-let reportAssignmentId = null;
-let reportImages = [];
-
-function openReport(assignmentId, taskName) {
-  reportAssignmentId = assignmentId;
-  reportImages = [];
-  document.getElementById('report-task-name').textContent = taskName;
-  document.getElementById('report-qty').value = '1';
-  document.getElementById('report-url').value = '';
-  document.getElementById('report-notes').value = '';
-  document.getElementById('report-thumbnails').innerHTML = '';
-  document.getElementById('report-err').style.display = 'none';
-  document.getElementById('report-overlay').classList.add('open');
-}
-
-function closeReport() {
-  document.getElementById('report-overlay').classList.remove('open');
-}
-
-function handleReportImages(input) {
-  const files = Array.from(input.files);
-  const thumbs = document.getElementById('report-thumbnails');
-  files.forEach(file => {
-    if (reportImages.length >= 6) { showToast('最多 6 張', 'warn'); return; }
-    if (file.size > 5*1024*1024) { showToast(`${file.name} 超過 5MB`, 'warn'); return; }
+// 壓縮圖片（最寬 maxW，JPEG）
+function compressImage(file, maxW, quality) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onerror = reject;
     reader.onload = e => {
       const img = new Image();
+      img.onerror = reject;
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX = 900; let w = img.width, h = img.height;
-        if (w > MAX) { h = Math.round(h*MAX/w); w = MAX; }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const base64 = canvas.toDataURL('image/jpeg', 0.75);
-        reportImages.push({ name:file.name, data:base64 });
-        const idx = reportImages.length - 1;
-        const wrap = document.createElement('div');
-        wrap.className = 'thumb-wrap';
-        wrap.innerHTML = `<img src="${base64}" alt="已選擇的回報圖片"><button class="thumb-del" aria-label="移除這張圖片" onclick="removeReportImg(${idx},this.closest('.thumb-wrap'))">✕</button>`;
-        thumbs.appendChild(wrap);
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', quality));
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
-  input.value = '';
 }
+function fileToB64(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
 
-function removeReportImg(idx, el) {
-  reportImages.splice(idx, 1); el.remove();
-  document.querySelectorAll('#report-thumbnails .thumb-wrap').forEach((w,i) => {
-    w.querySelector('button').setAttribute('onclick', `removeReportImg(${i},this.closest('.thumb-wrap'))`);
+// ── 頁面切換（用網址 #，手機返回鍵可回上一頁）─────────────────────
+const PAGES = ['home', 'take', 'tasks', 'me', 'wallet', 'notices', 'issues', 'profile'];
+const NAV_OF = { home: 'home', take: 'take', tasks: 'tasks', me: 'me', wallet: 'me', notices: 'me', issues: 'me', profile: 'me' };
+function go(name) { if (location.hash !== '#' + name) location.hash = name; else showPage(name); }
+function showPage(name) {
+  if (!PAGES.includes(name)) name = 'home';
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  ['home', 'take', 'tasks', 'me'].forEach(n => {
+    const b = $('nav-' + n);
+    if (NAV_OF[name] === n) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
+  window.scrollTo(0, 0);
+  if (!booted) return; // 啟動時由 init() 一次載入，不重複讀取
+  if (name === 'take') { loadGrab(); loadTasks(); }
+  if (name === 'tasks' || name === 'home' || name === 'wallet') loadTasks();
+  if (name === 'notices') renderAnnList();
+  if (name === 'issues') loadIssues();
+}
+window.addEventListener('hashchange', () => showPage(location.hash.slice(1)));
+
+function switchToDesktop() {
+  try { localStorage.setItem('hiban_view', 'desktop'); } catch (e) {}
+  location.href = 'partner.html';
 }
 
-async function submitReport() {
-  const err = document.getElementById('report-err');
-  err.style.display = 'none';
-  const qty = document.getElementById('report-qty').value;
-  if (!qty || parseInt(qty) < 1) { err.textContent='請填寫完成數量（至少1）'; err.style.display='block'; return; }
+// ── 任務資料 ────────────────────────────────────────────────────
+let meId = null, me = null, booted = false;
+let pending = [], active = [], completed = [], grabList = [];
+let asgById = {};
+
+async function loadTasks() {
   try {
-    await API.post('/api/reports', {
-      assignment_id: reportAssignmentId,
-      completed_qty: parseInt(qty)||0,
-      url: document.getElementById('report-url').value.trim(),
-      notes: document.getElementById('report-notes').value.trim(),
-      images: reportImages.map(img => ({ name:img.name, data:img.data })),
-    });
-    closeReport();
-    showToast('回報已送出 ✓', 'success');
-  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+    [pending, active, completed] = await Promise.all([
+      API.get('/api/assignments/pending'),
+      API.get('/api/assignments/active'),
+      API.get('/api/assignments/completed'),
+    ]);
+    asgById = {};
+    [...pending, ...active, ...completed].forEach(a => { asgById[a.id] = a; });
+    renderPending(); renderActive(); renderDone(); renderWallet(); renderHome(); updateBadges();
+    return true;
+  } catch (e) { console.warn('loadTasks', e.message); return false; }
 }
 
-
-// ── 公告 ─────────────────────────────────────────────────────
-let annList = [];
-
-async function loadAnnouncements() {
-  try { annList = await API.get('/api/announcements'); } catch(e) { annList = []; }
-  try { renderAnnList(); } catch(e) {}
-  try { syncNotifyBar(); } catch(e) {}
+// 是否被退回、需要修改（最新修改意見比上次回報新，且不在審核中）
+function needsFix(a) {
+  if (a.review_status) return false;
+  const sc = a.supervisor_comments || [];
+  if (!sc.length) return false;
+  const last = sc[sc.length - 1];
+  return !a.comments_resolved_at || `${last.date || ''} ${last.time || ''}` > a.comments_resolved_at;
+}
+const dueKey = a => { const d = a.deadline_date || a.work_date; return d ? d.replace(/\D/g, '') : '99999999'; };
+function dueInfo(a) {
+  const d = a.deadline_date || a.work_date;
+  if (!d) return null;
+  const today = ymd(twNow()).replace(/\D/g, '');
+  const tmr = (() => { const t = twNow(); t.setDate(t.getDate() + 1); return ymd(t).replace(/\D/g, ''); })();
+  const k = d.replace(/\D/g, '');
+  if (k < today) return { cls: 'red', text: '已逾期' };
+  if (k === today) return { cls: 'red', text: '今天到期' };
+  if (k === tmr) return { cls: 'orange', text: '明天到期' };
+  return null;
 }
 
-function syncNotifyBar() {
-  const now = new Date().toISOString().slice(0,10);
-  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  const readIds = meId ? getReadIds(meId) : [];
-  const unread = visible.filter(a => !readIds.includes(String(a.id))).length;
-  const badge = document.getElementById('badge-notices');
-  if (badge) { badge.textContent = unread; badge.style.display = unread ? '' : 'none'; }
-  const bar = document.getElementById('m-notify-bar');
-  const text = document.getElementById('m-notify-text');
-  if (bar) {
-    if (unread > 0) { text.textContent = `您有 ${unread} 則新公告`; bar.classList.add('show'); }
-    else bar.classList.remove('show');
-  }
+// ── 🏠 首頁 ────────────────────────────────────────────────────
+function renderHome() {
+  const now = twNow();
+  const monthDone = completed.filter(a => inMonth(a.completed_at, now.getFullYear(), now.getMonth() + 1));
+  $('home-income').textContent = money(monthDone.reduce((s, a) => s + (a.total_price || 0), 0));
+  $('home-done').textContent = monthDone.length ? `・完成 ${monthDone.length} 件` : '';
+
+  const fixes = active.filter(needsFix);
+  const due = active.filter(a => a.review_status !== 'reviewing' && !needsFix(a) && dueInfo(a));
+  const grabAvail = grabAvailable().length;
+  const items = [];
+  fixes.forEach(a => items.push(`
+    <button class="todo" style="border-left-color:var(--orange)" onclick="openReport(${a.id})">
+      <span class="ic">↩️</span><span class="tx"><span class="tt">被退回，需要修改</span><span class="ts" style="display:block">${esc(taskLabel(a))}</span></span><span class="go">修改 ›</span>
+    </button>`));
+  due.forEach(a => { const d = dueInfo(a); items.push(`
+    <button class="todo" style="border-left-color:var(--${d.cls})" onclick="openReport(${a.id})">
+      <span class="ic">⏰</span><span class="tx"><span class="tt">${d.text}</span><span class="ts" style="display:block">${esc(taskLabel(a))}</span></span><span class="go">回報 ›</span>
+    </button>`); });
+  if (pending.length) items.push(`
+    <button class="todo" onclick="go('take')">
+      <span class="ic">📋</span><span class="tx"><span class="tt">有 ${pending.length} 個指派任務等您回覆</span><span class="ts" style="display:block">接受或拒絕</span></span><span class="go">查看 ›</span>
+    </button>`);
+  if (grabAvail) items.push(`
+    <button class="todo" onclick="go('take')">
+      <span class="ic">🎯</span><span class="tx"><span class="tt">有 ${grabAvail} 個限量任務可以接</span><span class="ts" style="display:block">名額有限，先接先得</span></span><span class="go">查看 ›</span>
+    </button>`);
+  const working = active.filter(a => !needsFix(a) && !dueInfo(a));
+  if (working.length) items.push(`
+    <button class="todo" style="border-left-color:var(--green)" onclick="go('tasks')">
+      <span class="ic">⚔️</span><span class="tx"><span class="tt">${working.length} 個任務進行中</span><span class="ts" style="display:block">${working.filter(a => a.review_status === 'reviewing').length} 個審核中</span></span><span class="go">查看 ›</span>
+    </button>`);
+  $('home-todo').innerHTML = items.length ? items.join('') : '<div class="card empty">目前沒有待辦事項 🎉<br>可以到「接案」看看有沒有新任務</div>';
 }
 
-function renderAnnList() {
-  const wrap = document.getElementById('ann-list-wrap');
-  if (!wrap) return;
-  const now = new Date().toISOString().slice(0,10);
-  const visible = annList.filter(a => !a.expires_at || a.expires_at >= now);
-  if (!visible.length) { wrap.innerHTML = '<div class="empty">目前沒有公告</div>'; return; }
-  const readIds = meId ? getReadIds(meId) : [];
-  const sorted = [...visible].sort((a,b) => {
-    if (a.is_pinned !== b.is_pinned) return (b.is_pinned?1:0)-(a.is_pinned?1:0);
-    return (b.created_at||'').localeCompare(a.created_at||'');
-  });
-  wrap.innerHTML = sorted.map(a => {
-    const unread = !readIds.includes(String(a.id));
-    const annJson = JSON.stringify(a).replace(/'/g,'&#39;');
-    return `<div class="ann-card${a.is_pinned ? ' pinned':''}" onclick='openAnnDetail(${annJson})'>
-      <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.2rem">
-        ${unread ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>' : ''}
-        ${a.is_pinned ? '<span style="font-size:.68rem;background:var(--blue-d);color:#fff;padding:.1rem .4rem;border-radius:8px">📌</span>' : ''}
-        <span style="font-weight:700;font-size:.9rem">${a.title}</span>
+// ── 🎯 接案：指派 ──────────────────────────────────────────────
+function renderPending() {
+  setBadge('take-pending-n', pending.length);
+  $('take-pending').innerHTML = pending.length ? pending.map(a => `
+    <div class="card line">
+      <div class="row" style="align-items:flex-start"><div class="t-name" style="flex:1">${esc(taskLabel(a))}</div>${priceHtml(a)}</div>
+      <div class="chips">
+        ${a.assign_type === 'hourly' ? `<span class="chip yellow">⏱️ 時薪 ${money(a.hourly_wage)}</span>` : `<span class="chip yellow">📦 ${a.quantity} 件・${money(a.unit_price)}</span>`}
+        ${a.deadline_date ? `<span class="chip green">⏰ 期限 ${fmtDay(a.deadline_date)}</span>` : ''}
+        ${a.work_date ? `<span class="chip">📅 執行 ${fmtDay(a.work_date)}</span>` : ''}
+        ${a.assign_type === 'all' ? '<span class="chip orange">📢 開放給大家</span>' : ''}
+        ${a.dual_report ? '<span class="chip purple">🔖 雙重回報</span>' : ''}
       </div>
-      <div class="ann-meta">${(a.created_at||'').slice(0,16)} · ${a.created_by||'—'}</div>
+      ${a.notes ? `<div class="box gray">${linkify(a.notes)}</div>` : `<div class="muted">派案人員：${esc(a.supervisor_name || '—')}</div>`}
+      ${attachmentsHtml(a.attachments)}${customFieldsHtml(a.custom_fields)}
+      <div class="btns">
+        <button class="btn danger" onclick="openReject(${a.id})">拒絕</button>
+        <button class="btn ok" onclick="acceptTask(${a.id},this)">✅ 接受</button>
+      </div>
+    </div>`).join('') : '<div class="card empty">目前沒有等您回覆的指派任務</div>';
+}
+async function acceptTask(id, btn) {
+  btn.disabled = true;
+  try { await API.put(`/api/assignments/${id}/accept`); showToast('已接受，任務在「我的任務」', 'success'); loadTasks(); }
+  catch (e) { showToast(e.message, 'error'); btn.disabled = false; }
+}
+let rejectId = null;
+function openReject(id) {
+  rejectId = id;
+  $('reject-task').textContent = taskLabel(asgById[id] || {});
+  $('reject-reason').value = '';
+  openSheet('reject-overlay');
+}
+async function submitReject() {
+  const btn = $('reject-submit'); btn.disabled = true;
+  try {
+    await API.put(`/api/assignments/${rejectId}/reject`, { reason: $('reject-reason').value.trim() });
+    closeSheet('reject-overlay'); showToast('已拒絕這個任務', 'warn'); loadTasks();
+  } catch (e) { showToast(e.message, 'error'); }
+  btn.disabled = false;
+}
+
+// ── 🎯 接案：限量任務 ──────────────────────────────────────────
+const PICK_PAGE = 8;
+let pickState = {}, grabById = {};
+function grabAvailable() {
+  return grabList.filter(t => t.pick_mode
+    ? (t.slot_data || []).some(s => !s.claimed)
+    : ((t.qty_unlimited || t.grabbed_count < t.total_slots)
+       && ((t.per_person_limit || 0) === 0 || (t.my_grab_count || 0) < t.per_person_limit)));
+}
+async function loadGrab() {
+  try {
+    grabList = await API.get('/api/grab-tasks');
+    grabById = {}; grabList.forEach(t => { grabById[t.id] = t; if (!pickState[t.id]) pickState[t.id] = { page: 0, sel: -1 }; });
+    renderGrab(); renderHome(); updateBadges();
+  } catch (e) { $('take-grab').innerHTML = `<div class="card empty">${esc(e.message)}</div>`; }
+}
+function quotaLine(t) {
+  const lim = t.per_person_limit || 0, got = t.my_grab_count || 0;
+  return `<div class="muted">每人可接：${lim === 0 ? '不限' : lim + ' 件'}・我已接 ${got} 件${lim ? `・還可接 ${Math.max(0, lim - got)} 件` : ''}</div>`;
+}
+function renderGrab() {
+  const list = grabAvailable().sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
+  if (!list.length) { $('take-grab').innerHTML = '<div class="card empty">目前沒有開放中的限量任務</div>'; return; }
+  $('take-grab').innerHTML = list.map(t => {
+    const head = `
+      <div class="row" style="align-items:flex-start"><div class="t-name" style="flex:1">${t.pick_mode ? '🃏 ' : ''}${esc(taskLabel(t))}</div><div class="price">${money(t.unit_price)}</div></div>
+      <div class="chips">
+        ${t.task_code ? `<span class="chip">🏷️ ${esc(t.task_code)}</span>` : ''}
+        ${t.dual_report ? '<span class="chip purple">🔖 雙重回報</span>' : ''}
+        <span class="chip orange">⏰ ${t.deadline ? esc(t.deadline.slice(0, 16)) + ' 截止' : '一直開放'}</span>
+      </div>
+      ${t.work_date ? `<div class="muted">📅 執行日期：${fmtDay(t.work_date)}</div>` : ''}
+      ${(t.deadline_days && !t.work_date) ? `<div class="muted">🏁 接案後 ${t.deadline_days} 天內完成</div>` : ''}
+      ${quotaLine(t)}
+      ${t.notes ? `<div class="box gray">${linkify(t.notes)}</div>` : ''}
+      ${attachmentsHtml(t.attachments)}`;
+    if (t.pick_mode) return `<div class="card line" style="border-left-color:var(--purple)">${head}<div class="muted" style="margin-top:.4rem">請選一張卡片，再按「確認接案」</div><div id="pick-${t.id}">${pickBody(t)}</div></div>`;
+    const remaining = t.qty_unlimited ? null : t.total_slots - t.grabbed_count;
+    return `<div class="card line" style="border-left-color:var(--orange)">${head}
+      ${customFieldsHtml(t.custom_fields)}
+      <div class="muted">${t.qty_unlimited ? `名額不限・已有 ${t.grabbed_count} 人接` : `剩 <b style="color:var(--blue-dd)">${remaining}</b> / ${t.total_slots} 個名額`}</div>
+      ${(t.my_grab_nos || []).length ? `<div style="color:var(--green);font-weight:700;margin-top:.2rem">✅ 已接 ${t.my_grab_nos.map(n => '#' + esc(n)).join('、')}</div>` : ''}
+      <div style="margin-top:.6rem">${t.my_active
+        ? '<button class="btn block" disabled>⏳ 進行中，完成後才能再接</button>'
+        : `<button class="btn primary block" onclick="doGrab(${t.id},this)">🎯 接案</button>`}</div>
     </div>`;
   }).join('');
 }
-
-function openAnnDetail(ann) {
-  showAnnDetail(ann, meId || null);
-  try { syncNotifyBar(); renderAnnList(); } catch(e) {}
+function pickBody(t) {
+  const slots = t.slot_data || [], st = pickState[t.id];
+  const pages = Math.max(1, Math.ceil(slots.length / PICK_PAGE));
+  if (st.page >= pages) st.page = pages - 1;
+  const start = st.page * PICK_PAGE;
+  const cards = slots.slice(start, start + PICK_PAGE).map((s, j) => {
+    const idx = start + j, code = s.full_code || ('#' + (idx + 1));
+    if (s.claimed) return `<div class="slot taken"><div class="code">${esc(code)}</div><div>已被 ${esc(s.claimed_by_name || '他人')} 選走</div></div>`;
+    const fields = (s.custom_fields || []).filter(f => f.value !== '' && f.value != null);
+    const detail = fields.length ? fields.map(f => `<div><span class="muted">${esc(f.label)}：</span>${esc(f.value)}</div>`).join('') : (s.title ? `<div>${esc(s.title)}</div>` : '');
+    const sel = st.sel === idx;
+    return `<button class="slot${sel ? ' sel' : ''}" aria-pressed="${sel}" onclick="pickSelect(${t.id},${idx})">
+      <div class="code">${esc(code)} ${sel ? '✓' : ''}</div>${detail}
+      ${(s.work_date || t.work_date) ? `<div class="muted">📅 ${esc(s.work_date || t.work_date)}</div>` : ''}
+    </button>`;
+  }).join('');
+  const pager = pages > 1 ? `<div class="pager">
+      <button class="btn ghost" ${st.page === 0 ? 'disabled' : ''} onclick="pickPage(${t.id},-1)">‹ 上一頁</button>
+      <span class="muted">${st.page + 1} / ${pages}</span>
+      <button class="btn ghost" ${st.page >= pages - 1 ? 'disabled' : ''} onclick="pickPage(${t.id},1)">下一頁 ›</button></div>` : '';
+  const ok = st.sel >= 0 && slots[st.sel] && !slots[st.sel].claimed;
+  return `<div class="pick-grid">${cards}</div>${pager}
+    <button class="btn primary block" style="margin-top:.6rem" ${ok ? '' : 'disabled'} onclick="confirmPick(${t.id},this)">${ok ? `✅ 確認接案（${esc(slots[st.sel].full_code || '#' + (st.sel + 1))}）` : '請先選一張卡片'}</button>`;
 }
-
-// ── 問題回報 ─────────────────────────────────────────────────
-let ptIssueSvImgs = [null,null,null];
-let ptIssueAdminImgs = [null,null,null];
-let ptIssueTab = 'sv';
-
-function switchPtIssueTab(tab) {
-  ptIssueTab = tab;
-  ['sv','admin'].forEach(t => {
-    const btn = document.getElementById('ptitab-'+t);
-    if (btn) { btn.style.color = tab===t ? 'var(--blue-d)' : 'var(--text-s)'; btn.style.borderBottomColor = tab===t ? 'var(--blue)' : 'transparent'; btn.style.fontWeight = tab===t ? '700' : '400'; }
-    const el = document.getElementById('pt-issue-tab-'+t);
-    if (el) el.style.display = tab===t ? 'block' : 'none';
-  });
-  if (tab==='sv') loadMyIssuesSv(); else loadMyIssuesAdmin();
-}
-
-async function loadIssuesPt() {
-  await Promise.all([loadMyIssuesSv(), loadMyIssuesAdmin()]);
-  await populateIssueSvDropdowns();
-  syncPtIssueNotifyBar();
-}
-
-async function populateIssueSvDropdowns() {
+function pickSelect(id, idx) { const st = pickState[id]; st.sel = st.sel === idx ? -1 : idx; $('pick-' + id).innerHTML = pickBody(grabById[id]); }
+function pickPage(id, d) { pickState[id].page = Math.max(0, pickState[id].page + d); $('pick-' + id).innerHTML = pickBody(grabById[id]); }
+async function confirmPick(id, btn) {
+  const st = pickState[id];
+  btn.disabled = true;
   try {
-    const me = await API.get('/api/me');
-    const hiddenSv = document.getElementById('issue-sv-target');
-    const dispSv = document.getElementById('issue-sv-target-display');
-    if (me.supervisor_id) {
-      if (hiddenSv) hiddenSv.value = me.supervisor_id;
-      try {
-        const svs = await API.get('/api/users-list?role=supervisor');
-        const sv = svs.find(u => String(u.id) === String(me.supervisor_id));
-        if (dispSv) dispSv.textContent = sv ? '督導：'+sv.real_name : '已指派督導';
-      } catch(e2) { if (dispSv) dispSv.textContent = '已指派督導'; }
-    } else { if (dispSv) dispSv.textContent = '（尚未指派督導）'; }
-  } catch(e){}
+    const r = await API.post(`/api/grab-tasks/${id}/pick`, { slot_index: st.sel });
+    showToast(`接案成功！${r.full_code || ''}`, 'success');
+  } catch (e) {
+    if (e.status === 409 || (e.data && e.data.error === 'taken')) showToast('慢了一步，這張已被選走，請改選其他卡片', 'error');
+    else showToast(e.message || '接案失敗', 'error');
+  }
+  st.sel = -1;
+  loadGrab(); loadTasks();
+}
+async function doGrab(id, btn) {
+  btn.disabled = true; btn.textContent = '接案中…';
   try {
-    const tasks = await API.get('/api/assignments/active');
-    const active = (tasks||[]).filter(t => t.status==='active'||t.status==='accepted');
-    const tsel = document.getElementById('issue-sv-task');
-    if (tsel) {
-      tsel.innerHTML = '<option value="">關聯任務（選填）</option>' +
-        active.map(t => `<option value="${t.id}">${taskLabel(t)}</option>`).join('');
-    }
-  } catch(e){}
+    const r = await API.post(`/api/grab-tasks/${id}/grab`);
+    showToast(`接案成功！編號 #${r.grab_no}`, 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  loadGrab(); loadTasks();
 }
 
-async function loadMyIssuesSv() {
-  try {
-    const all = await API.get('/api/issues/mine');
-    const list = all.filter(r => r.report_type==='supervisor');
-    const el = document.getElementById('issues-pt-sv-list');
-    if (!el) return;
-    el.innerHTML = list.length ? list.map(r => ptIssueCard(r,'sv')).join('') : '<div style="font-size:.82rem;color:var(--text-s)">尚無回報紀錄</div>';
-  } catch(e){}
+// ── 📝 我的任務 ────────────────────────────────────────────────
+function setTaskSeg(seg) {
+  $('seg-active').setAttribute('aria-selected', seg === 'active');
+  $('seg-done').setAttribute('aria-selected', seg === 'done');
+  $('tasks-active').style.display = seg === 'active' ? '' : 'none';
+  $('tasks-done').style.display = seg === 'done' ? '' : 'none';
 }
-
-async function loadMyIssuesAdmin() {
-  try {
-    const all = await API.get('/api/issues/mine');
-    const list = all.filter(r => r.report_type==='admin');
-    const el = document.getElementById('issues-pt-admin-list');
-    if (!el) return;
-    el.innerHTML = list.length ? list.map(r => ptIssueCard(r,'admin')).join('') : '<div style="font-size:.82rem;color:var(--text-s)">尚無回報紀錄</div>';
-  } catch(e){}
-}
-
-function ptIssueCard(r, tab) {
-  const statusMap = { pending:'待處理', processing:'處理中', resolved:'已解決' };
-  const statusColor = { pending:'var(--orange)', processing:'var(--blue)', resolved:'var(--green)' };
-  return `<div class="issue-card" style="border-left-color:${statusColor[r.status]||'#888'}" onclick="togglePtIssue(${r.id},'${tab}')">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
-      ${r.unread_reporter ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>' : ''}
-      <span style="font-weight:700;font-size:.9rem;flex:1;color:var(--text)">${r.title}</span>
-      <span style="font-size:.72rem;padding:.15rem .5rem;border-radius:20px;background:${statusColor[r.status]}20;color:${statusColor[r.status]};font-weight:700">${statusMap[r.status]}</span>
+function activeCard(a) {
+  const reviewing = a.review_status === 'reviewing';
+  const fix = needsFix(a);
+  const stage = a.dual_report ? ((a.report_stage || 0) === 0 ? 1 : 2) : 0;
+  const d = dueInfo(a);
+  const sc = a.supervisor_comments || [];
+  const last = sc[sc.length - 1];
+  const status = reviewing ? '<span class="chip orange">🔍 審核中</span>'
+    : fix ? '<span class="chip red">↩️ 被退回，需要修改</span>'
+    : '<span class="chip green">⚔️ 進行中</span>';
+  const btnText = reviewing ? (stage ? `⏳ 審核中（第${stage === 1 ? '一' : '二'}階段）` : '⏳ 審核中，請稍候')
+    : fix ? '📝 修改後重新回報'
+    : stage === 1 ? '📝 第一階段回報（附件）' : stage === 2 ? '📝 第二階段回報（網址／圖片）' : '📝 回報';
+  const more = [
+    a.assign_type === 'hourly' && a.work_content ? `<div class="box gray"><span class="lbl">工作內容</span>${linkify(a.work_content)}</div>` : '',
+    a.notes ? `<div class="box gray"><span class="lbl">補充說明</span>${linkify(a.notes)}</div>` : '',
+    attachmentsHtml(a.attachments), customFieldsHtml(a.custom_fields),
+    (stage === 2 && a.stage1_attachments && a.stage1_attachments.length) ? `<div class="muted">我的第一階段附件</div>${attachmentsHtml(a.stage1_attachments)}` : '',
+    sc.length > 1 ? `<div class="box orange"><span class="lbl">歷次修改意見（共 ${sc.length} 次）</span>${sc.slice().reverse().map(c => `<div style="margin:.2rem 0"><span class="muted">${esc(c.date || '')} ${esc(c.time || '')}</span><br>${linkify(c.text || '')}</div>`).join('')}</div>` : '',
+  ].join('');
+  return `
+  <div class="card line" style="border-left-color:${fix ? 'var(--orange)' : reviewing ? 'var(--blue)' : 'var(--green)'}">
+    <div class="row" style="align-items:flex-start"><div class="t-name" style="flex:1">${esc(taskLabel(a))}</div>${priceHtml(a)}</div>
+    <div class="chips">
+      ${status}
+      ${a.dual_report ? `<span class="chip purple">🔖 第${stage === 1 ? '一' : '二'}階段</span>` : ''}
+      ${d ? `<span class="chip ${d.cls}">⏰ ${d.text}</span>` : ''}
+      ${a.deadline_date ? `<span class="chip">期限 ${fmtDay(a.deadline_date)}</span>` : ''}
+      ${a.work_date ? `<span class="chip">📅 執行 ${fmtDay(a.work_date)}</span>` : ''}
+      ${taskCode(a) ? `<span class="chip">#${esc(taskCode(a))}</span>` : (a.grab_no ? `<span class="chip">🎯 #${esc(a.grab_no)}</span>` : '')}
+      ${a.assign_type === 'hourly' ? `<span class="chip yellow">⏱️ 時薪 ${money(a.hourly_wage)}</span>` : `<span class="chip yellow">📦 ${a.quantity} 件</span>`}
     </div>
-    <div style="font-size:.75rem;color:var(--text-s)">${r.supervisor_name ? '督導：'+r.supervisor_name+' · ':''} ${fmtDay(r.created_at)}</div>
-    <div id="pt-issue-detail-${r.id}" style="display:none;margin-top:.65rem;border-top:1px solid var(--border);padding-top:.65rem">
-      <div style="font-size:.85rem;line-height:1.7;color:var(--text-m);white-space:pre-wrap;margin-bottom:.5rem">${r.content}</div>
-      ${r.image_count > 0 ? '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.65rem">'+Array.from({length:r.image_count},(_,i)=>`<img src="/api/issues/${r.id}/image/${i}" alt="問題回報附圖 ${i+1}，點擊以新視窗開啟" style="height:68px;border-radius:var(--rs);object-fit:cover;cursor:pointer" onclick="event.stopPropagation();window.open(this.src)">`).join('')+'</div>' : ''}
-      <div style="font-size:.8rem;font-weight:700;color:var(--text-m);margin-bottom:.35rem">回覆紀錄</div>
-      <div style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.55rem">${ptIssueRepliesHtml(r.replies||[])}</div>
-      <div style="display:flex;gap:.4rem;align-items:center" onclick="event.stopPropagation()">
-        <input id="pt-issue-reply-input-${r.id}" class="form-input" placeholder="輸入回覆..." style="flex:1;padding:.55rem .75rem">
-        <button onclick="submitPtIssueReply(${r.id},'${tab}')" style="padding:.45rem .85rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:pointer;font-family:sans-serif;white-space:nowrap">送出</button>
-      </div>
-      ${r.status!=='resolved' ? `<div style="margin-top:.45rem" onclick="event.stopPropagation()"><button onclick="setPtIssueResolved(${r.id},'${tab}')" style="padding:.35rem .85rem;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-size:.8rem;font-weight:700;cursor:pointer;font-family:sans-serif">✅ 標記已解決</button></div>` : ''}
-    </div>
+    ${fix && last ? `<div class="box orange"><span class="lbl">修改意見（${esc(last.date || '')}）</span>${linkify(last.text || '')}${attachmentsHtml(last.attachments)}</div>` : ''}
+    ${(stage === 2 && (a.stage1_reply_note || (a.stage1_reply_attachments || []).length)) ? `<div class="box green"><span class="lbl">第一階段已核可，派案人員的回覆</span>${linkify(a.stage1_reply_note || '')}${attachmentsHtml(a.stage1_reply_attachments)}</div>` : ''}
+    ${more.trim() ? `<details class="more"><summary>查看任務內容</summary>${more}</details>` : ''}
+    <button class="btn ${reviewing ? '' : fix ? 'warn' : 'primary'} block" style="margin-top:.4rem" ${reviewing ? 'disabled' : ''} onclick="openReport(${a.id})">${btnText}</button>
+    ${(a.assign_type === 'free' && !reviewing) ? `<button class="btn danger block" style="margin-top:.5rem" onclick="cancelFree(${a.id},this)">取消任務</button>` : ''}
   </div>`;
 }
-
-function ptIssueRepliesHtml(replies) {
-  if (!replies.length) return '<div style="font-size:.8rem;color:var(--text-s);font-style:italic">尚無回覆</div>';
-  const rMap = { partner:'夥伴', supervisor:'督導', staff:'管理' };
-  return replies.map(rp => `<div style="background:var(--bg);border-radius:var(--rs);padding:.4rem .65rem"><div style="font-size:.7rem;color:var(--text-s);margin-bottom:.15rem">${rp.author_name}（${rMap[rp.author_role]||rp.author_role}）· ${fmtDay(rp.created_at)}</div><div style="font-size:.85rem;color:var(--text)">${rp.text}</div></div>`).join('');
+function renderActive() {
+  const order = a => needsFix(a) ? 0 : a.review_status === 'reviewing' ? 2 : 1;
+  const list = active.slice().sort((x, y) => order(x) - order(y) || dueKey(x).localeCompare(dueKey(y)));
+  $('tasks-active').innerHTML = list.length ? list.map(activeCard).join('') : '<div class="card empty">目前沒有進行中的任務<br><a href="#take">到「接案」看看 ›</a></div>';
 }
-
-async function togglePtIssue(id, tab) {
-  const el = document.getElementById('pt-issue-detail-'+id);
-  if (!el) return;
-  const isOpen = el.style.display !== 'none';
-  document.querySelectorAll('[id^="pt-issue-detail-"]').forEach(e => e.style.display='none');
-  if (!isOpen) {
-    el.style.display = 'block';
-    try { await API.put('/api/issues/'+id+'/read', {}); } catch(e){}
-    if (tab==='admin') await loadMyIssuesAdmin(); else await loadMyIssuesSv();
-    const el2 = document.getElementById('pt-issue-detail-'+id);
-    if (el2) el2.style.display='block';
-    syncPtIssueNotifyBar();
+async function cancelFree(id, btn) {
+  if (!confirm('確定要取消這個任務嗎？')) return;
+  btn.disabled = true;
+  try { await API.put(`/api/assignments/${id}/cancel`); showToast('已取消任務', 'success'); loadTasks(); }
+  catch (e) { showToast(e.message, 'error'); btn.disabled = false; }
+}
+function monthOptions(sel) {
+  if (sel.options.length) return;
+  const now = twNow();
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const o = document.createElement('option');
+    o.value = `${d.getFullYear()}-${d.getMonth() + 1}`;
+    o.textContent = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+    sel.appendChild(o);
   }
 }
+function doneCard(a) {
+  return `<div class="card" style="padding:.8rem 1rem">
+    <div class="row" style="align-items:flex-start"><div style="flex:1;font-weight:700">${esc(taskLabel(a))}</div><div class="price">${money(a.total_price)}</div></div>
+    <div class="muted">✅ ${fmtDay(a.completed_at)} 審核通過${a.assign_type === 'hourly' ? `・⏱️ ${Math.floor((a.work_minutes || 0) / 60)} 時 ${(a.work_minutes || 0) % 60} 分` : `・📦 ${a.quantity} 件`}${(a.extra_reward || 0) > 0 ? `・🎁 含獎勵 ${money(a.extra_reward)}` : ''}</div>
+  </div>`;
+}
+function monthList(selId) {
+  const [y, m] = ($(selId).value || '').split('-').map(Number);
+  return completed.filter(a => inMonth(a.completed_at, y, m)).sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''));
+}
+function renderDone() {
+  monthOptions($('done-month'));
+  const list = monthList('done-month');
+  $('done-list').innerHTML = list.length ? list.map(doneCard).join('') : '<div class="card empty">這個月還沒有完成的任務</div>';
+}
 
-async function setPtIssueResolved(id, tab) {
-  if (!confirm('確定標記為已解決？')) return;
+// ── 💰 錢包 ────────────────────────────────────────────────────
+function renderWallet() {
+  monthOptions($('wallet-month'));
+  const list = monthList('wallet-month');
+  $('wallet-total').textContent = money(list.reduce((s, a) => s + (a.total_price || 0), 0));
+  $('wallet-list').innerHTML = list.length ? list.map(doneCard).join('') : '<div class="card empty">這個月沒有收入紀錄</div>';
+}
+
+// ── 回報 ───────────────────────────────────────────────────────
+let rp = { id: null, stage: 0, hourly: false, wage: 0, images: [], files: [] };
+function openReport(id) {
+  const a = asgById[id];
+  if (!a) return;
+  if (a.review_status === 'reviewing') { showToast('這個任務正在審核中', 'info'); return; }
+  const stage = a.dual_report ? ((a.report_stage || 0) === 0 ? 1 : 2) : 0;
+  rp = { id, stage, hourly: a.assign_type === 'hourly', wage: parseInt(a.hourly_wage) || 0, images: [], files: [] };
+  $('report-title').textContent = stage === 1 ? '第一階段回報' : stage === 2 ? '第二階段回報' : '回報任務';
+  $('report-task').textContent = taskLabel(a);
+  $('report-err').style.display = 'none';
+  ['rp-url', 'rp-notes', 'rp-start', 'rp-end'].forEach(i => { $(i).value = ''; });
+  $('rp-qty').value = '1';
+  $('rp-thumbs').innerHTML = ''; $('rp-file-list').innerHTML = ''; $('rp-hourly-calc').style.display = 'none';
+  const sc = a.supervisor_comments || [];
+  const last = needsFix(a) ? sc[sc.length - 1] : null;
+  let banner = '';
+  if (last) banner += `<div class="box orange"><span class="lbl">修改意見</span>${linkify(last.text || '')}${attachmentsHtml(last.attachments)}</div>`;
+  if (stage === 2) banner += `<div class="box green"><span class="lbl">第二階段</span>請交出成果：網址或圖片。${a.stage1_reply_note ? '<br>' + linkify(a.stage1_reply_note) : ''}${attachmentsHtml(a.stage1_reply_attachments)}</div>`;
+  $('report-banner').innerHTML = banner;
+  $('rp-stage1').style.display = stage === 1 ? '' : 'none';
+  $('rp-hourly').style.display = (rp.hourly && stage !== 1) ? '' : 'none';
+  $('rp-qty-wrap').style.display = (rp.hourly || stage === 1) ? 'none' : '';
+  $('rp-url-wrap').style.display = stage === 1 ? 'none' : '';
+  $('rp-img-wrap').style.display = stage === 1 ? 'none' : '';
+  $('rp-submit').disabled = false;
+  openSheet('report-overlay');
+}
+function addStageFiles(input) {
+  for (const f of input.files) {
+    if (f.size > 20 * 1024 * 1024) { showToast(`「${f.name}」超過 20MB`, 'error'); continue; }
+    rp.files.push(f);
+  }
+  input.value = ''; renderStageFiles();
+}
+function renderStageFiles() {
+  $('rp-file-list').innerHTML = rp.files.map((f, i) => `<div class="filechip">📄 <span>${esc(f.name)}</span><button aria-label="移除 ${esc(f.name)}" onclick="rp.files.splice(${i},1);renderStageFiles()">✕</button></div>`).join('');
+}
+async function addReportImages(input) {
+  for (const f of Array.from(input.files)) {
+    if (rp.images.length >= 6) { showToast('最多 6 張圖片', 'warn'); break; }
+    if (f.size > 10 * 1024 * 1024) { showToast(`${f.name} 超過 10MB`, 'warn'); continue; }
+    try { rp.images.push({ name: f.name, data: await compressImage(f, 900, .75) }); } catch (e) { showToast('圖片讀取失敗', 'error'); }
+  }
+  input.value = ''; renderReportThumbs();
+}
+function renderReportThumbs() {
+  $('rp-thumbs').innerHTML = rp.images.map((im, i) => `<div class="thumb"><img src="${im.data}" alt="回報圖片 ${i + 1}"><button aria-label="移除第 ${i + 1} 張圖片" onclick="rp.images.splice(${i},1);renderReportThumbs()">✕</button></div>`).join('');
+}
+function calcHourly() {
+  const s = $('rp-start').value, e = $('rp-end').value, box = $('rp-hourly-calc');
+  const mins = s && e ? Math.round((new Date(e) - new Date(s)) / 60000) : 0;
+  if (!(mins > 0)) { box.style.display = 'none'; return; }
+  box.textContent = `共 ${Math.floor(mins / 60)} 小時 ${mins % 60} 分 × 時薪 ${money(rp.wage)} ＝ ${money(Math.round(mins / 60 * rp.wage))}`;
+  box.style.display = 'block';
+}
+function reportErr(msg) { const el = $('report-err'); el.textContent = msg; el.style.display = 'block'; el.scrollIntoView({ block: 'center' }); }
+async function submitReport() {
+  $('report-err').style.display = 'none';
+  const btn = $('rp-submit');
+  const notes = $('rp-notes').value.trim();
+  let body;
+  if (rp.stage === 1) {
+    if (!rp.files.length) return reportErr('第一階段回報請至少上傳一個附件');
+    btn.disabled = true; btn.textContent = '上傳中…';
+    const attachments = [];
+    for (const f of rp.files) { try { attachments.push({ name: f.name, mime: f.type || 'application/octet-stream', data: await fileToB64(f) }); } catch (e) {} }
+    body = { assignment_id: rp.id, notes, attachments };
+  } else {
+    const url = $('rp-url').value.trim();
+    const qty = parseInt($('rp-qty').value) || 0;
+    let work_start = '', work_end = '';
+    if (rp.hourly) {
+      work_start = $('rp-start').value; work_end = $('rp-end').value;
+      if (!work_start || !work_end) return reportErr('請填寫開始和完成的時間');
+      if (new Date(work_end) <= new Date(work_start)) return reportErr('完成時間要晚於開始時間');
+    } else if (rp.stage === 2) {
+      if (!url && !rp.images.length) return reportErr('第二階段回報請提供網址或圖片');
+    } else if (qty < 1) return reportErr('請填寫完成數量（至少 1）');
+    btn.disabled = true; btn.textContent = '送出中…';
+    body = { assignment_id: rp.id, completed_qty: qty, url, notes, images: rp.images, work_start, work_end };
+  }
   try {
-    await API.put('/api/issues/'+id+'/status', { status:'resolved' });
-    showToast('已標記為解決 ✅', 'success');
-    if (tab==='admin') await loadMyIssuesAdmin(); else await loadMyIssuesSv();
-  } catch(e) { showToast(e.message,'error'); }
+    await API.post('/api/reports', body);
+    closeSheet('report-overlay');
+    showToast(rp.stage === 1 ? '第一階段已送出，等派案人員核可' : '回報已送出 ✓', 'success');
+    loadTasks();
+  } catch (e) { reportErr(e.message); }
+  btn.disabled = false; btn.textContent = '送出回報';
 }
 
-async function submitPtIssueReply(id, tab) {
-  const input = document.getElementById('pt-issue-reply-input-'+id);
-  const text = input && input.value && input.value.trim();
-  if (!text) return;
+// ── 📢 公告 ────────────────────────────────────────────────────
+let annList = [], annTab = 'general';
+async function loadAnnouncements() {
+  try { annList = await API.get('/api/announcements'); } catch (e) { annList = []; }
+  renderAnnList(); renderHomeNotices(); updateBadges();
+}
+function visibleAnns() { const today = new Date().toISOString().slice(0, 10); return annList.filter(a => !a.expires_at || a.expires_at >= today); }
+function isUnread(a) { return !getReadIds(meId).includes(String(a.id)); }
+function setAnnTab(t) {
+  annTab = t;
+  ['general', 'task'].forEach(x => $('ann-tab-' + x).setAttribute('aria-selected', x === t));
+  renderAnnList();
+}
+function annRow(a) {
+  return `<button class="ann" onclick="openAnn('${esc(String(a.id))}')">
+    <div class="row">${isUnread(a) ? '<span class="dot" aria-label="未讀"></span>' : ''}${a.is_pinned ? '📌' : ''}<b style="flex:1;min-width:0">${esc(a.title)}</b></div>
+    <div class="muted">${esc((a.created_at || '').slice(0, 16))}・${esc(a.created_by || '—')}</div>
+  </button>`;
+}
+function renderAnnList() {
+  const vis = visibleAnns();
+  const groups = { general: vis.filter(a => a.category !== 'task'), task: vis.filter(a => a.category === 'task') };
+  ['general', 'task'].forEach(t => { const n = groups[t].filter(isUnread).length; $('ann-n-' + t).textContent = n ? `(${n})` : ''; });
+  const list = groups[annTab].slice().sort((a, b) => ((b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0)) || (b.created_at || '').localeCompare(a.created_at || ''));
+  $('ann-list').innerHTML = list.length ? list.map(annRow).join('') : `<div class="card empty">${annTab === 'task' ? '目前沒有任務通知' : '目前沒有公告'}</div>`;
+}
+function renderHomeNotices() {
+  const unread = visibleAnns().filter(isUnread).sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  $('home-notices').innerHTML = unread.length
+    ? `<div class="section">🔔 新公告 <span class="count">${unread.length}</span></div>${unread.slice(0, 2).map(annRow).join('')}${unread.length > 2 ? `<a href="#notices" class="muted" style="display:block;text-align:center;padding:.5rem">還有 ${unread.length - 2} 則 ›</a>` : ''}`
+    : '';
+}
+function openAnn(id) {
+  const a = annList.find(x => String(x.id) === id);
+  if (!a) return;
+  showAnnDetail(a, meId);
+  renderAnnList(); renderHomeNotices(); updateBadges();
+}
+function markAllAnnsRead() {
+  markAllRead(meId, visibleAnns().map(a => a.id));
+  renderAnnList(); renderHomeNotices(); updateBadges();
+  showToast('公告已全部標為已讀', 'success');
+}
+
+// ── 🚩 問題回報 ────────────────────────────────────────────────
+let issueTab = 'supervisor', myIssues = [], issueImgs = [], issueUnread = 0;
+function setIssueTab(t) {
+  issueTab = t;
+  ['supervisor', 'admin'].forEach(x => $('iss-tab-' + x).setAttribute('aria-selected', x === t));
+  $('iss-hint').textContent = t === 'supervisor' ? '任務相關的問題，會送給您的派案人員' : '帳號、薪資、系統的問題，會送給管理人員';
+  renderIssues();
+}
+async function loadIssues() {
+  try { myIssues = await API.get('/api/issues/mine'); } catch (e) { myIssues = []; }
+  renderIssues(); syncIssueUnread();
+}
+async function syncIssueUnread() {
+  try { const d = await API.get('/api/issues/unread'); issueUnread = d.from_handler || 0; } catch (e) {}
+  updateBadges();
+}
+function issueCard(r) {
+  const st = { pending: ['待處理', 'orange'], processing: ['處理中', ''], resolved: ['已解決', 'green'] }[r.status] || [r.status, ''];
+  const who = rp => rp.author_role === 'partner' ? '我'
+    : `${rp.author_name}（${{ supervisor: '派案人員', staff: '管理人員' }[rp.author_role] || rp.author_role}）`;
+  return `<details class="card" style="padding:.85rem 1rem" ontoggle="if(this.open)markIssueRead(${r.id})">
+    <summary style="list-style:none;cursor:pointer;min-height:44px">
+      <div class="row">${r.unread_reporter ? '<span class="dot" aria-label="有新回覆"></span>' : ''}<b style="flex:1;min-width:0">${esc(r.title)}</b><span class="chip ${st[1]}">${st[0]}</span></div>
+      <div class="muted">${fmtDay(r.created_at)}${r.replies && r.replies.length ? `・💬 ${r.replies.length} 則回覆` : ''}</div>
+    </summary>
+    <div class="box gray" style="margin-top:.6rem">${linkify(r.content)}</div>
+    ${r.image_count > 0 ? `<div class="thumbs">${Array.from({ length: r.image_count }, (_, i) => `<a href="/api/issues/${r.id}/image/${i}" target="_blank" rel="noopener" class="thumb"><img src="/api/issues/${r.id}/image/${i}" alt="附圖 ${i + 1}"></a>`).join('')}</div>` : ''}
+    ${(r.replies || []).map(rp => `<div class="box ${rp.author_role === 'partner' ? 'gray' : 'green'}"><span class="lbl">${esc(who(rp))}・${fmtDay(rp.created_at)}</span>${linkify(rp.text)}</div>`).join('')}
+    <div class="field" style="margin-top:.6rem"><label for="iss-reply-${r.id}">回覆</label><textarea class="input" id="iss-reply-${r.id}" rows="2"></textarea></div>
+    <div class="btns">
+      ${r.status !== 'resolved' ? `<button class="btn ghost" onclick="resolveIssue(${r.id})">✅ 問題已解決</button>` : ''}
+      <button class="btn primary" onclick="replyIssue(${r.id})">送出回覆</button>
+    </div>
+  </details>`;
+}
+function renderIssues() {
+  const list = myIssues.filter(r => r.report_type === issueTab);
+  $('iss-list').innerHTML = list.length ? list.map(issueCard).join('') : '<div class="card empty">還沒有回報紀錄</div>';
+}
+async function markIssueRead(id) {
+  const r = myIssues.find(x => x.id === id);
+  if (!r || !r.unread_reporter) return;
+  try { await API.put(`/api/issues/${id}/read`, {}); r.unread_reporter = false; syncIssueUnread(); } catch (e) {}
+}
+async function replyIssue(id) {
+  const el = $('iss-reply-' + id), text = el.value.trim();
+  if (!text) { showToast('請輸入回覆內容', 'warn'); return; }
+  try { await API.post(`/api/issues/${id}/reply`, { text }); showToast('回覆已送出', 'success'); await loadIssues(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+async function resolveIssue(id) {
+  if (!confirm('確定這個問題已經解決了嗎？')) return;
+  try { await API.put(`/api/issues/${id}/status`, { status: 'resolved' }); showToast('已標記為解決', 'success'); await loadIssues(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+let svName = '';
+async function openIssueForm() {
+  issueImgs = [];
+  $('issue-thumbs').innerHTML = ''; $('issue-title-in').value = ''; $('issue-content').value = '';
+  $('issue-err').style.display = 'none';
+  const toSv = issueTab === 'supervisor';
+  $('issue-task-wrap').style.display = toSv ? '' : 'none';
+  if (toSv) {
+    if (!me.supervisor_id) { showToast('您還沒有負責的派案人員，請改用「回報管理人員」', 'warn'); return; }
+    $('issue-target').textContent = '送給派案人員：' + (svName || '讀取中…');
+    $('issue-task').innerHTML = '<option value="">不指定</option>' + active.map(t => `<option value="${t.id}">${esc(taskLabel(t))}${taskCode(t) ? ' #' + esc(taskCode(t)) : ''}</option>`).join('');
+  } else $('issue-target').textContent = '送給管理人員';
+  openSheet('issue-overlay');
+}
+async function addIssueImages(input) {
+  for (const f of Array.from(input.files)) {
+    if (issueImgs.length >= 3) { showToast('最多 3 張圖片', 'warn'); break; }
+    try { issueImgs.push(await compressImage(f, 600, .7)); } catch (e) { showToast('圖片讀取失敗', 'error'); }
+  }
+  input.value = ''; renderIssueThumbs();
+}
+function renderIssueThumbs() {
+  $('issue-thumbs').innerHTML = issueImgs.map((d, i) => `<div class="thumb"><img src="${d}" alt="附圖 ${i + 1}"><button aria-label="移除第 ${i + 1} 張圖片" onclick="issueImgs.splice(${i},1);renderIssueThumbs()">✕</button></div>`).join('');
+}
+async function submitIssue() {
+  const err = $('issue-err'); err.style.display = 'none';
+  const title = $('issue-title-in').value.trim(), content = $('issue-content').value.trim();
+  if (!title || !content) { err.textContent = '請填寫標題和內容'; err.style.display = 'block'; return; }
+  const toSv = issueTab === 'supervisor';
+  const sel = $('issue-task');
+  const body = toSv
+    ? { report_type: 'supervisor', title, content, supervisor_id: me.supervisor_id, supervisor_name: svName,
+        assignment_id: sel.value || null, assignment_name: sel.value ? sel.options[sel.selectedIndex].textContent : null }
+    : { report_type: 'admin', title, content };
+  const btn = $('issue-submit'); btn.disabled = true; btn.textContent = '送出中…';
   try {
-    await API.post('/api/issues/'+id+'/reply', { text });
-    input.value = '';
-    showToast('回覆已送出', 'success');
-    if (tab==='admin') await loadMyIssuesAdmin(); else await loadMyIssuesSv();
-    const el2 = document.getElementById('pt-issue-detail-'+id);
-    if (el2) el2.style.display='block';
-  } catch(e) { showToast(e.message,'error'); }
+    const r = await API.post('/api/issues', body);
+    for (let i = 0; i < issueImgs.length; i++) await API.post(`/api/issues/${r.id}/image`, { index: i, data: issueImgs[i], mime: 'image/jpeg' });
+    closeSheet('issue-overlay'); showToast('回報已送出！', 'success'); loadIssues();
+  } catch (e) { err.textContent = e.message; err.style.display = 'block'; }
+  btn.disabled = false; btn.textContent = '送出';
 }
 
-function ptIssueImgPreview(input, idx, ns) {
-  const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const max = 600; let w = img.width, h = img.height;
-      if (w > max) { h = Math.round(h*max/w); w = max; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      if (ns==='sv-report') ptIssueSvImgs[idx] = { data:dataUrl, mime:'image/jpeg' };
-      else if (ns==='pt-admin') ptIssueAdminImgs[idx] = { data:dataUrl, mime:'image/jpeg' };
-      const prevEl = document.getElementById('issue-'+ns+'-img-prev-'+idx);
-      const iconEl = document.getElementById('issue-'+ns+'-img-icon-'+idx);
-      if (prevEl) { prevEl.src=dataUrl; prevEl.style.display='block'; }
-      if (iconEl) iconEl.style.display='none';
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+// ── 🧑 個人資料 ────────────────────────────────────────────────
+let prof = {};
+const maskId = s => s && s.length > 4 ? s.slice(0, 2) + '*'.repeat(s.length - 5) + s.slice(-3) : (s || '');
+function fillProfile() {
+  $('prof-name').value = prof.real_name || ''; $('prof-idno').value = maskId(prof.id_number);
+  $('prof-birthday').value = prof.birthday || ''; $('prof-phone').value = prof.phone || '';
+  $('prof-address').value = prof.address || ''; $('prof-email').value = prof.email || '';
+  $('prof-bank-code').value = prof.bank_code || ''; $('prof-bank-name').value = prof.bank_name || ''; $('prof-bank-account').value = prof.bank_account || '';
 }
-
-async function submitIssueSv() {
-  const sel = document.getElementById('issue-sv-target');
-  const titleEl = document.getElementById('issue-sv-title');
-  const contEl = document.getElementById('issue-sv-content');
-  const taskSel = document.getElementById('issue-sv-task');
-  const errEl = document.getElementById('issue-sv-err');
-  errEl.style.display = 'none';
-  const title = titleEl && titleEl.value.trim();
-  const content = contEl && contEl.value.trim();
-  const svId = sel && sel.value;
-  const dispDiv = document.getElementById('issue-sv-target-display');
-  const svName = dispDiv ? dispDiv.textContent.replace(/^督導：/,'') : '';
-  const taskId = taskSel && taskSel.value;
-  const taskName = taskSel && taskSel.selectedIndex > 0 ? taskSel.options[taskSel.selectedIndex].textContent : null;
-  if (!svId) { errEl.textContent='尚未指派督導人員'; errEl.style.display='block'; return; }
-  if (!title||!content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
-  try {
-    const r = await API.post('/api/issues', { report_type:'supervisor', title, content, supervisor_id:svId, supervisor_name:svName, assignment_id:taskId||null, assignment_name:taskName||null });
-    const id = r.id; let imgIdx = 0;
-    for (const img of ptIssueSvImgs) {
-      if (img) await API.post('/api/issues/'+id+'/image', { index:imgIdx, data:img.data, mime:img.mime });
-      imgIdx++;
-    }
-    titleEl.value=''; contEl.value='';
-    ptIssueSvImgs=[null,null,null];
-    for (let i=0;i<3;i++) {
-      const prev = document.getElementById('issue-sv-report-img-prev-'+i);
-      const icon = document.getElementById('issue-sv-report-img-icon-'+i);
-      if (prev) { prev.style.display='none'; prev.src=''; }
-      if (icon) icon.style.display='';
-    }
-    showToast('回報已送出！', 'success');
-    await loadMyIssuesSv();
-  } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
-}
-
-async function submitPtIssueAdmin() {
-  const titleEl = document.getElementById('issue-pt-admin-title');
-  const contEl = document.getElementById('issue-pt-admin-content');
-  const errEl = document.getElementById('issue-pt-admin-err');
-  errEl.style.display = 'none';
-  const title = titleEl && titleEl.value.trim();
-  const content = contEl && contEl.value.trim();
-  if (!title||!content) { errEl.textContent='請填寫標題與內容'; errEl.style.display='block'; return; }
-  try {
-    const r = await API.post('/api/issues', { report_type:'admin', title, content });
-    const id = r.id; let imgIdx = 0;
-    for (const img of ptIssueAdminImgs) {
-      if (img) await API.post('/api/issues/'+id+'/image', { index:imgIdx, data:img.data, mime:img.mime });
-      imgIdx++;
-    }
-    titleEl.value=''; contEl.value='';
-    ptIssueAdminImgs=[null,null,null];
-    for (let i=0;i<3;i++) {
-      const prev = document.getElementById('issue-pt-admin-img-prev-'+i);
-      const icon = document.getElementById('issue-pt-admin-img-icon-'+i);
-      if (prev) { prev.style.display='none'; prev.src=''; }
-      if (icon) icon.style.display='';
-    }
-    showToast('回報已送出！', 'success');
-    await loadMyIssuesAdmin();
-  } catch(e) { errEl.textContent=e.message; errEl.style.display='block'; }
-}
-
-async function syncPtIssueNotifyBar() {
-  try {
-    const data = await API.get('/api/issues/unread');
-    const badge = document.getElementById('badge-issues');
-    const total = data.from_handler||0;
-    if (badge) { badge.style.display = total > 0 ? '' : 'none'; badge.textContent = total; }
-  } catch(e){}
-}
-
-// ── 個人資料 ──────────────────────────────────────────────────
-let profData = {};
-
-function fillProfile(p) {
-  profData = p;
-  ['real-name','id-number','birthday','phone','address'].forEach(f => {
-    const el = document.getElementById('prof-'+f.replace('-','-'));
-    if (el) el.value = p[f.replace('-','_')] || '';
-  });
-  document.getElementById('prof-real-name').value = p.real_name||'';
-  document.getElementById('prof-id-number').value = p.id_number||'';
-  document.getElementById('prof-birthday').value = p.birthday||'';
-  document.getElementById('prof-phone').value = p.phone||'';
-  document.getElementById('prof-address').value = p.address||'';
-  document.getElementById('prof-bank-name').value = p.bank_name||'';
-  document.getElementById('prof-bank-account').value = p.bank_account||'';
-}
-
-function setFieldEditable(ids, editable) {
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.disabled = !editable;
-    el.style.background = editable ? '#fff' : 'var(--bg)';
-    el.style.color = editable ? 'var(--text)' : 'var(--text-s)';
-  });
-}
-
-function toggleProfEdit() {
-  setFieldEditable(['prof-phone','prof-address'], true);
-  document.getElementById('prof-edit-btn').style.display='none';
-  document.getElementById('prof-save-row').style.display='flex';
-}
-function cancelProfEdit() {
-  fillProfile(profData);
-  setFieldEditable(['prof-phone','prof-address'], false);
-  document.getElementById('prof-edit-btn').style.display='';
-  document.getElementById('prof-save-row').style.display='none';
+function toggleProfEdit(on) {
+  ['prof-phone', 'prof-address'].forEach(i => { $(i).disabled = !on; });
+  $('prof-edit-btn').style.display = on ? 'none' : ''; $('prof-save-row').style.display = on ? 'flex' : 'none';
+  if (on) $('prof-phone').focus(); else fillProfile();
 }
 async function saveProfile() {
   try {
-    await API.put('/api/profile', { phone:document.getElementById('prof-phone').value, address:document.getElementById('prof-address').value });
-    profData.phone = document.getElementById('prof-phone').value;
-    profData.address = document.getElementById('prof-address').value;
-    cancelProfEdit();
-    showToast('個人資料已儲存', 'success');
-  } catch(e) { showToast(e.message,'error'); }
+    await API.put('/api/profile', { phone: $('prof-phone').value.trim(), address: $('prof-address').value.trim() });
+    prof.phone = $('prof-phone').value.trim(); prof.address = $('prof-address').value.trim();
+    toggleProfEdit(false); showToast('個人資料已儲存', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
 }
-function toggleBankEdit() {
-  setFieldEditable(['prof-bank-name','prof-bank-account'], true);
-  document.getElementById('bank-edit-btn').style.display='none';
-  document.getElementById('bank-save-row').style.display='flex';
-}
-function cancelBankEdit() {
-  document.getElementById('prof-bank-name').value = profData.bank_name||'';
-  document.getElementById('prof-bank-account').value = profData.bank_account||'';
-  setFieldEditable(['prof-bank-name','prof-bank-account'], false);
-  document.getElementById('bank-edit-btn').style.display='';
-  document.getElementById('bank-save-row').style.display='none';
+function toggleBankEdit(on) {
+  ['prof-bank-code', 'prof-bank-name', 'prof-bank-account'].forEach(i => { $(i).disabled = !on; });
+  $('bank-edit-btn').style.display = on ? 'none' : ''; $('bank-save-row').style.display = on ? 'flex' : 'none';
+  if (on) $('prof-bank-code').focus(); else fillProfile();
 }
 async function saveBank() {
-  try {
-    await API.put('/api/profile/bank', { bank_name:document.getElementById('prof-bank-name').value, bank_account:document.getElementById('prof-bank-account').value });
-    profData.bank_name = document.getElementById('prof-bank-name').value;
-    profData.bank_account = document.getElementById('prof-bank-account').value;
-    cancelBankEdit();
-    showToast('銀行資料已儲存', 'success');
-  } catch(e) { showToast(e.message,'error'); }
+  const body = { bank_code: $('prof-bank-code').value.trim(), bank_name: $('prof-bank-name').value.trim(), bank_account: $('prof-bank-account').value.trim() };
+  try { await API.put('/api/profile/bank', body); Object.assign(prof, body); toggleBankEdit(false); showToast('銀行資料已儲存', 'success'); }
+  catch (e) { showToast(e.message, 'error'); }
 }
-
 async function changePassword() {
-  const err = document.getElementById('prof-cpw-err');
-  err.style.display='none';
-  const current = document.getElementById('prof-cpw-current').value;
-  const newPw = document.getElementById('prof-cpw-new').value;
-  const confirm = document.getElementById('prof-cpw-confirm').value;
-  if (newPw.length<6||newPw.length>12) { err.textContent='新密碼須為 6～12 位'; err.style.display='block'; return; }
-  if (newPw!==confirm) { err.textContent='兩次輸入不一致'; err.style.display='block'; return; }
+  const err = $('pw-err'); err.style.display = 'none';
+  const cur = $('pw-current').value, nw = $('pw-new').value, cf = $('pw-confirm').value;
+  const fail = m => { err.textContent = m; err.style.display = 'block'; };
+  if (nw.length < 6 || nw.length > 12) return fail('新密碼要 6～12 碼');
+  if (nw !== cf) return fail('兩次輸入的新密碼不一樣');
   try {
-    await API.post('/api/change-password', { current_password:current, new_password:newPw });
-    showToast('密碼已修改', 'success');
-    ['prof-cpw-current','prof-cpw-new','prof-cpw-confirm'].forEach(id => { document.getElementById(id).value=''; });
-  } catch(e) { err.textContent=e.message; err.style.display='block'; }
+    await API.post('/api/change-password', { current_password: cur, new_password: nw });
+    ['pw-current', 'pw-new', 'pw-confirm'].forEach(i => { $(i).value = ''; });
+    showToast('密碼已更新', 'success');
+  } catch (e) { fail(e.status === 401 ? '目前密碼不正確' : e.message); }
 }
 
-// ── 頭像 ─────────────────────────────────────────────────────
-let meId = null;
-
-function loadAvatarM(id) {
-  const saved = localStorage.getItem('hiban_ava_'+id);
-  if (saved) {
-    const el = document.getElementById('m-ava-img');
-    if (el) { el.src=saved; el.style.display='block'; }
-    document.getElementById('m-ava-emoji').style.display='none';
-  }
+// ── 等級（我的頁一行）──────────────────────────────────────────
+async function loadLevel() {
+  try {
+    const x = await API.get('/api/me/xp');
+    const el = $('me-level');
+    el.innerHTML = `<div class="row"><span style="font-size:1.4rem">🏆</span><div style="flex:1"><b>Lv.${esc(x.level)} ${esc(x.levelTitle || '')}</b><div class="muted">經驗值 ${esc(x.xp)}${x.xpToNext ? `・再 ${esc(x.xpToNext)} 升級` : ''}</div></div></div>`;
+    el.style.display = '';
+  } catch (e) {}
 }
 
-function uploadAvatarM(input) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 3*1024*1024) { showToast('圖片請小於 3MB', 'warn'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    const base64 = e.target.result;
-    localStorage.setItem('hiban_ava_'+meId, base64);
-    const el = document.getElementById('m-ava-img');
-    if (el) { el.src=base64; el.style.display='block'; }
-    document.getElementById('m-ava-emoji').style.display='none';
-    showToast('頭像已更新 ✓', 'success');
-  };
-  reader.readAsDataURL(file);
-  input.value='';
+// ── 角標 ───────────────────────────────────────────────────────
+function updateBadges() {
+  setBadge('badge-take', pending.length + grabAvailable().length);
+  setBadge('badge-tasks', active.filter(needsFix).length);
+  const annUnread = meId ? visibleAnns().filter(isUnread).length : 0;
+  setBadge('me-ann-n', annUnread); setBadge('me-issue-n', issueUnread);
+  setBadge('badge-me', annUnread + issueUnread);
 }
 
-// ── Init ─────────────────────────────────────────────────────
-function scheduleAutoLogout() {
-  var now = new Date(new Date().toLocaleString('en-US', { timeZone:'Asia/Taipei' }));
-  var midnight = new Date(now);
-  midnight.setHours(23,59,59,999);
-  setTimeout(function(){ signOut(); }, midnight.getTime()-now.getTime()+1000);
+// ── 啟動 ───────────────────────────────────────────────────────
+function scheduleMidnightLogout() {
+  const now = twNow(), mid = new Date(now); mid.setHours(23, 59, 59, 999);
+  setTimeout(() => signOut(), mid - now + 1000);
 }
-
 async function init() {
-  const me = await requireAuth(['partner']);
+  me = await requireAuth(['partner']);
   if (!me) return;
   meId = me.id;
-  document.getElementById('m-username').textContent = me.real_name;
-  loadAvatarM(me.id);
-  var loginDates = me.login_dates||[];
-  var twNow = new Date(new Date().toLocaleString('en-US', { timeZone:'Asia/Taipei' }));
-  var ym = twNow.getFullYear()+'/'+String(twNow.getMonth()+1).padStart(2,'0');
-  var monthCount = loginDates.filter(function(d){ return d.startsWith(ym); }).length;
-  var loginEl = document.getElementById('overview-login-days');
-  if (loginEl) loginEl.textContent = monthCount+'天';
-  scheduleAutoLogout();
-  const p = await API.get('/api/profile');
-  fillProfile(p);
-  loadAnnouncements();
-  loadGrabZone();
-  let loaded = await loadTasks();
-  if (!loaded) { await new Promise(r => setTimeout(r,800)); loaded = await loadTasks(); }
-  if (!loaded) { await new Promise(r => setTimeout(r,1500)); await loadTasks(); }
-  pollInterval = setInterval(loadTasks, 5000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadTasks(); });
+  $('me-name').textContent = me.real_name || '';
+  $('ava').textContent = (me.real_name || '夥').slice(-1);
+  $('hello-text').textContent = `${me.nickname || me.real_name || ''}，您好！`;
+  scheduleMidnightLogout();
+  showPage(location.hash.slice(1) || 'home');
+  API.get('/api/profile').then(p => { prof = p; fillProfile(); }).catch(() => {});
+  if (me.supervisor_id) API.get('/api/users-list?role=supervisor').then(l => { const s = l.find(u => String(u.id) === String(me.supervisor_id)); svName = s ? s.real_name : ''; }).catch(() => {});
+  setIssueTab('supervisor');
+  loadAnnouncements(); loadGrab(); loadLevel(); syncIssueUnread();
+  if (location.hash === '#issues') loadIssues();
+  if (!(await loadTasks())) setTimeout(loadTasks, 1500);
+  booted = true;
+  // 不用即時監聽（省 Firestore 讀取）：回到畫面時更新，平常每 60 秒更新一次
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { loadTasks(); loadGrab(); } });
+  setInterval(() => { if (!document.hidden) loadTasks(); }, 60000);
 }
 init();
 </script>

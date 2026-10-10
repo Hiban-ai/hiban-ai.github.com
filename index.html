@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="checking">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>希絆雲作所 — 登入</title>
+<script>/* 網路慢或程式出錯時，最多 3 秒一定顯示登入表單 */setTimeout(function () { document.documentElement.classList.remove('checking'); }, 3000);</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -95,6 +96,9 @@ body::after{content:'';position:absolute;width:400px;height:400px;border-radius:
   padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:fadeUp .3s ease;border-top:4px solid var(--blue)}
 .overlay-title{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700;margin-bottom:.25rem}
 .overlay-desc{font-size:.82rem;color:var(--text-s);margin-bottom:1.25rem;line-height:1.6}
+
+/* 確認登入狀態期間先不顯示表單：已登入的人會直接被帶走，不會先閃一下登入畫面 */
+.checking .logo-wrap,.checking main,.checking .footer{visibility:hidden}
 
 /* Footer */
 .footer{margin-top:1.25rem;color:rgba(255,255,255,.35);font-size:.7rem;text-align:center;position:relative;z-index:1}
@@ -402,6 +406,7 @@ initForgotBday();
     const me = await API.get('/api/me');
     if (me && me.role) { goToRole(me.role); return; }
   } catch {}
+  document.documentElement.classList.remove('checking');
 })();
 </script>
 </body>

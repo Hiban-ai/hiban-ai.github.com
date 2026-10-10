@@ -81,13 +81,13 @@ details[open] summary .arrow{transform:rotate(180deg)}
     <div class="title">找不到答案嗎？</div>
     <p>請在希絆雲作所 LINE 官方帳號直接傳訊息給我們。<br>客服時間：週一～週五 8:30–17:30</p>
     <div class="btns">
-      <a class="btn primary" href="index.html">登入希絆</a>
+      <a class="btn primary" id="login-btn" href="index.html">登入希絆</a>
       <a class="btn ghost" href="register.html">申請加入</a>
     </div>
   </div>
 </div>
 
-<a class="home-btn" href="index.html" aria-label="回首頁（登入頁）"><span aria-hidden="true">🏠</span>回首頁</a>
+<a class="home-btn" id="home-btn" href="index.html" aria-label="回首頁（登入頁）"><span aria-hidden="true">🏠</span>回首頁</a>
 
 <script>
 function esc(s) {
@@ -139,6 +139,25 @@ function openFromHash() {
 }
 window.addEventListener('hashchange', openFromHash);
 loadFaq();
+
+// 已登入的人：「回首頁」直接回自己的人員頁面（手機版／電腦版規則同登入頁），不經過登入頁
+(async () => {
+  try {
+    const res = await fetch('/api/me', { credentials: 'same-origin' });
+    if (!res.ok) return;
+    const me = await res.json();
+    let pref = null;
+    try { pref = localStorage.getItem('hiban_view'); } catch (e) {}
+    const mobile = pref ? pref === 'mobile' : /Android|iPhone|iPod/i.test(navigator.userAgent);
+    const page = { partner: 'partner', supervisor: 'supervisor', staff: 'staff' }[me.role];
+    if (!page) return;
+    const href = page + (mobile ? '-mobile' : '') + '.html';
+    const home = document.getElementById('home-btn');
+    home.href = href; home.setAttribute('aria-label', '回到我的首頁');
+    const login = document.getElementById('login-btn');
+    login.href = href; login.textContent = '回到我的首頁';
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>

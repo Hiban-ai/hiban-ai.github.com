@@ -15,12 +15,19 @@
 html{scroll-behavior:smooth;background:#EBF7FD}
 body{font-family:'Noto Sans TC',sans-serif;color:var(--text);min-height:100vh;
   background:linear-gradient(160deg,#48B4E8 0%,#74CAEF 30%,#A8DCEF 55%,#EBF7FD 80%);
-  padding:1.5rem 1rem 2.5rem;line-height:1.7}
+  padding:1.5rem 1rem 6rem;line-height:1.7}
 .wrap{max-width:720px;margin:0 auto}
 
 .head{text-align:center;color:#fff;margin-bottom:1.25rem}
 .head .brand{font-family:'Noto Serif TC',serif;font-weight:900;font-size:1.05rem;letter-spacing:.12em;opacity:.95}
 .head h1{font-family:'Noto Serif TC',serif;font-weight:900;font-size:2rem;letter-spacing:.08em;margin-top:.15rem}
+
+/* 回首頁：固定在右下角，從 #分類 連結直接進來時也看得到 */
+.home-btn{position:fixed;right:1rem;bottom:1rem;z-index:50;display:inline-flex;align-items:center;gap:.4rem;
+  min-height:52px;padding:.5rem 1.25rem;border-radius:26px;background:linear-gradient(135deg,#1A8AC0,#48B4E8);
+  color:#fff;font-size:1rem;font-weight:700;text-decoration:none;box-shadow:0 6px 20px rgba(15,90,153,.35)}
+.home-btn:hover{filter:brightness(1.05)}
+.home-btn:focus-visible{outline:3px solid var(--blue-dd);outline-offset:3px}
 
 /* 分類快速跳轉 */
 .cats{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1.25rem}
@@ -79,6 +86,8 @@ details[open] summary .arrow{transform:rotate(180deg)}
     </div>
   </div>
 </div>
+
+<a class="home-btn" href="index.html" aria-label="回首頁（登入頁）"><span aria-hidden="true">🏠</span>回首頁</a>
 
 <script>
 function esc(s) {
